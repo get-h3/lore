@@ -25,5 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation to the fleet's public-deliverable standard: this changelog,
   `SECURITY.md`, and a README rewrite with a runnable walkthrough
   (`LORE-015`).
+- Runbook compiler: `lore/compiler.py` + `lore/runbook.py` emit a Runbook per
+  curated failure class (signature, ordered checks with healthy-vs-incident
+  expectations and the decision each drives, recovery ladder, `never X`
+  guardrails, evidence trail, provenance + `last_validated`). Compilation is
+  **propose-not-write** — no published runbook is written to disk. Adds the
+  `lore compile [--class X] [--format json|md]` subcommand (commits `7cbdb70`,
+  merge `d969b81`).
 - QA cycle finding `QA-LORE-1` (upgrade-path finding) appended to the board
   (commit `209fb2c`).

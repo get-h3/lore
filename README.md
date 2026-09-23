@@ -64,10 +64,50 @@ doctrine**: an unknown symptom says `unclassified` loudly rather than
 pretending to recognize it. Inventing classes without approval is not allowed;
 absorbing into `unclassified` always is.
 
+Now compile the runbook for the class you just matched:
+
+```sh
+uv run python -m lore compile --class gateway-drain-window --format md
+```
+
+Abridged real output (the `--format json` variant prints the same structure as
+JSON):
+
+````text
+# Runbook: Gateway drain window (`gateway-drain-window`)
+
+- **Status:** proposal
+- **Last validated:** no data (never validated)
+- **Provenance:** Compiled by lore.compiler from the curated class registry (lore.classes) and the fleet's incident history. Operator approval required to publish (propose-not-write).
+- **Signature:** `drain\s+503`
+
+## Checks (in order)
+
+### Check 1 (read-only)
+
+    logsey query --pattern 'drain 503' --since 30m
+
+- Healthy: no rows
+- Incident: 503s on in-flight requests while the gateway restarts/reloads
+- Decision: confirm the class signature before touching anything
+````
+
+Note the two honesty fields: **Status: proposal** and **Last validated: no data
+(never validated)**. The compiler emits a proposal and never writes a published
+runbook to disk — publishing requires operator approval. A runbook that has
+never been re-validated says so rather than carrying a confident-looking date.
+
+An unknown class is refused rather than invented (the registry is closed):
+
+```sh
+uv run python -m lore compile --class does-not-exist ; echo "exit=$?"
+# exit=2
+```
+
 Run the tests and lint that gate every change:
 
 ```sh
-uv run pytest -q        # 16 passed in 0.04s
+uv run pytest -q        # 45 passed in 0.05s
 uv run ruff check .     # All checks passed!
 ```
 
@@ -105,8 +145,8 @@ assertion.
   the evidence that identifies it — instead of searching chat archives by
   memory.
 - **The AI agent landing on a fresh node**: a first responder that starts with
-  the fleet's scar tissue instead of zero. `lore match` is the entry point;
-  full runbooks and sync land on the roadmap below.
+  the fleet's scar tissue instead of zero. `lore match` finds the class;
+  `lore compile` prints the compiled runbook as a proposal.
 - **The post-incident scribe**: today's classifier is the taxonomy spine that
   the planned absorb/audit workflow will file updates into, so yesterday's fix
   becomes next time's runbook.
@@ -163,16 +203,18 @@ Standalone tools; pairs compound — pulse joins logsey, digest cites everything
 **v0.1.0 — early.** Kicked off 2026-09-23. What exists today:
 
 - The failure-class taxonomy + classifier (9 curated classes + `unclassified`),
-  with 16 tests passing and a clean `ruff check`.
+  with 45 tests passing and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
+- The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+  Runbook per curated class, as a **proposal** — it never writes a published
+  runbook to disk. See "What a runbook carries" above for the shape.
 - Zero runtime dependencies; MIT licensed; CI (build + pytest + ruff) green on
   `main`.
 
 What does **not** exist yet — and is only promised here as *planned*, never as
-runnable: the runbook compiler itself (`lore compile`), runbook viewing
-(`lore show`), absorbing incident trails into proposals (`lore absorb`),
-coverage audit (`lore audit`), and re-validation (`lore validate`). The PRD's
-planned interface is:
+runnable: runbook viewing (`lore show`), absorbing incident trails into
+proposals (`lore absorb`), coverage audit (`lore audit`), and re-validation
+(`lore validate`). The PRD's planned interface is:
 
 ```text
 lore match "<symptoms|log line>" [--class ...]
@@ -182,7 +224,7 @@ lore audit [--format table|json|md]                 # coverage + freshness matri
 lore validate [--class ...]                         # run the read-only command lint now
 ```
 
-Only `lore match` runs today. See [`docs/PRD.md`](docs/PRD.md) for the full
+`lore match` and `lore compile` run today. See [`docs/PRD.md`](docs/PRD.md) for the full
 product requirements, the design authority this repo is judged against. The
 task list lives on the project board at `.coding-hermes/board/tasks.jsonl`.
 
