@@ -20,6 +20,7 @@ import sys
 from lore.classifier import classify_all
 from lore.compiler import compile_all, compile_class
 from lore.runbook import Runbook
+from lore.validate import is_read_only_command, lint_runbook
 
 
 def _cmd_match(args: argparse.Namespace) -> int:
@@ -52,6 +53,90 @@ def _cmd_compile(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_validate(args: argparse.Namespace) -> int:
+    """LORE-006: the read-only command lint.
+
+    DEFAULT IS PLAN-ONLY (``--dry-run`` is the default, not the exception):
+    it lists which commands WOULD run and executes NOTHING. Actual
+    execution requires the explicit ``--execute`` opt-in, and even then the
+    default-deny gate refuses every command it cannot positively recognize
+    as read-only. Honesty: a green lint proves commands parse and answer,
+    NOT that recovery succeeds.
+    """
+    runbooks: list[Runbook]
+    if args.class_id:
+        try:
+            runbooks = [compile_class(args.class_id)]
+        except KeyError as exc:
+            print(f"error: {exc.args[0]}", file=sys.stderr)
+            return 2
+    else:
+        runbooks = compile_all()
+
+    if not args.execute:
+        # Plan/dry-run: list what WOULD run; never execute anything.
+        if args.format == "json":
+            plan = [
+                {
+                    "class_id": rb.class_id,
+                    "mode": "plan",
+                    "note": (
+                        "plan only — no command was executed; pass --execute "
+                        "to run the gate-approved read-only commands"
+                    ),
+                    "would_run": [
+                        {"order": c.order, "command": c.command}
+                        for c in sorted(rb.checks, key=lambda x: x.order)
+                        if c.command.strip() and c.command.strip() != "no data"
+                    ],
+                    "absent": [
+                        c.order
+                        for c in sorted(rb.checks, key=lambda x: x.order)
+                        if c.command.strip() == "no data"
+                    ],
+                    "would_refuse": [
+                        {"order": c.order, "command": c.command}
+                        for c in sorted(rb.checks, key=lambda x: x.order)
+                        if c.command.strip()
+                        and c.command.strip() != "no data"
+                        and not is_read_only_command(c.command)
+                    ],
+                }
+                for rb in runbooks
+            ]
+            print(json.dumps(plan, indent=2))
+        else:
+            for rb in runbooks:
+                print(f"# {rb.class_id} — plan (nothing executed)")
+                if not rb.checks:
+                    print("  no data (no checks)")
+                for c in sorted(rb.checks, key=lambda x: x.order):
+                    if c.command.strip() == "no data":
+                        print(f"  check {c.order}: absent (no data — not a command)")
+                    elif is_read_only_command(c.command):
+                        print(f"  check {c.order}: would run: {c.command}")
+                    else:
+                        print(f"  check {c.order}: would REFUSE: {c.command}")
+                print()
+        return 0
+
+    # Explicit --execute: run gate-approved read-only commands only.
+    reports = [lint_runbook(rb) for rb in runbooks]
+    if args.format == "json":
+        print(json.dumps([r.to_dict() for r in reports], indent=2))
+    else:
+        for report in reports:
+            print(f"# {report.class_id}")
+            for r in report.results:
+                suffix = f" (exit {r.exit_code})" if r.exit_code is not None else ""
+                print(f"  check {r.order}: {r.outcome}{suffix}: {r.command}")
+            reason = report.stale_reason
+            print(f"  stale_reason: {reason if reason else 'none'}")
+            print(f"  honesty: {report.honesty_label}")
+            print()
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="lore",
@@ -78,6 +163,36 @@ def build_parser() -> argparse.ArgumentParser:
         help="output format (default: json)",
     )
     compile_p.set_defaults(func=_cmd_compile)
+
+    validate_p = sub.add_parser(
+        "validate",
+        help=(
+            "read-only command lint (LORE-006). DEFAULT = plan/dry-run: "
+            "lists what WOULD run, executes NOTHING; pass --execute to run "
+            "the gate-approved read-only commands"
+        ),
+    )
+    validate_p.add_argument(
+        "--class",
+        dest="class_id",
+        default=None,
+        help="lint one class; omit to lint every registry class",
+    )
+    validate_p.add_argument(
+        "--format",
+        choices=("json", "md"),
+        default="json",
+        help="output format (default: json)",
+    )
+    validate_p.add_argument(
+        "--execute",
+        action="store_true",
+        help=(
+            "OPT-IN: actually run the gate-approved read-only commands "
+            "(default is plan-only, nothing is executed)"
+        ),
+    )
+    validate_p.set_defaults(func=_cmd_validate)
     return parser
 
 
