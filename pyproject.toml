@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lore"
+version = "0.1.0"
+description = "Runbook compiler: compiles fleet incident history into living, re-validated runbooks per failure class"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "get-h3 agent-ops" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+
+[project.scripts]
+lore = "lore.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["lore*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
