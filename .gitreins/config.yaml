@@ -16,10 +16,18 @@ guards:
   # grade skip instead of false-DEGRADED-blocking the commit.
   allow_skips: true
 evaluator:
-  # 2026-09-23: 15 starved on the LORE-003 Tier-2 judge (16.0 used, corpus
-  # gitreins-tier2-iteration-cap-exceeded). One rung raise; no stage pin exists
-  # in this config so evaluator.max_iterations is the effective cap.
-  max_iterations: 25
+  # Escalation history (gitreins-cap-sizing discipline: record the ladder, not
+  # just the value, so the next tick does not re-derive it):
+  #   2026-09-23 LORE-003: starved at 15 (16.0 used) -> raised to 25 -> PASS.
+  #   2026-09-23 LORE-004: starved at 25 (25.0 used exact equality = the
+  #     starvation signal), tier1 PASS, tier2 INCOMPLETE, no merits finding.
+  #     Token burn that run: ~476K of the 10M effective budget (usage.jsonl) —
+  #     iterations are the binding knob, tokens are not. -> raised to 50.
+  #   Sizing: 9 Python source files; the table's <100-file rung is 50.
+  # No stage pin and no `defaults:` copy exists in this config, so
+  # evaluator.max_iterations is the effective cap (proven by importing
+  # engine.eval_cap.eval_cap_from_config, not by grepping).
+  max_iterations: 50
 history:
   enabled: true
   storage: git
