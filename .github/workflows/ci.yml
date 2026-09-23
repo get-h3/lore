@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install uv (Python + dependency manager).
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install Python 3.11
+        run: uv python install 3.11
+
+      # The Python package lands on a sibling branch; everything below is
+      # guarded so this workflow still passes on a checkout before that merge.
+      - name: Install project + dev deps
+        if: hashFiles('pyproject.toml') != ''
+        run: uv sync --extra dev
+
+      - name: Lint
+        if: hashFiles('pyproject.toml') != ''
+        run: uv run ruff check .
+
+      - name: Test
+        if: hashFiles('pyproject.toml') != ''
+        # Exit code 5 from pytest means "no tests collected" — the honest
+        # no-tests-yet case, not a pass. We tolerate only that exact code so
+        # a real failure (tests present and failing) still fails the job.
+        run: |
+          uv run pytest -q || test $? = 5
