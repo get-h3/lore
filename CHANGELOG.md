@@ -39,8 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `docs/INSTALL.md`: prerequisites, install, and first run for someone who has
   never seen the fleet — every command shown was run, every output pasted
-  verbatim (67 tests on the merged tree, `match`/`compile`/`--help`), plus an
-  explicit "what this tool is NOT" section.
+  verbatim (148 tests on the merged tree, `match`/`compile`/`validate`/`--help`),
+  plus an explicit "what this tool is NOT" section.
 - `docs/RUNBOOK-STORE.md`: the runbook-store design **decision** — central
   registry in the fleet's DuckBrain namespace + materialized per-repo
   git-tracked `runbooks/` dirs; read/write paths, propose-not-write, conflict

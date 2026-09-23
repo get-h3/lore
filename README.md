@@ -115,7 +115,7 @@ uv run python -m lore compile --class does-not-exist ; echo "exit=$?"
 Run the tests and lint that gate every change:
 
 ```sh
-uv run pytest -q        # 67 passed
+uv run pytest -q        # 148 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -219,7 +219,7 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (9 curated classes + `unclassified`),
-  with **67 tests passing** and a clean `ruff check`.
+  with **148 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published
@@ -230,14 +230,17 @@ and what does not:
   unimplemented. Attaching evidence never sets `last_validated`.
 - Zero runtime dependencies; MIT licensed; CI (build + pytest + ruff) green on
   `main`.
+- The read-only command lint (`lore validate`): re-runs each runbook's checks and
+  flips a drifted runbook to `stale`, carrying the reason. **Default is plan
+  mode** — it lists what *would* run and executes nothing; `--execute` opts in.
+  The report carries a machine-checkable honesty label: the lint proves commands
+  *parse and answer*, **not** that recovery *succeeds*. No schedule is installed
+  yet (a separate task owns the weekly timer).
 - Install guide: [docs/INSTALL.md](docs/INSTALL.md). Runbook-store design
   decision: [docs/RUNBOOK-STORE.md](docs/RUNBOOK-STORE.md).
 
 ### Planned / in flight — named, not promised as runnable
 
-- **Read-only command lint / re-validation loop** (`lore validate` + weekly
-  scheduled lint flipping drifted runbooks to `stale`) — in flight, task
-  `LORE-006`.
 - **Runbook store** (central registry + materialized per-repo dirs) — design
   decided in [RUNBOOK-STORE.md](docs/RUNBOOK-STORE.md), not implemented.
 - **Runbook viewing (`lore show`), absorbing incident trails into proposals

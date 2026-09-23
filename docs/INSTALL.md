@@ -45,17 +45,18 @@ uv run ruff check .
 Real output on the current tree:
 
 ```
-...................................................................      [100%]
-67 passed in 0.07s
+........................................................................ [ 97%]
+....                                                                     [100%]
+148 passed in 0.10s
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **67 tests** (4 test files: taxonomy, classifier,
-compiler, evidence). If your run says something else, you are on a different
-revision — check `git log` before trusting this document.
+The count to expect is **148 tests** (5 test files: taxonomy, classifier,
+compiler, evidence, validate). If your run says something else, you are on a
+different revision — check `git log` before trusting this document.
 
 ## First run
 
@@ -66,22 +67,28 @@ uv run python -m lore --help
 ```
 
 ```
-usage: lore [-h] {match,compile} ...
+usage: lore [-h] {match,compile,validate} ...
 
 Match symptoms and compile runbooks from fleet incident history.
 
 positional arguments:
-  {match,compile}
-    match          classify a symptom text
-    compile        compile runbook proposal(s) per failure class (stdout only)
+  {match,compile,validate}
+    match               classify a symptom text
+    compile             compile runbook proposal(s) per failure class (stdout
+                        only)
+    validate            read-only command lint (LORE-006). DEFAULT = plan/dry-
+                        run: lists what WOULD run, executes NOTHING; pass
+                        --execute to run the gate-approved read-only commands
 
 options:
-  -h, --help       show this help message and exit
+  -h, --help            show this help message and exit
 ```
 
-That is the entire shipped CLI today: two subcommands, `match` and `compile`.
-Anything else you may have heard of (`show`, `absorb`, `audit`, `validate`,
-evidence blocks) is **planned or in flight** — see the README's Status section.
+That is the entire shipped CLI today: three subcommands, `match`, `compile` and
+`validate`. Anything else you may have heard of (`show`, `absorb`, `audit`,
+runbook-store materialization) is **planned** — see the README's Status section.
+`lore validate` runs the lint; the weekly *schedule* that would run it for you is
+not installed (that is a separate task).
 
 ### `match` — classify a symptom
 
