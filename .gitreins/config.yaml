@@ -1,0 +1,25 @@
+# GitReins co-harness config (LORE-014).
+# Keys verified against gitreins 0.15.0 real schema (`gitreins init` output +
+# engine/guard_manager.py / lang_detect.py in the installed pipx venv).
+# No invented flags: `lint` is boolean-only in this version — for Python the
+# lint lane autodetects to `ruff check . --quiet` (plus a ruff format check),
+# which is the CI lint command the Python package lane uses.
+guards:
+  secrets: true
+  lint: true
+  tests: true
+  test_mode: full
+  # uv-based repo (uv sync --extra dev provisions pytest); bare `pytest` would
+  # exit 127 inside the guard subprocess until uv creates .venv (GR-GAP-064).
+  test_command: uv run pytest -x --tb=short
+  # Board-only commits (no code changed) rely on this: lanes with nothing to
+  # grade skip instead of false-DEGRADED-blocking the commit.
+  allow_skips: true
+evaluator:
+  max_iterations: 15
+history:
+  enabled: true
+  storage: git
+  max_verdicts: 1000
+worktree_fleet:
+  disk_ceiling_mb: 4096
