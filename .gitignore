@@ -1,0 +1,25 @@
+# build output
+/bin/
+/build/
+/dist/
+*.exe
+*.test
+*.out
+
+# databases / caches (rebuildable)
+*.db
+*.db-shm
+*.db-wal
+.vfs/
+__pycache__/
+*.pyc
+.ruff_cache/
+.pytest_cache/
+node_modules/
+
+# local scratch
+/tmp/
+*.log
+.env
+.env.*
+!.env.example
