@@ -34,3 +34,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   merge `d969b81`).
 - QA cycle finding `QA-LORE-1` (upgrade-path finding) appended to the board
   (commit `209fb2c`).
+
+### Documentation (2026-09-23, task `LORE-012`)
+
+- `docs/INSTALL.md`: prerequisites, install, and first run for someone who has
+  never seen the fleet — every command shown was run, every output pasted
+  verbatim (45 tests, `match`/`compile`/`--help`), plus an explicit
+  "what this tool is NOT" section.
+- `docs/RUNBOOK-STORE.md`: the runbook-store design **decision** — central
+  registry in the fleet's DuckBrain namespace + materialized per-repo
+  git-tracked `runbooks/` dirs; read/write paths, propose-not-write, conflict
+  and freshness rules, rejected alternatives. Design only; not implemented.
+- README to the public-deliverable standard: hook headline, real numbers,
+  PRD US-1..US-4 use-cases, and a Status section that separates shipped from
+  planned/in-flight per task id (`LORE-005` evidence blocks and `LORE-006`
+  re-validation are in flight, not shipped).

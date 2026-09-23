@@ -1,6 +1,6 @@
 # lore
 
-### The cure that lived in one session transcript. Compiled into a runbook that proves it still runs.
+### Six greps across three archives to find what fixed it last time. One lookup that proves the fix still runs.
 
 Runbook compiler — **"how did we fix this last time, and does it still work?"**
 
@@ -11,13 +11,21 @@ Runbook compiler — **"how did we fix this last time, and does it still work?"*
 > **"How did we fix this last time — and does it still work?"**
 
 Every incident generates world-class runbook material, and it evaporates into
-chat archives. `lore` compiles a fleet's actual incident history into living,
-re-validated runbooks per failure class — each carrying the real queries and
-commands that diagnosed it last time.
+chat archives. The gateway restart doctrine took **four incidents + a
+compaction-boundary loss** to formalize; the scheduler cooldown authority model
+was learned across **SCHED-GAP-025 → SCHED-GAP-121** — the same class of drift
+bit twice; the `.env`/`.env.example` clobber's one-line cure survived only in
+one session transcript. Six-grep investigations, again and again.
+
+`lore` compiles a fleet's actual incident history into living, re-validated
+runbooks per failure class — each carrying the real queries and commands that
+diagnosed it last time — and turns the six greps into **one runbook lookup**.
 
 ## Quickstart
 
-From a clean checkout, in under two minutes:
+From a clean checkout, in under two minutes. Every command below was run and
+its output pasted verbatim; the full walkthrough lives in
+[docs/INSTALL.md](docs/INSTALL.md).
 
 ```sh
 git clone https://github.com/get-h3/lore
@@ -107,7 +115,7 @@ uv run python -m lore compile --class does-not-exist ; echo "exit=$?"
 Run the tests and lint that gate every change:
 
 ```sh
-uv run pytest -q        # 45 passed in 0.05s
+uv run pytest -q        # 45 passed in 0.10s
 uv run ruff check .     # All checks passed!
 ```
 
@@ -140,19 +148,19 @@ assertion.
 
 ## Who this is for
 
-- **The 3 a.m. incident responder** (human on-call operator): paste the symptom
-  line you just saw and get the failure class the fleet has seen before — with
-  the evidence that identifies it — instead of searching chat archives by
-  memory.
-- **The AI agent landing on a fresh node**: a first responder that starts with
-  the fleet's scar tissue instead of zero. `lore match` finds the class;
-  `lore compile` prints the compiled runbook as a proposal.
-- **The post-incident scribe**: today's classifier is the taxonomy spine that
-  the planned absorb/audit workflow will file updates into, so yesterday's fix
-  becomes next time's runbook.
-- **The runbook auditor / coverage reviewer**: the same registry gives
-  coverage reviewers a fixed vocabulary of failure classes — incidents that
-  resolve to `unclassified` are gaps you can *see*, not a confident zero.
+- **The 3 a.m. incident responder** (human on-call operator, PRD US-1): paste
+  the symptom line you just saw and get the failure class the fleet has seen
+  before — with the evidence that identifies it — instead of searching chat
+  archives by memory.
+- **The post-incident scribe** (PRD US-2): today's classifier is the taxonomy
+  spine that the planned absorb/audit workflow will file updates into, so
+  yesterday's fix becomes next time's runbook.
+- **The runbook auditor / coverage reviewer** (PRD US-3): the same registry
+  gives coverage reviewers a fixed vocabulary of failure classes — incidents
+  that resolve to `unclassified` are gaps you can *see*, not a confident zero.
+- **The cold-start agent on a new box** (PRD US-4): a first responder that
+  starts with the fleet's scar tissue instead of zero. `lore match` finds the
+  class; `lore compile` prints the compiled runbook as a proposal.
 
 ## Why this exists
 
@@ -173,6 +181,11 @@ Per **failure class** (classified from the incident trail: drain-window, shared-
 - **Recovery ladder** with guardrails (what NOT to run — the fleet's "never `--apply` on cooldown policy", "USR1-only restarts" class of law)
 - **Evidence trail:** links to the DuckBrain rows, board events, and commits where each step was learned
 - **Provenance + freshness:** which incidents fed it, last-validated timestamp
+
+Where compiled runbooks will be stored — a central registry in the fleet's
+DuckBrain namespace plus materialized per-repo `runbooks/` directories,
+git-tracked so updates travel with code and pass human PR review — is decided
+in [docs/RUNBOOK-STORE.md](docs/RUNBOOK-STORE.md) (design, not yet implemented).
 
 ## Design laws this repo inherits
 
@@ -200,21 +213,33 @@ Standalone tools; pairs compound — pulse joins logsey, digest cites everything
 
 ## Status
 
-**v0.1.0 — early.** Kicked off 2026-09-23. What exists today:
+**v0.1.0 — early.** Kicked off 2026-09-23. Split honestly into what runs today
+and what does not:
+
+### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (9 curated classes + `unclassified`),
-  with 45 tests passing and a clean `ruff check`.
+  with **45 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published
   runbook to disk. See "What a runbook carries" above for the shape.
 - Zero runtime dependencies; MIT licensed; CI (build + pytest + ruff) green on
   `main`.
+- Install guide: [docs/INSTALL.md](docs/INSTALL.md). Runbook-store design
+  decision: [docs/RUNBOOK-STORE.md](docs/RUNBOOK-STORE.md).
 
-What does **not** exist yet — and is only promised here as *planned*, never as
-runnable: runbook viewing (`lore show`), absorbing incident trails into
-proposals (`lore absorb`), coverage audit (`lore audit`), and re-validation
-(`lore validate`). The PRD's planned interface is:
+### Planned / in flight — named, not promised as runnable
+
+- **Evidence blocks** (`lore/evidence.py`) — in flight, task `LORE-005`.
+- **Read-only command lint / re-validation loop** (`lore validate` + weekly
+  scheduled lint flipping drifted runbooks to `stale`) — in flight, task
+  `LORE-006`.
+- **Runbook store** (central registry + materialized per-repo dirs) — design
+  decided in [RUNBOOK-STORE.md](docs/RUNBOOK-STORE.md), not implemented.
+- **Runbook viewing (`lore show`), absorbing incident trails into proposals
+  (`lore absorb`), coverage audit (`lore audit`)** — planned; no code exists.
+- The PRD's planned interface is:
 
 ```text
 lore match "<symptoms|log line>" [--class ...]
