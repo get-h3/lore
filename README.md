@@ -4,9 +4,115 @@
 
 Runbook compiler — **"how did we fix this last time, and does it still work?"**
 
-*"How did we fix this last time — and does it still work?"*
-
 ---
+
+## The question lore answers
+
+> **"How did we fix this last time — and does it still work?"**
+
+Every incident generates world-class runbook material, and it evaporates into
+chat archives. `lore` compiles a fleet's actual incident history into living,
+re-validated runbooks per failure class — each carrying the real queries and
+commands that diagnosed it last time.
+
+## Quickstart
+
+From a clean checkout, in under two minutes:
+
+```sh
+git clone https://github.com/get-h3/lore
+cd lore
+uv sync --extra dev
+```
+
+Ask lore to match a symptom against its failure-class registry:
+
+```sh
+uv run python -m lore match "drain 503"
+```
+
+Real output:
+
+```
+gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain
+unclassified	confidence=0.00	evidence: none
+```
+
+Another real symptom, a different class:
+
+```sh
+uv run python -m lore match "secret .env clobber"
+```
+
+```
+secret-env-clobber	confidence=0.90	evidence: signature:.env clobber; keyword:.env; keyword:clobber
+unclassified	confidence=0.00	evidence: none
+```
+
+And a symptom that matches nothing curated:
+
+```sh
+uv run python -m lore match "the coffee machine is making a weird noise"
+```
+
+```
+unclassified	confidence=0.00	evidence: none
+```
+
+That is not a failure. **Absence is a first-class answer in this tool's own
+doctrine**: an unknown symptom says `unclassified` loudly rather than
+pretending to recognize it. Inventing classes without approval is not allowed;
+absorbing into `unclassified` always is.
+
+Run the tests and lint that gate every change:
+
+```sh
+uv run pytest -q        # 16 passed in 0.04s
+uv run ruff check .     # All checks passed!
+```
+
+### Or install it as a tool
+
+Zero runtime dependencies, so installation is instant:
+
+```sh
+uv tool install git+https://github.com/get-h3/lore
+lore match "key rotation expired"
+```
+
+```
+key-rotation-expiry	confidence=0.90	evidence: signature:rotation expired; keyword:expired; keyword:rotation
+unclassified	confidence=0.00	evidence: none
+```
+
+## What the classifier knows today
+
+The curated registry holds **9 failure classes** plus an explicit
+`unclassified` bucket:
+
+`gateway-drain-window` · `shared-checkout-collision` · `secret-env-clobber` ·
+`disk-pressure-corruption` · `cooldown-pin-drift` · `key-rotation-expiry` ·
+`guard-degradation` · `spawn-hot-loop` · `ingest-backfill-gap`
+
+Each class carries signature patterns and keyword evidence; matches print the
+class id, a confidence, and the evidence that drove the match — never a naked
+assertion.
+
+## Who this is for
+
+- **The 3 a.m. incident responder** (human on-call operator): paste the symptom
+  line you just saw and get the failure class the fleet has seen before — with
+  the evidence that identifies it — instead of searching chat archives by
+  memory.
+- **The AI agent landing on a fresh node**: a first responder that starts with
+  the fleet's scar tissue instead of zero. `lore match` is the entry point;
+  full runbooks and sync land on the roadmap below.
+- **The post-incident scribe**: today's classifier is the taxonomy spine that
+  the planned absorb/audit workflow will file updates into, so yesterday's fix
+  becomes next time's runbook.
+- **The runbook auditor / coverage reviewer**: the same registry gives
+  coverage reviewers a fixed vocabulary of failure classes — incidents that
+  resolve to `unclassified` are gaps you can *see*, not a confident zero.
 
 ## Why this exists
 
@@ -18,7 +124,7 @@ Runbook compiler — **"how did we fix this last time, and does it still work?"*
 
 The pattern: **every incident generates world-class runbook material, and it evaporates into chat archives.** Bane's audit doctrine says findings must be *re-findable*; today they're re-findable only by whoever remembers the keywords.
 
-## What it is
+## What a runbook carries
 
 Per **failure class** (classified from the incident trail: drain-window, shared-checkout collision, secret clobber, disk-pressure corruption, cooldown drift, key-rotation, …):
 
@@ -28,14 +134,15 @@ Per **failure class** (classified from the incident trail: drain-window, shared-
 - **Evidence trail:** links to the DuckBrain rows, board events, and commits where each step was learned
 - **Provenance + freshness:** which incidents fed it, last-validated timestamp
 
-## Status
+## Design laws this repo inherits
 
-**Kicked off 2026-09-23.** Repo scaffolded, first task list built from the PRD and the
-fleet's own incident history. See [`docs/PRD.md`](docs/PRD.md) for the full
-product requirements and the acceptance replays this tool is judged against.
-
-The task list lives on the project board at
-`.coding-hermes/board/tasks.jsonl` and is driven by the fleet scheduler.
+- **Evidence or it did not happen.** Every number links to the row, log line or
+  commit that produced it. No summary without a drill-down.
+- **Honesty labels are renderer-enforced.** Missing data renders as "no data",
+  never as zero.
+- **Absence is a first-class answer.** If the tool cannot see something, it says
+  so loudly rather than reporting a confident zero.
+- **Budget is the spec.** A tool that costs more than it answers gets uninstalled.
 
 ## The agent-ops line
 
@@ -51,15 +158,40 @@ truth. Same spine: evidence-first, honesty-labeled, pocket-scale.
 
 Standalone tools; pairs compound — pulse joins logsey, digest cites everything.
 
-## Design laws this repo inherits
+## Status
 
-- **Evidence or it did not happen.** Every number links to the row, log line or
-  commit that produced it. No summary without a drill-down.
-- **Honesty labels are renderer-enforced.** Missing data renders as "no data",
-  never as zero.
-- **Absence is a first-class answer.** If the tool cannot see something, it says
-  so loudly rather than reporting a confident zero.
-- **Budget is the spec.** A tool that costs more than it answers gets uninstalled.
+**v0.1.0 — early.** Kicked off 2026-09-23. What exists today:
+
+- The failure-class taxonomy + classifier (9 curated classes + `unclassified`),
+  with 16 tests passing and a clean `ruff check`.
+- The `lore match "<symptoms>"` command — the responder's entry point.
+- Zero runtime dependencies; MIT licensed; CI (build + pytest + ruff) green on
+  `main`.
+
+What does **not** exist yet — and is only promised here as *planned*, never as
+runnable: the runbook compiler itself (`lore compile`), runbook viewing
+(`lore show`), absorbing incident trails into proposals (`lore absorb`),
+coverage audit (`lore audit`), and re-validation (`lore validate`). The PRD's
+planned interface is:
+
+```text
+lore match "<symptoms|log line>" [--class ...]
+lore show <class> [--evidence]
+lore absorb --window ... [--ns ...] [--board ...]   # propose updates from an incident trail
+lore audit [--format table|json|md]                 # coverage + freshness matrix
+lore validate [--class ...]                         # run the read-only command lint now
+```
+
+Only `lore match` runs today. See [`docs/PRD.md`](docs/PRD.md) for the full
+product requirements, the design authority this repo is judged against. The
+task list lives on the project board at `.coding-hermes/board/tasks.jsonl`.
+
+## Security
+
+Runbooks carry **operational commands**. Commands embedded in a runbook must be
+reviewed before execution, must be read-only/verify-mode by design intent, and
+must never embed a secret. See [SECURITY.md](SECURITY.md) for reporting
+vulnerabilities and the full threat notes.
 
 ## License
 
