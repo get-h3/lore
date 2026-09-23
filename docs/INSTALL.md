@@ -45,17 +45,17 @@ uv run ruff check .
 Real output on the current tree:
 
 ```
-.............................................                            [100%]
-45 passed in 0.10s
+...................................................................      [100%]
+67 passed in 0.07s
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **45 tests** (3 test files: taxonomy, classifier,
-compiler). If your run says something else, you are on a different revision —
-check `git log` before trusting this document.
+The count to expect is **67 tests** (4 test files: taxonomy, classifier,
+compiler, evidence). If your run says something else, you are on a different
+revision — check `git log` before trusting this document.
 
 ## First run
 

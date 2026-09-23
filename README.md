@@ -115,7 +115,7 @@ uv run python -m lore compile --class does-not-exist ; echo "exit=$?"
 Run the tests and lint that gate every change:
 
 ```sh
-uv run pytest -q        # 45 passed in 0.10s
+uv run pytest -q        # 67 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -219,11 +219,15 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (9 curated classes + `unclassified`),
-  with **45 tests passing** and a clean `ruff check`.
+  with **67 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published
   runbook to disk. See "What a runbook carries" above for the shape.
+- Evidence blocks (`lore/evidence.py`): the curated evidence-kind vocabulary,
+  the logsey-export contract parser, and the honest degradation path
+  (`degrade_to_command_output`) for as long as logsey's `export` subcommand is
+  unimplemented. Attaching evidence never sets `last_validated`.
 - Zero runtime dependencies; MIT licensed; CI (build + pytest + ruff) green on
   `main`.
 - Install guide: [docs/INSTALL.md](docs/INSTALL.md). Runbook-store design
@@ -231,7 +235,6 @@ and what does not:
 
 ### Planned / in flight — named, not promised as runnable
 
-- **Evidence blocks** (`lore/evidence.py`) — in flight, task `LORE-005`.
 - **Read-only command lint / re-validation loop** (`lore validate` + weekly
   scheduled lint flipping drifted runbooks to `stale`) — in flight, task
   `LORE-006`.
