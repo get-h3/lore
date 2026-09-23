@@ -1,0 +1,24 @@
+{
+  "scheduler_tick_id": "lore-2026-09-23-21-13-24",
+  "created_at": "2026-09-23T16:25:00-05:00",
+  "wave_budget": 9,
+  "workers_used": 2,
+  "tasks": [
+    {"id": "LORE-004", "worktree": "/home/kara/worktrees/lore-LORE-004", "branch": "wt/LORE-004", "base_sha": "209fb2c", "title": "Compiler — runbook generation per class"},
+    {"id": "LORE-015", "worktree": "/home/kara/worktrees/lore-LORE-015", "branch": "wt/LORE-015", "base_sha": "209fb2c", "title": "README + docs to the fleet's public-deliverable standard"}
+  ],
+  "independence_check": "LORE-004 adds new modules lore/compiler.py + lore/runbook.py and tests/test_compiler.py; LORE-015 touches README.md + adds CHANGELOG.md/SECURITY.md only. Zero file overlap. Board rows verified: LORE-004 depends_on=[LORE-003] (complete); LORE-015 has depends_on=null. No edge between the two.",
+  "excluded": {
+    "LORE-005": "depends_on LORE-004 (dep in-flight this wave)",
+    "LORE-006": "depends_on LORE-004 (dep in-flight this wave)",
+    "LORE-007": "depends_on LORE-004 (dep in-flight this wave)",
+    "LORE-008": "depends_on LORE-004 (dep in-flight this wave)",
+    "LORE-009": "depends_on LORE-008 (pending)",
+    "LORE-010": "depends_on LORE-004 (dep in-flight this wave)",
+    "LORE-011": "depends_on LORE-005/006/007/008 (pending)",
+    "LORE-012": "depends_on LORE-011 (pending)",
+    "QA-LORE-1": "dispatchable but P3 and overlaps LORE-015's docs surface (both edit repo-level docs); serial rather than parallel to avoid merge conflict"
+  },
+  "prior_wave_conflict_check": "lore-2026-09-23-08-44-18 touched nothing in this wave's file sets (it built lore/classes.py, lore/classifier.py, lore/__main__.py, .github/workflows/ci.yml, .gitreins/config.yaml, AGENTS.md).",
+  "merge_order": ["LORE-004", "LORE-015"]
+}
