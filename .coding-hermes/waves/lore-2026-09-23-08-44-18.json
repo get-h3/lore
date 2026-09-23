@@ -1,0 +1,13 @@
+{
+  "scheduler_tick_id": "lore-2026-09-23-08-44-18",
+  "created_at": "2026-09-23T08:55:00-05:00",
+  "wave_budget": 9,
+  "workers_used": 3,
+  "tasks": [
+    {"id": "LORE-003", "worktree": "/home/kara/worktrees/lore-LORE-003", "branch": "wt/LORE-003", "base_sha": "0e48878", "title": "Failure-class taxonomy + classifier"},
+    {"id": "LORE-013", "worktree": "/home/kara/worktrees/lore-LORE-013", "branch": "wt/LORE-013", "base_sha": "0e48878", "title": "CI: GitHub Actions workflow"},
+    {"id": "LORE-014", "worktree": "/home/kara/worktrees/lore-LORE-014", "branch": "wt/LORE-014", "base_sha": "0e48878", "title": "GitReins co-harness + AGENTS.md"}
+  ],
+  "independence_check": "LORE-003 builds Python package layout; LORE-013 adds .github/workflows/ci.yml only; LORE-014 adds .gitreins/config.yaml + AGENTS.md only. No file overlaps; no depends_on edges between the three (board rows verified).",
+  "merge_order": ["LORE-003", "LORE-013", "LORE-014"]
+}
