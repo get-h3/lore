@@ -23,3 +23,12 @@ node_modules/
 .env
 .env.*
 !.env.example
+
+# gitreins runtime artifacts (guard logs, judge usage ledger)
+.gitreins/tasks.yaml
+.gitreins/tasks.yaml.lock
+.gitreins/config.yaml.bak
+.gitreins/usage.jsonl
+.gitreins/logs/
+.gitreins/qa-ledger.jsonl
+lore.egg-info/
