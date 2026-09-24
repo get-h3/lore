@@ -46,6 +46,22 @@ class Classification:
 
 
 @dataclass(frozen=True)
+class NearMiss:
+    """A below-threshold class that *almost* matched a symptom text.
+
+    Evidence echo only — never an auto-label. :attr:`raw_score` is the raw
+    keyword fraction ``n_hits / n_keywords`` (not the threshold-gated
+    confidence ``classify`` returns), so callers see how close the class was.
+    """
+
+    class_id: str
+    raw_score: float
+    n_hits: int
+    n_keywords: int
+    hit_keywords: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class _CompiledClass:
     cls: FailureClass
     signature_res: tuple[re.Pattern[str], ...]
@@ -207,3 +223,42 @@ def classify_all(text: str) -> list[Classification]:
         )
     )
     return candidates
+
+
+def near_misses(text: str, limit: int = 3) -> list[NearMiss]:
+    """Below-threshold classes that partially matched, best first, top ``limit``.
+
+    The evidence echo for the honesty rule: ``classify``/``classify_all``
+    refuse to label weak keyword evidence (below :data:`KEYWORD_THRESHOLD`),
+    which is doctrine — but the raw score already computed and discarded is
+    real graded signal. ``near_misses`` returns it instead of throwing it
+    away. Registry stays read-only over :meth:`get_registry().all_classes()`;
+    a near-miss is NEVER a classification and nothing here auto-labels.
+
+    Only classes with hits > 0 and keyword confidence 0.0 (i.e. score strictly
+    below threshold, no signature match) are reported — a class the text
+    already matched by signature or above-threshold keywords never appears
+    here.
+    """
+    text = text or ""
+    lower_text = text.lower()
+    misses: list[NearMiss] = []
+    for compiled in _compiled().values():
+        if compiled.cls.id == UNCLASSIFIED_ID:
+            continue
+        if any(sig.search(text) for sig in compiled.signature_res):
+            continue  # signature-accepted: classify already labels this class
+        hits = _keyword_hits(compiled.cls, lower_text)
+        conf = _keyword_confidence(len(compiled.cls.keywords), len(hits))
+        if conf == 0.0 and hits:
+            misses.append(
+                NearMiss(
+                    class_id=compiled.cls.id,
+                    raw_score=len(hits) / len(compiled.cls.keywords),
+                    n_hits=len(hits),
+                    n_keywords=len(compiled.cls.keywords),
+                    hit_keywords=hits,
+                )
+            )
+    misses.sort(key=lambda nm: nm.raw_score, reverse=True)
+    return misses[:limit]

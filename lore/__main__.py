@@ -17,7 +17,7 @@ import argparse
 import json
 import sys
 
-from lore.classifier import classify_all
+from lore.classifier import classify_all, near_misses
 from lore.compiler import compile_all, compile_class
 from lore.runbook import Runbook
 from lore.validate import is_read_only_command, lint_runbook
@@ -31,6 +31,20 @@ def _cmd_match(args: argparse.Namespace) -> int:
     for c in candidates:
         evidence = "; ".join(f"{e['kind']}:{e['detail']}" for e in c.evidence) or "none"
         print(f"{c.class_id}\tconfidence={c.confidence:.2f}\tevidence: {evidence}")
+    if getattr(args, "explain", False):
+        # Evidence echo for the honest refusal: classes that *almost* matched
+        # (raw keyword fraction below threshold) — never labels, just signal.
+        misses = near_misses(args.text)
+        if misses:
+            print("near-misses:")
+            for nm in misses:
+                kws = ", ".join(nm.hit_keywords)
+                print(
+                    f"  {nm.class_id}  score={nm.raw_score:.2f}  "
+                    f"({nm.n_hits}/{nm.n_keywords} keywords: {kws})"
+                )
+        else:
+            print("near-misses: none")
     return 0
 
 
@@ -145,6 +159,15 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     match_p = sub.add_parser("match", help="classify a symptom text")
     match_p.add_argument("text", help="symptoms or log line(s)")
+    match_p.add_argument(
+        "--explain",
+        action="store_true",
+        default=False,
+        help=(
+            "echo near-misses: classes that almost matched (raw keyword "
+            "fraction below threshold) — evidence only, never a label"
+        ),
+    )
     match_p.set_defaults(func=_cmd_match)
 
     compile_p = sub.add_parser(
