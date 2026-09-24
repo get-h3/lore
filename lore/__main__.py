@@ -17,6 +17,13 @@ import argparse
 import json
 import sys
 
+from lore.absorb import (
+    DECISION_ABSORB,
+    DECISION_NO_NEW_LESSON,
+    AbsorbDecision,
+    absorb_proposal,
+    gate_close,
+)
 from lore.classifier import classify_all, near_misses
 from lore.compiler import compile_all, compile_class
 from lore.consult import ConsultResult, consult
@@ -174,6 +181,35 @@ def _cmd_validate(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_gate(args: argparse.Namespace) -> int:
+    """LORE-008: machine-checked closure gate. Prints the verdict + errors.
+
+    Exit 0 when allowed, 1 when denied. The gate NEVER writes anything.
+    """
+    d = AbsorbDecision(
+        decision=args.decision,
+        class_id=args.class_id,
+        lesson=args.lesson,
+        reason=args.reason,
+        ack_ref=args.ref,
+        decided_at=args.decided_at,
+    )
+    verdict = gate_close(d)
+    print(verdict.summary())
+    for err in verdict.errors:
+        print(f"error: {err}")
+    return 0 if verdict.allowed else 1
+
+
+def _cmd_absorb(args: argparse.Namespace) -> int:
+    """LORE-008: absorb half of the gate — print the proposal payload JSON.
+
+    Propose-not-write: stdout only; the registry is never mutated.
+    """
+    print(json.dumps(absorb_proposal(args.class_id, args.lesson), indent=2))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="lore",
@@ -257,6 +293,58 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     validate_p.set_defaults(func=_cmd_validate)
+
+    # ---- LORE-008: absorb-gate on close. Anchored at the END of build_parser
+    # (after validate's set_defaults, before `return parser`) so sibling
+    # subcommand edits merge trivially.
+    gate_p = sub.add_parser(
+        "gate",
+        help=(
+            "closure absorb-gate (LORE-008): machine-check a lesson decision "
+            "(absorb or no-new-lesson ack); exit 0 = allowed, 1 = denied"
+        ),
+    )
+    gate_p.add_argument(
+        "--decision",
+        required=True,
+        choices=(DECISION_ABSORB, DECISION_NO_NEW_LESSON),
+        help="'absorb' (a runbook lesson) or 'no-new-lesson' (explicit ack)",
+    )
+    gate_p.add_argument(
+        "--class",
+        dest="class_id",
+        default=None,
+        help="existing registry class for an 'absorb' decision",
+    )
+    gate_p.add_argument("--lesson", default="", help="proposed lesson text (absorb)")
+    gate_p.add_argument(
+        "--reason", default="", help="why no new lesson (no-new-lesson)"
+    )
+    gate_p.add_argument("--ref", default=None, help="board row / incident id")
+    gate_p.add_argument(
+        "--decided-at",
+        dest="decided_at",
+        default=None,
+        help="optional ISO-8601 timestamp (never invented when omitted)",
+    )
+    gate_p.set_defaults(func=_cmd_gate)
+
+    absorb_p = sub.add_parser(
+        "absorb",
+        help=(
+            "build the runbook-update PROPOSAL for an absorb decision "
+            "(stdout only — propose-not-write, nothing is written)"
+        ),
+    )
+    absorb_p.add_argument(
+        "--class",
+        dest="class_id",
+        required=True,
+        help="existing registry class to propose an update for",
+    )
+    absorb_p.add_argument("--lesson", required=True, help="the lesson text")
+    absorb_p.set_defaults(func=_cmd_absorb)
+
     return parser
 
 
