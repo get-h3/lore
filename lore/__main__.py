@@ -26,7 +26,7 @@ from lore.absorb import (
 )
 from lore.classifier import classify_all, near_misses
 from lore.compiler import compile_all, compile_class
-from lore.consult import ConsultResult, consult
+from lore.consult import ConsultResult, consult, consult_failure
 from lore.runbook import Runbook
 from lore.validate import is_read_only_command, lint_runbook
 
@@ -78,7 +78,31 @@ def _cmd_compile(args: argparse.Namespace) -> int:
 def _cmd_consult(args: argparse.Namespace) -> int:
     """LORE-007: tick-start consult. FAIL-OPEN is the contract — a no-match
     is not an error (exit 0, "no matching runbook"); a broken compile omits
-    that ref instead of crashing the caller's tick."""
+    that ref instead of crashing the caller's tick.
+
+    LORE-009: ``--failure <text>`` switches to the guard-failure mode —
+    classify a guard-failure output (e.g. a gitreins guard log tail) and, on
+    a class match, print the matching runbook's ORDERED checks under the
+    "this class has a runbook" heading so the failure output can carry them.
+    Still fail-open: no match = exit 0, never an error.
+    """
+    if getattr(args, "failure", None):
+        result = consult_failure(args.failure)
+        if args.json:
+            print(json.dumps(result.to_dict(), indent=2))
+            return 0
+        if not result.matched:
+            print("no matching runbook")
+            return 0
+        for s in result.suggestions:
+            lv = s["last_validated"] if s["last_validated"] else "never"
+            print(
+                f"this class has a runbook: {s['class_id']} ({s['name']}) "
+                f"status={s['status']} last_validated={lv} checks={s['check_count']}"
+            )
+            for c in s["checks"]:
+                print(f"  check {c['order']}: {c['command']}")
+        return 0
     result: ConsultResult = consult(
         f"{args.title}\n{args.detail}" if args.detail else args.title
     )
@@ -193,6 +217,7 @@ def _cmd_gate(args: argparse.Namespace) -> int:
         reason=args.reason,
         ack_ref=args.ref,
         decided_at=args.decided_at,
+        source=args.source,
     )
     verdict = gate_close(d)
     print(verdict.summary())
@@ -206,7 +231,11 @@ def _cmd_absorb(args: argparse.Namespace) -> int:
 
     Propose-not-write: stdout only; the registry is never mutated.
     """
-    print(json.dumps(absorb_proposal(args.class_id, args.lesson), indent=2))
+    print(
+        json.dumps(
+            absorb_proposal(args.class_id, args.lesson, source=args.source), indent=2
+        )
+    )
     return 0
 
 
@@ -236,7 +265,22 @@ def build_parser() -> argparse.ArgumentParser:
             "work context; fail-open (no match = exit 0)"
         ),
     )
-    consult_p.add_argument("title", help="task title (symptom text)")
+    consult_p.add_argument(
+        "title",
+        nargs="?",
+        default=None,
+        help="task title (symptom text); required unless --failure is given",
+    )
+    consult_p.add_argument(
+        "--failure",
+        default=None,
+        help=(
+            "LORE-009: guard-failure mode — treat the value as guard-failure "
+            "OUTPUT text (e.g. a gitreins guard log tail) instead of a task "
+            "title; on a class match prints the matching runbook's ordered "
+            "checks ('this class has a runbook'). Fail-open: no match = exit 0"
+        ),
+    )
     consult_p.add_argument(
         "--detail",
         default="",
@@ -327,6 +371,16 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="optional ISO-8601 timestamp (never invented when omitted)",
     )
+    gate_p.add_argument(
+        "--source",
+        default=None,
+        help=(
+            "LORE-009: provenance marker for this closure — e.g. "
+            "'qa-dagger' or 'dogfood-dagger' (QA/dogfood findings close "
+            "through the same absorb-gate as incidents). Omitted = default "
+            "incident-closure behavior (no source printed)"
+        ),
+    )
     gate_p.set_defaults(func=_cmd_gate)
 
     absorb_p = sub.add_parser(
@@ -343,6 +397,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="existing registry class to propose an update for",
     )
     absorb_p.add_argument("--lesson", required=True, help="the lesson text")
+    absorb_p.add_argument(
+        "--source",
+        default=None,
+        help=(
+            "LORE-009: provenance marker recorded into the proposal payload "
+            "(e.g. 'qa-dagger' or 'dogfood-dagger'). Omitted = the payload "
+            "keeps its original shape (no 'source' key)"
+        ),
+    )
     absorb_p.set_defaults(func=_cmd_absorb)
 
     return parser

@@ -62,6 +62,7 @@ class AbsorbDecision:
     reason: str = ""
     ack_ref: str | None = None
     decided_at: str | None = None
+    source: str | None = None  # provenance: e.g. "qa-dagger" / "dogfood-dagger"
 
 
 @dataclass(frozen=True)
@@ -78,8 +79,13 @@ class GateVerdict:
                 self.decision is not None
             )  # allowed verdicts always carry the decision
             if self.decision.decision == DECISION_ABSORB:
-                return f"GATE: ALLOW (absorb -> {self.decision.class_id})"
-            return "GATE: ALLOW (no-new-lesson)"
+                line = f"GATE: ALLOW (absorb -> {self.decision.class_id})"
+            else:
+                line = "GATE: ALLOW (no-new-lesson)"
+            if self.decision.source:
+                # LORE-009: provenance (qa-dagger / dogfood-dagger / incident).
+                line += f" source: {self.decision.source}"
+            return line
         return f"GATE: DENY ({len(self.errors)} errors)"
 
 
@@ -117,16 +123,23 @@ def gate_close(d: AbsorbDecision) -> GateVerdict:
     return validate_close_decision(d)
 
 
-def absorb_proposal(class_id: str, lesson: str) -> dict:
+def absorb_proposal(class_id: str, lesson: str, source: str | None = None) -> dict:
     """Build the concrete proposal payload an 'absorb' decision hands the operator.
 
     Calls ``lore.compiler.propose`` semantics (propose-not-write: the payload
     is data, nothing is written). Fail-safe: an unknown class returns
     ``{"error": "unknown class '<id>'"}`` instead of raising.
+
+    ``source`` is the optional provenance marker (LORE-009: e.g.
+    ``qa-dagger`` / ``dogfood-dagger`` closures flowing through the same
+    absorb-gate as incidents). Omitted (None, the default) it is NOT added
+    to the payload — the default shape stays byte-compatible.
     """
     try:
         payload = propose(class_id)
     except KeyError:
         return {"error": f"unknown class '{class_id}'"}
     payload["lesson"] = lesson
+    if source is not None:
+        payload["source"] = source
     return payload
