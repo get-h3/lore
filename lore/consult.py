@@ -25,8 +25,10 @@ from lore.classifier import classify, classify_all
 
 __all__ = [
     "MAX_MATCHED_CLASSES",
+    "ConsultFailureResult",
     "ConsultResult",
     "consult",
+    "consult_failure",
     "consult_task",
 ]
 
@@ -118,6 +120,88 @@ def consult(text: str) -> ConsultResult:
         if ref is not None:
             refs.append(ref)
     return _finish(matched_classes, refs)
+
+
+@dataclass(frozen=True)
+class ConsultFailureResult:
+    """What a guard-failure consult attached to the failure output.
+
+    Same fail-open contract as :class:`ConsultResult`, but the ref carries
+    the runbook's CHECKS (ordered) — the caller prints them as
+    "this class has a runbook: here are the N checks".
+    """
+
+    matched: bool = False
+    matched_classes: list[str] = field(default_factory=list)
+    suggestions: list[dict] = field(default_factory=list)
+    elapsed_ms: float = 0.0
+
+    def to_dict(self) -> dict:
+        """JSON-safe dict (round-trips through json.loads)."""
+        return {
+            "matched": self.matched,
+            "matched_classes": list(self.matched_classes),
+            "suggestions": [dict(s) for s in self.suggestions],
+            "elapsed_ms": self.elapsed_ms,
+        }
+
+
+def _failure_suggestion(class_id: str) -> dict | None:
+    """Build one suggestion with the runbook's ORDERED checks; None on any
+    compile failure (fail-open — a broken compile omits the suggestion)."""
+    from lore.compiler import compile_class
+
+    try:
+        rb = compile_class(class_id)
+    except Exception:  # noqa: BLE001 — fail-open: ANY compile error omits it
+        return None
+    checks = [
+        {"order": c.order, "command": c.command}
+        for c in sorted(rb.checks, key=lambda x: x.order)
+    ]
+    return {
+        "class_id": rb.class_id,
+        "name": rb.name,
+        "status": rb.status,
+        "last_validated": rb.last_validated,
+        "check_count": len(checks),
+        "checks": checks,
+    }
+
+
+def consult_failure(text: str) -> ConsultFailureResult:
+    """Classify a guard-failure output text; return the matching runbook's checks.
+
+    Integration C (LORE-009): when a gitreins guard fails, the caller queries
+    this with the failure output (e.g. the guard log tail naming the failing
+    lane) and, on a class match, appends the matching runbook's check list to
+    the failure output ("this class has a runbook: here are the N checks").
+
+    Same FAIL-OPEN contract as :func:`consult`: a no-match is an empty result
+    with NO exception and NO side effects; a broken/unknown class compile
+    omits that suggestion but never raises. Reuses the same classifier and
+    :data:`MAX_MATCHED_CLASSES` cap.
+    """
+    start = time.perf_counter()
+    base = consult(text)
+
+    def _finish(suggestions: list[dict]) -> ConsultFailureResult:
+        elapsed_ms = (time.perf_counter() - start) * 1000.0
+        return ConsultFailureResult(
+            matched=base.matched,
+            matched_classes=list(base.matched_classes),
+            suggestions=suggestions,
+            elapsed_ms=elapsed_ms,
+        )
+
+    if not base.matched:
+        return _finish([])
+    suggestions: list[dict] = []
+    for class_id in base.matched_classes:
+        suggestion = _failure_suggestion(class_id)
+        if suggestion is not None:
+            suggestions.append(suggestion)
+    return _finish(suggestions)
 
 
 def consult_task(title: str, detail: str = "") -> ConsultResult:

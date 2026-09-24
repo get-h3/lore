@@ -232,3 +232,106 @@ def test_absorb_proposal_stdout_only(tmp_path, monkeypatch, capsys):
     assert '"lesson"' in line
     # no files created: the library call is pure
     assert sorted(p.name for p in tmp_path.iterdir()) == []
+
+
+# --------------------------------------- LORE-009: QA/dogfood provenance source
+def test_absorb_decision_source_default_none():
+    d = AbsorbDecision(
+        decision=DECISION_ABSORB,
+        class_id="gateway-drain-window",
+        lesson="drain before restart",
+    )
+    v = gate_close(d)
+    assert v.allowed is True
+    assert d.source is None  # default: unchanged behavior
+
+
+def test_absorb_decision_qa_dagger_source_allowed():
+    d = AbsorbDecision(
+        decision=DECISION_ABSORB,
+        class_id="gateway-drain-window",
+        lesson="drain before restart",
+        source="qa-dagger",
+    )
+    v = gate_close(d)
+    assert v.allowed is True
+    assert v.decision.source == "qa-dagger"
+
+
+def test_absorb_proposal_records_source_when_given():
+    payload = absorb_proposal(
+        "gateway-drain-window", "drain before restart", source="dogfood-dagger"
+    )
+    assert payload["source"] == "dogfood-dagger"
+
+
+def test_absorb_proposal_default_has_no_source_key_byte_compatible():
+    payload = absorb_proposal("gateway-drain-window", "drain before restart")
+    assert "source" not in payload  # default keeps the old shape exactly
+
+
+def test_cli_gate_source_recorded(capsys):
+    rc = main(
+        [
+            "gate",
+            "--decision",
+            "absorb",
+            "--class",
+            "gateway-drain-window",
+            "--lesson",
+            "drain before restart",
+            "--source",
+            "qa-dagger",
+        ]
+    )
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "GATE: ALLOW" in out
+    assert "source: qa-dagger" in out
+
+
+def test_cli_gate_no_source_no_source_line_byte_compatible(capsys):
+    rc = main(
+        [
+            "gate",
+            "--decision",
+            "no-new-lesson",
+            "--reason",
+            "nothing learned",
+        ]
+    )
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "source:" not in out  # default prints exactly the old output
+
+
+def test_cli_absorb_source_recorded(capsys):
+    rc = main(
+        [
+            "absorb",
+            "--class",
+            "gateway-drain-window",
+            "--lesson",
+            "drain before restart",
+            "--source",
+            "dogfood-dagger",
+        ]
+    )
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert '"source": "dogfood-dagger"' in out
+
+
+def test_cli_absorb_no_source_byte_compatible(capsys):
+    rc = main(
+        [
+            "absorb",
+            "--class",
+            "gateway-drain-window",
+            "--lesson",
+            "drain before restart",
+        ]
+    )
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert '"source"' not in out

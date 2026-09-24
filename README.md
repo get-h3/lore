@@ -187,6 +187,40 @@ DuckBrain namespace plus materialized per-repo `runbooks/` directories,
 git-tracked so updates travel with code and pass human PR review — is decided
 in [docs/RUNBOOK-STORE.md](docs/RUNBOOK-STORE.md) (design, not yet implemented).
 
+## QA/dogfood findings close through the absorb-gate (LORE-009)
+
+QA cycles (`qa-dagger`) and dogfood runs (`dogfood-dagger`) find lessons the
+same way incidents do — so they close through the **same** absorb-gate, with
+a provenance marker instead of a separate flow:
+
+1. The QA/dogfood run surfaces a lesson for an existing class →
+   `lore absorb --class <id> --lesson "<text>" --source qa-dagger` prints the
+   runbook-update PROPOSAL (stdout only, `--source` recorded in the payload).
+2. On close, the decision goes through the gate like any incident closure:
+   `lore gate --decision absorb --class <id> --lesson "<text>" --source dogfood-dagger`
+   (or `--decision no-new-lesson --reason "..."` when nothing was learned).
+   With `--source`, the verdict line carries it: `GATE: ALLOW (absorb -> <id>)
+   source: qa-dagger`. Omitted, the output is byte-identical to the original
+   gate — default behavior is unchanged.
+3. The registry stays closed either way: an unknown class is still denied,
+   and nothing is ever written by the gate itself (propose-not-write holds
+   for QA/dogfood exactly as it holds for incidents).
+
+## Guard-failure suggestions (LORE-009)
+
+When a gitreins guard fails, its output can be queried for a matching
+runbook — and the runbook's ordered checks are appended to the failure
+output ("this class has a runbook: here are the N checks"):
+
+```sh
+lore consult --failure "<guard log tail / failure output>"
+```
+
+On a class match it prints the class id and the ordered checks; on no match
+it prints `no matching runbook` and exits 0 — **fail-open, never an error**,
+so a guard pipeline can append this unconditionally. The library entry point
+is `lore.consult.consult_failure(text)` (same contract as `consult()`).
+
 ## Design laws this repo inherits
 
 - **Evidence or it did not happen.** Every number links to the row, log line or

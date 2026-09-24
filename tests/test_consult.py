@@ -135,3 +135,88 @@ def test_cli_consult_no_match_exit_zero(
     out = capsys.readouterr().out
     assert rc == 0  # fail-open contract: no-match exits 0
     assert "no matching runbook" in out
+
+
+# ------------------------------------------- LORE-009: guard-failure consult
+def test_consult_failure_match_returns_ordered_checks() -> None:
+    from lore.consult import consult_failure
+
+    result = consult_failure(GATEWAY_TEXT)
+    assert result.matched is True
+    assert result.matched_classes[0] == "gateway-drain-window"
+    assert len(result.suggestions) >= 1
+    s = result.suggestions[0]
+    assert s["class_id"] == "gateway-drain-window"
+    assert s["check_count"] == len(s["checks"]) > 0
+    # Ordered checks: sorted by order, each carrying order + command.
+    orders = [c["order"] for c in s["checks"]]
+    assert orders == sorted(orders)
+    assert all(c["command"].strip() for c in s["checks"])
+
+
+def test_consult_failure_no_match_is_fail_open() -> None:
+    from lore.consult import consult_failure
+
+    result = consult_failure(COFFEE_TEXT)
+    assert result.matched is False
+    assert result.matched_classes == []
+    assert result.suggestions == []
+    assert isinstance(result.elapsed_ms, float)
+    assert result.elapsed_ms >= 0.0
+
+
+def test_consult_failure_fail_open_on_compile_crash(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from lore.consult import consult_failure
+
+    def boom(class_id: str) -> None:
+        raise RuntimeError(f"compile exploded for {class_id}")
+
+    monkeypatch.setattr("lore.compiler.compile_class", boom)
+    result = consult_failure(GATEWAY_TEXT)  # must NOT raise
+    assert result.matched is True
+    assert result.suggestions == []  # broken compile omitted its checks
+
+
+def test_consult_failure_to_dict_round_trips() -> None:
+    from lore.consult import consult_failure
+
+    payload = json.loads(json.dumps(consult_failure(GATEWAY_TEXT).to_dict()))
+    assert payload["matched"] is True
+    assert payload["suggestions"][0]["class_id"] == "gateway-drain-window"
+    assert payload["suggestions"][0]["check_count"] > 0
+
+
+def test_cli_consult_failure_match_prints_class_and_checks(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    from lore.__main__ import main
+
+    rc = main(["consult", "--failure", GATEWAY_TEXT])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "gateway-drain-window" in out
+    assert "this class has a runbook" in out
+    assert "check 1:" in out  # ordered checks printed
+
+
+def test_cli_consult_failure_no_match_exit_zero(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    from lore.__main__ import main
+
+    rc = main(["consult", "--failure", COFFEE_TEXT])
+    out = capsys.readouterr().out
+    assert rc == 0  # fail-open contract
+    assert "no matching runbook" in out
+
+
+def test_cli_consult_failure_json(capsys: pytest.CaptureFixture[str]) -> None:
+    from lore.__main__ import main
+
+    rc = main(["consult", "--failure", GATEWAY_TEXT, "--json"])
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["matched"] is True
+    assert payload["suggestions"][0]["checks"]
