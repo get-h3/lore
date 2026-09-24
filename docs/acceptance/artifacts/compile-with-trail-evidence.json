@@ -1,0 +1,145 @@
+{
+  "class_id": "gateway-drain-window",
+  "name": "Gateway drain window",
+  "signature": "drain\\s+503",
+  "checks": [
+    {
+      "order": 1,
+      "command": "logsey query --pattern 'drain 503' --since 30m",
+      "expected_healthy": "no rows",
+      "expected_incident": "503s on in-flight requests while the gateway restarts/reloads",
+      "decision": "confirm the class signature before touching anything",
+      "read_only": true,
+      "evidence": [
+        {
+          "kind": "incident",
+          "detail": "PRD \u00a7The problem, measured case 1"
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "command": "grep -c 'drain 503' <gateway-log-path>",
+      "expected_healthy": "0",
+      "expected_incident": "non-zero and rising over the drain window (up to ~30 min)",
+      "decision": "distinguish a drain window (bounded, expected) from a wedged gateway",
+      "read_only": true,
+      "evidence": [
+        {
+          "kind": "incident",
+          "detail": "four gateway-restart incidents pre-doctrine"
+        },
+        {
+          "kind": "memory",
+          "detail": "curated note: drain 503s kill ticks"
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "command": "curl -s -o /dev/null -w '%{http_code}' <gateway-health-url>",
+      "expected_healthy": "200",
+      "expected_incident": "503 during drain; 200 again once in-flight requests finish",
+      "decision": "pause-first decision: hold config rollout until health returns 200",
+      "read_only": true,
+      "evidence": [
+        {
+          "kind": "incident",
+          "detail": "gateway restart doctrine: pause-first under load"
+        }
+      ]
+    }
+  ],
+  "recovery_ladder": [
+    "Stop config changes: batch them instead of trickling under load.",
+    "Pause-first under load: hold the rollout until in-flight requests finish.",
+    "Announce the expected drain window (up to ~30 min) to dependents before restarting.",
+    "Watch drain-503 volume fall to zero, then confirm health endpoint 200 before resuming."
+  ],
+  "guardrails": [
+    "Never restart the gateway with in-flight requests still draining from the previous restart.",
+    "Never treat drain 503s as a gateway fault \u2014 during a drain window they are EXPECTED; distinguish bounded drain from wedged before acting.",
+    "Never trickle config changes under load \u2014 batch them and pause-first."
+  ],
+  "evidence_trail": [
+    {
+      "kind": "memory",
+      "detail": "drain 503s kill ticks"
+    },
+    {
+      "kind": "incident",
+      "detail": "2026-08-14T02:15Z post-mortem note: hard kill under load left no drain window; all 214 in-flight requests 503'd"
+    },
+    {
+      "kind": "incident",
+      "detail": "2026-08-27T09:45Z post-mortem note: config writes during a gateway restart 503'd; work that was enqueued instead of dropped survived the restart"
+    },
+    {
+      "kind": "incident",
+      "detail": "2026-09-05T14:20Z post-mortem note: restart with queue_depth=14 unflushed lost the queued state; queue depth was checked only after the loss"
+    },
+    {
+      "kind": "incident",
+      "detail": "2026-09-12T22:00Z post-mortem note: the graceful reload produced no hard-kill lines in the gateway log; the 503 spikes traced to hard kills in incidents 1-3"
+    },
+    {
+      "kind": "incident",
+      "detail": "2026-09-16T19:05Z post-mortem note: across incidents 3-4 the drain window was observed at 25-30 min; dependents were not warned in advance during incidents 1-3"
+    },
+    {
+      "kind": "board-event",
+      "detail": "2026-09-16T18:40Z doctrine thread opened after the fourth gateway-restart incident"
+    },
+    {
+      "kind": "board-event",
+      "detail": "2026-09-16T18:55Z note: the draft doctrine summary from the third incident was lost at a session compaction boundary; only the memory line survived"
+    },
+    {
+      "kind": "duckbrain-row",
+      "detail": "2026-09-16 gateway/restart-policy: restarts under load 503 in-flight scheduler spawns"
+    },
+    {
+      "kind": "duckbrain-row",
+      "detail": "2026-09-16 gateway/drain-window: observed drain window 25-30 min across incidents 3-4"
+    },
+    {
+      "kind": "board",
+      "detail": "LORE-003 seed class 'gateway drain window'"
+    },
+    {
+      "kind": "logsey-export",
+      "detail": "SIGKILL received during load; 214 in-flight requests terminated with 503"
+    },
+    {
+      "kind": "logsey-export",
+      "detail": "tick spawn failed: upstream returned 503 (gateway restarting)"
+    },
+    {
+      "kind": "logsey-export",
+      "detail": "config rollout applied while gateway restarting; config-driven writes failed with 503"
+    },
+    {
+      "kind": "logsey-export",
+      "detail": "new work kept being enqueued during the restart; queue drained after recovery, nothing dropped"
+    },
+    {
+      "kind": "logsey-export",
+      "detail": "restart executed with queue_depth=14 unflushed rows; queued state lost on restart"
+    },
+    {
+      "kind": "logsey-export",
+      "detail": "graceful reload started; in-flight counter 214 -> 0 over ~28 min; 503s bounded to the drain window"
+    },
+    {
+      "kind": "logsey-export",
+      "detail": "post-reload health endpoint returned 200; 503 error rate back to pre-restart baseline"
+    },
+    {
+      "kind": "logsey-export",
+      "detail": "fourth gateway-restart incident: 96 503s inside the incident window; baseline outside the window measured 0 per hour"
+    }
+  ],
+  "provenance": "Compiled by lore.compiler from the curated class registry (lore.classes) and the fleet's incident history. Operator approval required to publish (propose-not-write).",
+  "last_validated": null,
+  "status": "proposal"
+}

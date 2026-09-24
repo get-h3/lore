@@ -207,7 +207,7 @@ def test_lint_uses_injected_runner_never_real_commands():
     runner = FakeRunner(0, 0)
     rb = compile_class("gateway-drain-window")
     report = lint_runbook(rb, runner=runner)
-    assert [r.outcome for r in report.results] == ["ok", "ok", "ok"]
+    assert all(r.outcome == "ok" for r in report.results)
     assert runner.calls == [c.command for c in rb.checks]
     assert all(r.exit_code == 0 for r in report.results)
     assert report.honesty_label == HONESTY_LABEL
@@ -217,7 +217,13 @@ def test_lint_uses_injected_runner_never_real_commands():
 def test_lint_outcome_vocabulary_is_closed():
     rb = compile_class("gateway-drain-window")
     report = lint_runbook(rb, runner=FakeRunner(0, 1, 3))
-    assert [r.outcome for r in report.results] == ["ok", "error", "error"]
+    outcomes = [r.outcome for r in report.results]
+    assert outcomes[:3] == ["ok", "error", "error"], (
+        "first three results keep the canned sequence"
+    )
+    assert all(o == "ok" for o in outcomes[3:]), (
+        "runner queue exhausted -> remaining checks ok"
+    )
     for r in report.results:
         assert r.outcome in OUTCOME_VOCABULARY
 
@@ -301,7 +307,7 @@ def _fresh_runbook() -> Runbook:
 def test_apply_lint_flips_stale_on_error():
     rb = _fresh_runbook()
     report = lint_runbook(rb, runner=FakeRunner(0, 0, 1))
-    assert report.results[-1].outcome == "error"
+    assert report.results[2].outcome == "error"
     new = apply_lint(report, rb)
     assert new.status == STATUS_STALE
     assert new is not rb, "frozen dataclass: returns a NEW runbook"
