@@ -48,5 +48,6 @@
   ],
   "gates": "in-worktree: 202/208/194 pytest + ruff clean per branch; post-merge per merge; final merged tree: 230 pytest passed, ruff clean; tier1 full PASS (secrets/lint/tests) on the LORE-010 merge commit d202660",
   "ci": "GREEN at HEAD c4ddfb1 (GitHub Actions run success 2026-09-24T18:49:08Z); gh run list limit 4 all success — no CI failures to file",
-  "status": "complete"
+  "status": "complete",
+  "finished_at": "2026-09-24T20:25:00-05:00"
 }
