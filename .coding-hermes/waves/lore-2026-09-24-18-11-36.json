@@ -1,0 +1,52 @@
+{
+  "tick_id": "lore-2026-09-24-18-11-36",
+  "project": "lore",
+  "repo": "https://github.com/get-h3/lore",
+  "started_at": "2026-09-24T13:23:59-05:00",
+  "wave_budget": 5,
+  "base_sha": "e5d54597c40a4d159de20d4352929bd8cbb3cdc3",
+  "workers": [
+    {
+      "task_id": "LORE-009",
+      "branch": "wt/LORE-009",
+      "worktree": "/home/kara/worktrees/lore-LORE-009",
+      "base_sha": "e5d5459",
+      "commit_sha": "3ec1bfe",
+      "merge_sha": "217c6d7",
+      "model": "glm-5.3-flash",
+      "provider": "ollama-cloud",
+      "judge": "pass bb84c814",
+      "merge": "merged (clean)",
+      "scope": "lore/consult.py consult_failure + lore consult --failure (guard-failure runbook check suggestions, fail-open); AbsorbDecision.source provenance via gate/absorb --source (byte-compatible default); README integration section"
+    },
+    {
+      "task_id": "LORE-010",
+      "branch": "wt/LORE-010",
+      "worktree": "/home/kara/worktrees/lore-LORE-010",
+      "base_sha": "e5d5459",
+      "commit_sha": "755797c",
+      "merge_sha": "d202660",
+      "model": "glm-5.3-flash",
+      "provider": "ollama-cloud",
+      "judge": "pass de30ed77",
+      "merge": "merged (one mechanical 3-way lore/__main__.py conflict: import block + absorb body/parser tail; resolved programmatically, ruff-formatted, tier1 full PASS)",
+      "scope": "lore show [--evidence] + lore audit [--format table|json|md] + absorb --window evidence-trail sweep; README planned->shipped flip; perpetual audit row LORE-AUDIT-PERP filed on get-h3/h3 cross-repo board (commit 8bbfebc, pushed)"
+    },
+    {
+      "task_id": "LORE-011",
+      "branch": "wt/LORE-011",
+      "worktree": "/home/kara/worktrees/lore-LORE-011",
+      "base_sha": "e5d5459",
+      "commit_sha": "9207f94",
+      "merge_sha": "c4ddfb1",
+      "model": "glm-5.3-flash",
+      "provider": "ollama-cloud",
+      "judge": "pass e3c99279",
+      "merge": "merged (clean)",
+      "scope": "ACCEPTANCE replay: 09-16 drain-window trail fixture (19 kind-labeled raw observations) -> match/compile/validate artifacts -> docs/acceptance/2026-09-16-drain-window-replay.md; honest verdict: pre-task 50% strict (below bar) -> 4 trail-evidenced checks added -> PASS 100% (7/7 baseline items); 3-step recurrence drill recorded"
+    }
+  ],
+  "gates": "in-worktree: 202/208/194 pytest + ruff clean per branch; post-merge per merge; final merged tree: 230 pytest passed, ruff clean; tier1 full PASS (secrets/lint/tests) on the LORE-010 merge commit d202660",
+  "ci": "GREEN at HEAD c4ddfb1 (GitHub Actions run success 2026-09-24T18:49:08Z); gh run list limit 4 all success — no CI failures to file",
+  "status": "complete"
+}
