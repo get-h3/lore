@@ -19,6 +19,7 @@ import sys
 
 from lore.classifier import classify_all
 from lore.compiler import compile_all, compile_class
+from lore.consult import ConsultResult, consult
 from lore.runbook import Runbook
 from lore.validate import is_read_only_command, lint_runbook
 
@@ -50,6 +51,28 @@ def _cmd_compile(args: argparse.Namespace) -> int:
     else:
         out = [rb.to_markdown() for rb in runbooks]
         print("\n".join(out))
+    return 0
+
+
+def _cmd_consult(args: argparse.Namespace) -> int:
+    """LORE-007: tick-start consult. FAIL-OPEN is the contract — a no-match
+    is not an error (exit 0, "no matching runbook"); a broken compile omits
+    that ref instead of crashing the caller's tick."""
+    result: ConsultResult = consult(
+        f"{args.title}\n{args.detail}" if args.detail else args.title
+    )
+    if args.json:
+        print(json.dumps(result.to_dict(), indent=2))
+        return 0
+    if not result.matched:
+        print("no matching runbook")
+        return 0
+    for ref in result.runbook_refs:
+        lv = ref["last_validated"] if ref["last_validated"] else "never"
+        print(
+            f"runbook: {ref['class_id']} ({ref['name']}) "
+            f"status={ref['status']} last_validated={lv} checks={ref['check_count']}"
+        )
     return 0
 
 
@@ -146,6 +169,24 @@ def build_parser() -> argparse.ArgumentParser:
     match_p = sub.add_parser("match", help="classify a symptom text")
     match_p.add_argument("text", help="symptoms or log line(s)")
     match_p.set_defaults(func=_cmd_match)
+
+    consult_p = sub.add_parser(
+        "consult",
+        help=(
+            "tick-start consult (LORE-007): attach matching runbook refs to "
+            "work context; fail-open (no match = exit 0)"
+        ),
+    )
+    consult_p.add_argument("title", help="task title (symptom text)")
+    consult_p.add_argument(
+        "--detail",
+        default="",
+        help="optional task detail; classified together with the title",
+    )
+    consult_p.add_argument(
+        "--json", action="store_true", help="print the ConsultResult as JSON"
+    )
+    consult_p.set_defaults(func=_cmd_consult)
 
     compile_p = sub.add_parser(
         "compile", help="compile runbook proposal(s) per failure class (stdout only)"
