@@ -1,0 +1,47 @@
+{
+  "tick_id": "lore-2026-09-24-15-30-21",
+  "project": "lore",
+  "started_at": "2026-09-24T15:45:00-05:00",
+  "finished_at": "2026-09-24T16:15:00-05:00",
+  "wave_budget": 5,
+  "workers": [
+    {
+      "task_id": "LORE-016",
+      "branch": "wt/LORE-016",
+      "worktree": "~/worktrees/lore-LORE-016",
+      "base_sha": "64d9945",
+      "commit_sha": "19cff79",
+      "model": "glm-5.3-flash",
+      "provider": "ollama-cloud",
+      "judge": "pass ff22e551",
+      "merge": "merged",
+      "scope": "lore/classifier.py near-miss evidence echo + match --explain"
+    },
+    {
+      "task_id": "LORE-007",
+      "branch": "wt/LORE-007",
+      "worktree": "~/worktrees/lore-LORE-007",
+      "base_sha": "64d9945",
+      "commit_sha": "6b8ce6e",
+      "model": "glm-5.3-flash",
+      "provider": "ollama-cloud",
+      "judge": "pass 34e0a574",
+      "merge": "merged",
+      "scope": "lore/consult.py tick-start consult + consult CLI"
+    },
+    {
+      "task_id": "LORE-008",
+      "branch": "wt/LORE-008",
+      "worktree": "~/worktrees/lore-LORE-008",
+      "base_sha": "64d9945",
+      "commit_sha": "940f978",
+      "model": "glm-5.3-flash",
+      "provider": "ollama-cloud",
+      "judge": "pass 7129cce6",
+      "merge": "merged (one mechanical 3-way import-block conflict resolved)",
+      "scope": "lore/absorb.py absorb-gate + gate/absorb CLI"
+    }
+  ],
+  "gates": "187 pytest passed + ruff clean on the merged tree; tier1 full PASS on the final merge commit",
+  "status": "complete"
+}
