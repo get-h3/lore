@@ -113,6 +113,79 @@ _CHECKS: dict[str, list[Check]] = {
                 }
             ],
         ),
+        Check(
+            order=4,
+            command="grep -c 'enabled.*false' <scheduler-fleet-config>",
+            expected_healthy="the projects about to be affected are already disabled (writes paused)",
+            expected_incident="0 — writes were NOT paused before the restart (config-driven writes 503 during restart)",
+            decision=(
+                "pause writes FIRST: flip scheduler enabled=false / pause lanes before "
+                "touching the gateway; enqueue-not-drop keeps queued work alive"
+            ),
+            read_only=True,
+            evidence=[
+                {
+                    "kind": "incident",
+                    "detail": "2026-08-27T09:45Z post-mortem: config writes during a gateway restart 503'd; work that was enqueued instead of dropped survived the restart",
+                }
+            ],
+        ),
+        Check(
+            order=5,
+            command="curl -s <gateway-metrics-url> | grep -c 'in_flight'",
+            expected_healthy="in-flight counter present and steady",
+            expected_incident="in-flight counter draining slowly (up to ~30 min) — a restart issued now 503s the remainder",
+            decision=(
+                "gate the restart on the in-flight counter reaching 0: announce the drain "
+                "window, never hard-kill (SIGKILL) with requests still in flight"
+            ),
+            read_only=True,
+            evidence=[
+                {
+                    "kind": "logsey-export",
+                    "detail": "2026-08-14T02:07:41Z hermes-gateway: SIGKILL received during load; 214 in-flight requests terminated with 503",
+                },
+                {
+                    "kind": "incident",
+                    "detail": "2026-09-16T19:05Z post-mortem: across incidents 3-4 the drain window was observed at 25-30 min; dependents were not warned in advance during incidents 1-3",
+                },
+            ],
+        ),
+        Check(
+            order=6,
+            command="wc -l <gateway-queue-path>",
+            expected_healthy="queue empty or at its steady-state depth",
+            expected_incident="queue_depth > 0 with unflushed rows — restarting now loses the queued state",
+            decision="never restart with queued unflushed state: check queue depth FIRST and drain or flush before the restart",
+            read_only=True,
+            evidence=[
+                {
+                    "kind": "logsey-export",
+                    "detail": "2026-09-05T14:02:55Z hermes-gateway: restart executed with queue_depth=14 unflushed rows; queued state lost on restart",
+                }
+            ],
+        ),
+        Check(
+            order=7,
+            command="logsey query --pattern 'SIGKILL|503' --since 60m",
+            expected_healthy="no SIGKILL lines; 503 count at baseline (0/hour)",
+            expected_incident="SIGKILL during load, or 503 count above the pre/post-restart baseline",
+            decision=(
+                "verify with read-only probes only: keep before/after error-rate deltas as "
+                "evidence; reload gracefully (never SIGKILL) and re-check /health"
+            ),
+            read_only=True,
+            evidence=[
+                {
+                    "kind": "logsey-export",
+                    "detail": "2026-09-16T18:35:02Z hermes-gateway: fourth gateway-restart incident: 96 503s inside the incident window; baseline outside the window measured 0 per hour",
+                },
+                {
+                    "kind": "incident",
+                    "detail": "2026-09-12T22:00Z post-mortem: the graceful reload produced no hard-kill lines in the gateway log; the 503 spikes traced to hard kills in incidents 1-3",
+                },
+            ],
+        ),
     ],
     "shared-checkout-collision": [
         Check(

@@ -1,0 +1,145 @@
+{
+  "class_id": "gateway-drain-window",
+  "name": "Gateway drain window",
+  "signature": "drain\\s+503",
+  "checks": [
+    {
+      "order": 1,
+      "command": "logsey query --pattern 'drain 503' --since 30m",
+      "expected_healthy": "no rows",
+      "expected_incident": "503s on in-flight requests while the gateway restarts/reloads",
+      "decision": "confirm the class signature before touching anything",
+      "read_only": true,
+      "evidence": [
+        {
+          "kind": "incident",
+          "detail": "PRD \u00a7The problem, measured case 1"
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "command": "grep -c 'drain 503' <gateway-log-path>",
+      "expected_healthy": "0",
+      "expected_incident": "non-zero and rising over the drain window (up to ~30 min)",
+      "decision": "distinguish a drain window (bounded, expected) from a wedged gateway",
+      "read_only": true,
+      "evidence": [
+        {
+          "kind": "incident",
+          "detail": "four gateway-restart incidents pre-doctrine"
+        },
+        {
+          "kind": "memory",
+          "detail": "curated note: drain 503s kill ticks"
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "command": "curl -s -o /dev/null -w '%{http_code}' <gateway-health-url>",
+      "expected_healthy": "200",
+      "expected_incident": "503 during drain; 200 again once in-flight requests finish",
+      "decision": "pause-first decision: hold config rollout until health returns 200",
+      "read_only": true,
+      "evidence": [
+        {
+          "kind": "incident",
+          "detail": "gateway restart doctrine: pause-first under load"
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "command": "grep -c 'enabled.*false' <scheduler-fleet-config>",
+      "expected_healthy": "the projects about to be affected are already disabled (writes paused)",
+      "expected_incident": "0 \u2014 writes were NOT paused before the restart (config-driven writes 503 during restart)",
+      "decision": "pause writes FIRST: flip scheduler enabled=false / pause lanes before touching the gateway; enqueue-not-drop keeps queued work alive",
+      "read_only": true,
+      "evidence": [
+        {
+          "kind": "incident",
+          "detail": "2026-08-27T09:45Z post-mortem: config writes during a gateway restart 503'd; work that was enqueued instead of dropped survived the restart"
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "command": "curl -s <gateway-metrics-url> | grep -c 'in_flight'",
+      "expected_healthy": "in-flight counter present and steady",
+      "expected_incident": "in-flight counter draining slowly (up to ~30 min) \u2014 a restart issued now 503s the remainder",
+      "decision": "gate the restart on the in-flight counter reaching 0: announce the drain window, never hard-kill (SIGKILL) with requests still in flight",
+      "read_only": true,
+      "evidence": [
+        {
+          "kind": "logsey-export",
+          "detail": "2026-08-14T02:07:41Z hermes-gateway: SIGKILL received during load; 214 in-flight requests terminated with 503"
+        },
+        {
+          "kind": "incident",
+          "detail": "2026-09-16T19:05Z post-mortem: across incidents 3-4 the drain window was observed at 25-30 min; dependents were not warned in advance during incidents 1-3"
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "command": "wc -l <gateway-queue-path>",
+      "expected_healthy": "queue empty or at its steady-state depth",
+      "expected_incident": "queue_depth > 0 with unflushed rows \u2014 restarting now loses the queued state",
+      "decision": "never restart with queued unflushed state: check queue depth FIRST and drain or flush before the restart",
+      "read_only": true,
+      "evidence": [
+        {
+          "kind": "logsey-export",
+          "detail": "2026-09-05T14:02:55Z hermes-gateway: restart executed with queue_depth=14 unflushed rows; queued state lost on restart"
+        }
+      ]
+    },
+    {
+      "order": 7,
+      "command": "logsey query --pattern 'SIGKILL|503' --since 60m",
+      "expected_healthy": "no SIGKILL lines; 503 count at baseline (0/hour)",
+      "expected_incident": "SIGKILL during load, or 503 count above the pre/post-restart baseline",
+      "decision": "verify with read-only probes only: keep before/after error-rate deltas as evidence; reload gracefully (never SIGKILL) and re-check /health",
+      "read_only": true,
+      "evidence": [
+        {
+          "kind": "logsey-export",
+          "detail": "2026-09-16T18:35:02Z hermes-gateway: fourth gateway-restart incident: 96 503s inside the incident window; baseline outside the window measured 0 per hour"
+        },
+        {
+          "kind": "incident",
+          "detail": "2026-09-12T22:00Z post-mortem: the graceful reload produced no hard-kill lines in the gateway log; the 503 spikes traced to hard kills in incidents 1-3"
+        }
+      ]
+    }
+  ],
+  "recovery_ladder": [
+    "Stop config changes: batch them instead of trickling under load.",
+    "Pause-first under load: hold the rollout until in-flight requests finish.",
+    "Announce the expected drain window (up to ~30 min) to dependents before restarting.",
+    "Watch drain-503 volume fall to zero, then confirm health endpoint 200 before resuming."
+  ],
+  "guardrails": [
+    "Never restart the gateway with in-flight requests still draining from the previous restart.",
+    "Never treat drain 503s as a gateway fault \u2014 during a drain window they are EXPECTED; distinguish bounded drain from wedged before acting.",
+    "Never trickle config changes under load \u2014 batch them and pause-first."
+  ],
+  "evidence_trail": [
+    {
+      "kind": "board",
+      "detail": "LORE-003 seed class 'gateway drain window'"
+    },
+    {
+      "kind": "incident",
+      "detail": "PRD \u00a7The problem, measured case 1 (four incidents + compaction-boundary loss)"
+    },
+    {
+      "kind": "memory",
+      "detail": "curated note 'drain 503s kill ticks'"
+    }
+  ],
+  "provenance": "Compiled by lore.compiler from the curated class registry (lore.classes) and the fleet's incident history. Operator approval required to publish (propose-not-write).",
+  "last_validated": null,
+  "status": "proposal"
+}

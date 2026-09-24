@@ -1,0 +1,39 @@
+[
+  {
+    "class_id": "gateway-drain-window",
+    "mode": "plan",
+    "note": "plan only \u2014 no command was executed; pass --execute to run the gate-approved read-only commands",
+    "would_run": [
+      {
+        "order": 1,
+        "command": "logsey query --pattern 'drain 503' --since 30m"
+      },
+      {
+        "order": 2,
+        "command": "grep -c 'drain 503' <gateway-log-path>"
+      },
+      {
+        "order": 3,
+        "command": "curl -s -o /dev/null -w '%{http_code}' <gateway-health-url>"
+      },
+      {
+        "order": 4,
+        "command": "grep -c 'enabled.*false' <scheduler-fleet-config>"
+      },
+      {
+        "order": 5,
+        "command": "curl -s <gateway-metrics-url> | grep -c 'in_flight'"
+      },
+      {
+        "order": 6,
+        "command": "wc -l <gateway-queue-path>"
+      },
+      {
+        "order": 7,
+        "command": "logsey query --pattern 'SIGKILL|503' --since 60m"
+      }
+    ],
+    "absent": [],
+    "would_refuse": []
+  }
+]

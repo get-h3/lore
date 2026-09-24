@@ -1,0 +1,5 @@
+gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain; keyword:gateway; keyword:restart
+unclassified	confidence=0.00	evidence: none
+near-misses:
+  guard-degradation  score=0.17  (1/6 keywords: gate)
+  spawn-hot-loop  score=0.17  (1/6 keywords: spawn)
