@@ -482,10 +482,38 @@ _CHECKS: dict[str, list[Check]] = {
             ],
         ),
     ],
+    "gateway-guard-violation": [
+        Check(
+            order=1,
+            command="grep -n 'gateway\\|guard\\|denied' <guard-log-tail> | tail -20",
+            expected_healthy="guard verdict lines name the failing lane and reason",
+            expected_incident="a DENIED/banned verdict for a specific command text",
+            decision="capture the exact command text that tripped the guard — it is the fix target",
+            read_only=True,
+            evidence=[
+                {
+                    "kind": "incident",
+                    "detail": "2026-09-24 dogfood: banned command tripped the gateway guard",
+                }
+            ],
+        ),
+        Check(
+            order=2,
+            command="grep -c 'DENIED\\|banned' <guard-log-tail>",
+            expected_healthy="0 (no guard blocks in the window)",
+            expected_incident="the same block repeats across ticks",
+            decision="a repeated block is a reshaping bug, not a transient — attribute before retrying",
+            read_only=True,
+            evidence=[
+                {
+                    "kind": "gap",
+                    "detail": "repeated guard failures mean the command shape, not the guard, is broken",
+                }
+            ],
+        ),
+    ],
     UNCLASSIFIED_ID: [],
 }
-
-# ------------------------------------------------- recovery ladders/guardrails
 _RECOVERY_LADDERS: dict[str, list[str]] = {
     "gateway-drain-window": [
         "Stop config changes: batch them instead of trickling under load.",
@@ -541,6 +569,12 @@ _RECOVERY_LADDERS: dict[str, list[str]] = {
         "Attempt backfill only from a source proven to still hold the window.",
         "If unrecoverable, record the gap as permanent and named — never silently zero it.",
     ],
+    "gateway-guard-violation": [
+        "Stop: read the guard's own verdict — which command text was denied and by which rule.",
+        "Re-shape the command: split it into smaller steps, or use an allowed verb/tool for the same job.",
+        "Sandbox or route it: run the risky part where it is permitted (a scope that allows it, an approved wrapper).",
+        "Re-run the re-shaped form; a second denial of the ORIGINAL text means the shape never changed.",
+    ],
     UNCLASSIFIED_ID: [],
 }
 
@@ -590,6 +624,11 @@ _GUARDRAILS: dict[str, list[str]] = {
         "Never leave a capture gap unannotated — name the window exactly.",
         "Never trust a pipeline's own success status as evidence of capture — verify DESTINATION coverage.",
         "Never claim backfilled data that the destination cannot show; an unrecoverable gap stays named.",
+    ],
+    "gateway-guard-violation": [
+        "Never retry a banned command verbatim — a hardline block is deterministic, retrying proves nothing.",
+        "Never weaken or bypass the guard to let one command through — re-shape the command instead.",
+        "Never treat a guard block as a transient — the same denial repeating across ticks is a reshaping bug.",
     ],
     UNCLASSIFIED_ID: [],
 }
@@ -664,6 +703,16 @@ _EVIDENCE_TRAILS: dict[str, list[dict]] = {
         {
             "kind": "gap",
             "detail": "CHATGAP-001: 08-29/30 chat-archive hole, unrecoverable, annotated",
+        },
+    ],
+    "gateway-guard-violation": [
+        {
+            "kind": "incident",
+            "detail": "2026-09-24 integration dogfood: 'banned command tripped the gateway guard' had no home in the registry",
+        },
+        {
+            "kind": "board",
+            "detail": "LORE-017 seed class 'gateway guard violation' (closed-registry seed edit)",
         },
     ],
     UNCLASSIFIED_ID: [

@@ -115,7 +115,7 @@ uv run python -m lore compile --class does-not-exist ; echo "exit=$?"
 Run the tests and lint that gate every change:
 
 ```sh
-uv run pytest -q        # 148 passed
+uv run pytest -q        # 238 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -135,12 +135,13 @@ unclassified	confidence=0.00	evidence: none
 
 ## What the classifier knows today
 
-The curated registry holds **9 failure classes** plus an explicit
+The curated registry holds **10 failure classes** plus an explicit
 `unclassified` bucket:
 
 `gateway-drain-window` · `shared-checkout-collision` · `secret-env-clobber` ·
 `disk-pressure-corruption` · `cooldown-pin-drift` · `key-rotation-expiry` ·
-`guard-degradation` · `spawn-hot-loop` · `ingest-backfill-gap`
+`guard-degradation` · `spawn-hot-loop` · `ingest-backfill-gap` ·
+`gateway-guard-violation`
 
 Each class carries signature patterns and keyword evidence; matches print the
 class id, a confidence, and the evidence that drove the match — never a naked
@@ -252,8 +253,8 @@ and what does not:
 
 ### Shipped — runs today, verified on `main`
 
-- The failure-class taxonomy + classifier (9 curated classes + `unclassified`),
-  with **148 tests passing** and a clean `ruff check`.
+- The failure-class taxonomy + classifier (10 curated classes + `unclassified`),
+  with **238 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published

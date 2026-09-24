@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Project kickoff: repository, PRD, and the rebuilt task list
   (`docs/PRD.md`, commit `43db84f`).
-- Failure-class taxonomy + classifier: 9 curated failure classes plus an
+- Failure-class taxonomy + classifier: 10 curated failure classes plus an
   explicit `unclassified` bucket, and the `lore match "<symptoms>"` CLI
   (commits `f883cae`, merge `6a93e7d`).
 - GitHub Actions CI: build + pytest + ruff on push/PR (commits `d176e63`,
@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `docs/INSTALL.md`: prerequisites, install, and first run for someone who has
   never seen the fleet — every command shown was run, every output pasted
-  verbatim (148 tests on the merged tree, `match`/`compile`/`validate`/`--help`),
+  verbatim (238 tests on the merged tree, `match`/`compile`/`validate`/`--help`),
   plus an explicit "what this tool is NOT" section.
 - `docs/RUNBOOK-STORE.md`: the runbook-store design **decision** — central
   registry in the fleet's DuckBrain namespace + materialized per-repo
