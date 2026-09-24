@@ -1,0 +1,3 @@
+# Dogfood log — lore
+
+2026-09-24 | verdict=PROMISING-BUT-ROUGH | promise="paste a symptom line, get the failure class the fleet has seen before (with evidence), compile its runbook proposal" | time-to-first-success=2m (clone → first 0.90 match) | install_seconds=0.81 (documented quickstart, warm uv cache; fresh-machine battery: zero FAIL cells) | bunker=las-bunker-03 | smoke=ok (148 tests, ruff clean, all error paths exit 2) | top-findings: LORE-016 classifier misses stranger paraphrases of seeded classes (5/9 → unclassified; evidence-echo fix proposed) · fresh-machine install flawless · perf comfortably fast (match ≈94 ms raw) | artifacts: docs/dogfood/2026-09-24-integration.md, docs/dogfood/diagnostics.md, skills/lore-usage/SKILL.md
