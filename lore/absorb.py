@@ -25,11 +25,14 @@ board appender, or a human — and its exit code is machine-checkable.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 
 from lore.classes import get_registry
+from lore.classifier import classify
 from lore.compiler import propose
+from lore.evidence import EvidenceBlock
 
 __all__ = [
     "DECISION_ABSORB",
@@ -37,6 +40,7 @@ __all__ = [
     "AbsorbDecision",
     "GateVerdict",
     "absorb_proposal",
+    "absorb_sweep",
     "gate_close",
     "validate_close_decision",
 ]
@@ -130,3 +134,90 @@ def absorb_proposal(class_id: str, lesson: str) -> dict:
         return {"error": f"unknown class '{class_id}'"}
     payload["lesson"] = lesson
     return payload
+
+
+# ------------------------------------------------------------- window sweep
+# Duration tokens the sweep accepts for ``--window``: a bare integer (HOURS by
+# default), or an explicit unit suffix (h/m/s). A duration is a SWEEP PARAMETER
+# (the size of the evidence window to sweep), never an invented date: no
+# timestamp is ever fabricated from it.
+_DURATION_RE = re.compile(r"^(\d+)(h|m|s)?$", re.IGNORECASE)
+_DURATION_DEFAULT_UNIT = "h"
+
+
+def parse_duration(text: str) -> int:
+    """Parse a sweep duration like ``2h``/``45m``/``90`` into seconds.
+
+    A bare integer means hours (the ``--window`` flag's native unit in the
+    PRD interface, e.g. ``lore absorb --window 2h``). Raises ``ValueError``
+    on anything that is not a positive duration — never guessed, never
+    defaulted to a silent nonzero.
+    """
+    m = _DURATION_RE.match((text or "").strip())
+    if not m:
+        raise ValueError(
+            f"invalid --window duration {text!r} — expected forms: "
+            "'<n>' (hours), '<n>h', '<n>m', '<n>s' (e.g. 2h, 45m, 90)"
+        )
+    value = int(m.group(1))
+    if value <= 0:
+        raise ValueError(f"--window must be positive, got {text!r}")
+    unit = (m.group(2) or _DURATION_DEFAULT_UNIT).lower()
+    return value * {"h": 3600, "m": 60, "s": 1}[unit]
+
+
+def absorb_sweep(
+    blocks: list[EvidenceBlock],
+    *,
+    window: str | None = None,
+    ns: str | None = None,
+    board: str | None = None,
+) -> list[dict]:
+    """Group parsed evidence blocks into per-class absorb PROPOSALS.
+
+    LORE-010: the ``lore absorb --window`` sweep. Each block is classified by
+    the existing keyword/signature classifier; blocks that land in
+    ``unclassified`` are NOT dropped — they are reported under the
+    ``unclassified`` bucket (absorbing into unclassified is always allowed),
+    so a sweep shows its honest coverage instead of a confident zero.
+
+    PROPOSE-NOT-WRITE (same hard law as the gate): this returns DATA ONLY —
+    per-class proposal dicts in the existing ``absorb_proposal`` shape
+    (``propose()`` payload + ``lesson``), plus sweep provenance. It never
+    writes anything, never mutates the registry, and performs no
+    filesystem/board/DuckBrain IO. ``window``/``ns``/``board`` are recorded
+    in each proposal's provenance fields verbatim when provided — no live
+    lookups, no invention.
+
+    An empty or wholly-unclassifiable trail yields ``[]`` (the caller prints
+    an explicit empty-result message and exits 0 — never a fabricated
+    success).
+    """
+    if not blocks:
+        return []
+
+    grouped: dict[str, list[EvidenceBlock]] = {}
+    for block in blocks:
+        classification = classify(block.detail)
+        grouped.setdefault(classification.class_id, []).append(block)
+
+    provenance = {
+        "kind": "absorb-sweep",
+        "window": window,
+        "ns": ns,
+        "board": board,
+    }
+    proposals: list[dict] = []
+    for class_id, members in grouped.items():
+        proposal = absorb_proposal(class_id, "\n".join(b.detail for b in members))
+        proposal["sweep"] = {
+            "window": window,
+            "ns": ns,
+            "board": board,
+            "blocks_total": len(blocks),
+            "blocks_class": len(members),
+            "evidence": [b.to_trail_entry() for b in members],
+        }
+        proposal["provenance"] = dict(provenance)
+        proposals.append(proposal)
+    return proposals
