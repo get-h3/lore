@@ -293,7 +293,9 @@ def _cmd_absorb(args: argparse.Namespace) -> int:
         )
         return 2
 
-    proposals = absorb_sweep(blocks, window=args.window, ns=args.ns, board=args.board)
+    proposals = absorb_sweep(
+        blocks, window=args.window, ns=args.ns, board=args.board, source=args.source
+    )
     if not proposals:
         print(
             "no classifiable evidence blocks in the trail "

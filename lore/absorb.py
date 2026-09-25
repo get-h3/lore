@@ -185,6 +185,7 @@ def absorb_sweep(
     window: str | None = None,
     ns: str | None = None,
     board: str | None = None,
+    source: str | None = None,
 ) -> list[dict]:
     """Group parsed evidence blocks into per-class absorb PROPOSALS.
 
@@ -201,6 +202,11 @@ def absorb_sweep(
     filesystem/board/DuckBrain IO. ``window``/``ns``/``board`` are recorded
     in each proposal's provenance fields verbatim when provided — no live
     lookups, no invention.
+
+    ``source`` (LORE-020) is the provenance marker threaded through to every
+    per-class proposal via :func:`absorb_proposal`'s None-rule: omitted
+    (None) the payloads keep their original shape with no top-level
+    ``source`` key; given, every proposal carries ``source`` verbatim.
 
     An empty or wholly-unclassifiable trail yields ``[]`` (the caller prints
     an explicit empty-result message and exits 0 — never a fabricated
@@ -219,14 +225,18 @@ def absorb_sweep(
         "window": window,
         "ns": ns,
         "board": board,
+        "source": source,
     }
     proposals: list[dict] = []
     for class_id, members in grouped.items():
-        proposal = absorb_proposal(class_id, "\n".join(b.detail for b in members))
+        proposal = absorb_proposal(
+            class_id, "\n".join(b.detail for b in members), source=source
+        )
         proposal["sweep"] = {
             "window": window,
             "ns": ns,
             "board": board,
+            "source": source,
             "blocks_total": len(blocks),
             "blocks_class": len(members),
             "evidence": [b.to_trail_entry() for b in members],
