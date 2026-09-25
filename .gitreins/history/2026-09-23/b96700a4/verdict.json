@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-003",
+  "task_title": "Failure-class taxonomy + classifier for lore",
+  "task_criteria": [
+    "Python package lore/ with curated failure-class registry (drain-window, shared-checkout collision, secret clobber, disk-pressure corruption, cooldown drift, key-rotation, guard degradation, spawn hot-loop, ingest/backfill gap) plus explicit unclassified bucket; classifier maps a trail/message to a class by signature + keyword match with low-confidence falling back to unclassified; tests pass via pytest"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "e4b071cb1ffb4bef85248681a50b5d01dd704f73",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T092534.763554Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n4:25AM INF scanned ~172159 bytes (172.16 KB) in 65.3ms\n4:25AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 23 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T092534.763554Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 16 items\n\ntests/test_classes.py ........                                           [ 50%]\ntests/test_classifier.py ........                                        [100%]\n\n============================== 16 passed in 0.02s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T092534.763554Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 Python package lore/ with curated failure-class registry (drain-window, shared-checkout collision, secret clobber, disk-pressure corruption, cooldown drift, key-rotation, guard degradation, spawn hot-loop, ingest/backfill gap) plus explicit unclassified bucket; classifier maps a trail/message to a class by signature + keyword match with low-confidence falling back to unclassified; tests pass via pytest: lore/ package present (__init__.py, classes.py, classifier.py, __main__.py). lore/classes.py SEED_CLASSES contains all 9 curated classes: gateway-drain-window (L40), shared-checkout-collision (L57), secret-env-clobber (L74), disk-pressure-corruption (L98), cooldown-pin-drift (L121), key-rotation-expiry (L138), guard-degradation (L161), spawn-hot-loop (L185), ingest-backfill-gap (L202), plus explicit UNCLASSIFIED_CLASS (L227, id='unclassified', no-op pattern r'(?!)' so it never matches). lore/classifier.py classify() does signature regex match first (SIGNATURE_CONFIDENCE=0.9), then keyword score gated by KEYWORD_THRESHOLD=0.6 with keyword-only confidence capped at 0.5, else returns UNCLASSIFIED_ID with 0.0 confidence; _keyword_confidence returns 0.0 below threshold so weak matches fall back to unclassified. Tests: `uv run pytest -x --tb=short` exit_code 0, output 'collected 16 items ... 16 passed in 0.02s' (tests/test_classes.py 8 tests incl. test_unclassified_exists/test_all_seed_classes_present; tests/test_classifier.py 8 tests incl. test_total_miss_is_unclassified, test_signature_beats_keyword, test_keyword_only_weak_match_falls_back_to_unclassified, test_every_seed_class_matched_by_own_signature).\n",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 Python package lore/ with curated failure-class registry (drain-window, shared-checkout collision, secret clobber, disk-pressure corruption, cooldown drift, key-rotation, guard degradation, spawn hot-loop, ingest/backfill gap) plus explicit unclassified bucket; classifier maps a trail/message to a class by signature + keyword match with low-confidence falling back to unclassified; tests pass via pytest: lore/ package present (__init__.py, classes.py, classifier.py, __main__.py). lore/classes.py SEED_CLASSES contains all 9 curated classes: gateway-drain-window (L40), shared-checkout-collision (L57), secret-env-clobber (L74), disk-pressure-corruption (L98), cooldown-pin-drift (L121), key-rotation-expiry (L138), guard-degradation (L161), spawn-hot-loop (L185), ingest-backfill-gap (L202), plus explicit UNCLASSIFIED_CLASS (L227, id='unclassified', no-op pattern r'(?!)' so it never matches). lore/classifier.py classify() does signature regex match first (SIGNATURE_CONFIDENCE=0.9), then keyword score gated by KEYWORD_THRESHOLD=0.6 with keyword-only confidence capped at 0.5, else returns UNCLASSIFIED_ID with 0.0 confidence; _keyword_confidence returns 0.0 below threshold so weak matches fall back to unclassified. Tests: `uv run pytest -x --tb=short` exit_code 0, output 'collected 16 items ... 16 passed in 0.02s' (tests/test_classes.py 8 tests incl. test_unclassified_exists/test_all_seed_classes_present; tests/test_classifier.py 8 tests incl. test_total_miss_is_unclassified, test_signature_beats_keyword, test_keyword_only_weak_match_falls_back_to_unclassified, test_every_seed_class_matched_by_own_signature).\n",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "Python package lore/ with curated failure-class registry (drain-window, shared-checkout collision, secret clobber, disk-pressure corruption, cooldown drift, key-rotation, guard degradation, spawn hot-loop, ingest/backfill gap) plus explicit unclassified bucket; classifier maps a trail/message to a class by signature + keyword match with low-confidence falling back to unclassified; tests pass via pytest",
+                "status": "PASS",
+                "detail": "lore/ package present (__init__.py, classes.py, classifier.py, __main__.py). lore/classes.py SEED_CLASSES contains all 9 curated classes: gateway-drain-window (L40), shared-checkout-collision (L57), secret-env-clobber (L74), disk-pressure-corruption (L98), cooldown-pin-drift (L121), key-rotation-expiry (L138), guard-degradation (L161), spawn-hot-loop (L185), ingest-backfill-gap (L202), plus explicit UNCLASSIFIED_CLASS (L227, id='unclassified', no-op pattern r'(?!)' so it never matches). lore/classifier.py classify() does signature regex match first (SIGNATURE_CONFIDENCE=0.9), then keyword score gated by KEYWORD_THRESHOLD=0.6 with keyword-only confidence capped at 0.5, else returns UNCLASSIFIED_ID with 0.0 confidence; _keyword_confidence returns 0.0 below threshold so weak matches fall back to unclassified. Tests: `uv run pytest -x --tb=short` exit_code 0, output 'collected 16 items ... 16 passed in 0.02s' (tests/test_classes.py 8 tests incl. test_unclassified_exists/test_all_seed_classes_present; tests/test_classifier.py 8 tests incl. test_total_miss_is_unclassified, test_signature_beats_keyword, test_keyword_only_weak_match_falls_back_to_unclassified, test_every_seed_class_matched_by_own_signature)."
+              }
+            ],
+            "summary": ""
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-003\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 Python package lore/ with curated failure-class registry (drain-window, shared-checkout collision, secret clobber, disk-pressure corruption, cooldown drift, key-rotation, guard degradation, spawn hot-loop, ingest/backfill gap) plus explicit unclassified bucket; classifier maps a trail/message to a class by signature + keyword match with low-confidence falling back to unclassified; tests pass via pytest: lore/ package present (__init__.py, classes.py, classifier.py, __main__.py). lore/classes.py SEED_CLASSES contains all 9 curated classes: gateway-drain-window (L40), shared-checkout-collision (L57), secret-env-clobber (L74), disk-pressure-corruption (L98), cooldown-pin-drift (L121), key-rotation-expiry (L138), guard-degradation (L161), spawn-hot-loop (L185), ingest-backfill-gap (L202), plus explicit UNCLASSIFIED_CLASS (L227, id='unclassified', no-op pattern r'(?!)' so it never matches). lore/classifier.py classify() does signature regex match first (SIGNATURE_CONFIDENCE=0.9), then keyword score gated by KEYWORD_THRESHOLD=0.6 with keyword-only confidence capped at 0.5, else returns UNCLASSIFIED_ID with 0.0 confidence; _keyword_confidence returns 0.0 below threshold so weak matches fall back to unclassified. Tests: `uv run pytest -x --tb=short` exit_code 0, output 'collected 16 items ... 16 passed in 0.02s' (tests/test_classes.py 8 tests incl. test_unclassified_exists/test_all_seed_classes_present; tests/test_classifier.py 8 tests incl. test_total_miss_is_unclassified, test_signature_beats_keyword, test_keyword_only_weak_match_falls_back_to_unclassified, test_every_seed_class_matched_by_own_signature).\n\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-23T09:25:56.976785",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-23T09:25:56.991816+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 3056,
+        "truncated": false,
+        "source": "git show e4b071cb1ffb"
+      }
+    ],
+    "task_id": "LORE-003"
+  }
+}

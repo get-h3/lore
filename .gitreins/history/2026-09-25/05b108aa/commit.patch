@@ -1,0 +1,12 @@
+commit c7a7c2cc5dccda82ecca7f755d41dff80987887b
+Merge: 188cf1a 718b9e6
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Fri Sep 25 03:58:44 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Fri Sep 25 03:58:44 2026 -0500
+
+    merge: LORE-021 NearMiss.raw_score / evidence-shape contract pin (wave lore-2026-09-25-08-46-05)
+
+ lore/classifier.py                |  24 +++++++-
+ tests/test_lore021_naming_docs.py | 114 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 136 insertions(+), 2 deletions(-)

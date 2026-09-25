@@ -1,0 +1,39 @@
+commit 0d18be1959a4a6748177b1ecbc9978e20ff7a44b
+Merge: f8b498b 940f978
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Thu Sep 24 10:49:58 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Thu Sep 24 10:49:58 2026 -0500
+
+    merge: LORE-008 absorb-gate on close (wave lore-2026-09-24-15-30-21)
+    
+    # Conflicts:
+    #       lore/__main__.py
+
+ lore/__main__.py     |  88 +++++++++++++++++++
+ lore/absorb.py       | 132 +++++++++++++++++++++++++++++
+ tests/test_absorb.py | 234 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 454 insertions(+)
+
+diff --cc lore/__main__.py
+index d9428ba,4137639..96c3b0d
+--- a/lore/__main__.py
++++ b/lore/__main__.py
+@@@ -17,9 -17,15 +17,16 @@@ import argpars
+  import json
+  import sys
+  
++ from lore.absorb import (
++     DECISION_ABSORB,
++     DECISION_NO_NEW_LESSON,
++     AbsorbDecision,
++     absorb_proposal,
++     gate_close,
++ )
+ -from lore.classifier import classify_all
+ +from lore.classifier import classify_all, near_misses
+  from lore.compiler import compile_all, compile_class
+ +from lore.consult import ConsultResult, consult
+  from lore.runbook import Runbook
+  from lore.validate import is_read_only_command, lint_runbook
+  

@@ -1,0 +1,119 @@
+{
+  "task_id": "LORE-006",
+  "task_title": "Re-validation loop - read-only command lint (the anti-rot mechanism)",
+  "task_criteria": [
+    "Scheduled lint re-runs every runbook command in read-only/verify mode (--verify, --dry-run, SELECT-only); drift flips the runbook to stale and shows in audit. Honest label: lint proves commands parse and answer, NOT that recovery succeeds. v1 scheduling = unit/timer. Tests pass via pytest; ruff clean."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "3a2726d214fb59a3db00be543bdf084d15cf7b2f",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T232909.143291Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n6:29PM INF scanned ~615891 bytes (615.89 KB) in 140ms\n6:29PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 37 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T232909.143291Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 148 items\n\ntests/test_classes.py ........                                           [  5%]\ntests/test_classifier.py ........                                        [ 10%]\ntests/test_compiler.py .............................                     [ 30%]\ntests/test_evidence.py ......................                            [ 45%]\ntests/test_validate.py ................................................. [ 78%]\n................................                                         [100%]\n\n============================= 148 passed in 0.13s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T232909.143291Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 Scheduled lint re-runs every runbook command in read-only/verify mode (--verify, --dry-run, SELECT-only); drift flips the runbook to stale and shows in audit. Honest label: lint proves commands parse and answer, NOT that recovery succeeds. v1 scheduling = unit/timer. Tests pass via pytest; ruff clean.: lore/validate.py:561 is_read_only_command is a default-deny allow-list gate covering --verify/--dry-run/--check markers (line 441), SELECT/PRAGMA/EXPLAIN/WITH-only SQL (line 546), and git/curl/systemctl/docker read-only shapes; lint_runbook (line 670) re-runs every check and lint_all (line 721) covers every registry class. Drift flips stale: apply_lint (line 727) sets STATUS_STALE on any DRIFT_OUTCOMES (error/timeout/refused/unknown, line 114), appends lint evidence, and never sets last_validated/validated. Honesty label HONESTY_LABEL (line 105) = 'lint-verified: commands parse and answer on the live system; this does NOT prove recovery succeeds', carried on every LintReport (line 640) and rendered by CLI. CLI lore validate (lore/__main__.py:56) defaults to plan/dry-run executing NOTHING; --execute is opt-in \u2014 verified live: plan printed 'would run' only, --execute printed outcomes + stale_reason + honesty label. Scheduling: task detail states 'later relay B6 owns the schedule; v1 = unit/timer'; module docstring (lines 4-7) ships the unit/timer-shaped entry point (lint_all) and installs no cron/timer, honestly documented (README:237-238, INSTALL:90,232-234); lore audit is a separate planned task (README:247, INSTALL:88). TESTS: `cd /home/kara/lore && uv run pytest -x --tb=short` -> '148 passed in 0.09s', exit 0. RUFF: `uv run ruff check .` -> 'All checks passed!' exit 0; `uv run ruff format --check .` -> '33 files already formatted' exit 0. LSP diagnostics: 0.\nLORE-006 ships a default-deny read-only command lint with drift-to-stale transition, machine-checkable honesty label, and unit/timer-shaped entry point; 148 pytest tests pass and ruff is clean.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 Scheduled lint re-runs every runbook command in read-only/verify mode (--verify, --dry-run, SELECT-only); drift flips the runbook to stale and shows in audit. Honest label: lint proves commands parse and answer, NOT that recovery succeeds. v1 scheduling = unit/timer. Tests pass via pytest; ruff clean.: lore/validate.py:561 is_read_only_command is a default-deny allow-list gate covering --verify/--dry-run/--check markers (line 441), SELECT/PRAGMA/EXPLAIN/WITH-only SQL (line 546), and git/curl/systemctl/docker read-only shapes; lint_runbook (line 670) re-runs every check and lint_all (line 721) covers every registry class. Drift flips stale: apply_lint (line 727) sets STATUS_STALE on any DRIFT_OUTCOMES (error/timeout/refused/unknown, line 114), appends lint evidence, and never sets last_validated/validated. Honesty label HONESTY_LABEL (line 105) = 'lint-verified: commands parse and answer on the live system; this does NOT prove recovery succeeds', carried on every LintReport (line 640) and rendered by CLI. CLI lore validate (lore/__main__.py:56) defaults to plan/dry-run executing NOTHING; --execute is opt-in \u2014 verified live: plan printed 'would run' only, --execute printed outcomes + stale_reason + honesty label. Scheduling: task detail states 'later relay B6 owns the schedule; v1 = unit/timer'; module docstring (lines 4-7) ships the unit/timer-shaped entry point (lint_all) and installs no cron/timer, honestly documented (README:237-238, INSTALL:90,232-234); lore audit is a separate planned task (README:247, INSTALL:88). TESTS: `cd /home/kara/lore && uv run pytest -x --tb=short` -> '148 passed in 0.09s', exit 0. RUFF: `uv run ruff check .` -> 'All checks passed!' exit 0; `uv run ruff format --check .` -> '33 files already formatted' exit 0. LSP diagnostics: 0.\nLORE-006 ships a default-deny read-only command lint with drift-to-stale transition, machine-checkable honesty label, and unit/timer-shaped entry point; 148 pytest tests pass and ruff is clean.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "Scheduled lint re-runs every runbook command in read-only/verify mode (--verify, --dry-run, SELECT-only); drift flips the runbook to stale and shows in audit. Honest label: lint proves commands parse and answer, NOT that recovery succeeds. v1 scheduling = unit/timer. Tests pass via pytest; ruff clean.",
+                "status": "PASS",
+                "detail": "lore/validate.py:561 is_read_only_command is a default-deny allow-list gate covering --verify/--dry-run/--check markers (line 441), SELECT/PRAGMA/EXPLAIN/WITH-only SQL (line 546), and git/curl/systemctl/docker read-only shapes; lint_runbook (line 670) re-runs every check and lint_all (line 721) covers every registry class. Drift flips stale: apply_lint (line 727) sets STATUS_STALE on any DRIFT_OUTCOMES (error/timeout/refused/unknown, line 114), appends lint evidence, and never sets last_validated/validated. Honesty label HONESTY_LABEL (line 105) = 'lint-verified: commands parse and answer on the live system; this does NOT prove recovery succeeds', carried on every LintReport (line 640) and rendered by CLI. CLI lore validate (lore/__main__.py:56) defaults to plan/dry-run executing NOTHING; --execute is opt-in \u2014 verified live: plan printed 'would run' only, --execute printed outcomes + stale_reason + honesty label. Scheduling: task detail states 'later relay B6 owns the schedule; v1 = unit/timer'; module docstring (lines 4-7) ships the unit/timer-shaped entry point (lint_all) and installs no cron/timer, honestly documented (README:237-238, INSTALL:90,232-234); lore audit is a separate planned task (README:247, INSTALL:88). TESTS: `cd /home/kara/lore && uv run pytest -x --tb=short` -> '148 passed in 0.09s', exit 0. RUFF: `uv run ruff check .` -> 'All checks passed!' exit 0; `uv run ruff format --check .` -> '33 files already formatted' exit 0. LSP diagnostics: 0."
+              }
+            ],
+            "summary": "LORE-006 ships a default-deny read-only command lint with drift-to-stale transition, machine-checkable honesty label, and unit/timer-shaped entry point; 148 pytest tests pass and ruff is clean."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-006\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 Scheduled lint re-runs every runbook command in read-only/verify mode (--verify, --dry-run, SELECT-only); drift flips the runbook to stale and shows in audit. Honest label: lint proves commands parse and answer, NOT that recovery succeeds. v1 scheduling = unit/timer. Tests pass via pytest; ruff clean.: lore/validate.py:561 is_read_only_command is a default-deny allow-list gate covering --verify/--dry-run/--check markers (line 441), SELECT/PRAGMA/EXPLAIN/WITH-only SQL (line 546), and git/curl/systemctl/docker read-only shapes; lint_runbook (line 670) re-runs every check and lint_all (line 721) covers every registry class. Drift flips stale: apply_lint (line 727) sets STATUS_STALE on any DRIFT_OUTCOMES (error/timeout/refused/unknown, line 114), appends lint evidence, and never sets last_validated/validated. Honesty label HONESTY_LABEL (line 105) = 'lint-verified: commands parse and answer on the live system; this does NOT prove recovery succeeds', carried on every LintReport (line 640) and rendered by CLI. CLI lore validate (lore/__main__.py:56) defaults to plan/dry-run executing NOTHING; --execute is opt-in \u2014 verified live: plan printed 'would run' only, --execute printed outcomes + stale_reason + honesty label. Scheduling: task detail states 'later relay B6 owns the schedule; v1 = unit/timer'; module docstring (lines 4-7) ships the unit/timer-shaped entry point (lint_all) and installs no cron/timer, honestly documented (README:237-238, INSTALL:90,232-234); lore audit is a separate planned task (README:247, INSTALL:88). TESTS: `cd /home/kara/lore && uv run pytest -x --tb=short` -> '148 passed in 0.09s', exit 0. RUFF: `uv run ruff check .` -> 'All checks passed!' exit 0; `uv run ruff format --check .` -> '33 files already formatted' exit 0. LSP diagnostics: 0.\nLORE-006 ships a default-deny read-only command lint with drift-to-stale transition, machine-checkable honesty label, and unit/timer-shaped entry point; 148 pytest tests pass and ruff is clean.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-23T23:29:59.721212",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-23T23:29:59.734896+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 6666,
+        "truncated": false,
+        "source": "git show 3a2726d214fb"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 32196,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "LORE-006"
+  }
+}

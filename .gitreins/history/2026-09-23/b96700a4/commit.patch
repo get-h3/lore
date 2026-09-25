@@ -1,0 +1,72 @@
+commit e4b071cb1ffb4bef85248681a50b5d01dd704f73
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Sep 23 04:25:34 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Sep 23 04:25:34 2026 -0500
+
+    chore: add AGENTS.md conventions + raise gitreins judge iteration cap. Addresses LORE-014, LORE-003.
+    
+    - AGENTS.md: build/test/run commands (uv-based), board location, git subject
+      format, allow_skips guard rule. Landed by the foreman via the sanctioned
+      protected-instruction-files config toggle (brief-mandated); toggle verified
+      re-armed true after the write.
+    - .gitreins/config.yaml: evaluator.max_iterations 15 -> 25. LORE-003's Tier-2
+      judge starved at 16.0/15 (corpus answer 2203, gitreins-tier2-iteration-cap-
+      exceeded); no pipeline stage pin exists in this config, so the evaluator
+      block is the effective cap. Criteria unchanged; re-judge follows.
+---
+ .gitreins/config.yaml |  5 ++++-
+ AGENTS.md             | 28 ++++++++++++++++++++++++++++
+ 2 files changed, 32 insertions(+), 1 deletion(-)
+
+diff --git a/.gitreins/config.yaml b/.gitreins/config.yaml
+index f4c8d03..1084bb9 100644
+--- a/.gitreins/config.yaml
++++ b/.gitreins/config.yaml
+@@ -16,7 +16,10 @@ guards:
+   # grade skip instead of false-DEGRADED-blocking the commit.
+   allow_skips: true
+ evaluator:
+-  max_iterations: 15
++  # 2026-09-23: 15 starved on the LORE-003 Tier-2 judge (16.0 used, corpus
++  # gitreins-tier2-iteration-cap-exceeded). One rung raise; no stage pin exists
++  # in this config so evaluator.max_iterations is the effective cap.
++  max_iterations: 25
+ history:
+   enabled: true
+   storage: git
+diff --git a/AGENTS.md b/AGENTS.md
+new file mode 100644
+index 0000000..a30b099
+--- /dev/null
++++ b/AGENTS.md
+@@ -0,0 +1,28 @@
++# AGENTS.md — lore
++
++Runbook compiler — compiles the fleet's incident history into living, re-validated
++runbooks per failure class. *"How did we fix this last time — and does it still work?"*
++
++## Build / Test / Run
++
++```sh
++uv sync --extra dev        # provision .venv + pytest/ruff (uv; bare pytest exits 127 pre-venv)
++uv run pytest -q           # tests
++uv run ruff check .        # lint
++uv run lore match "<symptoms>"   # or: python -m lore match "<symptoms>"
++```
++
++## Board
++
++`.coding-hermes/board/tasks.jsonl` — JSONL-canonical, last row per id wins.
++`LORE-*` task ids. Satellite lanes (lore-qa/-pm/-dogfood/-releng/-sync) read this
++board via a symlinked dir.
++
++## Git conventions
++
++- Small, path-limited commits. Subject format: `type: description. Addresses <task-id>.`
++- Worktree-mode workers: commit on `wt/<taskid>`, never push or merge (the foreman merges).
++- GitReins Tier-1 guard runs pre-commit (secrets/lint/tests, see `.gitreins/config.yaml`);
++  board-only commits rely on `allow_skips: true` so empty lanes skip instead of
++  false-DEGRADED-blocking.
++- Never commit `.gitreins/` runtime artifacts (tasks.yaml, logs/, usage.jsonl) — ignored.
+\ No newline at end of file

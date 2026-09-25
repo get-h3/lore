@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-015",
+  "task_title": "README + docs to the fleet's public-deliverable standard",
+  "task_criteria": [
+    "README.md carries a hook headline, the question the tool answers, a runnable walkthrough, and named use-cases; CHANGELOG.md and SECURITY.md exist with real content; no invented numbers \u2014 any figure cited traces to a real file or command."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "c19eacc6a3800053b2e5e26ad9cca11d0161406c",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T213421.686144Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n4:34PM INF scanned ~364191 bytes (364.19 KB) in 128ms\n4:34PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 30 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T213421.686144Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 45 items\n\ntests/test_classes.py ........                                           [ 17%]\ntests/test_classifier.py ........                                        [ 35%]\ntests/test_compiler.py .............................                     [100%]\n\n============================== 45 passed in 0.06s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T213421.686144Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 README.md carries a hook headline, the question the tool answers, a runnable walkthrough, and named use-cases; CHANGELOG.md and SECURITY.md exist with real content; no invented numbers \u2014 any figure cited traces to a real file or command.: README.md:3 hook headline ('The cure that lived in one session transcript...'); README.md:9 'The question lore answers' section; README.md:18 Quickstart runnable walkthrough \u2014 verified `uv run python -m lore match \"drain 503\"` output matches README exactly (gateway-drain-window confidence=0.90) and `lore compile --class gateway-drain-window --format md` output matches; README.md:141 'Who this is for' names 4 use-cases. CHANGELOG.md (1730B, Keep-a-Changelog, real dated entries) and SECURITY.md (2115B, real threat notes) exist. Numbers verified: README '45 passed in 0.05s' == actual `uv run pytest -q` output '45 passed in 0.05s' (exit 0); '9 curated classes' == SEED_CLASSES len=9; 'ruff check . All checks passed!' confirmed (exit 0); narrative figures (four incidents, SCHED-GAP-025/121, four secret generations) trace to docs/PRD.md:16-18; all 12 CHANGELOG commit hashes resolve via `git cat-file -t` (all 'commit').\nREADME meets the public-deliverable standard with hook, question, verified runnable walkthrough, and named use-cases; CHANGELOG/SECURITY have real content and every cited figure traces to a real file, command, or commit.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 README.md carries a hook headline, the question the tool answers, a runnable walkthrough, and named use-cases; CHANGELOG.md and SECURITY.md exist with real content; no invented numbers \u2014 any figure cited traces to a real file or command.: README.md:3 hook headline ('The cure that lived in one session transcript...'); README.md:9 'The question lore answers' section; README.md:18 Quickstart runnable walkthrough \u2014 verified `uv run python -m lore match \"drain 503\"` output matches README exactly (gateway-drain-window confidence=0.90) and `lore compile --class gateway-drain-window --format md` output matches; README.md:141 'Who this is for' names 4 use-cases. CHANGELOG.md (1730B, Keep-a-Changelog, real dated entries) and SECURITY.md (2115B, real threat notes) exist. Numbers verified: README '45 passed in 0.05s' == actual `uv run pytest -q` output '45 passed in 0.05s' (exit 0); '9 curated classes' == SEED_CLASSES len=9; 'ruff check . All checks passed!' confirmed (exit 0); narrative figures (four incidents, SCHED-GAP-025/121, four secret generations) trace to docs/PRD.md:16-18; all 12 CHANGELOG commit hashes resolve via `git cat-file -t` (all 'commit').\nREADME meets the public-deliverable standard with hook, question, verified runnable walkthrough, and named use-cases; CHANGELOG/SECURITY have real content and every cited figure traces to a real file, command, or commit.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "README.md carries a hook headline, the question the tool answers, a runnable walkthrough, and named use-cases; CHANGELOG.md and SECURITY.md exist with real content; no invented numbers \u2014 any figure cited traces to a real file or command.",
+                "status": "PASS",
+                "detail": "README.md:3 hook headline ('The cure that lived in one session transcript...'); README.md:9 'The question lore answers' section; README.md:18 Quickstart runnable walkthrough \u2014 verified `uv run python -m lore match \"drain 503\"` output matches README exactly (gateway-drain-window confidence=0.90) and `lore compile --class gateway-drain-window --format md` output matches; README.md:141 'Who this is for' names 4 use-cases. CHANGELOG.md (1730B, Keep-a-Changelog, real dated entries) and SECURITY.md (2115B, real threat notes) exist. Numbers verified: README '45 passed in 0.05s' == actual `uv run pytest -q` output '45 passed in 0.05s' (exit 0); '9 curated classes' == SEED_CLASSES len=9; 'ruff check . All checks passed!' confirmed (exit 0); narrative figures (four incidents, SCHED-GAP-025/121, four secret generations) trace to docs/PRD.md:16-18; all 12 CHANGELOG commit hashes resolve via `git cat-file -t` (all 'commit')."
+              }
+            ],
+            "summary": "README meets the public-deliverable standard with hook, question, verified runnable walkthrough, and named use-cases; CHANGELOG/SECURITY have real content and every cited figure traces to a real file, command, or commit."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-015\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 README.md carries a hook headline, the question the tool answers, a runnable walkthrough, and named use-cases; CHANGELOG.md and SECURITY.md exist with real content; no invented numbers \u2014 any figure cited traces to a real file or command.: README.md:3 hook headline ('The cure that lived in one session transcript...'); README.md:9 'The question lore answers' section; README.md:18 Quickstart runnable walkthrough \u2014 verified `uv run python -m lore match \"drain 503\"` output matches README exactly (gateway-drain-window confidence=0.90) and `lore compile --class gateway-drain-window --format md` output matches; README.md:141 'Who this is for' names 4 use-cases. CHANGELOG.md (1730B, Keep-a-Changelog, real dated entries) and SECURITY.md (2115B, real threat notes) exist. Numbers verified: README '45 passed in 0.05s' == actual `uv run pytest -q` output '45 passed in 0.05s' (exit 0); '9 curated classes' == SEED_CLASSES len=9; 'ruff check . All checks passed!' confirmed (exit 0); narrative figures (four incidents, SCHED-GAP-025/121, four secret generations) trace to docs/PRD.md:16-18; all 12 CHANGELOG commit hashes resolve via `git cat-file -t` (all 'commit').\nREADME meets the public-deliverable standard with hook, question, verified runnable walkthrough, and named use-cases; CHANGELOG/SECURITY have real content and every cited figure traces to a real file, command, or commit.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-23T21:34:55.434129",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-23T21:34:55.452439+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 26509,
+        "truncated": false,
+        "source": "git show c19eacc6a380"
+      }
+    ],
+    "task_id": "LORE-015"
+  }
+}

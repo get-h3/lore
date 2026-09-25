@@ -1,0 +1,108 @@
+{
+  "task_id": "LORE-013",
+  "task_title": "CI: GitHub Actions build+test+lint workflow",
+  "task_criteria": [
+    ".github/workflows/ci.yml runs on push/PR: checkout, uv-based Python setup, build/import check, pytest, ruff lint; green on the repo's own scaffold; a broken commit can turn it red"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "ea8fbd6f31db6b77595bcfd4dce72296493485c0",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n4:23AM INF scanned ~170895 bytes (170.90 KB) in 56.2ms\n4:23AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 22 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 16 items\n\ntests/test_classes.py ........                                           [ 50%]\ntests/test_classifier.py ........                                        [100%]\n\n============================== 16 passed in 0.02s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            }
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 .github/workflows/ci.yml runs on push/PR: checkout, uv-based Python setup, build/import check, pytest, ruff lint; green on the repo's own scaffold; a broken commit can turn it red: .github/workflows/ci.yml is valid YAML with on: push(branches:[main]) + pull_request; steps = actions/checkout@v4, astral-sh/setup-uv@v5, 'uv python install 3.11', 'uv sync --extra dev' (build/install via setuptools), 'uv run ruff check .' (lint), 'uv run pytest -q || test $? = 5' (test). GREEN on scaffold: `uv run ruff check .` -> 'All checks passed!' exit 0; `uv run pytest -q` -> '16 passed' exit 0; `uv run python -c 'import lore'` -> 'import ok' exit 0. RED on broken commit: injected failing test then ran the exact workflow step logic `uv run pytest -q || test $? = 5` -> WORKFLOW_STEP_EXIT=1 (correctly fails); restored and tests pass again (16 passed).\n",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 .github/workflows/ci.yml runs on push/PR: checkout, uv-based Python setup, build/import check, pytest, ruff lint; green on the repo's own scaffold; a broken commit can turn it red: .github/workflows/ci.yml is valid YAML with on: push(branches:[main]) + pull_request; steps = actions/checkout@v4, astral-sh/setup-uv@v5, 'uv python install 3.11', 'uv sync --extra dev' (build/install via setuptools), 'uv run ruff check .' (lint), 'uv run pytest -q || test $? = 5' (test). GREEN on scaffold: `uv run ruff check .` -> 'All checks passed!' exit 0; `uv run pytest -q` -> '16 passed' exit 0; `uv run python -c 'import lore'` -> 'import ok' exit 0. RED on broken commit: injected failing test then ran the exact workflow step logic `uv run pytest -q || test $? = 5` -> WORKFLOW_STEP_EXIT=1 (correctly fails); restored and tests pass again (16 passed).\n",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": ".github/workflows/ci.yml runs on push/PR: checkout, uv-based Python setup, build/import check, pytest, ruff lint; green on the repo's own scaffold; a broken commit can turn it red",
+                "status": "PASS",
+                "detail": ".github/workflows/ci.yml is valid YAML with on: push(branches:[main]) + pull_request; steps = actions/checkout@v4, astral-sh/setup-uv@v5, 'uv python install 3.11', 'uv sync --extra dev' (build/install via setuptools), 'uv run ruff check .' (lint), 'uv run pytest -q || test $? = 5' (test). GREEN on scaffold: `uv run ruff check .` -> 'All checks passed!' exit 0; `uv run pytest -q` -> '16 passed' exit 0; `uv run python -c 'import lore'` -> 'import ok' exit 0. RED on broken commit: injected failing test then ran the exact workflow step logic `uv run pytest -q || test $? = 5` -> WORKFLOW_STEP_EXIT=1 (correctly fails); restored and tests pass again (16 passed)."
+              }
+            ],
+            "summary": ""
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-013\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 .github/workflows/ci.yml runs on push/PR: checkout, uv-based Python setup, build/import check, pytest, ruff lint; green on the repo's own scaffold; a broken commit can turn it red: .github/workflows/ci.yml is valid YAML with on: push(branches:[main]) + pull_request; steps = actions/checkout@v4, astral-sh/setup-uv@v5, 'uv python install 3.11', 'uv sync --extra dev' (build/install via setuptools), 'uv run ruff check .' (lint), 'uv run pytest -q || test $? = 5' (test). GREEN on scaffold: `uv run ruff check .` -> 'All checks passed!' exit 0; `uv run pytest -q` -> '16 passed' exit 0; `uv run python -c 'import lore'` -> 'import ok' exit 0. RED on broken commit: injected failing test then ran the exact workflow step logic `uv run pytest -q || test $? = 5` -> WORKFLOW_STEP_EXIT=1 (correctly fails); restored and tests pass again (16 passed).\n\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-23T09:24:10.572194",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-23T09:24:10.600248+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 474,
+        "truncated": false,
+        "source": "git show ea8fbd6f31db"
+      }
+    ],
+    "task_id": "LORE-013"
+  }
+}

@@ -1,0 +1,145 @@
+commit 3a2726d214fb59a3db00be543bdf084d15cf7b2f
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Sep 23 18:29:08 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Sep 23 18:29:08 2026 -0500
+
+    fix: docs match the merged tree after LORE-006 (148 tests, validate shipped). Addresses LORE-012.
+    
+    The LORE-006 merge in the same wave added lore/validate.py + tests/test_validate.py,
+    taking the merged tree from 67 to 148 tests and the CLI from two subcommands to
+    three. README, docs/INSTALL.md (including the pasted --help block) and the
+    CHANGELOG entry now state the observed numbers, and `lore validate` moved from
+    "in flight" to "shipped" with its plan-mode default documented. Verified: grep
+    for the old counts is empty; every command printed was re-run.
+    
+    Co-authored-by: Alexis Okuwa <wojonstech@gmail.com>
+---
+ CHANGELOG.md    |  4 ++--
+ README.md       | 13 ++++++++-----
+ docs/INSTALL.md | 33 ++++++++++++++++++++-------------
+ 3 files changed, 30 insertions(+), 20 deletions(-)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 51e1377..a795a6a 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -39,8 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
+ 
+ - `docs/INSTALL.md`: prerequisites, install, and first run for someone who has
+   never seen the fleet — every command shown was run, every output pasted
+-  verbatim (67 tests on the merged tree, `match`/`compile`/`--help`), plus an
+-  explicit "what this tool is NOT" section.
++  verbatim (148 tests on the merged tree, `match`/`compile`/`validate`/`--help`),
++  plus an explicit "what this tool is NOT" section.
+ - `docs/RUNBOOK-STORE.md`: the runbook-store design **decision** — central
+   registry in the fleet's DuckBrain namespace + materialized per-repo
+   git-tracked `runbooks/` dirs; read/write paths, propose-not-write, conflict
+diff --git a/README.md b/README.md
+index fc8c77c..91f932f 100644
+--- a/README.md
++++ b/README.md
+@@ -115,7 +115,7 @@ uv run python -m lore compile --class does-not-exist ; echo "exit=$?"
+ Run the tests and lint that gate every change:
+ 
+ ```sh
+-uv run pytest -q        # 67 passed
++uv run pytest -q        # 148 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -219,7 +219,7 @@ and what does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (9 curated classes + `unclassified`),
+-  with **67 tests passing** and a clean `ruff check`.
++  with **148 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+@@ -230,14 +230,17 @@ and what does not:
+   unimplemented. Attaching evidence never sets `last_validated`.
+ - Zero runtime dependencies; MIT licensed; CI (build + pytest + ruff) green on
+   `main`.
++- The read-only command lint (`lore validate`): re-runs each runbook's checks and
++  flips a drifted runbook to `stale`, carrying the reason. **Default is plan
++  mode** — it lists what *would* run and executes nothing; `--execute` opts in.
++  The report carries a machine-checkable honesty label: the lint proves commands
++  *parse and answer*, **not** that recovery *succeeds*. No schedule is installed
++  yet (a separate task owns the weekly timer).
+ - Install guide: [docs/INSTALL.md](docs/INSTALL.md). Runbook-store design
+   decision: [docs/RUNBOOK-STORE.md](docs/RUNBOOK-STORE.md).
+ 
+ ### Planned / in flight — named, not promised as runnable
+ 
+-- **Read-only command lint / re-validation loop** (`lore validate` + weekly
+-  scheduled lint flipping drifted runbooks to `stale`) — in flight, task
+-  `LORE-006`.
+ - **Runbook store** (central registry + materialized per-repo dirs) — design
+   decided in [RUNBOOK-STORE.md](docs/RUNBOOK-STORE.md), not implemented.
+ - **Runbook viewing (`lore show`), absorbing incident trails into proposals
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index f33ec12..abdd330 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -45,17 +45,18 @@ uv run ruff check .
+ Real output on the current tree:
+ 
+ ```
+-...................................................................      [100%]
+-67 passed in 0.07s
++........................................................................ [ 97%]
++....                                                                     [100%]
++148 passed in 0.10s
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **67 tests** (4 test files: taxonomy, classifier,
+-compiler, evidence). If your run says something else, you are on a different
+-revision — check `git log` before trusting this document.
++The count to expect is **148 tests** (5 test files: taxonomy, classifier,
++compiler, evidence, validate). If your run says something else, you are on a
++different revision — check `git log` before trusting this document.
+ 
+ ## First run
+ 
+@@ -66,22 +67,28 @@ uv run python -m lore --help
+ ```
+ 
+ ```
+-usage: lore [-h] {match,compile} ...
++usage: lore [-h] {match,compile,validate} ...
+ 
+ Match symptoms and compile runbooks from fleet incident history.
+ 
+ positional arguments:
+-  {match,compile}
+-    match          classify a symptom text
+-    compile        compile runbook proposal(s) per failure class (stdout only)
++  {match,compile,validate}
++    match               classify a symptom text
++    compile             compile runbook proposal(s) per failure class (stdout
++                        only)
++    validate            read-only command lint (LORE-006). DEFAULT = plan/dry-
++                        run: lists what WOULD run, executes NOTHING; pass
++                        --execute to run the gate-approved read-only commands
+ 
+ options:
+-  -h, --help       show this help message and exit
++  -h, --help            show this help message and exit
+ ```
+ 
+-That is the entire shipped CLI today: two subcommands, `match` and `compile`.
+-Anything else you may have heard of (`show`, `absorb`, `audit`, `validate`,
+-evidence blocks) is **planned or in flight** — see the README's Status section.
++That is the entire shipped CLI today: three subcommands, `match`, `compile` and
++`validate`. Anything else you may have heard of (`show`, `absorb`, `audit`,
++runbook-store materialization) is **planned** — see the README's Status section.
++`lore validate` runs the lint; the weekly *schedule* that would run it for you is
++not installed (that is a separate task).
+ 
+ ### `match` — classify a symptom
+ 

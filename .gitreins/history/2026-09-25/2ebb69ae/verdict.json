@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-019",
+  "task_title": "Docs truth sweep: repo PUBLIC + live test/class counts",
+  "task_criteria": [
+    "README quickstart works on the now-public repo; no stale 238/10-curated claims; live counts verified"
+  ],
+  "passed": false,
+  "worktree": "/home/kara/lore",
+  "branch": "",
+  "commit": "c7a7c2cc5dccda82ecca7f755d41dff80987887b",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T085853.224792Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n3:58AM INF scanned ~1316188 bytes (1.32 MB) in 180ms\n3:58AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 66 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T085853.224792Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 269 items\n\ntests/test_absorb.py .........................                           [  9%]\ntests/test_classes.py ........                                           [ 12%]\ntests/test_classifier.py ........                                        [ 15%]\ntests/test_cli_surface.py .....................                          [ 23%]\ntests/test_compiler.py .............................                     [ 33%]\ntests/test_consult.py ....................                               [ 41%]\ntests/test_evidence.py ......................                            [ 49%]\ntests/test_lore011_drain_acceptance.py .......                           [ 52%]\ntests/test_lore016_qa_audit.py .....................                     [ 59%]\ntests/test_lore017_gateway_guard.py ........                             [ 62%]\ntests/test_lore020_absorb_window.py ...                                  [ 63%]\ntests/test_lore021_naming_docs.py .......                                [ 66%]\ntests/test_near_miss.py .........                                        [ 69%]\ntests/test_validate.py ................................................. [ 88%]\n................................                                         [100%]\n\n============================= 269 passed in 0.24s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T085853.224792Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": false,
+      "any_failed": true,
+      "summary": "INCOMPLETE\n  \u2717 README quickstart works on the now-public repo; no stale 238/10-curated claims; live counts verified: Two of three sub-claims PASS, one FAILS. (A) PUBLIC + quickstart: PASS \u2014 `gh repo view get-h3/lore --json visibility,isPrivate` => {\"isPrivate\":false,\"visibility\":\"PUBLIC\"}; fresh public clone `git clone https://github.com/get-h3/lore /tmp/lore-qs-test` exit=0; `uv sync --extra dev` exit=0; `uv run python -m lore match \"drain 503\"` => 'gateway-drain-window confidence=0.90 evidence: signature:drain 503; keyword:503; keyword:drain' (matches README verbatim); `uv run ruff check .` => 'All checks passed!'; grep for private/invite/internal-only in README/INSTALL/CHANGELOG => exit=1 (none). (B) no stale 238/10-curated: PASS \u2014 `grep -rn \"238\" README.md docs/ CHANGELOG.md AGENTS.md SECURITY.md .github/` => exit=1 (no hits; only historical .gitreins/history + .coding-hermes/waves records mention 238). '10 curated' is factually ACCURATE: live `SEED_CLASSES` len=10, registry `all_classes()` len=11, curated (non-unclassified)=10; README.md:138/256 and CHANGELOG.md:19/45 correctly say '10 curated classes + unclassified', and README.md:139-143 lists all 10 including gateway-guard-violation. (C) live counts verified: FAIL \u2014 README.md:118 says `uv run pytest -q  # 259 passed`, README.md:257 says '**259 tests passing**', docs/INSTALL.md:52 says '259 passed in 0.74s', docs/INSTALL.md:59 says 'The count to expect is **259 tests** (12 test files...)'. Live at merged HEAD c7a7c2c: `uv run pytest -q` => '269 passed in 0.42s' and `ls tests/*.py | wc -l` => 14. Root cause: 259/12 was accurate at LORE-019's base 75e5c73 (verified: `git checkout 75e5c73 && uv run pytest -q` => '259 passed', 12 test files), but same-wave siblings LORE-020 (cdb8499, tests/test_lore020_absorb_window.py) and LORE-021 (718b9e6, tests/test_lore021_naming_docs.py) added 2 test files / +10 tests that landed AFTER the docs sweep, and the docs were never re-synced. The docs are therefore stale by 10 tests and 2 test files at the tree the criterion is judged against, so 'live counts verified' is not satisfied.\nRepo is genuinely PUBLIC and the README quickstart works end-to-end on a fresh clone with no stale 238 or 10-curated claims, but the pinned test counts (259 tests / 12 test files in README.md:118,257 and docs/INSTALL.md:52,59) are stale against the live tree (269 tests / 14 test files), so the 'live counts verified' requirement fails.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": false,
+          "output": "INCOMPLETE\n  \u2717 README quickstart works on the now-public repo; no stale 238/10-curated claims; live counts verified: Two of three sub-claims PASS, one FAILS. (A) PUBLIC + quickstart: PASS \u2014 `gh repo view get-h3/lore --json visibility,isPrivate` => {\"isPrivate\":false,\"visibility\":\"PUBLIC\"}; fresh public clone `git clone https://github.com/get-h3/lore /tmp/lore-qs-test` exit=0; `uv sync --extra dev` exit=0; `uv run python -m lore match \"drain 503\"` => 'gateway-drain-window confidence=0.90 evidence: signature:drain 503; keyword:503; keyword:drain' (matches README verbatim); `uv run ruff check .` => 'All checks passed!'; grep for private/invite/internal-only in README/INSTALL/CHANGELOG => exit=1 (none). (B) no stale 238/10-curated: PASS \u2014 `grep -rn \"238\" README.md docs/ CHANGELOG.md AGENTS.md SECURITY.md .github/` => exit=1 (no hits; only historical .gitreins/history + .coding-hermes/waves records mention 238). '10 curated' is factually ACCURATE: live `SEED_CLASSES` len=10, registry `all_classes()` len=11, curated (non-unclassified)=10; README.md:138/256 and CHANGELOG.md:19/45 correctly say '10 curated classes + unclassified', and README.md:139-143 lists all 10 including gateway-guard-violation. (C) live counts verified: FAIL \u2014 README.md:118 says `uv run pytest -q  # 259 passed`, README.md:257 says '**259 tests passing**', docs/INSTALL.md:52 says '259 passed in 0.74s', docs/INSTALL.md:59 says 'The count to expect is **259 tests** (12 test files...)'. Live at merged HEAD c7a7c2c: `uv run pytest -q` => '269 passed in 0.42s' and `ls tests/*.py | wc -l` => 14. Root cause: 259/12 was accurate at LORE-019's base 75e5c73 (verified: `git checkout 75e5c73 && uv run pytest -q` => '259 passed', 12 test files), but same-wave siblings LORE-020 (cdb8499, tests/test_lore020_absorb_window.py) and LORE-021 (718b9e6, tests/test_lore021_naming_docs.py) added 2 test files / +10 tests that landed AFTER the docs sweep, and the docs were never re-synced. The docs are therefore stale by 10 tests and 2 test files at the tree the criterion is judged against, so 'live counts verified' is not satisfied.\nRepo is genuinely PUBLIC and the README quickstart works end-to-end on a fresh clone with no stale 238 or 10-curated claims, but the pinned test counts (259 tests / 12 test files in README.md:118,257 and docs/INSTALL.md:52,59) are stale against the live tree (269 tests / 14 test files), so the 'live counts verified' requirement fails.",
+          "error": "",
+          "data": {
+            "verdict": "INCOMPLETE",
+            "items": [
+              {
+                "criterion": "README quickstart works on the now-public repo; no stale 238/10-curated claims; live counts verified",
+                "status": "FAIL",
+                "detail": "Two of three sub-claims PASS, one FAILS. (A) PUBLIC + quickstart: PASS \u2014 `gh repo view get-h3/lore --json visibility,isPrivate` => {\"isPrivate\":false,\"visibility\":\"PUBLIC\"}; fresh public clone `git clone https://github.com/get-h3/lore /tmp/lore-qs-test` exit=0; `uv sync --extra dev` exit=0; `uv run python -m lore match \"drain 503\"` => 'gateway-drain-window confidence=0.90 evidence: signature:drain 503; keyword:503; keyword:drain' (matches README verbatim); `uv run ruff check .` => 'All checks passed!'; grep for private/invite/internal-only in README/INSTALL/CHANGELOG => exit=1 (none). (B) no stale 238/10-curated: PASS \u2014 `grep -rn \"238\" README.md docs/ CHANGELOG.md AGENTS.md SECURITY.md .github/` => exit=1 (no hits; only historical .gitreins/history + .coding-hermes/waves records mention 238). '10 curated' is factually ACCURATE: live `SEED_CLASSES` len=10, registry `all_classes()` len=11, curated (non-unclassified)=10; README.md:138/256 and CHANGELOG.md:19/45 correctly say '10 curated classes + unclassified', and README.md:139-143 lists all 10 including gateway-guard-violation. (C) live counts verified: FAIL \u2014 README.md:118 says `uv run pytest -q  # 259 passed`, README.md:257 says '**259 tests passing**', docs/INSTALL.md:52 says '259 passed in 0.74s', docs/INSTALL.md:59 says 'The count to expect is **259 tests** (12 test files...)'. Live at merged HEAD c7a7c2c: `uv run pytest -q` => '269 passed in 0.42s' and `ls tests/*.py | wc -l` => 14. Root cause: 259/12 was accurate at LORE-019's base 75e5c73 (verified: `git checkout 75e5c73 && uv run pytest -q` => '259 passed', 12 test files), but same-wave siblings LORE-020 (cdb8499, tests/test_lore020_absorb_window.py) and LORE-021 (718b9e6, tests/test_lore021_naming_docs.py) added 2 test files / +10 tests that landed AFTER the docs sweep, and the docs were never re-synced. The docs are therefore stale by 10 tests and 2 test files at the tree the criterion is judged against, so 'live counts verified' is not satisfied."
+              }
+            ],
+            "summary": "Repo is genuinely PUBLIC and the README quickstart works end-to-end on a fresh clone with no stale 238 or 10-curated claims, but the pinned test counts (259 tests / 12 test files in README.md:118,257 and docs/INSTALL.md:52,59) are stale against the live tree (269 tests / 14 test files), so the 'live counts verified' requirement fails."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-019\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: FAIL\n  INCOMPLETE\n  \u2717 README quickstart works on the now-public repo; no stale 238/10-curated claims; live counts verified: Two of three sub-claims PASS, one FAILS. (A) PUBLIC + quickstart: PASS \u2014 `gh repo view get-h3/lore --json visibility,isPrivate` => {\"isPrivate\":false,\"visibility\":\"PUBLIC\"}; fresh public clone `git clone https://github.com/get-h3/lore /tmp/lore-qs-test` exit=0; `uv sync --extra dev` exit=0; `uv run python -m lore match \"drain 503\"` => 'gateway-drain-window confidence=0.90 evidence: signature:drain 503; keyword:503; keyword:drain' (matches README verbatim); `uv run ruff check .` => 'All checks passed!'; grep for private/invite/internal-only in README/INSTALL/CHANGELOG => exit=1 (none). (B) no stale 238/10-curated: PASS \u2014 `grep -rn \"238\" README.md docs/ CHANGELOG.md AGENTS.md SECURITY.md .github/` => exit=1 (no hits; only historical .gitreins/history + .coding-hermes/waves records mention 238). '10 curated' is factually ACCURATE: live `SEED_CLASSES` len=10, registry `all_classes()` len=11, curated (non-unclassified)=10; README.md:138/256 and CHANGELOG.md:19/45 correctly say '10 curated classes + unclassified', and README.md:139-143 lists all 10 including gateway-guard-violation. (C) live counts verified: FAIL \u2014 README.md:118 says `uv run pytest -q  # 259 passed`, README.md:257 says '**259 tests passing**', docs/INSTALL.md:52 says '259 passed in 0.74s', docs/INSTALL.md:59 says 'The count to expect is **259 tests** (12 test files...)'. Live at merged HEAD c7a7c2c: `uv run pytest -q` => '269 passed in 0.42s' and `ls tests/*.py | wc -l` => 14. Root cause: 259/12 was accurate at LORE-019's base 75e5c73 (verified: `git checkout 75e5c73 && uv run pytest -q` => '259 passed', 12 test files), but same-wave siblings LORE-020 (cdb8499, tests/test_lore020_absorb_window.py) and LORE-021 (718b9e6, tests/test_lore021_naming_docs.py) added 2 test files / +10 tests that landed AFTER the docs sweep, and the docs were never re-synced. The docs are therefore stale by 10 tests and 2 test files at the tree the criterion is judged against, so 'live counts verified' is not satisfied.\nRepo is genuinely PUBLIC and the README quickstart works end-to-end on a fresh clone with no stale 238 or 10-curated claims, but the pinned test counts (259 tests / 12 test files in README.md:118,257 and docs/INSTALL.md:52,59) are stale against the live tree (269 tests / 14 test files), so the 'live counts verified' requirement fails.\n\nOverall: FAIL \u2717",
+  "evaluated_at": "2026-09-25T09:00:01.525644",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-25T09:00:01.548637+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 590,
+        "truncated": false,
+        "source": "git show c7a7c2cc5dcc"
+      }
+    ],
+    "task_id": "LORE-019"
+  }
+}

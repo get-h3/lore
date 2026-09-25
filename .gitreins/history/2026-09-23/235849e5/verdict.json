@@ -1,0 +1,119 @@
+{
+  "task_id": "LORE-012",
+  "task_title": "Packaging and docs public-facing + runbook-store design decision",
+  "task_criteria": [
+    "Packaging/install docs plus README to public-deliverable standard (hook headline, real numbers, named use-cases) and the runbook-store design decision (central registry in DuckBrain namespace + materialized per-repo runbook dirs, git-tracked). Acceptance: someone who has never seen the fleet can run the walkthrough from the README alone. No invented numbers."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "2d3afca6418a1129c1b85321cdba995ef39aab1a",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 tests: ============================= test session starts ==============================\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T232442.471662Z.log"
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 67 items\n\ntests/test_classes.py ........                                           [ 11%]\ntests/test_classifier.py ........                                        [ 23%]\ntests/test_compiler.py .............................                     [ 67%]\ntests/test_evidence.py ......................                            [100%]\n\n============================== 67 passed in 0.05s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T232442.471662Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n6:25PM INF scanned ~475499 bytes (475.50 KB) in 84.4ms\n6:25PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 35 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T232442.471662Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 Packaging/install docs plus README to public-deliverable standard (hook headline, real numbers, named use-cases) and the runbook-store design decision (central registry in DuckBrain namespace + materialized per-repo runbook dirs, git-tracked). Acceptance: someone who has never seen the fleet can run the walkthrough from the README alone. No invented numbers.: README.md:3 hook headline ('Six greps across three archives... One lookup that proves the fix still runs.'); README.md:151-163 four named use-cases (PRD US-1..US-4); README.md:26-40 self-contained Quickstart (clone/uv sync/match/compile). Real numbers verified by running: `uv run pytest -q` => '67 passed in 0.04s' (exit 0) matching README.md:118 and docs/INSTALL.md:48; `uv run ruff check .` => 'All checks passed!' (exit 0); SEED_CLASSES len=9 matches README.md:130 '9 failure classes'; tests/ has 4 files (test_classes/classifier/compiler/evidence.py) matching INSTALL.md:52. Every documented command re-run and output matches verbatim: match 'drain 503' => gateway-drain-window confidence=0.90; match 'secret .env clobber' => secret-env-clobber; match coffee => unclassified; compile --class does-not-exist => exit=2; --help => {match,compile}. No invented numbers: narrative figures (four incidents, SCHED-GAP-025\u2192121, four secret generations) trace to docs/PRD.md:16-18; all 12 CHANGELOG commit hashes resolve via `git cat-file -t` (all 'commit'). Runbook-store decision present at docs/RUNBOOK-STORE.md:3-4 ('central registry in the fleet's DuckBrain namespace, materialized into per-repo, git-tracked runbooks/ directories'), with read path (:80), propose-not-write write path (:99), and rejected alternatives; README.md:243-244 links it as decided-not-implemented. docs/INSTALL.md covers prerequisites, install, verify, first run, and 'What this tool is NOT'.\nREADME, docs/INSTALL.md, and docs/RUNBOOK-STORE.md meet the public-deliverable standard with a self-contained walkthrough, verified real numbers (67 tests, 9 classes, all commands reproduce), and the runbook-store design decision documented.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 Packaging/install docs plus README to public-deliverable standard (hook headline, real numbers, named use-cases) and the runbook-store design decision (central registry in DuckBrain namespace + materialized per-repo runbook dirs, git-tracked). Acceptance: someone who has never seen the fleet can run the walkthrough from the README alone. No invented numbers.: README.md:3 hook headline ('Six greps across three archives... One lookup that proves the fix still runs.'); README.md:151-163 four named use-cases (PRD US-1..US-4); README.md:26-40 self-contained Quickstart (clone/uv sync/match/compile). Real numbers verified by running: `uv run pytest -q` => '67 passed in 0.04s' (exit 0) matching README.md:118 and docs/INSTALL.md:48; `uv run ruff check .` => 'All checks passed!' (exit 0); SEED_CLASSES len=9 matches README.md:130 '9 failure classes'; tests/ has 4 files (test_classes/classifier/compiler/evidence.py) matching INSTALL.md:52. Every documented command re-run and output matches verbatim: match 'drain 503' => gateway-drain-window confidence=0.90; match 'secret .env clobber' => secret-env-clobber; match coffee => unclassified; compile --class does-not-exist => exit=2; --help => {match,compile}. No invented numbers: narrative figures (four incidents, SCHED-GAP-025\u2192121, four secret generations) trace to docs/PRD.md:16-18; all 12 CHANGELOG commit hashes resolve via `git cat-file -t` (all 'commit'). Runbook-store decision present at docs/RUNBOOK-STORE.md:3-4 ('central registry in the fleet's DuckBrain namespace, materialized into per-repo, git-tracked runbooks/ directories'), with read path (:80), propose-not-write write path (:99), and rejected alternatives; README.md:243-244 links it as decided-not-implemented. docs/INSTALL.md covers prerequisites, install, verify, first run, and 'What this tool is NOT'.\nREADME, docs/INSTALL.md, and docs/RUNBOOK-STORE.md meet the public-deliverable standard with a self-contained walkthrough, verified real numbers (67 tests, 9 classes, all commands reproduce), and the runbook-store design decision documented.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "Packaging/install docs plus README to public-deliverable standard (hook headline, real numbers, named use-cases) and the runbook-store design decision (central registry in DuckBrain namespace + materialized per-repo runbook dirs, git-tracked). Acceptance: someone who has never seen the fleet can run the walkthrough from the README alone. No invented numbers.",
+                "status": "PASS",
+                "detail": "README.md:3 hook headline ('Six greps across three archives... One lookup that proves the fix still runs.'); README.md:151-163 four named use-cases (PRD US-1..US-4); README.md:26-40 self-contained Quickstart (clone/uv sync/match/compile). Real numbers verified by running: `uv run pytest -q` => '67 passed in 0.04s' (exit 0) matching README.md:118 and docs/INSTALL.md:48; `uv run ruff check .` => 'All checks passed!' (exit 0); SEED_CLASSES len=9 matches README.md:130 '9 failure classes'; tests/ has 4 files (test_classes/classifier/compiler/evidence.py) matching INSTALL.md:52. Every documented command re-run and output matches verbatim: match 'drain 503' => gateway-drain-window confidence=0.90; match 'secret .env clobber' => secret-env-clobber; match coffee => unclassified; compile --class does-not-exist => exit=2; --help => {match,compile}. No invented numbers: narrative figures (four incidents, SCHED-GAP-025\u2192121, four secret generations) trace to docs/PRD.md:16-18; all 12 CHANGELOG commit hashes resolve via `git cat-file -t` (all 'commit'). Runbook-store decision present at docs/RUNBOOK-STORE.md:3-4 ('central registry in the fleet's DuckBrain namespace, materialized into per-repo, git-tracked runbooks/ directories'), with read path (:80), propose-not-write write path (:99), and rejected alternatives; README.md:243-244 links it as decided-not-implemented. docs/INSTALL.md covers prerequisites, install, verify, first run, and 'What this tool is NOT'."
+              }
+            ],
+            "summary": "README, docs/INSTALL.md, and docs/RUNBOOK-STORE.md meet the public-deliverable standard with a self-contained walkthrough, verified real numbers (67 tests, 9 classes, all commands reproduce), and the runbook-store design decision documented."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-012\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 tests: ============================= test session starts ==============================\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 Packaging/install docs plus README to public-deliverable standard (hook headline, real numbers, named use-cases) and the runbook-store design decision (central registry in DuckBrain namespace + materialized per-repo runbook dirs, git-tracked). Acceptance: someone who has never seen the fleet can run the walkthrough from the README alone. No invented numbers.: README.md:3 hook headline ('Six greps across three archives... One lookup that proves the fix still runs.'); README.md:151-163 four named use-cases (PRD US-1..US-4); README.md:26-40 self-contained Quickstart (clone/uv sync/match/compile). Real numbers verified by running: `uv run pytest -q` => '67 passed in 0.04s' (exit 0) matching README.md:118 and docs/INSTALL.md:48; `uv run ruff check .` => 'All checks passed!' (exit 0); SEED_CLASSES len=9 matches README.md:130 '9 failure classes'; tests/ has 4 files (test_classes/classifier/compiler/evidence.py) matching INSTALL.md:52. Every documented command re-run and output matches verbatim: match 'drain 503' => gateway-drain-window confidence=0.90; match 'secret .env clobber' => secret-env-clobber; match coffee => unclassified; compile --class does-not-exist => exit=2; --help => {match,compile}. No invented numbers: narrative figures (four incidents, SCHED-GAP-025\u2192121, four secret generations) trace to docs/PRD.md:16-18; all 12 CHANGELOG commit hashes resolve via `git cat-file -t` (all 'commit'). Runbook-store decision present at docs/RUNBOOK-STORE.md:3-4 ('central registry in the fleet's DuckBrain namespace, materialized into per-repo, git-tracked runbooks/ directories'), with read path (:80), propose-not-write write path (:99), and rejected alternatives; README.md:243-244 links it as decided-not-implemented. docs/INSTALL.md covers prerequisites, install, verify, first run, and 'What this tool is NOT'.\nREADME, docs/INSTALL.md, and docs/RUNBOOK-STORE.md meet the public-deliverable standard with a self-contained walkthrough, verified real numbers (67 tests, 9 classes, all commands reproduce), and the runbook-store design decision documented.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-23T23:26:06.377333",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-23T23:26:06.390938+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 4636,
+        "truncated": false,
+        "source": "git show 2d3afca6418a"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 30171,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "LORE-012"
+  }
+}

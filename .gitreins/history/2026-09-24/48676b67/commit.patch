@@ -1,0 +1,22 @@
+commit c4ddfb13e4b395754967a43c2313cec5daad760d
+Merge: d202660 9207f94
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Thu Sep 24 13:40:53 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Thu Sep 24 13:40:53 2026 -0500
+
+    merge: LORE-011 drain-window acceptance replay from the 09-16 trail (wave lore-2026-09-24-18-11-36)
+
+ docs/acceptance/2026-09-16-drain-window-replay.md  | 137 +++++++++++++++++++
+ .../artifacts/compile-gateway-drain-window.json    | 145 +++++++++++++++++++++
+ .../artifacts/compile-gateway-drain-window.md      | 100 ++++++++++++++
+ .../artifacts/compile-with-trail-evidence.json     | 145 +++++++++++++++++++++
+ .../artifacts/compile-with-trail-evidence.md       |  74 +++++++++++
+ docs/acceptance/artifacts/consult-recurrence.txt   |   1 +
+ .../artifacts/match-recurrence-symptom.txt         |   5 +
+ .../validate-plan-gateway-drain-window.json        |  39 ++++++
+ lore/compiler.py                                   |  73 +++++++++++
+ .../trails/2026-09-16-drain-window-trail.md        |  41 ++++++
+ tests/test_lore011_drain_acceptance.py             | 101 ++++++++++++++
+ tests/test_validate.py                             |  12 +-
+ 12 files changed, 870 insertions(+), 3 deletions(-)

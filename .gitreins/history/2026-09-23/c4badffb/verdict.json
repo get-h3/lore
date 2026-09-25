@@ -1,0 +1,119 @@
+{
+  "task_id": "LORE-005",
+  "task_title": "Evidence-block extraction reusing logsey export format",
+  "task_criteria": [
+    "Every runbook check carries its evidence block; runbook is re-findable end-to-end not a summary. Depends on logsey export landing; degrade gracefully to raw command output until then. Tests pass via pytest; ruff clean."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "2d3afca6418a1129c1b85321cdba995ef39aab1a",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 tests: ============================= test session starts ==============================\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T232442.471662Z.log"
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 67 items\n\ntests/test_classes.py ........                                           [ 11%]\ntests/test_classifier.py ........                                        [ 23%]\ntests/test_compiler.py .............................                     [ 67%]\ntests/test_evidence.py ......................                            [100%]\n\n============================== 67 passed in 0.05s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T232442.471662Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n6:24PM INF scanned ~475499 bytes (475.50 KB) in 91.2ms\n6:24PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 35 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T232442.471662Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 Every runbook check carries its evidence block; runbook is re-findable end-to-end not a summary. Depends on logsey export landing; degrade gracefully to raw command output until then. Tests pass via pytest; ruff clean.: Evidence blocks: lore/evidence.py defines frozen EvidenceBlock with closed KINDS vocabulary (lore/evidence.py:69-79) and to_trail_entry() emitting the exact {\"kind\",\"detail\"} seam (lore/evidence.py:113-115). Every compiled runbook check carries evidence \u2014 compile_all() output: gateway-drain-window 3/3, shared-checkout-collision 3/3, secret-env-clobber 2/2, disk-pressure-corruption 3/3, cooldown-pin-drift 3/3, key-rotation-expiry 2/2, guard-degradation 2/2, spawn-hot-loop 3/3, ingest-backfill-gap 2/2 (unclassified has 0 checks). Re-findable end-to-end (not a summary): parse_logsey_export -> attach_evidence(per_check={1: blocks}) -> to_markdown() renders '- Evidence: logsey-export: drain 503 on in-flight request' on the check and in '## Evidence trail'; to_dict()==from_dict(to_dict()).to_dict() is True (lossless round-trip); tests/test_evidence.py::test_parsed_blocks_attach_end_to_end_refindable and ::test_attached_runbook_survives_runbook_roundtrip_losslessly assert this. Graceful degradation: degrade_to_command_output (lore/evidence.py:265+) returns kind 'command-output' (never 'logsey-export'), preserving exact command, raw stdout and returncode verbatim; LOGSEY_EXPORT_CONTRACT_STATUS = 'unfrozen \u2014 logsey export subcommand not yet implemented (internal/cli/cli.go planned list)'; non-export text yields explicit [] ('no blocks found'), while a header with no block or unparseable JSON raises LogseyExportParseError \u2014 no fabricated success. Tests: `uv run pytest -x --tb=short` exit_code 0, '67 passed in 0.05s' (tests/test_evidence.py 22 passed). Ruff: `uv run ruff check .` exit_code 0, 'All checks passed!'.\nEvidence-block extraction is implemented with a closed kind vocabulary, lossless end-to-end re-findable attachment to every runbook check, honest logsey-export degradation to raw command output, and 67 passing pytest tests with clean ruff.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 Every runbook check carries its evidence block; runbook is re-findable end-to-end not a summary. Depends on logsey export landing; degrade gracefully to raw command output until then. Tests pass via pytest; ruff clean.: Evidence blocks: lore/evidence.py defines frozen EvidenceBlock with closed KINDS vocabulary (lore/evidence.py:69-79) and to_trail_entry() emitting the exact {\"kind\",\"detail\"} seam (lore/evidence.py:113-115). Every compiled runbook check carries evidence \u2014 compile_all() output: gateway-drain-window 3/3, shared-checkout-collision 3/3, secret-env-clobber 2/2, disk-pressure-corruption 3/3, cooldown-pin-drift 3/3, key-rotation-expiry 2/2, guard-degradation 2/2, spawn-hot-loop 3/3, ingest-backfill-gap 2/2 (unclassified has 0 checks). Re-findable end-to-end (not a summary): parse_logsey_export -> attach_evidence(per_check={1: blocks}) -> to_markdown() renders '- Evidence: logsey-export: drain 503 on in-flight request' on the check and in '## Evidence trail'; to_dict()==from_dict(to_dict()).to_dict() is True (lossless round-trip); tests/test_evidence.py::test_parsed_blocks_attach_end_to_end_refindable and ::test_attached_runbook_survives_runbook_roundtrip_losslessly assert this. Graceful degradation: degrade_to_command_output (lore/evidence.py:265+) returns kind 'command-output' (never 'logsey-export'), preserving exact command, raw stdout and returncode verbatim; LOGSEY_EXPORT_CONTRACT_STATUS = 'unfrozen \u2014 logsey export subcommand not yet implemented (internal/cli/cli.go planned list)'; non-export text yields explicit [] ('no blocks found'), while a header with no block or unparseable JSON raises LogseyExportParseError \u2014 no fabricated success. Tests: `uv run pytest -x --tb=short` exit_code 0, '67 passed in 0.05s' (tests/test_evidence.py 22 passed). Ruff: `uv run ruff check .` exit_code 0, 'All checks passed!'.\nEvidence-block extraction is implemented with a closed kind vocabulary, lossless end-to-end re-findable attachment to every runbook check, honest logsey-export degradation to raw command output, and 67 passing pytest tests with clean ruff.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "Every runbook check carries its evidence block; runbook is re-findable end-to-end not a summary. Depends on logsey export landing; degrade gracefully to raw command output until then. Tests pass via pytest; ruff clean.",
+                "status": "PASS",
+                "detail": "Evidence blocks: lore/evidence.py defines frozen EvidenceBlock with closed KINDS vocabulary (lore/evidence.py:69-79) and to_trail_entry() emitting the exact {\"kind\",\"detail\"} seam (lore/evidence.py:113-115). Every compiled runbook check carries evidence \u2014 compile_all() output: gateway-drain-window 3/3, shared-checkout-collision 3/3, secret-env-clobber 2/2, disk-pressure-corruption 3/3, cooldown-pin-drift 3/3, key-rotation-expiry 2/2, guard-degradation 2/2, spawn-hot-loop 3/3, ingest-backfill-gap 2/2 (unclassified has 0 checks). Re-findable end-to-end (not a summary): parse_logsey_export -> attach_evidence(per_check={1: blocks}) -> to_markdown() renders '- Evidence: logsey-export: drain 503 on in-flight request' on the check and in '## Evidence trail'; to_dict()==from_dict(to_dict()).to_dict() is True (lossless round-trip); tests/test_evidence.py::test_parsed_blocks_attach_end_to_end_refindable and ::test_attached_runbook_survives_runbook_roundtrip_losslessly assert this. Graceful degradation: degrade_to_command_output (lore/evidence.py:265+) returns kind 'command-output' (never 'logsey-export'), preserving exact command, raw stdout and returncode verbatim; LOGSEY_EXPORT_CONTRACT_STATUS = 'unfrozen \u2014 logsey export subcommand not yet implemented (internal/cli/cli.go planned list)'; non-export text yields explicit [] ('no blocks found'), while a header with no block or unparseable JSON raises LogseyExportParseError \u2014 no fabricated success. Tests: `uv run pytest -x --tb=short` exit_code 0, '67 passed in 0.05s' (tests/test_evidence.py 22 passed). Ruff: `uv run ruff check .` exit_code 0, 'All checks passed!'."
+              }
+            ],
+            "summary": "Evidence-block extraction is implemented with a closed kind vocabulary, lossless end-to-end re-findable attachment to every runbook check, honest logsey-export degradation to raw command output, and 67 passing pytest tests with clean ruff."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-005\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 tests: ============================= test session starts ==============================\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 Every runbook check carries its evidence block; runbook is re-findable end-to-end not a summary. Depends on logsey export landing; degrade gracefully to raw command output until then. Tests pass via pytest; ruff clean.: Evidence blocks: lore/evidence.py defines frozen EvidenceBlock with closed KINDS vocabulary (lore/evidence.py:69-79) and to_trail_entry() emitting the exact {\"kind\",\"detail\"} seam (lore/evidence.py:113-115). Every compiled runbook check carries evidence \u2014 compile_all() output: gateway-drain-window 3/3, shared-checkout-collision 3/3, secret-env-clobber 2/2, disk-pressure-corruption 3/3, cooldown-pin-drift 3/3, key-rotation-expiry 2/2, guard-degradation 2/2, spawn-hot-loop 3/3, ingest-backfill-gap 2/2 (unclassified has 0 checks). Re-findable end-to-end (not a summary): parse_logsey_export -> attach_evidence(per_check={1: blocks}) -> to_markdown() renders '- Evidence: logsey-export: drain 503 on in-flight request' on the check and in '## Evidence trail'; to_dict()==from_dict(to_dict()).to_dict() is True (lossless round-trip); tests/test_evidence.py::test_parsed_blocks_attach_end_to_end_refindable and ::test_attached_runbook_survives_runbook_roundtrip_losslessly assert this. Graceful degradation: degrade_to_command_output (lore/evidence.py:265+) returns kind 'command-output' (never 'logsey-export'), preserving exact command, raw stdout and returncode verbatim; LOGSEY_EXPORT_CONTRACT_STATUS = 'unfrozen \u2014 logsey export subcommand not yet implemented (internal/cli/cli.go planned list)'; non-export text yields explicit [] ('no blocks found'), while a header with no block or unparseable JSON raises LogseyExportParseError \u2014 no fabricated success. Tests: `uv run pytest -x --tb=short` exit_code 0, '67 passed in 0.05s' (tests/test_evidence.py 22 passed). Ruff: `uv run ruff check .` exit_code 0, 'All checks passed!'.\nEvidence-block extraction is implemented with a closed kind vocabulary, lossless end-to-end re-findable attachment to every runbook check, honest logsey-export degradation to raw command output, and 67 passing pytest tests with clean ruff.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-23T23:25:33.538113",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-23T23:25:33.549813+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 4636,
+        "truncated": false,
+        "source": "git show 2d3afca6418a"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 30171,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "LORE-005"
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "task_id": "LORE-007",
+  "task_title": "Tick-start consult attaches matching runbook refs",
+  "task_criteria": [
+    "Given a task title/detail, lore matches failure-class signatures and returns matching runbook refs cheaply and fail-open; no match means no behavior change"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "0d18be1959a4a6748177b1ecbc9978e20ff7a44b",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260924T154959.564718Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n10:53AM INF scanned ~801537 bytes (801.54 KB) in 645ms\n10:53AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 47 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260924T154959.564718Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 187 items\n\ntests/test_absorb.py .................                                   [  9%]\ntests/test_classes.py ........                                           [ 13%]\ntests/test_classifier.py ........                                        [ 17%]\ntests/test_compiler.py .............................                     [ 33%]\ntests/test_consult.py .............                                      [ 40%]\ntests/test_evidence.py ......................                            [ 51%]\ntests/test_near_miss.py .........                                        [ 56%]\ntests/test_validate.py ................................................. [ 82%]\n................................                                         [100%]\n\n============================= 187 passed in 0.31s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260924T154959.564718Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 Given a task title/detail, lore matches failure-class signatures and returns matching runbook refs cheaply and fail-open; no match means no behavior change: lore/consult.py: consult(text) runs one classify() pass (lore/classifier.py:111) and, when confidence>0.0, unions classify_all() matches best-first capped at MAX_MATCHED_CLASSES=3, attaching light refs built by _runbook_ref() (class_id/name/status/last_validated/check_count only, no payload). Fail-open: _runbook_ref wraps compile_class in `except Exception: return None` (lore/consult.py:67-69) so a broken compile omits the ref but keeps the match; no-match (confidence<=0.0) returns empty ConsultResult with no exception/side effects. consult_task(title, detail) classifies title+detail (lore/consult.py:118-125). CLI `lore consult` (lore/__main__.py:78-99) prints 'no matching runbook' and exits 0 on no-match. Cheap: elapsed_ms measured via perf_counter; manual runs gave 0.08-1.7ms. Evidence: `uv run pytest tests/test_consult.py -q` -> '13 passed in 0.02s'; full suite `uv run pytest -q` -> '187 passed in 0.13s'. Manual: consult('coffee machine broken') -> {'matched': False, 'matched_classes': [], 'runbook_refs': []}; consult_task('tick title','in-flight requests 503 while gateway restarts') -> matched True, ['gateway-drain-window'] with ref check_count=3; monkeypatched compile_class raising RuntimeError -> matched True, runbook_refs [], exit 0.\nTick-start consult matches failure-class signatures and returns light runbook refs cheaply and fail-open, with no behavior change on no-match; all 187 tests pass.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 Given a task title/detail, lore matches failure-class signatures and returns matching runbook refs cheaply and fail-open; no match means no behavior change: lore/consult.py: consult(text) runs one classify() pass (lore/classifier.py:111) and, when confidence>0.0, unions classify_all() matches best-first capped at MAX_MATCHED_CLASSES=3, attaching light refs built by _runbook_ref() (class_id/name/status/last_validated/check_count only, no payload). Fail-open: _runbook_ref wraps compile_class in `except Exception: return None` (lore/consult.py:67-69) so a broken compile omits the ref but keeps the match; no-match (confidence<=0.0) returns empty ConsultResult with no exception/side effects. consult_task(title, detail) classifies title+detail (lore/consult.py:118-125). CLI `lore consult` (lore/__main__.py:78-99) prints 'no matching runbook' and exits 0 on no-match. Cheap: elapsed_ms measured via perf_counter; manual runs gave 0.08-1.7ms. Evidence: `uv run pytest tests/test_consult.py -q` -> '13 passed in 0.02s'; full suite `uv run pytest -q` -> '187 passed in 0.13s'. Manual: consult('coffee machine broken') -> {'matched': False, 'matched_classes': [], 'runbook_refs': []}; consult_task('tick title','in-flight requests 503 while gateway restarts') -> matched True, ['gateway-drain-window'] with ref check_count=3; monkeypatched compile_class raising RuntimeError -> matched True, runbook_refs [], exit 0.\nTick-start consult matches failure-class signatures and returns light runbook refs cheaply and fail-open, with no behavior change on no-match; all 187 tests pass.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "Given a task title/detail, lore matches failure-class signatures and returns matching runbook refs cheaply and fail-open; no match means no behavior change",
+                "status": "PASS",
+                "detail": "lore/consult.py: consult(text) runs one classify() pass (lore/classifier.py:111) and, when confidence>0.0, unions classify_all() matches best-first capped at MAX_MATCHED_CLASSES=3, attaching light refs built by _runbook_ref() (class_id/name/status/last_validated/check_count only, no payload). Fail-open: _runbook_ref wraps compile_class in `except Exception: return None` (lore/consult.py:67-69) so a broken compile omits the ref but keeps the match; no-match (confidence<=0.0) returns empty ConsultResult with no exception/side effects. consult_task(title, detail) classifies title+detail (lore/consult.py:118-125). CLI `lore consult` (lore/__main__.py:78-99) prints 'no matching runbook' and exits 0 on no-match. Cheap: elapsed_ms measured via perf_counter; manual runs gave 0.08-1.7ms. Evidence: `uv run pytest tests/test_consult.py -q` -> '13 passed in 0.02s'; full suite `uv run pytest -q` -> '187 passed in 0.13s'. Manual: consult('coffee machine broken') -> {'matched': False, 'matched_classes': [], 'runbook_refs': []}; consult_task('tick title','in-flight requests 503 while gateway restarts') -> matched True, ['gateway-drain-window'] with ref check_count=3; monkeypatched compile_class raising RuntimeError -> matched True, runbook_refs [], exit 0."
+              }
+            ],
+            "summary": "Tick-start consult matches failure-class signatures and returns light runbook refs cheaply and fail-open, with no behavior change on no-match; all 187 tests pass."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-007\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 Given a task title/detail, lore matches failure-class signatures and returns matching runbook refs cheaply and fail-open; no match means no behavior change: lore/consult.py: consult(text) runs one classify() pass (lore/classifier.py:111) and, when confidence>0.0, unions classify_all() matches best-first capped at MAX_MATCHED_CLASSES=3, attaching light refs built by _runbook_ref() (class_id/name/status/last_validated/check_count only, no payload). Fail-open: _runbook_ref wraps compile_class in `except Exception: return None` (lore/consult.py:67-69) so a broken compile omits the ref but keeps the match; no-match (confidence<=0.0) returns empty ConsultResult with no exception/side effects. consult_task(title, detail) classifies title+detail (lore/consult.py:118-125). CLI `lore consult` (lore/__main__.py:78-99) prints 'no matching runbook' and exits 0 on no-match. Cheap: elapsed_ms measured via perf_counter; manual runs gave 0.08-1.7ms. Evidence: `uv run pytest tests/test_consult.py -q` -> '13 passed in 0.02s'; full suite `uv run pytest -q` -> '187 passed in 0.13s'. Manual: consult('coffee machine broken') -> {'matched': False, 'matched_classes': [], 'runbook_refs': []}; consult_task('tick title','in-flight requests 503 while gateway restarts') -> matched True, ['gateway-drain-window'] with ref check_count=3; monkeypatched compile_class raising RuntimeError -> matched True, runbook_refs [], exit 0.\nTick-start consult matches failure-class signatures and returns light runbook refs cheaply and fail-open, with no behavior change on no-match; all 187 tests pass.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-24T15:54:03.801704",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-24T15:54:03.814670+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 1284,
+        "truncated": false,
+        "source": "git show 0d18be1959a4"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 28102,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "LORE-007"
+  }
+}

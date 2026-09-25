@@ -1,0 +1,103 @@
+commit 2d3afca6418a1129c1b85321cdba995ef39aab1a
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Sep 23 18:24:42 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Sep 23 18:24:42 2026 -0500
+
+    fix: docs state the merged-tree reality (67 tests, evidence blocks shipped). Addresses LORE-012.
+    
+    LORE-012's docs were written against its branch base (45 tests, evidence blocks
+    "in flight"). After LORE-005 merged in the same wave the merged tree runs 67
+    tests and lore/evidence.py is shipped, so three documents understated reality:
+    README quickstart + Status section, docs/INSTALL.md expected-count block, and
+    the CHANGELOG LORE-012 entry. Corrected to the observed numbers and moved the
+    evidence-blocks bullet from "planned / in flight" to "shipped". This is the
+    same defect class a prior tick's judge caught on a stale count.
+    
+    Co-authored-by: Alexis Okuwa <wojonstech@gmail.com>
+---
+ CHANGELOG.md    |  4 ++--
+ README.md       |  9 ++++++---
+ docs/INSTALL.md | 10 +++++-----
+ 3 files changed, 13 insertions(+), 10 deletions(-)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 1ec6406..51e1377 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -39,8 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
+ 
+ - `docs/INSTALL.md`: prerequisites, install, and first run for someone who has
+   never seen the fleet — every command shown was run, every output pasted
+-  verbatim (45 tests, `match`/`compile`/`--help`), plus an explicit
+-  "what this tool is NOT" section.
++  verbatim (67 tests on the merged tree, `match`/`compile`/`--help`), plus an
++  explicit "what this tool is NOT" section.
+ - `docs/RUNBOOK-STORE.md`: the runbook-store design **decision** — central
+   registry in the fleet's DuckBrain namespace + materialized per-repo
+   git-tracked `runbooks/` dirs; read/write paths, propose-not-write, conflict
+diff --git a/README.md b/README.md
+index 108bd11..fc8c77c 100644
+--- a/README.md
++++ b/README.md
+@@ -115,7 +115,7 @@ uv run python -m lore compile --class does-not-exist ; echo "exit=$?"
+ Run the tests and lint that gate every change:
+ 
+ ```sh
+-uv run pytest -q        # 45 passed in 0.10s
++uv run pytest -q        # 67 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -219,11 +219,15 @@ and what does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (9 curated classes + `unclassified`),
+-  with **45 tests passing** and a clean `ruff check`.
++  with **67 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+   runbook to disk. See "What a runbook carries" above for the shape.
++- Evidence blocks (`lore/evidence.py`): the curated evidence-kind vocabulary,
++  the logsey-export contract parser, and the honest degradation path
++  (`degrade_to_command_output`) for as long as logsey's `export` subcommand is
++  unimplemented. Attaching evidence never sets `last_validated`.
+ - Zero runtime dependencies; MIT licensed; CI (build + pytest + ruff) green on
+   `main`.
+ - Install guide: [docs/INSTALL.md](docs/INSTALL.md). Runbook-store design
+@@ -231,7 +235,6 @@ and what does not:
+ 
+ ### Planned / in flight — named, not promised as runnable
+ 
+-- **Evidence blocks** (`lore/evidence.py`) — in flight, task `LORE-005`.
+ - **Read-only command lint / re-validation loop** (`lore validate` + weekly
+   scheduled lint flipping drifted runbooks to `stale`) — in flight, task
+   `LORE-006`.
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 5e1e1ec..f33ec12 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -45,17 +45,17 @@ uv run ruff check .
+ Real output on the current tree:
+ 
+ ```
+-.............................................                            [100%]
+-45 passed in 0.10s
++...................................................................      [100%]
++67 passed in 0.07s
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **45 tests** (3 test files: taxonomy, classifier,
+-compiler). If your run says something else, you are on a different revision —
+-check `git log` before trusting this document.
++The count to expect is **67 tests** (4 test files: taxonomy, classifier,
++compiler, evidence). If your run says something else, you are on a different
++revision — check `git log` before trusting this document.
+ 
+ ## First run
+ 

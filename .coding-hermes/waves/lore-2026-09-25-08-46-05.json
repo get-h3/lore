@@ -6,7 +6,7 @@
   "wave_budget": 8,
   "base_sha": "75e5c73",
   "recovery_first": "wave-6 (lore-2026-09-24-20-13-12) fully recovered before this wave: both branches re-gated, merged, judged PASS (f9d3cd7a/6c5b5b67), LORE-017 closed, manifest finished_at stamped, worktrees+branches removed. Cross-merge test interaction fixed foreman-direct (7597257).",
-  "foreman_ops_this_tick": "get-h3/lore flipped PUBLIC (gh repo edit, verified isPrivate=false) executing LORE-001's recorded 'public at first release' decision — v0.1.0 was already tagged+pushed, so LORE-018's root cause is resolved by the foreman; the docs worker updates the docs to match.",
+  "foreman_ops_this_tick": "get-h3/lore flipped PUBLIC (gh repo edit, verified isPrivate=false) executing LORE-001's recorded 'public at first release' decision \u2014 v0.1.0 was already tagged+pushed, so LORE-018's root cause is resolved by the foreman; the docs worker updates the docs to match.",
   "workers": [
     {
       "task_id": "LORE-019",
@@ -32,9 +32,24 @@
       "worktree": "/home/kara/worktrees/lore-LORE-021",
       "base_sha": "75e5c73",
       "brief": "/tmp/lore-2026-09-25-08-46-05_msg_LORE-021.md",
-      "scope": "Library naming clarity in lore/classifier.py docstrings: NearMiss.raw_score (raw keyword fraction) vs CLI-printed 'score=' (band-scaled), Classification.evidence is a list of plain dicts — document the shapes; no behavior change"
+      "scope": "Library naming clarity in lore/classifier.py docstrings: NearMiss.raw_score (raw keyword fraction) vs CLI-printed 'score=' (band-scaled), Classification.evidence is a list of plain dicts \u2014 document the shapes; no behavior change"
     }
   ],
   "independence": "A(LORE-019+018): README.md/CHANGELOG.md/docs/INSTALL.md only; B(LORE-020): lore/__main__.py + tests/test_lore020_*.py; C(LORE-021): lore/classifier.py docstrings (+ its own test file if needed). Disjoint file sets, all branch from 75e5c73, no depends_on edges between the rows (verified from board rows).",
-  "status": "manifest-written-pre-dispatch"
+  "status": "complete",
+  "finished_at": "2026-09-25T09:12:00-05:00",
+  "outcome": {
+    "merges": {
+      "LORE-019": "6fde820",
+      "LORE-020": "188cf1a",
+      "LORE-021": "c7a7c2c"
+    },
+    "postmerge_fix": "971a1a6 (docs test counts 259/12->269/14 after sibling merges; LORE-019 first judge FAIL was this)",
+    "verdicts": {
+      "LORE-019": "19f0379e PASS",
+      "LORE-020": "65110f24 PASS",
+      "LORE-021": "11136f9b PASS"
+    },
+    "final_tree": "269 passed, ruff clean, guard --full PASS whole-tree, pushed (origin/main..HEAD=0)"
+  }
 }

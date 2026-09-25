@@ -1,0 +1,119 @@
+{
+  "task_id": "LORE-009",
+  "task_title": "QA/dogfood feed + guard-failure runbook suggestions",
+  "task_criteria": [
+    "consult_failure classifies guard-failure output, appends runbook checks on match, fail-open no-match; gate/absorb carry provenance source with byte-compatible default; 230 tests green + ruff clean on merged main"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "c4ddfb13e4b395754967a43c2313cec5daad760d",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260924T184042.317248Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n1:41PM INF scanned ~1061014 bytes (1.06 MB) in 507ms\n1:41PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 59 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260924T184042.317248Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 230 items\n\ntests/test_absorb.py .........................                           [ 10%]\ntests/test_classes.py ........                                           [ 14%]\ntests/test_classifier.py ........                                        [ 17%]\ntests/test_cli_surface.py .....................                          [ 26%]\ntests/test_compiler.py .............................                     [ 39%]\ntests/test_consult.py ....................                               [ 48%]\ntests/test_evidence.py ......................                            [ 57%]\ntests/test_lore011_drain_acceptance.py .......                           [ 60%]\ntests/test_near_miss.py .........                                        [ 64%]\ntests/test_validate.py ................................................. [ 86%]\n................................                                         [100%]\n\n============================= 230 passed in 0.36s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260924T184042.317248Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 consult_failure classifies guard-failure output, appends runbook checks on match, fail-open no-match; gate/absorb carry provenance source with byte-compatible default; 230 tests green + ruff clean on merged main: consult_failure (lore/consult.py:172) delegates to consult() for classification; on match it appends ordered runbook checks via _failure_suggestion (checks sorted by c.order, each {order, command}, plus class_id/name/status/last_validated/check_count). Fail-open verified live: consult_failure('coffee spilled') -> matched=False, suggestions=[] (no raise); compile crash path catches Exception -> None (test_consult_failure_fail_open_on_compile_crash). CLI: `python -m lore consult --failure '<guard log tail>'` printed 'this class has a runbook: gateway-drain-window (Gateway drain window) status=proposal last_validated=never checks=7' + 'check 1..7: <cmd>' exit=0; no-match printed 'no matching runbook' exit=0. Provenance: AbsorbDecision.source default None (lore/absorb.py:65); GateVerdict.summary() appends ' source: <x>' only when set \u2014 default output byte-identical ('GATE: ALLOW (absorb -> gateway-drain-window)' and 'GATE: ALLOW (no-new-lesson)'), sourced -> '... source: qa-dagger'; absorb_proposal adds 'source' key only when not None (default payload keys: action/added/changed/class_id/lesson/note/removed \u2014 no 'source'). Tests: `uv run pytest -x --tb=short` => '230 passed in 0.24s', exit_code 0. Lint: `uv run ruff check . --quiet` => exit_code 0. Branch main @ c4ddfb1 (LORE-009 merged at 217c6d7); no code files modified in working tree. LSP diagnostics: 0 findings.\nconsult_failure classifies guard-failure output with ordered runbook checks and fail-open no-match, gate/absorb carry optional provenance source with byte-compatible defaults, and 230 tests pass with ruff clean on main.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 consult_failure classifies guard-failure output, appends runbook checks on match, fail-open no-match; gate/absorb carry provenance source with byte-compatible default; 230 tests green + ruff clean on merged main: consult_failure (lore/consult.py:172) delegates to consult() for classification; on match it appends ordered runbook checks via _failure_suggestion (checks sorted by c.order, each {order, command}, plus class_id/name/status/last_validated/check_count). Fail-open verified live: consult_failure('coffee spilled') -> matched=False, suggestions=[] (no raise); compile crash path catches Exception -> None (test_consult_failure_fail_open_on_compile_crash). CLI: `python -m lore consult --failure '<guard log tail>'` printed 'this class has a runbook: gateway-drain-window (Gateway drain window) status=proposal last_validated=never checks=7' + 'check 1..7: <cmd>' exit=0; no-match printed 'no matching runbook' exit=0. Provenance: AbsorbDecision.source default None (lore/absorb.py:65); GateVerdict.summary() appends ' source: <x>' only when set \u2014 default output byte-identical ('GATE: ALLOW (absorb -> gateway-drain-window)' and 'GATE: ALLOW (no-new-lesson)'), sourced -> '... source: qa-dagger'; absorb_proposal adds 'source' key only when not None (default payload keys: action/added/changed/class_id/lesson/note/removed \u2014 no 'source'). Tests: `uv run pytest -x --tb=short` => '230 passed in 0.24s', exit_code 0. Lint: `uv run ruff check . --quiet` => exit_code 0. Branch main @ c4ddfb1 (LORE-009 merged at 217c6d7); no code files modified in working tree. LSP diagnostics: 0 findings.\nconsult_failure classifies guard-failure output with ordered runbook checks and fail-open no-match, gate/absorb carry optional provenance source with byte-compatible defaults, and 230 tests pass with ruff clean on main.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "consult_failure classifies guard-failure output, appends runbook checks on match, fail-open no-match; gate/absorb carry provenance source with byte-compatible default; 230 tests green + ruff clean on merged main",
+                "status": "PASS",
+                "detail": "consult_failure (lore/consult.py:172) delegates to consult() for classification; on match it appends ordered runbook checks via _failure_suggestion (checks sorted by c.order, each {order, command}, plus class_id/name/status/last_validated/check_count). Fail-open verified live: consult_failure('coffee spilled') -> matched=False, suggestions=[] (no raise); compile crash path catches Exception -> None (test_consult_failure_fail_open_on_compile_crash). CLI: `python -m lore consult --failure '<guard log tail>'` printed 'this class has a runbook: gateway-drain-window (Gateway drain window) status=proposal last_validated=never checks=7' + 'check 1..7: <cmd>' exit=0; no-match printed 'no matching runbook' exit=0. Provenance: AbsorbDecision.source default None (lore/absorb.py:65); GateVerdict.summary() appends ' source: <x>' only when set \u2014 default output byte-identical ('GATE: ALLOW (absorb -> gateway-drain-window)' and 'GATE: ALLOW (no-new-lesson)'), sourced -> '... source: qa-dagger'; absorb_proposal adds 'source' key only when not None (default payload keys: action/added/changed/class_id/lesson/note/removed \u2014 no 'source'). Tests: `uv run pytest -x --tb=short` => '230 passed in 0.24s', exit_code 0. Lint: `uv run ruff check . --quiet` => exit_code 0. Branch main @ c4ddfb1 (LORE-009 merged at 217c6d7); no code files modified in working tree. LSP diagnostics: 0 findings."
+              }
+            ],
+            "summary": "consult_failure classifies guard-failure output with ordered runbook checks and fail-open no-match, gate/absorb carry optional provenance source with byte-compatible defaults, and 230 tests pass with ruff clean on main."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-009\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 consult_failure classifies guard-failure output, appends runbook checks on match, fail-open no-match; gate/absorb carry provenance source with byte-compatible default; 230 tests green + ruff clean on merged main: consult_failure (lore/consult.py:172) delegates to consult() for classification; on match it appends ordered runbook checks via _failure_suggestion (checks sorted by c.order, each {order, command}, plus class_id/name/status/last_validated/check_count). Fail-open verified live: consult_failure('coffee spilled') -> matched=False, suggestions=[] (no raise); compile crash path catches Exception -> None (test_consult_failure_fail_open_on_compile_crash). CLI: `python -m lore consult --failure '<guard log tail>'` printed 'this class has a runbook: gateway-drain-window (Gateway drain window) status=proposal last_validated=never checks=7' + 'check 1..7: <cmd>' exit=0; no-match printed 'no matching runbook' exit=0. Provenance: AbsorbDecision.source default None (lore/absorb.py:65); GateVerdict.summary() appends ' source: <x>' only when set \u2014 default output byte-identical ('GATE: ALLOW (absorb -> gateway-drain-window)' and 'GATE: ALLOW (no-new-lesson)'), sourced -> '... source: qa-dagger'; absorb_proposal adds 'source' key only when not None (default payload keys: action/added/changed/class_id/lesson/note/removed \u2014 no 'source'). Tests: `uv run pytest -x --tb=short` => '230 passed in 0.24s', exit_code 0. Lint: `uv run ruff check . --quiet` => exit_code 0. Branch main @ c4ddfb1 (LORE-009 merged at 217c6d7); no code files modified in working tree. LSP diagnostics: 0 findings.\nconsult_failure classifies guard-failure output with ordered runbook checks and fail-open no-match, gate/absorb carry optional provenance source with byte-compatible defaults, and 230 tests pass with ruff clean on main.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-24T18:42:22.928538",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-24T18:42:22.943454+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 1299,
+        "truncated": false,
+        "source": "git show c4ddfb13e4b3"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 72179,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "LORE-009"
+  }
+}

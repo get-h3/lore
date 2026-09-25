@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-020",
+  "task_title": "absorb --window trail contract + --source plumbing",
+  "task_criteria": [
+    "--source flows into sweep proposals (omit = no source key); trail contract documented; regression tests RED-proven"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "",
+  "commit": "c7a7c2cc5dccda82ecca7f755d41dff80987887b",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T085853.224792Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n4:00AM INF scanned ~1316188 bytes (1.32 MB) in 300ms\n4:00AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 66 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T085853.224792Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 269 items\n\ntests/test_absorb.py .........................                           [  9%]\ntests/test_classes.py ........                                           [ 12%]\ntests/test_classifier.py ........                                        [ 15%]\ntests/test_cli_surface.py .....................                          [ 23%]\ntests/test_compiler.py .............................                     [ 33%]\ntests/test_consult.py ....................                               [ 41%]\ntests/test_evidence.py ......................                            [ 49%]\ntests/test_lore011_drain_acceptance.py .......                           [ 52%]\ntests/test_lore016_qa_audit.py .....................                     [ 59%]\ntests/test_lore017_gateway_guard.py ........                             [ 62%]\ntests/test_lore020_absorb_window.py ...                                  [ 63%]\ntests/test_lore021_naming_docs.py .......                                [ 66%]\ntests/test_near_miss.py .........                                        [ 69%]\ntests/test_validate.py ................................................. [ 88%]\n................................                                         [100%]\n\n============================= 269 passed in 0.44s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T085853.224792Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 --source flows into sweep proposals (omit = no source key); trail contract documented; regression tests RED-proven: Plumbing: lore/__main__.py:296-298 passes source=args.source into absorb_sweep; lore/absorb.py absorb_sweep(source=...) threads it to absorb_proposal(class_id, ..., source=source) and into proposal['sweep']['source'] + provenance['source']; absorb_proposal (lore/absorb.py:132-155) enforces the None-rule `if source is not None: payload['source'] = source`. Omit-rule: tests/test_lore020_absorb_window.py::test_cli_absorb_window_no_source_keeps_payload_shape asserts 'source' not in p \u2014 PASSED. Docs: docs/INSTALL.md:243 '### The `absorb` trail contract' (4-point contract + worked example) and README.md:283-291 ([--source S] + None-rule). RED-proof: reverting the __main__.py source= plumbing made test_cli_absorb_window_source_recorded_per_class FAIL with KeyError: 'source' at tests/test_lore020_absorb_window.py:41 (1 failed, 2 passed); restored -> `uv run pytest tests/test_lore020_absorb_window.py -v` = 3 passed. Full suite `uv run pytest -x --tb=short` = 269 passed in 0.24s (exit 0); working tree clean after restore.\n--source is plumbed into every sweep proposal with the documented omit-None rule, the trail contract is documented in docs/INSTALL.md and README.md, and the regression tests are RED-proven and green (269 passed).",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 --source flows into sweep proposals (omit = no source key); trail contract documented; regression tests RED-proven: Plumbing: lore/__main__.py:296-298 passes source=args.source into absorb_sweep; lore/absorb.py absorb_sweep(source=...) threads it to absorb_proposal(class_id, ..., source=source) and into proposal['sweep']['source'] + provenance['source']; absorb_proposal (lore/absorb.py:132-155) enforces the None-rule `if source is not None: payload['source'] = source`. Omit-rule: tests/test_lore020_absorb_window.py::test_cli_absorb_window_no_source_keeps_payload_shape asserts 'source' not in p \u2014 PASSED. Docs: docs/INSTALL.md:243 '### The `absorb` trail contract' (4-point contract + worked example) and README.md:283-291 ([--source S] + None-rule). RED-proof: reverting the __main__.py source= plumbing made test_cli_absorb_window_source_recorded_per_class FAIL with KeyError: 'source' at tests/test_lore020_absorb_window.py:41 (1 failed, 2 passed); restored -> `uv run pytest tests/test_lore020_absorb_window.py -v` = 3 passed. Full suite `uv run pytest -x --tb=short` = 269 passed in 0.24s (exit 0); working tree clean after restore.\n--source is plumbed into every sweep proposal with the documented omit-None rule, the trail contract is documented in docs/INSTALL.md and README.md, and the regression tests are RED-proven and green (269 passed).",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "--source flows into sweep proposals (omit = no source key); trail contract documented; regression tests RED-proven",
+                "status": "PASS",
+                "detail": "Plumbing: lore/__main__.py:296-298 passes source=args.source into absorb_sweep; lore/absorb.py absorb_sweep(source=...) threads it to absorb_proposal(class_id, ..., source=source) and into proposal['sweep']['source'] + provenance['source']; absorb_proposal (lore/absorb.py:132-155) enforces the None-rule `if source is not None: payload['source'] = source`. Omit-rule: tests/test_lore020_absorb_window.py::test_cli_absorb_window_no_source_keeps_payload_shape asserts 'source' not in p \u2014 PASSED. Docs: docs/INSTALL.md:243 '### The `absorb` trail contract' (4-point contract + worked example) and README.md:283-291 ([--source S] + None-rule). RED-proof: reverting the __main__.py source= plumbing made test_cli_absorb_window_source_recorded_per_class FAIL with KeyError: 'source' at tests/test_lore020_absorb_window.py:41 (1 failed, 2 passed); restored -> `uv run pytest tests/test_lore020_absorb_window.py -v` = 3 passed. Full suite `uv run pytest -x --tb=short` = 269 passed in 0.24s (exit 0); working tree clean after restore."
+              }
+            ],
+            "summary": "--source is plumbed into every sweep proposal with the documented omit-None rule, the trail contract is documented in docs/INSTALL.md and README.md, and the regression tests are RED-proven and green (269 passed)."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-020\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 --source flows into sweep proposals (omit = no source key); trail contract documented; regression tests RED-proven: Plumbing: lore/__main__.py:296-298 passes source=args.source into absorb_sweep; lore/absorb.py absorb_sweep(source=...) threads it to absorb_proposal(class_id, ..., source=source) and into proposal['sweep']['source'] + provenance['source']; absorb_proposal (lore/absorb.py:132-155) enforces the None-rule `if source is not None: payload['source'] = source`. Omit-rule: tests/test_lore020_absorb_window.py::test_cli_absorb_window_no_source_keeps_payload_shape asserts 'source' not in p \u2014 PASSED. Docs: docs/INSTALL.md:243 '### The `absorb` trail contract' (4-point contract + worked example) and README.md:283-291 ([--source S] + None-rule). RED-proof: reverting the __main__.py source= plumbing made test_cli_absorb_window_source_recorded_per_class FAIL with KeyError: 'source' at tests/test_lore020_absorb_window.py:41 (1 failed, 2 passed); restored -> `uv run pytest tests/test_lore020_absorb_window.py -v` = 3 passed. Full suite `uv run pytest -x --tb=short` = 269 passed in 0.24s (exit 0); working tree clean after restore.\n--source is plumbed into every sweep proposal with the documented omit-None rule, the trail contract is documented in docs/INSTALL.md and README.md, and the regression tests are RED-proven and green (269 passed).\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-25T09:00:30.481258",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-25T09:00:30.498647+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 590,
+        "truncated": false,
+        "source": "git show c7a7c2cc5dcc"
+      }
+    ],
+    "task_id": "LORE-020"
+  }
+}

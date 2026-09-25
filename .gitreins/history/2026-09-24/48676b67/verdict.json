@@ -1,0 +1,119 @@
+{
+  "task_id": "LORE-010",
+  "task_title": "CLI surface (show/audit) + absorb --window sweep",
+  "task_criteria": [
+    "show prints one class runbook (--evidence adds provenance/evidence, unknown exits 2); audit renders honest coverage+freshness matrix in table/json/md; absorb --window sweep produces per-class stdout proposals, empty trail exit 0; README planned->shipped flip"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "c4ddfb13e4b395754967a43c2313cec5daad760d",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260924T184042.317248Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n1:42PM INF scanned ~1061014 bytes (1.06 MB) in 171ms\n1:42PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 59 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260924T184042.317248Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 230 items\n\ntests/test_absorb.py .........................                           [ 10%]\ntests/test_classes.py ........                                           [ 14%]\ntests/test_classifier.py ........                                        [ 17%]\ntests/test_cli_surface.py .....................                          [ 26%]\ntests/test_compiler.py .............................                     [ 39%]\ntests/test_consult.py ....................                               [ 48%]\ntests/test_evidence.py ......................                            [ 57%]\ntests/test_lore011_drain_acceptance.py .......                           [ 60%]\ntests/test_near_miss.py .........                                        [ 64%]\ntests/test_validate.py ................................................. [ 86%]\n................................                                         [100%]\n\n============================= 230 passed in 0.21s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260924T184042.317248Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 show prints one class runbook (--evidence adds provenance/evidence, unknown exits 2); audit renders honest coverage+freshness matrix in table/json/md; absorb --window sweep produces per-class stdout proposals, empty trail exit 0; README planned->shipped flip: show: `uv run python -m lore show gateway-drain-window` prints one class runbook (md, exit 0); `--evidence` appends '## Evidence / provenance detail' with the Provenance line + evidence trail (exit 0); `show no-such-class` -> stderr 'error: unknown class_id ... registry is closed' EXIT=2 (lore/__main__.py _cmd_show KeyError->return 2). audit: `lore audit` (aligned table), `--format json` (per-class dicts + summary), `--format md` (markdown table) all exit 0; freshness honest \u2014 every class shows last_validated='no data' (NO_VALID_EVIDENCE sentinel, lore/compiler.py:55), no fabricated dates; _audit_rows counts real commands excluding the sentinel; summary names total classes, zero-real-command classes, and the validate --execute note. absorb --window: `--window 2h --trail-file tests/fixtures/trails/2026-09-16-drain-window-trail.md --ns fleet --board /tmp/board` -> 2 per-class proposals on stdout (unclassified 5 blocks, gateway-drain-window 3 blocks), exit 0, provenance recorded verbatim; empty trail (`printf '' | ... --window 2h`) -> 'no classifiable evidence blocks...' EXIT=0; bad duration EXIT=2; no-filesystem-writes guard test passes. README flip: commit 755797c removed the 'Runbook viewing (lore show)... planned; no code exists' bullet and added shipped docs (README.md:273-288). Tests: `uv run pytest -x --tb=short` -> '230 passed in 0.18s' (exit 0), tests/test_cli_surface.py 21 passed; `uv run ruff check .` -> 'All checks passed!'; LSP diagnostics: 0.\nAll LORE-010 sub-claims verified: show/--evidence/unknown-exit-2, audit table/json/md with honest 'no data' freshness, absorb --window per-class proposals with empty-trail exit 0, and the README planned->shipped flip \u2014 230 tests green.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 show prints one class runbook (--evidence adds provenance/evidence, unknown exits 2); audit renders honest coverage+freshness matrix in table/json/md; absorb --window sweep produces per-class stdout proposals, empty trail exit 0; README planned->shipped flip: show: `uv run python -m lore show gateway-drain-window` prints one class runbook (md, exit 0); `--evidence` appends '## Evidence / provenance detail' with the Provenance line + evidence trail (exit 0); `show no-such-class` -> stderr 'error: unknown class_id ... registry is closed' EXIT=2 (lore/__main__.py _cmd_show KeyError->return 2). audit: `lore audit` (aligned table), `--format json` (per-class dicts + summary), `--format md` (markdown table) all exit 0; freshness honest \u2014 every class shows last_validated='no data' (NO_VALID_EVIDENCE sentinel, lore/compiler.py:55), no fabricated dates; _audit_rows counts real commands excluding the sentinel; summary names total classes, zero-real-command classes, and the validate --execute note. absorb --window: `--window 2h --trail-file tests/fixtures/trails/2026-09-16-drain-window-trail.md --ns fleet --board /tmp/board` -> 2 per-class proposals on stdout (unclassified 5 blocks, gateway-drain-window 3 blocks), exit 0, provenance recorded verbatim; empty trail (`printf '' | ... --window 2h`) -> 'no classifiable evidence blocks...' EXIT=0; bad duration EXIT=2; no-filesystem-writes guard test passes. README flip: commit 755797c removed the 'Runbook viewing (lore show)... planned; no code exists' bullet and added shipped docs (README.md:273-288). Tests: `uv run pytest -x --tb=short` -> '230 passed in 0.18s' (exit 0), tests/test_cli_surface.py 21 passed; `uv run ruff check .` -> 'All checks passed!'; LSP diagnostics: 0.\nAll LORE-010 sub-claims verified: show/--evidence/unknown-exit-2, audit table/json/md with honest 'no data' freshness, absorb --window per-class proposals with empty-trail exit 0, and the README planned->shipped flip \u2014 230 tests green.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "show prints one class runbook (--evidence adds provenance/evidence, unknown exits 2); audit renders honest coverage+freshness matrix in table/json/md; absorb --window sweep produces per-class stdout proposals, empty trail exit 0; README planned->shipped flip",
+                "status": "PASS",
+                "detail": "show: `uv run python -m lore show gateway-drain-window` prints one class runbook (md, exit 0); `--evidence` appends '## Evidence / provenance detail' with the Provenance line + evidence trail (exit 0); `show no-such-class` -> stderr 'error: unknown class_id ... registry is closed' EXIT=2 (lore/__main__.py _cmd_show KeyError->return 2). audit: `lore audit` (aligned table), `--format json` (per-class dicts + summary), `--format md` (markdown table) all exit 0; freshness honest \u2014 every class shows last_validated='no data' (NO_VALID_EVIDENCE sentinel, lore/compiler.py:55), no fabricated dates; _audit_rows counts real commands excluding the sentinel; summary names total classes, zero-real-command classes, and the validate --execute note. absorb --window: `--window 2h --trail-file tests/fixtures/trails/2026-09-16-drain-window-trail.md --ns fleet --board /tmp/board` -> 2 per-class proposals on stdout (unclassified 5 blocks, gateway-drain-window 3 blocks), exit 0, provenance recorded verbatim; empty trail (`printf '' | ... --window 2h`) -> 'no classifiable evidence blocks...' EXIT=0; bad duration EXIT=2; no-filesystem-writes guard test passes. README flip: commit 755797c removed the 'Runbook viewing (lore show)... planned; no code exists' bullet and added shipped docs (README.md:273-288). Tests: `uv run pytest -x --tb=short` -> '230 passed in 0.18s' (exit 0), tests/test_cli_surface.py 21 passed; `uv run ruff check .` -> 'All checks passed!'; LSP diagnostics: 0."
+              }
+            ],
+            "summary": "All LORE-010 sub-claims verified: show/--evidence/unknown-exit-2, audit table/json/md with honest 'no data' freshness, absorb --window per-class proposals with empty-trail exit 0, and the README planned->shipped flip \u2014 230 tests green."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-010\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 show prints one class runbook (--evidence adds provenance/evidence, unknown exits 2); audit renders honest coverage+freshness matrix in table/json/md; absorb --window sweep produces per-class stdout proposals, empty trail exit 0; README planned->shipped flip: show: `uv run python -m lore show gateway-drain-window` prints one class runbook (md, exit 0); `--evidence` appends '## Evidence / provenance detail' with the Provenance line + evidence trail (exit 0); `show no-such-class` -> stderr 'error: unknown class_id ... registry is closed' EXIT=2 (lore/__main__.py _cmd_show KeyError->return 2). audit: `lore audit` (aligned table), `--format json` (per-class dicts + summary), `--format md` (markdown table) all exit 0; freshness honest \u2014 every class shows last_validated='no data' (NO_VALID_EVIDENCE sentinel, lore/compiler.py:55), no fabricated dates; _audit_rows counts real commands excluding the sentinel; summary names total classes, zero-real-command classes, and the validate --execute note. absorb --window: `--window 2h --trail-file tests/fixtures/trails/2026-09-16-drain-window-trail.md --ns fleet --board /tmp/board` -> 2 per-class proposals on stdout (unclassified 5 blocks, gateway-drain-window 3 blocks), exit 0, provenance recorded verbatim; empty trail (`printf '' | ... --window 2h`) -> 'no classifiable evidence blocks...' EXIT=0; bad duration EXIT=2; no-filesystem-writes guard test passes. README flip: commit 755797c removed the 'Runbook viewing (lore show)... planned; no code exists' bullet and added shipped docs (README.md:273-288). Tests: `uv run pytest -x --tb=short` -> '230 passed in 0.18s' (exit 0), tests/test_cli_surface.py 21 passed; `uv run ruff check .` -> 'All checks passed!'; LSP diagnostics: 0.\nAll LORE-010 sub-claims verified: show/--evidence/unknown-exit-2, audit table/json/md with honest 'no data' freshness, absorb --window per-class proposals with empty-trail exit 0, and the README planned->shipped flip \u2014 230 tests green.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-24T18:43:21.631407",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-24T18:43:21.651345+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 1299,
+        "truncated": false,
+        "source": "git show c4ddfb13e4b3"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 72179,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "LORE-010"
+  }
+}

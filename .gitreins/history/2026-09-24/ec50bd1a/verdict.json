@@ -1,0 +1,119 @@
+{
+  "task_id": "LORE-011",
+  "task_title": "Drain-window acceptance replay from the 09-16 trail",
+  "task_criteria": [
+    "trail fixture contains only kind-labeled pre-09-16 observations; real lore outputs captured as artifacts; acceptance doc has per-baseline-item coverage table with numeric verdict (>=90% = PASS, real numbers only) and honesty label; drill steps recorded; tests+ruff green"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "c4ddfb13e4b395754967a43c2313cec5daad760d",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260924T184042.317248Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n1:43PM INF scanned ~1061014 bytes (1.06 MB) in 165ms\n1:43PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 59 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260924T184042.317248Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 230 items\n\ntests/test_absorb.py .........................                           [ 10%]\ntests/test_classes.py ........                                           [ 14%]\ntests/test_classifier.py ........                                        [ 17%]\ntests/test_cli_surface.py .....................                          [ 26%]\ntests/test_compiler.py .............................                     [ 39%]\ntests/test_consult.py ....................                               [ 48%]\ntests/test_evidence.py ......................                            [ 57%]\ntests/test_lore011_drain_acceptance.py .......                           [ 60%]\ntests/test_near_miss.py .........                                        [ 64%]\ntests/test_validate.py ................................................. [ 86%]\n................................                                         [100%]\n\n============================= 230 passed in 0.21s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260924T184042.317248Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 trail fixture contains only kind-labeled pre-09-16 observations; real lore outputs captured as artifacts; acceptance doc has per-baseline-item coverage table with numeric verdict (>=90% = PASS, real numbers only) and honesty label; drill steps recorded; tests+ruff green: Trail fixture tests/fixtures/trails/2026-09-16-drain-window-trail.md: parse_logsey_export yields 8 logsey-export blocks; all 11 kind-labeled lines use the closed KINDS vocabulary (memory/incident/board/board-event/duckbrain-row); no doctrine bullets present (grep for 'recovery ladder'/'restart order:'/'verify with read-only probes:' finds none). Real artifacts in docs/acceptance/artifacts/: regenerated `lore compile --class gateway-drain-window --format json` equals compile-gateway-drain-window.json (EQUAL: True), md matches except trailing newline; `lore consult` reproduces consult-recurrence.txt verbatim; `lore match \"drain 503 gateway restart\"` reproduces match-recurrence-symptom.txt; validate plan matches. Acceptance doc docs/acceptance/2026-09-16-drain-window-replay.md lines 51-58 = per-baseline-item coverage table (6 items, each COVERED with check citation); lines 60-69 = numeric scores (3/6=50% pre-existing, 6/6=100% final, threshold >=90%=PASS, Final verdict PASS(100%)); lines 87-104 = honesty label (PROVES/does NOT prove); lines 106-121 = 3-step recurrence drill recorded (3 of 3 allowed, PASS). Tests+ruff green: `uv run pytest -q` -> 230 passed, exit 0; `uv run ruff check .` -> All checks passed, exit 0.\nAll LORE-011 acceptance elements verified: pure kind-labeled pre-09-16 trail fixture, reproducible real lore artifacts, coverage table with real numeric verdict (100% >= 90% PASS) and honesty label, recorded drill steps, and green tests (230 passed) + ruff.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 trail fixture contains only kind-labeled pre-09-16 observations; real lore outputs captured as artifacts; acceptance doc has per-baseline-item coverage table with numeric verdict (>=90% = PASS, real numbers only) and honesty label; drill steps recorded; tests+ruff green: Trail fixture tests/fixtures/trails/2026-09-16-drain-window-trail.md: parse_logsey_export yields 8 logsey-export blocks; all 11 kind-labeled lines use the closed KINDS vocabulary (memory/incident/board/board-event/duckbrain-row); no doctrine bullets present (grep for 'recovery ladder'/'restart order:'/'verify with read-only probes:' finds none). Real artifacts in docs/acceptance/artifacts/: regenerated `lore compile --class gateway-drain-window --format json` equals compile-gateway-drain-window.json (EQUAL: True), md matches except trailing newline; `lore consult` reproduces consult-recurrence.txt verbatim; `lore match \"drain 503 gateway restart\"` reproduces match-recurrence-symptom.txt; validate plan matches. Acceptance doc docs/acceptance/2026-09-16-drain-window-replay.md lines 51-58 = per-baseline-item coverage table (6 items, each COVERED with check citation); lines 60-69 = numeric scores (3/6=50% pre-existing, 6/6=100% final, threshold >=90%=PASS, Final verdict PASS(100%)); lines 87-104 = honesty label (PROVES/does NOT prove); lines 106-121 = 3-step recurrence drill recorded (3 of 3 allowed, PASS). Tests+ruff green: `uv run pytest -q` -> 230 passed, exit 0; `uv run ruff check .` -> All checks passed, exit 0.\nAll LORE-011 acceptance elements verified: pure kind-labeled pre-09-16 trail fixture, reproducible real lore artifacts, coverage table with real numeric verdict (100% >= 90% PASS) and honesty label, recorded drill steps, and green tests (230 passed) + ruff.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "trail fixture contains only kind-labeled pre-09-16 observations; real lore outputs captured as artifacts; acceptance doc has per-baseline-item coverage table with numeric verdict (>=90% = PASS, real numbers only) and honesty label; drill steps recorded; tests+ruff green",
+                "status": "PASS",
+                "detail": "Trail fixture tests/fixtures/trails/2026-09-16-drain-window-trail.md: parse_logsey_export yields 8 logsey-export blocks; all 11 kind-labeled lines use the closed KINDS vocabulary (memory/incident/board/board-event/duckbrain-row); no doctrine bullets present (grep for 'recovery ladder'/'restart order:'/'verify with read-only probes:' finds none). Real artifacts in docs/acceptance/artifacts/: regenerated `lore compile --class gateway-drain-window --format json` equals compile-gateway-drain-window.json (EQUAL: True), md matches except trailing newline; `lore consult` reproduces consult-recurrence.txt verbatim; `lore match \"drain 503 gateway restart\"` reproduces match-recurrence-symptom.txt; validate plan matches. Acceptance doc docs/acceptance/2026-09-16-drain-window-replay.md lines 51-58 = per-baseline-item coverage table (6 items, each COVERED with check citation); lines 60-69 = numeric scores (3/6=50% pre-existing, 6/6=100% final, threshold >=90%=PASS, Final verdict PASS(100%)); lines 87-104 = honesty label (PROVES/does NOT prove); lines 106-121 = 3-step recurrence drill recorded (3 of 3 allowed, PASS). Tests+ruff green: `uv run pytest -q` -> 230 passed, exit 0; `uv run ruff check .` -> All checks passed, exit 0."
+              }
+            ],
+            "summary": "All LORE-011 acceptance elements verified: pure kind-labeled pre-09-16 trail fixture, reproducible real lore artifacts, coverage table with real numeric verdict (100% >= 90% PASS) and honesty label, recorded drill steps, and green tests (230 passed) + ruff."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-011\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 trail fixture contains only kind-labeled pre-09-16 observations; real lore outputs captured as artifacts; acceptance doc has per-baseline-item coverage table with numeric verdict (>=90% = PASS, real numbers only) and honesty label; drill steps recorded; tests+ruff green: Trail fixture tests/fixtures/trails/2026-09-16-drain-window-trail.md: parse_logsey_export yields 8 logsey-export blocks; all 11 kind-labeled lines use the closed KINDS vocabulary (memory/incident/board/board-event/duckbrain-row); no doctrine bullets present (grep for 'recovery ladder'/'restart order:'/'verify with read-only probes:' finds none). Real artifacts in docs/acceptance/artifacts/: regenerated `lore compile --class gateway-drain-window --format json` equals compile-gateway-drain-window.json (EQUAL: True), md matches except trailing newline; `lore consult` reproduces consult-recurrence.txt verbatim; `lore match \"drain 503 gateway restart\"` reproduces match-recurrence-symptom.txt; validate plan matches. Acceptance doc docs/acceptance/2026-09-16-drain-window-replay.md lines 51-58 = per-baseline-item coverage table (6 items, each COVERED with check citation); lines 60-69 = numeric scores (3/6=50% pre-existing, 6/6=100% final, threshold >=90%=PASS, Final verdict PASS(100%)); lines 87-104 = honesty label (PROVES/does NOT prove); lines 106-121 = 3-step recurrence drill recorded (3 of 3 allowed, PASS). Tests+ruff green: `uv run pytest -q` -> 230 passed, exit 0; `uv run ruff check .` -> All checks passed, exit 0.\nAll LORE-011 acceptance elements verified: pure kind-labeled pre-09-16 trail fixture, reproducible real lore artifacts, coverage table with real numeric verdict (100% >= 90% PASS) and honesty label, recorded drill steps, and green tests (230 passed) + ruff.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-24T18:48:21.371671",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-24T18:48:21.393824+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 1299,
+        "truncated": false,
+        "source": "git show c4ddfb13e4b3"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 72179,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "LORE-011"
+  }
+}

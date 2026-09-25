@@ -1,0 +1,119 @@
+{
+  "task_id": "LORE-016",
+  "task_title": "Classifier near-miss evidence echo",
+  "task_criteria": [
+    "Given a symptom text that produces no accepted match, lore exposes the top-3 below-threshold candidate classes with scores; registry stays closed; nothing auto-labeled"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "0d18be1959a4a6748177b1ecbc9978e20ff7a44b",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 tests: ============================= test session starts ==============================\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260924T154959.564718Z.log"
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 187 items\n\ntests/test_absorb.py .................                                   [  9%]\ntests/test_classes.py ........                                           [ 13%]\ntests/test_classifier.py ........                                        [ 17%]\ntests/test_compiler.py .............................                     [ 33%]\ntests/test_consult.py .............                                      [ 40%]\ntests/test_evidence.py ......................                            [ 51%]\ntests/test_near_miss.py .........                                        [ 56%]\ntests/test_validate.py ................................................. [ 82%]\n................................                                         [100%]\n\n============================= 187 passed in 0.23s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260924T154959.564718Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n10:51AM INF scanned ~801537 bytes (801.54 KB) in 576ms\n10:51AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 47 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260924T154959.564718Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 Given a symptom text that produces no accepted match, lore exposes the top-3 below-threshold candidate classes with scores; registry stays closed; nothing auto-labeled: lore/classifier.py:228 defines near_misses(text, limit=3) returning NearMiss(class_id, raw_score=n_hits/n_keywords, n_hits, n_keywords, hit_keywords), sorted desc and capped at limit \u2014 verified empirically: a text hitting 8 classes returned exactly 3 (guard-degradation 0.333, shared-checkout-collision 0.167, secret-env-clobber 0.167). CLI: lore/__main__.py:45-55 prints a 'near-misses:' section under --explain; `uv run python -m lore match --explain \"two foremen committed to the same worktree checkout\"` output 'unclassified confidence=0.00' then 'shared-checkout-collision score=0.33 (2/6 keywords: worktree, checkout)'. Registry stays closed: lore/classes.py:272 register() raises RuntimeError ('the failure-class registry is closed and curated'); verified registry list unchanged (10 classes) after near_misses. Nothing auto-labeled: classify() returns unclassified 0.0 both before and after near_misses; near_misses only reports classes with conf==0.0 and hits>0 and skips signature-accepted classes (classifier.py:249-253). Tests: `uv run pytest -x --tb=short` -> exit 0, '187 passed in 0.57s' (9 in tests/test_near_miss.py). LSP diagnostics: 0 findings.\nLORE-016 fully implemented: near_misses exposes top-3 below-threshold candidates with raw scores via library API and --explain CLI, registry remains closed, and nothing is auto-labeled \u2014 all 187 tests pass.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 Given a symptom text that produces no accepted match, lore exposes the top-3 below-threshold candidate classes with scores; registry stays closed; nothing auto-labeled: lore/classifier.py:228 defines near_misses(text, limit=3) returning NearMiss(class_id, raw_score=n_hits/n_keywords, n_hits, n_keywords, hit_keywords), sorted desc and capped at limit \u2014 verified empirically: a text hitting 8 classes returned exactly 3 (guard-degradation 0.333, shared-checkout-collision 0.167, secret-env-clobber 0.167). CLI: lore/__main__.py:45-55 prints a 'near-misses:' section under --explain; `uv run python -m lore match --explain \"two foremen committed to the same worktree checkout\"` output 'unclassified confidence=0.00' then 'shared-checkout-collision score=0.33 (2/6 keywords: worktree, checkout)'. Registry stays closed: lore/classes.py:272 register() raises RuntimeError ('the failure-class registry is closed and curated'); verified registry list unchanged (10 classes) after near_misses. Nothing auto-labeled: classify() returns unclassified 0.0 both before and after near_misses; near_misses only reports classes with conf==0.0 and hits>0 and skips signature-accepted classes (classifier.py:249-253). Tests: `uv run pytest -x --tb=short` -> exit 0, '187 passed in 0.57s' (9 in tests/test_near_miss.py). LSP diagnostics: 0 findings.\nLORE-016 fully implemented: near_misses exposes top-3 below-threshold candidates with raw scores via library API and --explain CLI, registry remains closed, and nothing is auto-labeled \u2014 all 187 tests pass.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "Given a symptom text that produces no accepted match, lore exposes the top-3 below-threshold candidate classes with scores; registry stays closed; nothing auto-labeled",
+                "status": "PASS",
+                "detail": "lore/classifier.py:228 defines near_misses(text, limit=3) returning NearMiss(class_id, raw_score=n_hits/n_keywords, n_hits, n_keywords, hit_keywords), sorted desc and capped at limit \u2014 verified empirically: a text hitting 8 classes returned exactly 3 (guard-degradation 0.333, shared-checkout-collision 0.167, secret-env-clobber 0.167). CLI: lore/__main__.py:45-55 prints a 'near-misses:' section under --explain; `uv run python -m lore match --explain \"two foremen committed to the same worktree checkout\"` output 'unclassified confidence=0.00' then 'shared-checkout-collision score=0.33 (2/6 keywords: worktree, checkout)'. Registry stays closed: lore/classes.py:272 register() raises RuntimeError ('the failure-class registry is closed and curated'); verified registry list unchanged (10 classes) after near_misses. Nothing auto-labeled: classify() returns unclassified 0.0 both before and after near_misses; near_misses only reports classes with conf==0.0 and hits>0 and skips signature-accepted classes (classifier.py:249-253). Tests: `uv run pytest -x --tb=short` -> exit 0, '187 passed in 0.57s' (9 in tests/test_near_miss.py). LSP diagnostics: 0 findings."
+              }
+            ],
+            "summary": "LORE-016 fully implemented: near_misses exposes top-3 below-threshold candidates with raw scores via library API and --explain CLI, registry remains closed, and nothing is auto-labeled \u2014 all 187 tests pass."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-016\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 tests: ============================= test session starts ==============================\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 Given a symptom text that produces no accepted match, lore exposes the top-3 below-threshold candidate classes with scores; registry stays closed; nothing auto-labeled: lore/classifier.py:228 defines near_misses(text, limit=3) returning NearMiss(class_id, raw_score=n_hits/n_keywords, n_hits, n_keywords, hit_keywords), sorted desc and capped at limit \u2014 verified empirically: a text hitting 8 classes returned exactly 3 (guard-degradation 0.333, shared-checkout-collision 0.167, secret-env-clobber 0.167). CLI: lore/__main__.py:45-55 prints a 'near-misses:' section under --explain; `uv run python -m lore match --explain \"two foremen committed to the same worktree checkout\"` output 'unclassified confidence=0.00' then 'shared-checkout-collision score=0.33 (2/6 keywords: worktree, checkout)'. Registry stays closed: lore/classes.py:272 register() raises RuntimeError ('the failure-class registry is closed and curated'); verified registry list unchanged (10 classes) after near_misses. Nothing auto-labeled: classify() returns unclassified 0.0 both before and after near_misses; near_misses only reports classes with conf==0.0 and hits>0 and skips signature-accepted classes (classifier.py:249-253). Tests: `uv run pytest -x --tb=short` -> exit 0, '187 passed in 0.57s' (9 in tests/test_near_miss.py). LSP diagnostics: 0 findings.\nLORE-016 fully implemented: near_misses exposes top-3 below-threshold candidates with raw scores via library API and --explain CLI, registry remains closed, and nothing is auto-labeled \u2014 all 187 tests pass.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-24T15:53:05.034638",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-24T15:53:05.080914+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 1284,
+        "truncated": false,
+        "source": "git show 0d18be1959a4"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 28102,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "LORE-016"
+  }
+}

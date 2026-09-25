@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-004",
+  "task_title": "Compiler \u2014 runbook generation per class",
+  "task_criteria": [
+    "lore/compiler.py emits a Runbook per failure class: signature pattern, ordered checks (each with exact command/query, expected healthy vs incident output, and the decision it drives), recovery ladder with 'never X' guardrails, evidence trail (DuckBrain rows/board events/commits), and provenance + last_validated timestamp. Compiler output is a PROPOSAL, not a write (propose-not-write). Tests pass via pytest; ruff clean."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "c19eacc6a3800053b2e5e26ad9cca11d0161406c",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T213421.686144Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n4:34PM INF scanned ~364191 bytes (364.19 KB) in 107ms\n4:34PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 30 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T213421.686144Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 45 items\n\ntests/test_classes.py ........                                           [ 17%]\ntests/test_classifier.py ........                                        [ 35%]\ntests/test_compiler.py .............................                     [100%]\n\n============================== 45 passed in 0.18s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T213421.686144Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 lore/compiler.py emits a Runbook per failure class: signature pattern, ordered checks (each with exact command/query, expected healthy vs incident output, and the decision it drives), recovery ladder with 'never X' guardrails, evidence trail (DuckBrain rows/board events/commits), and provenance + last_validated timestamp. Compiler output is a PROPOSAL, not a write (propose-not-write). Tests pass via pytest; ruff clean.: lore/compiler.py:616-673 compile_class() builds a Runbook per class (compile_all() covers all 10 registry classes incl. unclassified, verified via `python -m lore compile` -> 10 runbooks). signature = cls.signature_patterns[0] (compiler.py:631-633). Checks carry order/command/expected_healthy/expected_incident/decision/read_only (lore/runbook.py Check dataclass, lines 22-40); e.g. gateway-drain-window checks at compiler.py:74-115. Recovery ladders + 'Never X' guardrails at compiler.py:415-600 (e.g. 'Never run --apply on a cooldown policy while a drain is in progress'). Evidence trail (_EVIDENCE_TRAILS, compiler.py:527-600) carries board/incident/gap/memory kinds referencing the fleet trail (commits referenced in detail text, e.g. 'crier t363', 'same commit'). provenance string + last_validated=None unless operator-attested (compiler.py:654-671); status=proposal. Propose-not-write enforced: propose()/render_proposal_diff() return diffs only, no publish/write/save entrypoint (tests/test_compiler.py:131-166 test_no_publish_entrypoint_on_compiler_module, test_compiler_module_source_never_opens_files_for_writing, test_compile_is_stdout_only). Tests: `uv run pytest -x --tb=short` -> '45 passed in 0.07s', exit 0. Ruff: `uv run ruff check .` -> 'All checks passed!', exit 0. LSP diagnostics: 0. Minor note: no dedicated 'commit'/'duckbrain' evidence-kind entries despite docstring listing 'commit' (compiler.py:71); trail still references commits in detail text.\nAll LORE-004 requirements are implemented and verified: per-class Runbook emission with signature, ordered checks, recovery ladder + 'never X' guardrails, evidence trail, provenance/last_validated, propose-not-write enforcement, 45 pytest passing and ruff clean.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 lore/compiler.py emits a Runbook per failure class: signature pattern, ordered checks (each with exact command/query, expected healthy vs incident output, and the decision it drives), recovery ladder with 'never X' guardrails, evidence trail (DuckBrain rows/board events/commits), and provenance + last_validated timestamp. Compiler output is a PROPOSAL, not a write (propose-not-write). Tests pass via pytest; ruff clean.: lore/compiler.py:616-673 compile_class() builds a Runbook per class (compile_all() covers all 10 registry classes incl. unclassified, verified via `python -m lore compile` -> 10 runbooks). signature = cls.signature_patterns[0] (compiler.py:631-633). Checks carry order/command/expected_healthy/expected_incident/decision/read_only (lore/runbook.py Check dataclass, lines 22-40); e.g. gateway-drain-window checks at compiler.py:74-115. Recovery ladders + 'Never X' guardrails at compiler.py:415-600 (e.g. 'Never run --apply on a cooldown policy while a drain is in progress'). Evidence trail (_EVIDENCE_TRAILS, compiler.py:527-600) carries board/incident/gap/memory kinds referencing the fleet trail (commits referenced in detail text, e.g. 'crier t363', 'same commit'). provenance string + last_validated=None unless operator-attested (compiler.py:654-671); status=proposal. Propose-not-write enforced: propose()/render_proposal_diff() return diffs only, no publish/write/save entrypoint (tests/test_compiler.py:131-166 test_no_publish_entrypoint_on_compiler_module, test_compiler_module_source_never_opens_files_for_writing, test_compile_is_stdout_only). Tests: `uv run pytest -x --tb=short` -> '45 passed in 0.07s', exit 0. Ruff: `uv run ruff check .` -> 'All checks passed!', exit 0. LSP diagnostics: 0. Minor note: no dedicated 'commit'/'duckbrain' evidence-kind entries despite docstring listing 'commit' (compiler.py:71); trail still references commits in detail text.\nAll LORE-004 requirements are implemented and verified: per-class Runbook emission with signature, ordered checks, recovery ladder + 'never X' guardrails, evidence trail, provenance/last_validated, propose-not-write enforcement, 45 pytest passing and ruff clean.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "lore/compiler.py emits a Runbook per failure class: signature pattern, ordered checks (each with exact command/query, expected healthy vs incident output, and the decision it drives), recovery ladder with 'never X' guardrails, evidence trail (DuckBrain rows/board events/commits), and provenance + last_validated timestamp. Compiler output is a PROPOSAL, not a write (propose-not-write). Tests pass via pytest; ruff clean.",
+                "status": "PASS",
+                "detail": "lore/compiler.py:616-673 compile_class() builds a Runbook per class (compile_all() covers all 10 registry classes incl. unclassified, verified via `python -m lore compile` -> 10 runbooks). signature = cls.signature_patterns[0] (compiler.py:631-633). Checks carry order/command/expected_healthy/expected_incident/decision/read_only (lore/runbook.py Check dataclass, lines 22-40); e.g. gateway-drain-window checks at compiler.py:74-115. Recovery ladders + 'Never X' guardrails at compiler.py:415-600 (e.g. 'Never run --apply on a cooldown policy while a drain is in progress'). Evidence trail (_EVIDENCE_TRAILS, compiler.py:527-600) carries board/incident/gap/memory kinds referencing the fleet trail (commits referenced in detail text, e.g. 'crier t363', 'same commit'). provenance string + last_validated=None unless operator-attested (compiler.py:654-671); status=proposal. Propose-not-write enforced: propose()/render_proposal_diff() return diffs only, no publish/write/save entrypoint (tests/test_compiler.py:131-166 test_no_publish_entrypoint_on_compiler_module, test_compiler_module_source_never_opens_files_for_writing, test_compile_is_stdout_only). Tests: `uv run pytest -x --tb=short` -> '45 passed in 0.07s', exit 0. Ruff: `uv run ruff check .` -> 'All checks passed!', exit 0. LSP diagnostics: 0. Minor note: no dedicated 'commit'/'duckbrain' evidence-kind entries despite docstring listing 'commit' (compiler.py:71); trail still references commits in detail text."
+              }
+            ],
+            "summary": "All LORE-004 requirements are implemented and verified: per-class Runbook emission with signature, ordered checks, recovery ladder + 'never X' guardrails, evidence trail, provenance/last_validated, propose-not-write enforcement, 45 pytest passing and ruff clean."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-004\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 lore/compiler.py emits a Runbook per failure class: signature pattern, ordered checks (each with exact command/query, expected healthy vs incident output, and the decision it drives), recovery ladder with 'never X' guardrails, evidence trail (DuckBrain rows/board events/commits), and provenance + last_validated timestamp. Compiler output is a PROPOSAL, not a write (propose-not-write). Tests pass via pytest; ruff clean.: lore/compiler.py:616-673 compile_class() builds a Runbook per class (compile_all() covers all 10 registry classes incl. unclassified, verified via `python -m lore compile` -> 10 runbooks). signature = cls.signature_patterns[0] (compiler.py:631-633). Checks carry order/command/expected_healthy/expected_incident/decision/read_only (lore/runbook.py Check dataclass, lines 22-40); e.g. gateway-drain-window checks at compiler.py:74-115. Recovery ladders + 'Never X' guardrails at compiler.py:415-600 (e.g. 'Never run --apply on a cooldown policy while a drain is in progress'). Evidence trail (_EVIDENCE_TRAILS, compiler.py:527-600) carries board/incident/gap/memory kinds referencing the fleet trail (commits referenced in detail text, e.g. 'crier t363', 'same commit'). provenance string + last_validated=None unless operator-attested (compiler.py:654-671); status=proposal. Propose-not-write enforced: propose()/render_proposal_diff() return diffs only, no publish/write/save entrypoint (tests/test_compiler.py:131-166 test_no_publish_entrypoint_on_compiler_module, test_compiler_module_source_never_opens_files_for_writing, test_compile_is_stdout_only). Tests: `uv run pytest -x --tb=short` -> '45 passed in 0.07s', exit 0. Ruff: `uv run ruff check .` -> 'All checks passed!', exit 0. LSP diagnostics: 0. Minor note: no dedicated 'commit'/'duckbrain' evidence-kind entries despite docstring listing 'commit' (compiler.py:71); trail still references commits in detail text.\nAll LORE-004 requirements are implemented and verified: per-class Runbook emission with signature, ordered checks, recovery ladder + 'never X' guardrails, evidence trail, provenance/last_validated, propose-not-write enforcement, 45 pytest passing and ruff clean.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-23T21:35:28.061124",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-23T21:35:28.082346+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 26509,
+        "truncated": false,
+        "source": "git show c19eacc6a380"
+      }
+    ],
+    "task_id": "LORE-004"
+  }
+}

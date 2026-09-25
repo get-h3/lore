@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-014",
+  "task_title": "GitReins co-harness config + AGENTS.md",
+  "task_criteria": [
+    ".gitreins/config.yaml with secrets on, pytest+ruff as gates, allow_skips true; AGENTS.md documenting build/test/run and board location; board-only commit passes, committed secret is refused"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "e4b071cb1ffb4bef85248681a50b5d01dd704f73",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T092534.763554Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n4:25AM INF scanned ~172159 bytes (172.16 KB) in 82.7ms\n4:25AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 23 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T092534.763554Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 16 items\n\ntests/test_classes.py ........                                           [ 50%]\ntests/test_classifier.py ........                                        [100%]\n\n============================== 16 passed in 0.02s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T092534.763554Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 .gitreins/config.yaml with secrets on, pytest+ruff as gates, allow_skips true; AGENTS.md documenting build/test/run and board location; board-only commit passes, committed secret is refused: .gitreins/config.yaml: guards.secrets: true, guards.lint: true (ruff autodetect), guards.tests: true, test_command: 'uv run pytest -x --tb=short', allow_skips: true \u2014 matching CI (.github/workflows/ci.yml:28 'uv run ruff check .', :36 'uv run pytest -q') and pyproject.toml:16 dev=['pytest','ruff']. AGENTS.md documents build/test/run ('uv sync --extra dev', 'uv run pytest -q', 'uv run ruff check .', 'uv run lore match') and board location ('.coding-hermes/board/tasks.jsonl \u2014 JSONL-canonical, last row per id wins', LORE-* ids), which matches git ls-files (.coding-hermes/board/tasks.jsonl). BEHAVIORAL PROOF: (1) staged only .coding-hermes/board/tasks.jsonl -> 'gitreins guard --scope staged' => 'Tier 1: DEGRADED PASS (skips: lint=no staged files)' exit 0, and 'git commit' succeeded ([main 7e4da96] 1 file changed) \u2014 board-only commit passes. (2) staged leak_probe.py containing ghp_ GitHub token + sk_live_ Stripe key -> guard => 'Tier 1 Guards: FAIL ... secrets \u2014 FAIL (gitleaks: 1 finding; builtin cross-check: 2 findings) findings: leak_probe.py:2, leak_probe.py:3', and 'git commit' was refused with HEAD unchanged at e4b071c \u2014 committed secret is refused. Probe artifacts cleaned up (git reset --hard e4b071c, board restored, leak_probe.py removed).\nConfig and AGENTS.md match the required shape, and live guard runs confirm a board-only commit passes while a hand-committed secret is refused.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 .gitreins/config.yaml with secrets on, pytest+ruff as gates, allow_skips true; AGENTS.md documenting build/test/run and board location; board-only commit passes, committed secret is refused: .gitreins/config.yaml: guards.secrets: true, guards.lint: true (ruff autodetect), guards.tests: true, test_command: 'uv run pytest -x --tb=short', allow_skips: true \u2014 matching CI (.github/workflows/ci.yml:28 'uv run ruff check .', :36 'uv run pytest -q') and pyproject.toml:16 dev=['pytest','ruff']. AGENTS.md documents build/test/run ('uv sync --extra dev', 'uv run pytest -q', 'uv run ruff check .', 'uv run lore match') and board location ('.coding-hermes/board/tasks.jsonl \u2014 JSONL-canonical, last row per id wins', LORE-* ids), which matches git ls-files (.coding-hermes/board/tasks.jsonl). BEHAVIORAL PROOF: (1) staged only .coding-hermes/board/tasks.jsonl -> 'gitreins guard --scope staged' => 'Tier 1: DEGRADED PASS (skips: lint=no staged files)' exit 0, and 'git commit' succeeded ([main 7e4da96] 1 file changed) \u2014 board-only commit passes. (2) staged leak_probe.py containing ghp_ GitHub token + sk_live_ Stripe key -> guard => 'Tier 1 Guards: FAIL ... secrets \u2014 FAIL (gitleaks: 1 finding; builtin cross-check: 2 findings) findings: leak_probe.py:2, leak_probe.py:3', and 'git commit' was refused with HEAD unchanged at e4b071c \u2014 committed secret is refused. Probe artifacts cleaned up (git reset --hard e4b071c, board restored, leak_probe.py removed).\nConfig and AGENTS.md match the required shape, and live guard runs confirm a board-only commit passes while a hand-committed secret is refused.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": ".gitreins/config.yaml with secrets on, pytest+ruff as gates, allow_skips true; AGENTS.md documenting build/test/run and board location; board-only commit passes, committed secret is refused",
+                "status": "PASS",
+                "detail": ".gitreins/config.yaml: guards.secrets: true, guards.lint: true (ruff autodetect), guards.tests: true, test_command: 'uv run pytest -x --tb=short', allow_skips: true \u2014 matching CI (.github/workflows/ci.yml:28 'uv run ruff check .', :36 'uv run pytest -q') and pyproject.toml:16 dev=['pytest','ruff']. AGENTS.md documents build/test/run ('uv sync --extra dev', 'uv run pytest -q', 'uv run ruff check .', 'uv run lore match') and board location ('.coding-hermes/board/tasks.jsonl \u2014 JSONL-canonical, last row per id wins', LORE-* ids), which matches git ls-files (.coding-hermes/board/tasks.jsonl). BEHAVIORAL PROOF: (1) staged only .coding-hermes/board/tasks.jsonl -> 'gitreins guard --scope staged' => 'Tier 1: DEGRADED PASS (skips: lint=no staged files)' exit 0, and 'git commit' succeeded ([main 7e4da96] 1 file changed) \u2014 board-only commit passes. (2) staged leak_probe.py containing ghp_ GitHub token + sk_live_ Stripe key -> guard => 'Tier 1 Guards: FAIL ... secrets \u2014 FAIL (gitleaks: 1 finding; builtin cross-check: 2 findings) findings: leak_probe.py:2, leak_probe.py:3', and 'git commit' was refused with HEAD unchanged at e4b071c \u2014 committed secret is refused. Probe artifacts cleaned up (git reset --hard e4b071c, board restored, leak_probe.py removed)."
+              }
+            ],
+            "summary": "Config and AGENTS.md match the required shape, and live guard runs confirm a board-only commit passes while a hand-committed secret is refused."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-014\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 .gitreins/config.yaml with secrets on, pytest+ruff as gates, allow_skips true; AGENTS.md documenting build/test/run and board location; board-only commit passes, committed secret is refused: .gitreins/config.yaml: guards.secrets: true, guards.lint: true (ruff autodetect), guards.tests: true, test_command: 'uv run pytest -x --tb=short', allow_skips: true \u2014 matching CI (.github/workflows/ci.yml:28 'uv run ruff check .', :36 'uv run pytest -q') and pyproject.toml:16 dev=['pytest','ruff']. AGENTS.md documents build/test/run ('uv sync --extra dev', 'uv run pytest -q', 'uv run ruff check .', 'uv run lore match') and board location ('.coding-hermes/board/tasks.jsonl \u2014 JSONL-canonical, last row per id wins', LORE-* ids), which matches git ls-files (.coding-hermes/board/tasks.jsonl). BEHAVIORAL PROOF: (1) staged only .coding-hermes/board/tasks.jsonl -> 'gitreins guard --scope staged' => 'Tier 1: DEGRADED PASS (skips: lint=no staged files)' exit 0, and 'git commit' succeeded ([main 7e4da96] 1 file changed) \u2014 board-only commit passes. (2) staged leak_probe.py containing ghp_ GitHub token + sk_live_ Stripe key -> guard => 'Tier 1 Guards: FAIL ... secrets \u2014 FAIL (gitleaks: 1 finding; builtin cross-check: 2 findings) findings: leak_probe.py:2, leak_probe.py:3', and 'git commit' was refused with HEAD unchanged at e4b071c \u2014 committed secret is refused. Probe artifacts cleaned up (git reset --hard e4b071c, board restored, leak_probe.py removed).\nConfig and AGENTS.md match the required shape, and live guard runs confirm a board-only commit passes while a hand-committed secret is refused.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-23T09:26:24.421069",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-23T09:26:24.431476+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 3056,
+        "truncated": false,
+        "source": "git show e4b071cb1ffb"
+      }
+    ],
+    "task_id": "LORE-014"
+  }
+}

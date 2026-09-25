@@ -1,0 +1,55 @@
+commit 971a1a6c020807a0adefcbc9fd4bfb8a7289b76d
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Fri Sep 25 04:01:33 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Fri Sep 25 04:01:33 2026 -0500
+
+    docs: test-count truth on merged tree (259/12 -> 269/14 after wave siblings landed). Addresses LORE-019.
+---
+ README.md       | 4 ++--
+ docs/INSTALL.md | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/README.md b/README.md
+index 004d7d3..43c73b1 100644
+--- a/README.md
++++ b/README.md
+@@ -115,7 +115,7 @@ uv run python -m lore compile --class does-not-exist ; echo "exit=$?"
+ Run the tests and lint that gate every change:
+ 
+ ```sh
+-uv run pytest -q        # 259 passed
++uv run pytest -q        # 269 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -254,7 +254,7 @@ and what does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (10 curated classes + `unclassified`),
+-  with **259 tests passing** and a clean `ruff check`.
++  with **269 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 9aee177..5f31b16 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -49,14 +49,14 @@ Real output on the current tree:
+ ........................................................................ [ 55%]
+ ........................................................................ [ 83%]
+ ...........................................                              [100%]
+-259 passed in 0.74s
++269 passed in 0.74s
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **259 tests** (12 test files: taxonomy, classifier,
++The count to expect is **269 tests** (14 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.

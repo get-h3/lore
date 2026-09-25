@@ -1,0 +1,93 @@
+{
+  "task_id": "LORE-004",
+  "task_title": "Compiler \u2014 runbook generation per class",
+  "task_criteria": [
+    "lore/compiler.py emits a Runbook per failure class: signature pattern, ordered checks (each with exact command/query, expected healthy vs incident output, and the decision it drives), recovery ladder with 'never X' guardrails, evidence trail (DuckBrain rows/board events/commits), and provenance + last_validated timestamp. Compiler output is a PROPOSAL, not a write (propose-not-write). Tests pass via pytest; ruff clean."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "daf67005971ef69da72345bb2d4e41d701df8a10",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 tests: ============================= test session starts ==============================\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T120225.951499Z.log"
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 45 items\n\ntests/test_classes.py ........                                           [ 17%]\ntests/test_classifier.py ........                                        [ 35%]\ntests/test_compiler.py .............................                     [100%]\n\n============================== 45 passed in 0.05s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T120225.951499Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n4:31PM INF scanned ~359414 bytes (359.41 KB) in 116ms\n4:31PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 30 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T120225.951499Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    }
+  },
+  "summary": "Judge Result: LORE-004\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 tests: ============================= test session starts ==============================\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-23T21:31:16.068064",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-23T21:31:16.082303+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 616,
+        "truncated": false,
+        "source": "git show daf67005971e"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 22062,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "LORE-004"
+  }
+}

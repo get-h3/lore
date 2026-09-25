@@ -1,0 +1,119 @@
+{
+  "task_id": "LORE-015",
+  "task_title": "README + docs to the fleet's public-deliverable standard",
+  "task_criteria": [
+    "README.md carries a hook headline, the question the tool answers, a runnable walkthrough, and named use-cases; CHANGELOG.md and SECURITY.md exist with real content; no invented numbers \u2014 any figure cited traces to a real file or command."
+  ],
+  "passed": false,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "925909cc2faa47adea7321eb55a5b1c2ac4424bd",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 tests: ============================= test session starts ==============================\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T120225.951499Z.log"
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 45 items\n\ntests/test_classes.py ........                                           [ 17%]\ntests/test_classifier.py ........                                        [ 35%]\ntests/test_compiler.py .............................                     [100%]\n\n============================== 45 passed in 0.07s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T120225.951499Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n4:31PM INF scanned ~359414 bytes (359.41 KB) in 148ms\n4:31PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 30 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260923T120225.951499Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": false,
+      "any_failed": true,
+      "summary": "INCOMPLETE\n  \u2717 README.md carries a hook headline, the question the tool answers, a runnable walkthrough, and named use-cases; CHANGELOG.md and SECURITY.md exist with real content; no invented numbers \u2014 any figure cited traces to a real file or command.: Structure is fully present and verified: hook headline (README.md:3), the question (README.md:9-11), a runnable walkthrough (README.md:22-71 \u2014 `uv run python -m lore match \"drain 503\"` reproduces the documented output byte-for-byte: 'gateway-drain-window\\tconfidence=0.90\\tevidence: signature:drain 503; keyword:503; keyword:drain'; the 'secret .env clobber', 'key rotation expired' and coffee-machine examples also match exactly), named use-cases (README.md:101-115 'Who this is for', 4 named personas), CHANGELOG.md (Keep-a-Changelog format; all 10 cited commit hashes verified real via `git cat-file -t`), and SECURITY.md (supported-versions table, private-advisory channel, 3 tool-specific threat notes). The '9 failure classes' figure is verified against the registry (9 curated + unclassified, IDs match README exactly). BUT the criterion's 'no invented numbers \u2014 any figure cited traces to a real file or command' clause FAILS: README.md:70 states `uv run pytest -q  # 16 passed in 0.04s` and README.md:166 states 'with 16 tests passing'. Running the actual command gives `45 passed in 0.05s` (exit 0). The README was authored at commit 91f915d when tests/ held only test_classes.py (8) + test_classifier.py (8) = 16 tests; LORE-004 (commit 7cbdb70) then added tests/test_compiler.py (29 tests) in the same wave, merged together as daf6700. The shipped figure therefore does not trace to the current repo state \u2014 it is a stale number, not a reproducible one.\nREADME/CHANGELOG/SECURITY structure and all other cited figures verify, but the README's '16 passed'/'16 tests passing' test-count figure is stale (actual suite reports 45 passed), violating the no-invented-numbers requirement.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": false,
+          "output": "INCOMPLETE\n  \u2717 README.md carries a hook headline, the question the tool answers, a runnable walkthrough, and named use-cases; CHANGELOG.md and SECURITY.md exist with real content; no invented numbers \u2014 any figure cited traces to a real file or command.: Structure is fully present and verified: hook headline (README.md:3), the question (README.md:9-11), a runnable walkthrough (README.md:22-71 \u2014 `uv run python -m lore match \"drain 503\"` reproduces the documented output byte-for-byte: 'gateway-drain-window\\tconfidence=0.90\\tevidence: signature:drain 503; keyword:503; keyword:drain'; the 'secret .env clobber', 'key rotation expired' and coffee-machine examples also match exactly), named use-cases (README.md:101-115 'Who this is for', 4 named personas), CHANGELOG.md (Keep-a-Changelog format; all 10 cited commit hashes verified real via `git cat-file -t`), and SECURITY.md (supported-versions table, private-advisory channel, 3 tool-specific threat notes). The '9 failure classes' figure is verified against the registry (9 curated + unclassified, IDs match README exactly). BUT the criterion's 'no invented numbers \u2014 any figure cited traces to a real file or command' clause FAILS: README.md:70 states `uv run pytest -q  # 16 passed in 0.04s` and README.md:166 states 'with 16 tests passing'. Running the actual command gives `45 passed in 0.05s` (exit 0). The README was authored at commit 91f915d when tests/ held only test_classes.py (8) + test_classifier.py (8) = 16 tests; LORE-004 (commit 7cbdb70) then added tests/test_compiler.py (29 tests) in the same wave, merged together as daf6700. The shipped figure therefore does not trace to the current repo state \u2014 it is a stale number, not a reproducible one.\nREADME/CHANGELOG/SECURITY structure and all other cited figures verify, but the README's '16 passed'/'16 tests passing' test-count figure is stale (actual suite reports 45 passed), violating the no-invented-numbers requirement.",
+          "error": "",
+          "data": {
+            "verdict": "INCOMPLETE",
+            "items": [
+              {
+                "criterion": "README.md carries a hook headline, the question the tool answers, a runnable walkthrough, and named use-cases; CHANGELOG.md and SECURITY.md exist with real content; no invented numbers \u2014 any figure cited traces to a real file or command.",
+                "status": "FAIL",
+                "detail": "Structure is fully present and verified: hook headline (README.md:3), the question (README.md:9-11), a runnable walkthrough (README.md:22-71 \u2014 `uv run python -m lore match \"drain 503\"` reproduces the documented output byte-for-byte: 'gateway-drain-window\\tconfidence=0.90\\tevidence: signature:drain 503; keyword:503; keyword:drain'; the 'secret .env clobber', 'key rotation expired' and coffee-machine examples also match exactly), named use-cases (README.md:101-115 'Who this is for', 4 named personas), CHANGELOG.md (Keep-a-Changelog format; all 10 cited commit hashes verified real via `git cat-file -t`), and SECURITY.md (supported-versions table, private-advisory channel, 3 tool-specific threat notes). The '9 failure classes' figure is verified against the registry (9 curated + unclassified, IDs match README exactly). BUT the criterion's 'no invented numbers \u2014 any figure cited traces to a real file or command' clause FAILS: README.md:70 states `uv run pytest -q  # 16 passed in 0.04s` and README.md:166 states 'with 16 tests passing'. Running the actual command gives `45 passed in 0.05s` (exit 0). The README was authored at commit 91f915d when tests/ held only test_classes.py (8) + test_classifier.py (8) = 16 tests; LORE-004 (commit 7cbdb70) then added tests/test_compiler.py (29 tests) in the same wave, merged together as daf6700. The shipped figure therefore does not trace to the current repo state \u2014 it is a stale number, not a reproducible one."
+              }
+            ],
+            "summary": "README/CHANGELOG/SECURITY structure and all other cited figures verify, but the README's '16 passed'/'16 tests passing' test-count figure is stale (actual suite reports 45 passed), violating the no-invented-numbers requirement."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-015\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 tests: ============================= test session starts ==============================\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n\nStage tier2: FAIL\n  INCOMPLETE\n  \u2717 README.md carries a hook headline, the question the tool answers, a runnable walkthrough, and named use-cases; CHANGELOG.md and SECURITY.md exist with real content; no invented numbers \u2014 any figure cited traces to a real file or command.: Structure is fully present and verified: hook headline (README.md:3), the question (README.md:9-11), a runnable walkthrough (README.md:22-71 \u2014 `uv run python -m lore match \"drain 503\"` reproduces the documented output byte-for-byte: 'gateway-drain-window\\tconfidence=0.90\\tevidence: signature:drain 503; keyword:503; keyword:drain'; the 'secret .env clobber', 'key rotation expired' and coffee-machine examples also match exactly), named use-cases (README.md:101-115 'Who this is for', 4 named personas), CHANGELOG.md (Keep-a-Changelog format; all 10 cited commit hashes verified real via `git cat-file -t`), and SECURITY.md (supported-versions table, private-advisory channel, 3 tool-specific threat notes). The '9 failure classes' figure is verified against the registry (9 curated + unclassified, IDs match README exactly). BUT the criterion's 'no invented numbers \u2014 any figure cited traces to a real file or command' clause FAILS: README.md:70 states `uv run pytest -q  # 16 passed in 0.04s` and README.md:166 states 'with 16 tests passing'. Running the actual command gives `45 passed in 0.05s` (exit 0). The README was authored at commit 91f915d when tests/ held only test_classes.py (8) + test_classifier.py (8) = 16 tests; LORE-004 (commit 7cbdb70) then added tests/test_compiler.py (29 tests) in the same wave, merged together as daf6700. The shipped figure therefore does not trace to the current repo state \u2014 it is a stale number, not a reproducible one.\nREADME/CHANGELOG/SECURITY structure and all other cited figures verify, but the README's '16 passed'/'16 tests passing' test-count figure is stale (actual suite reports 45 passed), violating the no-invented-numbers requirement.\n\nOverall: FAIL \u2717",
+  "evaluated_at": "2026-09-23T21:31:59.187576",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-23T21:31:59.201339+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 25800,
+        "truncated": false,
+        "source": "git show 925909cc2faa"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 23298,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "LORE-015"
+  }
+}

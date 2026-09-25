@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-021",
+  "task_title": "Library naming contract pin: NearMiss.raw_score vs CLI score=; evidence dict shape",
+  "task_criteria": [
+    "Docstrings state both names + dict shape; mechanical pin tests; zero behavior change"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "",
+  "commit": "c7a7c2cc5dccda82ecca7f755d41dff80987887b",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T085853.224792Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n4:00AM INF scanned ~1316188 bytes (1.32 MB) in 238ms\n4:00AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 66 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T085853.224792Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 269 items\n\ntests/test_absorb.py .........................                           [  9%]\ntests/test_classes.py ........                                           [ 12%]\ntests/test_classifier.py ........                                        [ 15%]\ntests/test_cli_surface.py .....................                          [ 23%]\ntests/test_compiler.py .............................                     [ 33%]\ntests/test_consult.py ....................                               [ 41%]\ntests/test_evidence.py ......................                            [ 49%]\ntests/test_lore011_drain_acceptance.py .......                           [ 52%]\ntests/test_lore016_qa_audit.py .....................                     [ 59%]\ntests/test_lore017_gateway_guard.py ........                             [ 62%]\ntests/test_lore020_absorb_window.py ...                                  [ 63%]\ntests/test_lore021_naming_docs.py .......                                [ 66%]\ntests/test_near_miss.py .........                                        [ 69%]\ntests/test_validate.py ................................................. [ 88%]\n................................                                         [100%]\n\n============================= 269 passed in 0.40s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T085853.224792Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 Docstrings state both names + dict shape; mechanical pin tests; zero behavior change: Docstrings: lore/classifier.py:60-72 NearMiss docstring names `raw_score` (raw fraction) AND the CLI's `score=` ('The CLI ``match --explain`` prints this SAME raw fraction as ``score=``'), contrasting it with the band-scaled `confidence=`; lore/classifier.py:36-43 Classification docstring states evidence is 'a list of PLAIN DICTS (``type(e) is dict``)... exactly the keys ``\"kind\"`` and ``\"detail\"``'. Pin tests: tests/test_lore021_naming_docs.py has 7 mechanical tests incl. test_docstrings_state_both_names (inspect.getdoc asserts 'raw_score', 'score=', '\"kind\"', '\"detail\"'), test_cli_explain_prints_the_raw_fraction_as_score, and two evidence-shape tests asserting type(e) is dict and set(keys)=={'kind','detail'}. Test evidence (fresh): `uv run pytest tests/test_lore021_naming_docs.py -v --tb=short` exit_code 0 -> '7 passed in 0.03s'; full config test_command `uv run pytest -x --tb=short` exit_code 0 -> '269 passed in 2.07s'. Zero behavior change: `git diff HEAD^1 HEAD -- lore/classifier.py` removes only 2 lines, both docstring/comment ('\"\"\"One candidate classification for a symptom text.\"\"\"' and '# than a signature match.'), all 23 added lines are docstring/comment text \u2014 no executable statement altered. Runtime spot-check confirms claims: classify('drain 503s...').evidence == [{'kind':'signature','detail':'drain 503'},{'kind':'keyword','detail':'503'},...] all plain dicts; nm.raw_score == n_hits/n_keywords == 0.3333; CLI source lore/__main__.py:67 prints `score={nm.raw_score:.2f}` and :57 prints `confidence={c.confidence:.2f}`. LSP diagnostics: 0 findings.\nLORE-021 fully satisfied: both naming contracts and the evidence dict shape are documented in docstrings, pinned by 7 passing mechanical tests (full suite 269 passed), with a docstring/comment-only diff proving zero behavior change.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 Docstrings state both names + dict shape; mechanical pin tests; zero behavior change: Docstrings: lore/classifier.py:60-72 NearMiss docstring names `raw_score` (raw fraction) AND the CLI's `score=` ('The CLI ``match --explain`` prints this SAME raw fraction as ``score=``'), contrasting it with the band-scaled `confidence=`; lore/classifier.py:36-43 Classification docstring states evidence is 'a list of PLAIN DICTS (``type(e) is dict``)... exactly the keys ``\"kind\"`` and ``\"detail\"``'. Pin tests: tests/test_lore021_naming_docs.py has 7 mechanical tests incl. test_docstrings_state_both_names (inspect.getdoc asserts 'raw_score', 'score=', '\"kind\"', '\"detail\"'), test_cli_explain_prints_the_raw_fraction_as_score, and two evidence-shape tests asserting type(e) is dict and set(keys)=={'kind','detail'}. Test evidence (fresh): `uv run pytest tests/test_lore021_naming_docs.py -v --tb=short` exit_code 0 -> '7 passed in 0.03s'; full config test_command `uv run pytest -x --tb=short` exit_code 0 -> '269 passed in 2.07s'. Zero behavior change: `git diff HEAD^1 HEAD -- lore/classifier.py` removes only 2 lines, both docstring/comment ('\"\"\"One candidate classification for a symptom text.\"\"\"' and '# than a signature match.'), all 23 added lines are docstring/comment text \u2014 no executable statement altered. Runtime spot-check confirms claims: classify('drain 503s...').evidence == [{'kind':'signature','detail':'drain 503'},{'kind':'keyword','detail':'503'},...] all plain dicts; nm.raw_score == n_hits/n_keywords == 0.3333; CLI source lore/__main__.py:67 prints `score={nm.raw_score:.2f}` and :57 prints `confidence={c.confidence:.2f}`. LSP diagnostics: 0 findings.\nLORE-021 fully satisfied: both naming contracts and the evidence dict shape are documented in docstrings, pinned by 7 passing mechanical tests (full suite 269 passed), with a docstring/comment-only diff proving zero behavior change.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "Docstrings state both names + dict shape; mechanical pin tests; zero behavior change",
+                "status": "PASS",
+                "detail": "Docstrings: lore/classifier.py:60-72 NearMiss docstring names `raw_score` (raw fraction) AND the CLI's `score=` ('The CLI ``match --explain`` prints this SAME raw fraction as ``score=``'), contrasting it with the band-scaled `confidence=`; lore/classifier.py:36-43 Classification docstring states evidence is 'a list of PLAIN DICTS (``type(e) is dict``)... exactly the keys ``\"kind\"`` and ``\"detail\"``'. Pin tests: tests/test_lore021_naming_docs.py has 7 mechanical tests incl. test_docstrings_state_both_names (inspect.getdoc asserts 'raw_score', 'score=', '\"kind\"', '\"detail\"'), test_cli_explain_prints_the_raw_fraction_as_score, and two evidence-shape tests asserting type(e) is dict and set(keys)=={'kind','detail'}. Test evidence (fresh): `uv run pytest tests/test_lore021_naming_docs.py -v --tb=short` exit_code 0 -> '7 passed in 0.03s'; full config test_command `uv run pytest -x --tb=short` exit_code 0 -> '269 passed in 2.07s'. Zero behavior change: `git diff HEAD^1 HEAD -- lore/classifier.py` removes only 2 lines, both docstring/comment ('\"\"\"One candidate classification for a symptom text.\"\"\"' and '# than a signature match.'), all 23 added lines are docstring/comment text \u2014 no executable statement altered. Runtime spot-check confirms claims: classify('drain 503s...').evidence == [{'kind':'signature','detail':'drain 503'},{'kind':'keyword','detail':'503'},...] all plain dicts; nm.raw_score == n_hits/n_keywords == 0.3333; CLI source lore/__main__.py:67 prints `score={nm.raw_score:.2f}` and :57 prints `confidence={c.confidence:.2f}`. LSP diagnostics: 0 findings."
+              }
+            ],
+            "summary": "LORE-021 fully satisfied: both naming contracts and the evidence dict shape are documented in docstrings, pinned by 7 passing mechanical tests (full suite 269 passed), with a docstring/comment-only diff proving zero behavior change."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-021\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 Docstrings state both names + dict shape; mechanical pin tests; zero behavior change: Docstrings: lore/classifier.py:60-72 NearMiss docstring names `raw_score` (raw fraction) AND the CLI's `score=` ('The CLI ``match --explain`` prints this SAME raw fraction as ``score=``'), contrasting it with the band-scaled `confidence=`; lore/classifier.py:36-43 Classification docstring states evidence is 'a list of PLAIN DICTS (``type(e) is dict``)... exactly the keys ``\"kind\"`` and ``\"detail\"``'. Pin tests: tests/test_lore021_naming_docs.py has 7 mechanical tests incl. test_docstrings_state_both_names (inspect.getdoc asserts 'raw_score', 'score=', '\"kind\"', '\"detail\"'), test_cli_explain_prints_the_raw_fraction_as_score, and two evidence-shape tests asserting type(e) is dict and set(keys)=={'kind','detail'}. Test evidence (fresh): `uv run pytest tests/test_lore021_naming_docs.py -v --tb=short` exit_code 0 -> '7 passed in 0.03s'; full config test_command `uv run pytest -x --tb=short` exit_code 0 -> '269 passed in 2.07s'. Zero behavior change: `git diff HEAD^1 HEAD -- lore/classifier.py` removes only 2 lines, both docstring/comment ('\"\"\"One candidate classification for a symptom text.\"\"\"' and '# than a signature match.'), all 23 added lines are docstring/comment text \u2014 no executable statement altered. Runtime spot-check confirms claims: classify('drain 503s...').evidence == [{'kind':'signature','detail':'drain 503'},{'kind':'keyword','detail':'503'},...] all plain dicts; nm.raw_score == n_hits/n_keywords == 0.3333; CLI source lore/__main__.py:67 prints `score={nm.raw_score:.2f}` and :57 prints `confidence={c.confidence:.2f}`. LSP diagnostics: 0 findings.\nLORE-021 fully satisfied: both naming contracts and the evidence dict shape are documented in docstrings, pinned by 7 passing mechanical tests (full suite 269 passed), with a docstring/comment-only diff proving zero behavior change.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-25T09:00:54.844042",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-25T09:00:54.856014+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 590,
+        "truncated": false,
+        "source": "git show c7a7c2cc5dcc"
+      }
+    ],
+    "task_id": "LORE-021"
+  }
+}
