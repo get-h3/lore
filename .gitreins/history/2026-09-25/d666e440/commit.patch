@@ -1,0 +1,13 @@
+commit cdd7c1b687953f9915c823e749c02417204f9dbf
+Merge: a5cc091 aaf147f
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Fri Sep 25 13:44:18 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Fri Sep 25 13:44:18 2026 -0500
+
+    wave-recovery: merge LORE-023 classifier vocabulary (gate green 280 tests). Recovered from wave lore-2026-09-25-16-39-44
+
+ lore/classes.py         | 28 +++++++++++++++++++++--
+ tests/test_classes.py   |  8 +++++++
+ tests/test_near_miss.py | 61 ++++++++++++++++++++++++++++++++++++++++++++++---
+ 3 files changed, 92 insertions(+), 5 deletions(-)

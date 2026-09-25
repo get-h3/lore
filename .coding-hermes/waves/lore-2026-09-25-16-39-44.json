@@ -4,9 +4,9 @@
   "workdir": "~/lore",
   "base": "origin/main",
   "base_sha": "37a2f06",
-  "status": "recovering",
+  "status": "recovered",
   "created_at": "2026-09-25T16:55:00-05:00",
-  "finished_at": "2026-09-25T18:40:00-05:00",
+  "finished_at": "2026-09-25T19:20:00-05:00",
   "merge_order": [
     "LORE-022",
     "LORE-023",
@@ -46,7 +46,7 @@
         "lore/classifier.py",
         "tests/"
       ],
-      "status": "worker_died_pre_commit_redispatching"
+      "status": "merged_redispatch"
     },
     {
       "id": "LORE-024",
@@ -61,7 +61,7 @@
         "lore/validate.py",
         "tests/test_validate.py"
       ],
-      "status": "worker_died_pre_commit_redispatching"
+      "status": "merged_redispatch"
     },
     {
       "id": "LORE-027",
@@ -79,5 +79,12 @@
       "commit": "d807eb2"
     }
   ],
-  "outcomes": null
+  "outcomes": {
+    "LORE-022": "merged 8b8b78c, tier-2 PASS cd3d4261",
+    "LORE-027": "merged d807eb2, tier-2 PASS 9ddd0d07",
+    "LORE-025": "verified fixed by 37a2f06, closed",
+    "LORE-023": "worker died pre-commit -> re-dispatched, merged aaf147f, tier-2 PASS d666e440",
+    "LORE-024": "worker died pre-start -> re-dispatched, merged 619217e, tier-2 PASS a5cf5d4d",
+    "recovery": "tick lore-2026-09-25-18-16-44; main at 58b328d, 282 tests green, all pushed"
+  }
 }

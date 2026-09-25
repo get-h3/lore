@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-024",
+  "task_title": "Template outcome for placeholder checks in validate --execute",
+  "task_criteria": [
+    "Placeholder checks report template outcome without executing; template alone never flips a class stale; uv run pytest -q green"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "58b328d39c7c0d47494d84e788a1b5f03480437f",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T182932.861384Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n2:09PM INF scanned ~1998726 bytes (2 MB) in 327ms\n2:09PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 69 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T182932.861384Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 282 items\n\ntests/test_absorb.py .........................                           [  8%]\ntests/test_classes.py .........                                          [ 12%]\ntests/test_classifier.py ........                                        [ 14%]\ntests/test_cli_surface.py .....................                          [ 22%]\ntests/test_compiler.py .............................                     [ 32%]\ntests/test_consult.py ....................                               [ 39%]\ntests/test_evidence.py ......................                            [ 47%]\ntests/test_lore011_drain_acceptance.py .......                           [ 50%]\ntests/test_lore016_qa_audit.py .....................                     [ 57%]\ntests/test_lore017_gateway_guard.py ........                             [ 60%]\ntests/test_lore020_absorb_window.py ...                                  [ 61%]\ntests/test_lore021_naming_docs.py .......                                [ 63%]\ntests/test_lore022_freshness_docs.py .....                               [ 65%]\ntests/test_near_miss.py ..............                                   [ 70%]\ntests/test_validate.py ................................................. [ 87%]\n..................................                                       [100%]\n\n============================= 282 passed in 0.33s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T182932.861384Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 Placeholder checks report template outcome without executing; template alone never flips a class stale; uv run pytest -q green: lore/validate.py:151 defines OUTCOME_TEMPLATE='template', added to OUTCOME_VOCABULARY (:133-141) but NOT to DRIFT_OUTCOMES (:144). lint_runbook (:750-755) sets outcome=OUTCOME_TEMPLATE with a fill-me stderr message and never calls the runner for such checks. _unfilled_placeholder_token (:659-661) is quote-aware via _unquoted (:216) \u2014 verified '<key-name>' inside quotes returns None while bare <main-tree> is detected. Runtime check on gateway-drain-window: 5 template results, all exit_code None, runner invoked only for the 2 real checks; apply_lint returned status 'proposal' with stale_reason None (template alone never flips stale). tests/test_validate.py:325 (test_apply_lint_template_outcome_never_flips_stale) and :343 (template + real error still flips stale) cover both directions. `uv run pytest -q` -> exit_code 0, '282 passed in 0.24s'.\nPlaceholder checks are reported as a non-drift 'template' outcome without execution, template alone never flips a class stale, and the full suite passes (282 passed).",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 Placeholder checks report template outcome without executing; template alone never flips a class stale; uv run pytest -q green: lore/validate.py:151 defines OUTCOME_TEMPLATE='template', added to OUTCOME_VOCABULARY (:133-141) but NOT to DRIFT_OUTCOMES (:144). lint_runbook (:750-755) sets outcome=OUTCOME_TEMPLATE with a fill-me stderr message and never calls the runner for such checks. _unfilled_placeholder_token (:659-661) is quote-aware via _unquoted (:216) \u2014 verified '<key-name>' inside quotes returns None while bare <main-tree> is detected. Runtime check on gateway-drain-window: 5 template results, all exit_code None, runner invoked only for the 2 real checks; apply_lint returned status 'proposal' with stale_reason None (template alone never flips stale). tests/test_validate.py:325 (test_apply_lint_template_outcome_never_flips_stale) and :343 (template + real error still flips stale) cover both directions. `uv run pytest -q` -> exit_code 0, '282 passed in 0.24s'.\nPlaceholder checks are reported as a non-drift 'template' outcome without execution, template alone never flips a class stale, and the full suite passes (282 passed).",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "Placeholder checks report template outcome without executing; template alone never flips a class stale; uv run pytest -q green",
+                "status": "PASS",
+                "detail": "lore/validate.py:151 defines OUTCOME_TEMPLATE='template', added to OUTCOME_VOCABULARY (:133-141) but NOT to DRIFT_OUTCOMES (:144). lint_runbook (:750-755) sets outcome=OUTCOME_TEMPLATE with a fill-me stderr message and never calls the runner for such checks. _unfilled_placeholder_token (:659-661) is quote-aware via _unquoted (:216) \u2014 verified '<key-name>' inside quotes returns None while bare <main-tree> is detected. Runtime check on gateway-drain-window: 5 template results, all exit_code None, runner invoked only for the 2 real checks; apply_lint returned status 'proposal' with stale_reason None (template alone never flips stale). tests/test_validate.py:325 (test_apply_lint_template_outcome_never_flips_stale) and :343 (template + real error still flips stale) cover both directions. `uv run pytest -q` -> exit_code 0, '282 passed in 0.24s'."
+              }
+            ],
+            "summary": "Placeholder checks are reported as a non-drift 'template' outcome without execution, template alone never flips a class stale, and the full suite passes (282 passed)."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-024\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 Placeholder checks report template outcome without executing; template alone never flips a class stale; uv run pytest -q green: lore/validate.py:151 defines OUTCOME_TEMPLATE='template', added to OUTCOME_VOCABULARY (:133-141) but NOT to DRIFT_OUTCOMES (:144). lint_runbook (:750-755) sets outcome=OUTCOME_TEMPLATE with a fill-me stderr message and never calls the runner for such checks. _unfilled_placeholder_token (:659-661) is quote-aware via _unquoted (:216) \u2014 verified '<key-name>' inside quotes returns None while bare <main-tree> is detected. Runtime check on gateway-drain-window: 5 template results, all exit_code None, runner invoked only for the 2 real checks; apply_lint returned status 'proposal' with stale_reason None (template alone never flips stale). tests/test_validate.py:325 (test_apply_lint_template_outcome_never_flips_stale) and :343 (template + real error still flips stale) cover both directions. `uv run pytest -q` -> exit_code 0, '282 passed in 0.24s'.\nPlaceholder checks are reported as a non-drift 'template' outcome without execution, template alone never flips a class stale, and the full suite passes (282 passed).\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-25T19:10:21.938687",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-25T19:10:21.954583+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 662,
+        "truncated": false,
+        "source": "git show 58b328d39c7c"
+      }
+    ],
+    "task_id": "LORE-024"
+  }
+}
