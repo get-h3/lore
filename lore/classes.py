@@ -65,8 +65,26 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
             r"index\.lock",
             r"worktree\s+(reap|deleted|collision)",
             r"(sibling|concurrent)\s+worker\s+.{0,40}(reset|stage|sweep|checkout)",
+            # LORE-023 (dogfood 2026-09-25 run 3): the shared-checkout family
+            # also produces EMPTY COMMITS (a sibling commit lands your message
+            # with zero files because it swept the staged set) and BARE-FLIP
+            # fallout (core.bare=true on the main repo, pushes fail). The
+            # lookaheads keep matched_signature token-exact ("empty commit" /
+            # "core.bare", never the surrounding words).
+            r"empty\s+commit(?=\s|!|\.|,|$)",
+            r"core\.bare(?=\s|!|\.|,|$)",
         ),
-        keywords=("index.lock", "worktree", "reap", "sibling", "collision", "checkout"),
+        keywords=(
+            "index.lock",
+            "worktree",
+            "reap",
+            "sibling",
+            "collision",
+            "checkout",
+            # LORE-023 vocabulary seeds (the dogfood probes name these).
+            "empty commit",
+            "core.bare",
+        ),
         provenance=SEED_PROVENANCE
         + " From shared-tree worker collisions and worktree reaper deletions.",
     ),
@@ -78,8 +96,14 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
             "sibling deploys; every downstream key 401s until the container env is "
             "repaired and secret generations diffed."
         ),
+        # LORE-023 (dogfood 2026-09-25 run 3): "env clobber" (no dot) must
+        # belong to this class the same as ".env clobber" — the namespace is
+        # implicit when the object IS the env. The dot-less branch is guarded
+        # by a negative lookbehind so it can never fire inside ".env"/
+        # ".env.example"; matched_signature stays token-exact (".env.example
+        # twins" / ".env clobber" / "env clobber").
         signature_patterns=(
-            r"\.env(\.example)?\s+(twins?|clobber|overwrite)",
+            r"(?:\.env(?:\.example)?|(?<!\.)env)\s+(?:twins?|clobber|overwrite)",
             r"clobber(ed|ing)?\s+(by\s+)?(the\s+)?(example|\.env)",
             r"container[- ]env\s+repair",
         ),
