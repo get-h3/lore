@@ -1,0 +1,19 @@
+{
+  "tick_id": "lore-2026-09-25-23-11-19",
+  "wave_budget": 6,
+  "composed": 1,
+  "note": "Serial fallback: only ONE independent actionable row on the board (LORE-029); all other rows complete. Wave requires >=2 independent tasks.",
+  "tasks": [
+    {
+      "task_id": "LORE-029",
+      "worktree": "/home/kara/worktrees/lore-LORE-029",
+      "branch": "wt/LORE-029",
+      "base_sha": "7746177",
+      "brief": "/tmp/lore_tick/brief_LORE-029.md",
+      "worker_model": "glm-5.3-flash",
+      "worker_provider": "ollama-cloud",
+      "session_id": "proc_74db0861e8a2",
+      "gitreins_task": "LORE-029"
+    }
+  ]
+}
