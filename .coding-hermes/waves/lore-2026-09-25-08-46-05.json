@@ -1,0 +1,40 @@
+{
+  "tick_id": "lore-2026-09-25-08-46-05",
+  "project": "lore",
+  "repo": "https://github.com/get-h3/lore",
+  "started_at": "2026-09-25T09:00:00-05:00",
+  "wave_budget": 8,
+  "base_sha": "75e5c73",
+  "recovery_first": "wave-6 (lore-2026-09-24-20-13-12) fully recovered before this wave: both branches re-gated, merged, judged PASS (f9d3cd7a/6c5b5b67), LORE-017 closed, manifest finished_at stamped, worktrees+branches removed. Cross-merge test interaction fixed foreman-direct (7597257).",
+  "foreman_ops_this_tick": "get-h3/lore flipped PUBLIC (gh repo edit, verified isPrivate=false) executing LORE-001's recorded 'public at first release' decision — v0.1.0 was already tagged+pushed, so LORE-018's root cause is resolved by the foreman; the docs worker updates the docs to match.",
+  "workers": [
+    {
+      "task_id": "LORE-019",
+      "also_addresses": "LORE-018",
+      "fold_reason": "both rows touch README.md + docs/INSTALL.md; same-file workers are not merge-independent, so they fold into one docs branch",
+      "branch": "wt/LORE-019",
+      "worktree": "/home/kara/worktrees/lore-LORE-019",
+      "base_sha": "75e5c73",
+      "brief": "/tmp/lore-2026-09-25-08-46-05_msg_LORE-019.md",
+      "scope": "Docs truth sweep: repo now PUBLIC (update README quickstart + INSTALL clone steps), test counts 238->259 live, curated class count 10->11 (gateway-guard-violation landed), 238-pytest mentions swept"
+    },
+    {
+      "task_id": "LORE-020",
+      "branch": "wt/LORE-020",
+      "worktree": "/home/kara/worktrees/lore-LORE-020",
+      "base_sha": "75e5c73",
+      "brief": "/tmp/lore-2026-09-25-08-46-05_msg_LORE-020.md",
+      "scope": "absorb --window: document the trail contract (stdin or --trail-file) + plumb the silently-dropped --source flag into sweep proposals (lore/__main__.py _cmd_absorb passes args.source to absorb_sweep) + regression tests"
+    },
+    {
+      "task_id": "LORE-021",
+      "branch": "wt/LORE-021",
+      "worktree": "/home/kara/worktrees/lore-LORE-021",
+      "base_sha": "75e5c73",
+      "brief": "/tmp/lore-2026-09-25-08-46-05_msg_LORE-021.md",
+      "scope": "Library naming clarity in lore/classifier.py docstrings: NearMiss.raw_score (raw keyword fraction) vs CLI-printed 'score=' (band-scaled), Classification.evidence is a list of plain dicts — document the shapes; no behavior change"
+    }
+  ],
+  "independence": "A(LORE-019+018): README.md/CHANGELOG.md/docs/INSTALL.md only; B(LORE-020): lore/__main__.py + tests/test_lore020_*.py; C(LORE-021): lore/classifier.py docstrings (+ its own test file if needed). Disjoint file sets, all branch from 75e5c73, no depends_on edges between the rows (verified from board rows).",
+  "status": "manifest-written-pre-dispatch"
+}
