@@ -16,6 +16,7 @@ from lore.runbook import STATUS_PROPOSAL, STATUS_STALE, STATUS_VALIDATED, Runboo
 from lore.validate import (
     DRIFT_OUTCOMES,
     HONESTY_LABEL,
+    OUTCOME_TEMPLATE,
     OUTCOME_VOCABULARY,
     apply_lint,
     is_read_only_command,
@@ -207,23 +208,28 @@ def test_lint_uses_injected_runner_never_real_commands():
     runner = FakeRunner(0, 0)
     rb = compile_class("gateway-drain-window")
     report = lint_runbook(rb, runner=runner)
-    assert all(r.outcome == "ok" for r in report.results)
-    assert runner.calls == [c.command for c in rb.checks]
-    assert all(r.exit_code == 0 for r in report.results)
+    executed = [r for r in report.results if r.outcome == "ok"]
+    templated = [r for r in report.results if r.outcome == OUTCOME_TEMPLATE]
+    assert executed and templated, "gateway seed has both real and template checks"
+    assert runner.calls == [r.command for r in executed], (
+        "runner saw exactly the executed checks"
+    )
+    assert all(r.exit_code == 0 for r in executed)
+    assert all(r.exit_code is None for r in templated)
     assert report.honesty_label == HONESTY_LABEL
     assert report.results[0].timestamp
 
 
 def test_lint_outcome_vocabulary_is_closed():
     rb = compile_class("gateway-drain-window")
-    report = lint_runbook(rb, runner=FakeRunner(0, 1, 3))
+    report = lint_runbook(rb, runner=FakeRunner(0, 1))
     outcomes = [r.outcome for r in report.results]
-    assert outcomes[:3] == ["ok", "error", "error"], (
-        "first three results keep the canned sequence"
-    )
-    assert all(o == "ok" for o in outcomes[3:]), (
-        "runner queue exhausted -> remaining checks ok"
-    )
+    # The two logsey checks carry no placeholder and pop the canned queue
+    # (ok, then error); the five placeholder checks in between report
+    # template and never reach the runner.
+    assert outcomes[0] == "ok"
+    assert outcomes[-1] == "error"
+    assert outcomes[1:-1] == [OUTCOME_TEMPLATE] * (len(outcomes) - 2)
     for r in report.results:
         assert r.outcome in OUTCOME_VOCABULARY
 
@@ -306,14 +312,48 @@ def _fresh_runbook() -> Runbook:
 
 def test_apply_lint_flips_stale_on_error():
     rb = _fresh_runbook()
-    report = lint_runbook(rb, runner=FakeRunner(0, 0, 1))
-    assert report.results[2].outcome == "error"
+    report = lint_runbook(rb, runner=FakeRunner(0, 1))
+    assert report.results[-1].outcome == "error"
     new = apply_lint(report, rb)
     assert new.status == STATUS_STALE
     assert new is not rb, "frozen dataclass: returns a NEW runbook"
     assert rb.status != STATUS_STALE, "input runbook must not be mutated"
     assert report.stale_reason is not None
-    assert "check 3" in report.stale_reason
+    assert "check 7" in report.stale_reason
+
+
+def test_apply_lint_template_outcome_never_flips_stale():
+    """Placeholder-only problems are honest incompleteness, not drift.
+
+    The runbook's real checks lint; the unfilled ones report ``template``
+    (visible, not executed) and the class does NOT flip stale from them.
+    """
+    runner = FakeRunner(0)
+    rb = _fresh_runbook()
+    report = lint_runbook(rb, runner=runner)
+    template = [r for r in report.results if r.outcome == OUTCOME_TEMPLATE]
+    ok = [r for r in report.results if r.outcome == "ok"]
+    assert template and ok, "gateway seed has both real and placeholder checks"
+    assert report.stale_reason is None
+    new = apply_lint(report, rb)
+    assert new.status == STATUS_PROPOSAL
+    assert new.last_validated is None
+
+
+def test_apply_lint_template_plus_real_error_still_flips_stale():
+    """One placeholder must not poison the class — but a real failing
+    command must still flip it, alongside any template outcomes."""
+    rb = _rb_with(
+        _check(1, "grep -c 'drain 503' <gateway-log-path>"),
+        _check(2, "git status --short"),
+    )
+    report = lint_runbook(rb, runner=FakeRunner(1))
+    assert [r.outcome for r in report.results] == [OUTCOME_TEMPLATE, "error"]
+    new = apply_lint(report, rb)
+    assert new.status == STATUS_STALE
+    assert report.stale_reason is not None
+    assert "check 2 (error)" in report.stale_reason
+    assert "template" not in report.stale_reason
 
 
 @pytest.mark.parametrize("outcome", DRIFT_OUTCOMES)
@@ -332,9 +372,12 @@ def test_apply_lint_flips_stale_on_every_drift_outcome(outcome):
 
 def test_apply_lint_does_not_flip_when_all_ok_or_absent():
     runner = FakeRunner(0)
-    rb = _fresh_runbook()
+    rb = _rb_with(
+        _check(1, "ls"),
+        _check(2, "no data", read_only=False),
+    )
     report = lint_runbook(rb, runner=runner)
-    assert all(r.outcome in ("ok", "absent") for r in report.results)
+    assert [r.outcome for r in report.results] == ["ok", "absent"]
     new = apply_lint(report, rb)
     assert new.status == STATUS_PROPOSAL
     assert new.last_validated is None
@@ -377,9 +420,9 @@ def test_apply_lint_validated_runbook_drifts_to_stale():
 
 def test_apply_lint_reason_is_renderable():
     rb = _fresh_runbook()
-    report = lint_runbook(rb, runner=FakeRunner(0, 1, 2))
+    report = lint_runbook(rb, runner=FakeRunner(0, 1))
     new = apply_lint(report, rb)
     assert new.status == STATUS_STALE
     reason = report.stale_reason or ""
-    assert "check 2" in reason and "check 3" in reason
+    assert "check 7" in reason and "(error)" in reason
     assert report.to_dict()["stale_reason"] == reason
