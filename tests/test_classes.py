@@ -75,6 +75,14 @@ def test_runtime_class_invention_refused():
         )
 
 
+def test_registry_size_is_pinned_closed():
+    # LORE-023: the registry is a CLOSED curated list; its size is pinned so
+    # class sprawl cannot arrive quietly. Vocabulary growth goes into the
+    # EXISTING classes' patterns/keywords, never into new ids.
+    # 10 curated seed classes + unclassified (grep -c 'id="' lore/classes.py).
+    assert len(get_registry()) == 11
+
+
 def test_registry_lookup_unknown_returns_none():
     reg = get_registry()
     assert reg.get("does-not-exist") is None

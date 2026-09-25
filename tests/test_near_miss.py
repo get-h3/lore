@@ -10,6 +10,7 @@ from lore.classes import UNCLASSIFIED_ID
 from lore.classifier import (
     KEYWORD_THRESHOLD,
     NearMiss,
+    classify,
     classify_all,
     near_misses,
 )
@@ -26,7 +27,7 @@ def test_dogfood_worktree_paraphrase_names_shared_checkout_collision():
     )
     nm = next(nm for nm in misses if nm.class_id == "shared-checkout-collision")
     assert nm.n_hits == 2, "dogfood evidence says 2 of its keywords hit"
-    assert nm.n_keywords == 6, "shared-checkout-collision has 6 curated keywords"
+    assert nm.n_keywords == 8, "shared-checkout-collision has 8 curated keywords"
     assert len(nm.hit_keywords) == 2
     assert nm.raw_score < KEYWORD_THRESHOLD, "honest: below the acceptance gate"
     assert {"worktree", "checkout"} <= set(nm.hit_keywords)
@@ -120,6 +121,60 @@ def test_cli_match_explain_dogfood_example_prints_honest_score(capsys):
     assert "near-misses:" in out_text
     assert "shared-checkout-collision" in out_text
     # raw fraction + which keywords hit — never a bare number
-    assert "score=0.33" in out_text
-    assert "(2/6 keywords:" in out_text
+    assert "score=0.25" in out_text
+    assert "(2/8 keywords:" in out_text
     assert "worktree" in out_text and "checkout" in out_text
+
+
+# ---------------------------------------------------------------- LORE-023 seeds
+# Dogfood 2026-09-25 run 3: real incident vocabulary still missed the seeded
+# classes. The registry stays CLOSED — these phrases must be matched by the
+# EXISTING classes (keyword/signature additions), never by new class ids.
+LORE023_PROBES = (
+    (
+        "empty commit landed with my message but zero files",
+        "shared-checkout-collision",
+    ),
+    (
+        "core.bare got flipped on the main repo and pushes fail",
+        "shared-checkout-collision",
+    ),
+    ("env clobber", "secret-env-clobber"),
+)
+
+
+def test_lore023_empty_commit_phrase_lands_on_shared_checkout_collision():
+    result = classify("empty commit landed with my message but zero files")
+    assert result.class_id == "shared-checkout-collision"
+    assert result.matched_signature == "empty commit"
+    assert result.confidence >= 0.8, "signature strength, not the keyword band"
+
+
+def test_lore023_core_bare_flip_phrase_lands_on_shared_checkout_collision():
+    result = classify("core.bare got flipped on the main repo and pushes fail")
+    assert result.class_id == "shared-checkout-collision"
+    assert result.matched_signature == "core.bare"
+
+
+def test_lore023_bare_env_clobber_lands_on_secret_env_clobber():
+    # Pre-fix this was a 0.17 near-miss: the bigram "env clobber" does not
+    # contain the seeded ".env clobber" shape. Signature-level now.
+    result = classify("env clobber")
+    assert result.class_id == "secret-env-clobber"
+    assert result.matched_signature == "env clobber"
+
+
+def test_lore023_dotted_env_clobber_signature_stays_token_exact():
+    # The normalization must not widen the dotted form's echo: ".env.example
+    # twins" still matches and matched_signature keeps the ".env" prefix —
+    # the dot-less branch must never swallow the dotted token.
+    result = classify("the .env.example twins overwrote the live secrets")
+    assert result.class_id == "secret-env-clobber"
+    assert result.matched_signature == ".env.example twins"
+
+
+def test_lore023_cli_explain_labels_every_probe(capsys):
+    for text, expected in LORE023_PROBES:
+        code, out = _run_match(["match", "--explain", text], capsys)
+        assert code == 0
+        assert f"{expected}\tconfidence=" in out.out, f"{text!r} must label {expected}"
