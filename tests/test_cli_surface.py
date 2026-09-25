@@ -86,7 +86,10 @@ def test_cli_audit_json_all_classes_honest_freshness(capsys):
         # HONESTY: no fabricated dates — every class reports 'no data' today.
         assert r["last_validated"] == NO_DATA
     assert data["summary"]["total_classes"] == len(rows)
-    assert "only by `lore validate --execute`" in data["summary"]["note"]
+    # The note states the truth: nothing auto-populates the field in v0.1.
+    assert "never auto-populated" in data["summary"]["note"]
+    assert "operator attestation" in data["summary"]["note"]
+    assert "populated only by" not in data["summary"]["note"]
 
 
 def test_cli_audit_table_rendered_aligned(capsys):

@@ -278,8 +278,12 @@ and what does not:
 - `lore audit [--format table|json|md]` — the PRD US-3 coverage + freshness
   matrix: per registry class, runbook-compiled, check count, real-command count
   (vs the honest `no data` sentinel), and freshness. Freshness is honest:
-  `last_validated` is populated only by `lore validate --execute` runs and says
-  `no data` until then — never a fabricated date.
+  `last_validated` is never auto-populated in v0.1 — no code path writes it
+  (a lint run is not operator attestation; operator attestation is planned,
+  not implemented) — so every runbook says `no data` until a human attests.
+  Never a fabricated date. Today's freshness signal is the lint itself:
+  `lore validate --execute` flips a drifted runbook to `stale` and carries
+  the drift reason.
 - The `lore absorb --window <dur> [--ns N] [--board B] [--source S]` sweep —
   parses a prior evidence trail from stdin (or `--trail-file`), classifies each
   block, groups by class, and prints per-class absorb **proposals** on stdout.
