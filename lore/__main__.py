@@ -355,10 +355,12 @@ def _cmd_show(args: argparse.Namespace) -> int:
 def _audit_rows() -> list[dict]:
     """Coverage + freshness matrix rows, one per registry class (PRD US-3).
 
-    HONESTY LAW: freshness comes from the runbook's own ``last_validated``
-    state — which is ``no data`` for every class until a ``lore validate
-    --execute``-backed attestation populates it. Never a fabricated date,
-    never an invented status.
+    HONESTY LAW: ``last_validated`` is never auto-populated in v0.1 — no
+    code path writes it (``apply_lint`` deliberately never stamps it: a lint
+    run is not operator attestation; operator attestation is planned, not
+    implemented). Today's freshness signal is the lint itself — the stale
+    flag with its drift reason. Until a human attests, the field honestly
+    reports ``no data``: never a fabricated date, never an invented status.
     """
     rows: list[dict] = []
     for rb in compile_all():
@@ -391,8 +393,11 @@ def _cmd_audit(args: argparse.Namespace) -> int:
     rows = _audit_rows()
     zero_command = sum(1 for r in rows if r["command_count"] == 0)
     summary_note = (
-        "last_validated is populated only by `lore validate --execute` runs; "
-        "a compiled runbook with no executed lint honestly reports 'no data'"
+        "last_validated is never auto-populated in v0.1 (operator attestation "
+        "is planned, not implemented — a lint run is not attestation); "
+        "today's freshness signal is the lint itself — the stale flag and "
+        "its drift reason — and the field honestly reports 'no data' until "
+        "a human attests"
     )
 
     if args.format == "json":
