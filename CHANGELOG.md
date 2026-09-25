@@ -5,11 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.0] — 2026-09-24
 
-> Note: no git tag has been cut yet — there is no shipped release to point at.
-> The package version in `pyproject.toml` is `0.1.0`; the entries below are the
-> work landed to date, dated 2026-09-23 (see `git log`).
+> Tagged `v0.1.0` (annotated tag on commit `c655666`) and the repository is
+> **public** as of 2026-09-25, executing LORE-001's recorded decision: flip to
+> public at the first release. The entries below describe work landed to date
+> (see `git log`).
 
 ### Added (2026-09-23)
 
@@ -35,12 +36,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - QA cycle finding `QA-LORE-1` (upgrade-path finding) appended to the board
   (commit `209fb2c`).
 
+### Added (2026-09-24)
+
+- `lore consult` (LORE-007), `lore gate` (LORE-008), the `lore absorb
+  --window` evidence-trail sweep, `lore show` and `lore audit` (LORE-010):
+  the shipped CLI surface is **eight subcommands** (`lore --help`).
+- Failure class `gateway-guard-violation` added to the closed registry
+  (LORE-017, commit `198f2b0`) — 10 curated classes + `unclassified`.
+- QA audit coverage for the v0.1.0 CLI + API surface (LORE-016,
+  commit `2d8f3dd`).
+
 ### Documentation (2026-09-23, task `LORE-012`)
 
 - `docs/INSTALL.md`: prerequisites, install, and first run for someone who has
   never seen the fleet — every command shown was run, every output pasted
-  verbatim (238 tests on the merged tree, `match`/`compile`/`validate`/`--help`),
-  plus an explicit "what this tool is NOT" section.
+  verbatim (`match`/`compile`/`validate`/`--help`; the expected test count is
+  stated on the current tree in that document), plus an explicit "what this
+  tool is NOT" section.
 - `docs/RUNBOOK-STORE.md`: the runbook-store design **decision** — central
   registry in the fleet's DuckBrain namespace + materialized per-repo
   git-tracked `runbooks/` dirs; read/write paths, propose-not-write, conflict

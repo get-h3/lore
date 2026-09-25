@@ -45,18 +45,21 @@ uv run ruff check .
 Real output on the current tree:
 
 ```
-........................................................................ [ 97%]
-....                                                                     [100%]
-238 passed in 0.74s
+........................................................................ [ 27%]
+........................................................................ [ 55%]
+........................................................................ [ 83%]
+...........................................                              [100%]
+259 passed in 0.74s
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **238 tests** (10 test files: taxonomy, classifier,
-compiler, evidence, validate). If your run says something else, you are on a
-different revision — check `git log` before trusting this document.
+The count to expect is **259 tests** (12 test files: taxonomy, classifier,
+compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+your run says something else, you are on a different revision — check
+`git log` before trusting this document.
 
 ## First run
 
@@ -67,28 +70,42 @@ uv run python -m lore --help
 ```
 
 ```
-usage: lore [-h] {match,compile,validate} ...
+usage: lore [-h] {match,consult,compile,validate,gate,absorb,show,audit} ...
 
 Match symptoms and compile runbooks from fleet incident history.
 
 positional arguments:
-  {match,compile,validate}
+  {match,consult,compile,validate,gate,absorb,show,audit}
     match               classify a symptom text
+    consult             tick-start consult (LORE-007): attach matching runbook
+                        refs to work context; fail-open (no match = exit 0)
     compile             compile runbook proposal(s) per failure class (stdout
                         only)
     validate            read-only command lint (LORE-006). DEFAULT = plan/dry-
                         run: lists what WOULD run, executes NOTHING; pass
                         --execute to run the gate-approved read-only commands
+    gate                closure absorb-gate (LORE-008): machine-check a lesson
+                        decision (absorb or no-new-lesson ack); exit 0 =
+                        allowed, 1 = denied
+    absorb              build the runbook-update PROPOSAL for an absorb
+                        decision (stdout only — propose-not-write, nothing is
+                        written)
+    show                print the compiled runbook for ONE class (LORE-010);
+                        human-markdown default, --format json optional
+    audit               coverage + freshness matrix over every registry class
+                        (LORE-010, PRD US-3); honest 'no data' freshness —
+                        never fabricated dates
 
 options:
   -h, --help            show this help message and exit
 ```
 
-That is the entire shipped CLI today: three subcommands, `match`, `compile` and
-`validate`. Anything else you may have heard of (`show`, `absorb`, `audit`,
-runbook-store materialization) is **planned** — see the README's Status section.
-`lore validate` runs the lint; the weekly *schedule* that would run it for you is
-not installed (that is a separate task).
+That is the entire shipped CLI today: eight subcommands — `match`, `consult`,
+`compile`, `validate`, `gate`, `absorb`, `show` and `audit`. Anything else you
+may have heard of (runbook-store materialization, the scheduled weekly lint) is
+**planned** — see the README's Status section. `lore validate` runs the lint;
+the weekly *schedule* that would run it for you is not installed (that is a
+separate task).
 
 ### `match` — classify a symptom
 
@@ -207,7 +224,7 @@ uv run python -m lore compile --class does-not-exist ; echo "exit=$?"
 ```
 
 ```
-error: unknown class_id 'does-not-exist'; registry is closed. Known: gateway-drain-window, shared-checkout-clobber, ... (9 classes + unclassified)
+error: unknown class_id 'does-not-exist'; registry is closed. Known: gateway-drain-window, shared-checkout-collision, secret-env-clobber, disk-pressure-corruption, cooldown-pin-drift, key-rotation-expiry, guard-degradation, spawn-hot-loop, ingest-backfill-gap, gateway-guard-violation, unclassified
 exit=2
 ```
 

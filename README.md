@@ -115,7 +115,7 @@ uv run python -m lore compile --class does-not-exist ; echo "exit=$?"
 Run the tests and lint that gate every change:
 
 ```sh
-uv run pytest -q        # 238 passed
+uv run pytest -q        # 259 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -254,7 +254,7 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (10 curated classes + `unclassified`),
-  with **238 tests passing** and a clean `ruff check`.
+  with **259 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published
@@ -303,7 +303,10 @@ lore audit [--format table|json|md]                 # coverage + freshness matri
 lore validate [--class ...]                         # run the read-only command lint now
 ```
 
-`lore match` and `lore compile` run today. See [`docs/PRD.md`](docs/PRD.md) for the full
+All eight shipped subcommands run today — `lore match`, `lore consult`,
+`lore compile`, `lore validate`, `lore gate`, `lore absorb`, `lore show` and
+`lore audit` (see `lore --help`). Still planned: runbook-store materialization
+and the scheduled weekly lint. See [`docs/PRD.md`](docs/PRD.md) for the full
 product requirements, the design authority this repo is judged against. The
 task list lives on the project board at `.coding-hermes/board/tasks.jsonl`.
 
