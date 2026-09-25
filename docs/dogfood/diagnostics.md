@@ -130,3 +130,59 @@ surface. What the run learned, as explanation:
    header is stale); the shell gate on this box blocks piped tar-to-ssh and
    `python3 -c`, so the tree went over as `git archive` + scp + remote
    extract, and JSON inspection ran through grep/python3 -m json.tool.
+
+---
+
+## Run 3 — the re-validation loop on live state (2026-09-25, HEAD 3ab56f5)
+
+Runs 1–2 tested the responder and scribe surfaces; this one ran the half of
+the promise nobody had executed: **"does the fix still run?"** —
+`lore validate --execute` against the live fleet, plus the README's USER
+install (`uv tool install`) on a fresh bunker box. What the run taught, as
+explanation:
+
+1. **The lint's honesty is real and it is the product.** A full sweep
+   reported 5 ok / 23 error / 1 refused and flipped 9/10 classes stale with
+   per-check reasons. `shared-checkout-collision` went 3/3 green (plain git
+   checks) — proof the green path exists. The failure text is honest about
+   cause: `error (exit 127)` for the missing `logsey`, `refused` for the
+   write-shaped `git worktree add` (the default-deny gate refusing to run a
+   runbook check that is not provably read-only — the safety core working).
+
+2. **The freshness field can never fill under v0.1.x — and the docs promise
+   it would (LORE-022).** `validate --execute` computes per-check outcomes
+   and `stale_reason`, but `apply_lint` deliberately never stamps
+   `last_validated` (operator attestation only — the propose-not-write law).
+   The README and `audit`'s summary line both say freshness comes from
+   execute runs. Both are wrong about their own tool. Until an attestation
+   step ships, the auditor answers "when did this last still work?" with a
+   lint re-run, never with the field.
+
+3. **`<placeholder>` paths make 9/10 runbooks structurally unlintable
+   (LORE-024).** `<gateway-log-path>` parses as shell input redirection →
+   `/bin/sh: Syntax error` → any-error stales the whole class. A runbook
+   with six good checks and one placeholder can never go green as authored.
+   Right way until fixed: substitute real paths in a copy of the runbook
+   before `--execute`, or lint only classes whose checks are concrete
+   (`--class shared-checkout-collision` is the one that works today).
+
+4. **The classifier's closed registry has a blind spot: zero-overlap
+   phrasings (LORE-023).** "Empty commit landed with my message but zero
+   files" is a shared-checkout-collision incident, but shares no vocabulary
+   with the class's keywords — so `--explain` shows `near-misses: none` and
+   the user gets nothing. The mitigation is registry vocabulary absorbed
+   through the gate (add `empty commit`, `core.bare`, `pushes fail` as
+   keywords to the EXISTING class), not a looser threshold.
+
+5. **The user path (uv tool install) works and is fast — but goes stale
+   silently.** First-time proof on a bare Debian box: bootstrap uv 6 s,
+   `uv tool install git+...` 3 s, anonymous public clone, 8 subcommands
+   live. On the control host, the pre-existing v0.1.0 tool install exposed
+   only 3 of 8 subcommands with no hint that `uv tool upgrade lore` is the
+   fix. If a subcommand "doesn't exist", upgrade before filing a bug.
+
+6. **A bare box stales everything (LORE-027).** On the bunker agent,
+   `git status` exit 128 ("not a git repository") flipped
+   shared-checkout-collision — green on the control host — to stale. The
+   lint reports the machine, not just the runbook; run it where the fleet
+   actually runs.

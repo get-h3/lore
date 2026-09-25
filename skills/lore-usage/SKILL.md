@@ -17,9 +17,11 @@ uv tool install git+https://github.com/get-h3/lore   # standalone `lore` binary
 uv sync --extra dev && uv run lore match "<symptoms>"
 ```
 
-Note: `get-h3/lore` is currently a PRIVATE GitHub repo — the public clone in
-the README quickstart needs credentials (tracked on the board). From inside
-the fleet, use your existing access.
+The repo is PUBLIC (flipped 2026-09-25 per LORE-018's decision; anonymous
+clone works). **A `uv tool install` tracks the HEAD you installed, not the
+repo** — a pre-LORE-007 install exposes only 3 of 8 subcommands and errors
+with "invalid choice" on the rest. If a documented subcommand "doesn't
+exist", run `uv tool upgrade lore` before filing a bug.
 
 ## The eight subcommands (all implemented, verified 2026-09-25)
 
@@ -35,6 +37,14 @@ the fleet, use your existing access.
   PLAN-ONLY: lists what WOULD run, executes nothing. `--execute` runs only
   gate-approved read-only commands; a missing tool reports `error (exit 127)`
   and flips the runbook `stale` — the anti-rot signal working, not a crash.
+  Two live-run truths (2026-09-25, LORE-022/024): `--execute` NEVER sets
+  `last_validated` (operator attestation only, propose-not-write) — the
+  `stale` flag, not the freshness field, is today's freshness signal; and a
+  check carrying a `<placeholder>` path shell-errors as input redirection,
+  staling its class — `--class shared-checkout-collision` is the one class
+  that lints green as authored. Run it where the fleet actually runs: on a
+  bare box everything stales (exit 128 "not a git repository" is the
+  machine, not the runbook).
 - `gate --decision absorb|no-new-lesson ...` — closure absorb-gate machine
   check. `absorb` needs `--class` + `--lesson` (class must exist); ack needs
   `--reason`. ALLOW → exit 0, DENY → exit 1 with all violations listed.
@@ -51,8 +61,9 @@ the fleet, use your existing access.
 - `show <class> [--evidence] [--format json|md]` — one compiled runbook,
   human-markdown default, with per-check evidence when asked.
 - `audit [--format table|json|md]` — coverage + freshness matrix over all
-  registry classes; honest `no data` freshness (populated only by
-  `validate --execute` runs, never fabricated).
+  registry classes; honest `no data` freshness (never fabricated — but note
+  it does not reflect lint runs either: `last_validated` is never stamped in
+  v0.1.x, see LORE-022; read the `stale` status column as the live signal).
 
 ## The right-way patterns
 
@@ -77,7 +88,7 @@ the fleet, use your existing access.
 ## Dev loop
 
 ```sh
-uv run pytest -q    # expect: 230 passed in <1s (as of 2026-09-25)
+uv run pytest -q    # expect: 269 passed in <1s (as of 2026-09-25, HEAD 3ab56f5)
 uv run ruff check . # expect: All checks passed!
 ```
 
