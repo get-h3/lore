@@ -223,6 +223,34 @@ key-rotation-expiry	confidence=0.90	evidence: signature:rotation expired; keywor
 unclassified	confidence=0.00	evidence: none
 ```
 
+### The `absorb` trail contract
+
+`lore absorb --window <dur>` reads a **prior evidence trail** from stdin (or
+`--trail-file PATH`) in logsey export format (see `lore/evidence.py
+parse_logsey_export` — a header line plus a fenced block of log lines), then:
+
+1. classifies every parseable block into per-class absorb **proposals**,
+   printed on stdout;
+2. with `--source <marker>`, every per-class proposal carries that provenance
+   marker (omitted, the payloads keep their shape with no `source` key);
+3. an empty trail is an explicit empty result — exit 0, not an error; and
+4. **propose-not-write**: nothing is ever written, stdout is the only side
+   effect.
+
+````sh
+printf 'logsey export --window 2h\n```\n2026-09-24T10:00:00 unit=loreforge gateway drain 503 while restart\n```\n' \
+  | uv run python -m lore absorb --window 2h --source dogfood-dagger
+````
+
+```
+[
+  {
+    "class_id": "gateway-drain-window",
+    ...
+    "source": "dogfood-dagger",
+    ...
+```
+
 ## What this tool is NOT
 
 - **No published runbook store yet.** Compile output goes to stdout only;

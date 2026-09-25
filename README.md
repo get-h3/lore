@@ -280,12 +280,15 @@ and what does not:
   (vs the honest `no data` sentinel), and freshness. Freshness is honest:
   `last_validated` is populated only by `lore validate --execute` runs and says
   `no data` until then — never a fabricated date.
-- The `lore absorb --window <dur> [--ns N] [--board B]` sweep — parses a prior
-  evidence trail from stdin (or `--trail-file`), classifies each block, groups
-  by class, and prints per-class absorb **proposals** on stdout. Propose-not-
-  write holds: nothing is ever written; an empty trail is an explicit empty
-  result (exit 0). `--ns`/`--board` are recorded in the proposal provenance
-  (no live lookups — the flags exist for a future integration).
+- The `lore absorb --window <dur> [--ns N] [--board B] [--source S]` sweep —
+  parses a prior evidence trail from stdin (or `--trail-file`), classifies each
+  block, groups by class, and prints per-class absorb **proposals** on stdout.
+  Propose-not-write holds: nothing is ever written; an empty trail is an
+  explicit empty result (exit 0). `--ns`/`--board` are recorded in the proposal
+  provenance (no live lookups — the flags exist for a future integration).
+  `--source` (LORE-020) threads the provenance marker into every per-class
+  proposal payload, same None-rule as the single-proposal path: omitted, the
+  payloads keep their original shape with no `source` key.
 - Install guide: [docs/INSTALL.md](docs/INSTALL.md). Runbook-store design
   decision: [docs/RUNBOOK-STORE.md](docs/RUNBOOK-STORE.md).
 
