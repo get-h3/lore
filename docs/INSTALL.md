@@ -107,6 +107,22 @@ may have heard of (runbook-store materialization, the scheduled weekly lint) is
 the weekly *schedule* that would run it for you is not installed (that is a
 separate task).
 
+### What `validate --execute` assumes
+
+`--execute` runs the gate-approved read-only commands **on whatever box you
+invoke it from**. Run it where the fleet actually runs — a host with the real
+commands on `PATH`, inside a real checkout of the repo. On a bare box every
+check comes back stale (`logsey: command not found`, `git status` outside a
+repository, placeholder tokens never filled) — that is the lint honestly
+reporting the machine, not runbook rot.
+
+Reading the outcome classes when diagnosing:
+
+- exit 127 — the command is not on this box (environment)
+- exit 128 — not a git repository, or another git-level environment error
+- shell syntax errors naming a `<token>` — template placeholders not yet filled
+- everything else — genuine output drift worth investigating
+
 ### `match` — classify a symptom
 
 ```sh
