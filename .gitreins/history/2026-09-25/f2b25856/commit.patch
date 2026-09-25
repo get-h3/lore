@@ -1,0 +1,12 @@
+commit 1af2ecf084c73d58878c0f3f3746d2e6affb1496
+Merge: 29cb041 fe976e7
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Fri Sep 25 14:57:15 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Fri Sep 25 14:57:15 2026 -0500
+
+    wave-tick: merge LORE-026 compiler/validator agreement — plan-only marks honored, write-shape refusals pinned (gate green 287 tests). Tick lore-2026-09-25-18-16-44
+
+ lore/validate.py       | 31 +++++++++++++++++
+ tests/test_validate.py | 90 ++++++++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 119 insertions(+), 2 deletions(-)
