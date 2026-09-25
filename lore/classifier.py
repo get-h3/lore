@@ -32,7 +32,14 @@ _FALLBACK_SIGNATURE = r"$^"  # never matches (empty pattern guard for unclassifi
 
 @dataclass
 class Classification:
-    """One candidate classification for a symptom text."""
+    """One candidate classification for a symptom text.
+
+    :attr:`evidence` is a list of PLAIN DICTS (``type(e) is dict``), not
+    dataclass objects: each item has exactly the keys ``"kind"`` and
+    ``"detail"``. Kinds: ``"signature"`` (first item only, when a signature
+    regex matched — ``detail`` is the matched text) and ``"keyword"`` (one
+    item per keyword hit — ``detail`` is the keyword string).
+    """
 
     class_id: str
     confidence: float
@@ -52,6 +59,16 @@ class NearMiss:
     Evidence echo only — never an auto-label. :attr:`raw_score` is the raw
     keyword fraction ``n_hits / n_keywords`` (not the threshold-gated
     confidence ``classify`` returns), so callers see how close the class was.
+
+    Naming clarity (both names, so the two numbers are never conflated):
+
+    - ``raw_score`` = the raw fraction. The CLI ``match --explain`` prints
+      this SAME raw fraction as ``score=`` in the near-misses section.
+    - The band-scaled value computed by :func:`_keyword_confidence` is a
+      DIFFERENT number: it is what ``classify`` returns as ``confidence``
+      and what the CLI prints as ``confidence=`` for accepted matches. For
+      a near-miss it is always 0.0 by construction (below threshold, so
+      the band scaling never applies).
     """
 
     class_id: str
@@ -103,7 +120,10 @@ def _keyword_confidence(n_keywords: int, n_hits: int) -> float:
     if score < KEYWORD_THRESHOLD:
         return 0.0  # below threshold: refused as evidence for any label
     # Scale within the keyword band so keyword evidence stays visibly weaker
-    # than a signature match.
+    # than a signature match. Naming: this band-scaled return value is the
+    # ``confidence`` classify labels accepted matches with (CLI prints it as
+    # ``confidence=``); it is NOT ``NearMiss.raw_score``, and the CLI's
+    # near-misses section prints ``score=`` for that RAW fraction instead.
     span = 1.0 - KEYWORD_THRESHOLD
     return round(KEYWORD_CONFIDENCE_MAX * (KEYWORD_THRESHOLD + span * score), 3)
 
