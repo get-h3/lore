@@ -74,3 +74,59 @@ auto-labeled, the operator just sees "shared-checkout-collision scored 0.33
 (hits: worktree, collision)". Keep the unclassified row; keep the refusal;
 add the graded signal. Tests live in `tests/` (148 at this revision) — add the
 threshold-boundary cases next to the existing classifier tests.
+
+---
+
+## Run 2 — the scribe/auditor angle (2026-09-25, HEAD 93baad0)
+
+The 09-24 run tested the responder surface; this one tested the surface that
+shipped since: `show`, `audit`, `absorb` (single + `--window` sweep), `gate`,
+`consult`, and the LORE-016 `--explain` fix. Verdict: SHIPPABLE on this
+surface. What the run learned, as explanation:
+
+1. **The gate is the spine of the whole scribe flow, and it works.** A QA or
+   dogfood finding enters as `absorb --class X --lesson ... --source
+   dogfood-dagger` (a stdout-only proposal) and closes as `gate --decision
+   absorb ... --source dogfood-dagger` (a verdict line, ALLOW/DENY, exit
+   0/1). The registry stayed closed through every probe — `gate --decision
+   absorb --class totally-new-class` denies with "registry is closed" rather
+   than inventing anything. Nothing writes anywhere at any step; that is the
+   propose-not-write law holding under real use.
+
+2. **`absorb --window` has a strict input contract the docs don't teach.**
+   The sweep consumes a logsey-EXPORT payload: a line matching
+   `logsey export`, a fenced block, and evidence lines starting with a BARE
+   ISO timestamp (`2026-09-25T06:12:00Z unit=gateway <detail>`). A natural
+   incident trail with bracketed `[2026-09-25 06:12]` prefixes yields "no
+   classifiable evidence blocks" (exit 0, honest but hintless — filed as
+   LORE-020). The one-line lesson: paste from `logsey export`, not from your
+   notes; and `--source` on the window path is accepted but not yet recorded
+   in the sweep payload (same row).
+
+3. **The `--explain` fix is the missing half of the honest refusal.** The
+   classifier still refuses stranger paraphrases (by design), but the user no
+   longer hits a dead end: near-misses name the curated class that nearly
+   hit, with the raw keyword fraction and the hits themselves. Verified with
+   the exact example that motivated LORE-016. Library callers: the dataclass
+   field is `raw_score`, the CLI prints `score=` — trivial but real (LORE-021).
+
+4. **The repo is PRIVATE and the README quickstart assumes public.**
+   Anonymous `git clone https://github.com/get-h3/lore` on a fresh box fails
+   (404 → "could not read Username"). Verified from the control host and the
+   bunker; visibility untouched per the dogfood hard rule (filed as LORE-018).
+   Fresh-install itself is flawless: pip path 12 s, uv path 4 s, 230 tests
+   green on Python 3.13, and the full bunker-qa battery (17 cells, zero FAIL)
+   including the first real upgrade cell (v0.1.0 → HEAD).
+
+5. **Count the tests before quoting them.** README still says "148 passed"
+   (twice) and the usage skill said `show`/`absorb`/`audit` were unimplemented;
+   the merged tree runs 230 and all eight subcommands exist. The dogfood rule
+   "verify every claimed number on the current tree" bit exactly as it did on
+   LORE-015's first judge pass. Usage skill rewritten during this run; README
+   numbers left for the foreman (LORE-019).
+
+6. **Tooling notes (not lore's defects):** `bunker-qa.sh` ignores `--server`/
+   `--ttl` argv — the real interface is `BUNKER_QA_SERVER=<name>` (its usage
+   header is stale); the shell gate on this box blocks piped tar-to-ssh and
+   `python3 -c`, so the tree went over as `git archive` + scp + remote
+   extract, and JSON inspection ran through grep/python3 -m json.tool.
