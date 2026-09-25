@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-017",
+  "task_title": "Gateway-guard-violation failure class",
+  "task_criteria": [
+    "Closed-registry seed edit in lore/classes.py + stale-count sweep + classify tests + live match/compile proof"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "7597257ef96fcf7c2db30efe5291a3692f9fcab2",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T084759.242590Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n3:48AM INF scanned ~1253371 bytes (1.25 MB) in 162ms\n3:48AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 63 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T084759.242590Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 259 items\n\ntests/test_absorb.py .........................                           [  9%]\ntests/test_classes.py ........                                           [ 12%]\ntests/test_classifier.py ........                                        [ 15%]\ntests/test_cli_surface.py .....................                          [ 23%]\ntests/test_compiler.py .............................                     [ 35%]\ntests/test_consult.py ....................                               [ 42%]\ntests/test_evidence.py ......................                            [ 51%]\ntests/test_lore011_drain_acceptance.py .......                           [ 54%]\ntests/test_lore016_qa_audit.py .....................                     [ 62%]\ntests/test_lore017_gateway_guard.py ........                             [ 65%]\ntests/test_near_miss.py .........                                        [ 68%]\ntests/test_validate.py ................................................. [ 87%]\n................................                                         [100%]\n\n============================= 259 passed in 0.22s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T084759.242590Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 Closed-registry seed edit in lore/classes.py + stale-count sweep + classify tests + live match/compile proof: All four sub-elements verified. (1) Closed-registry seed edit: commit 198f2b0 adds FailureClass id='gateway-guard-violation' to SEED_CLASSES in lore/classes.py (4 signature patterns, 8 keywords, provenance citing 2026-09-24 dogfood); ClassRegistry.register still raises RuntimeError \u2014 live check printed 'REFUSED: the failure-class registry is closed and curated...' and len(get_registry())==11. (2) Stale-count sweep: README.md:138/256 (10 curated classes, 238 tests), CHANGELOG.md:18/42 (10 curated, 238), docs/INSTALL.md:50/57 (238 passed, 10 test files); verified 238 passed at commit 198f2b0 in worktree lore-LORE-017 (uv run pytest -q => '238 passed in 0.30s'). Remaining '148'/'9 failure classes' strings live only in docs/dogfood/* historical reports that document the LORE-019 staleness finding, not live claims. (3) Classify tests: tests/test_lore017_gateway_guard.py has 8 tests (registry membership, total count 11, canonical symptom + 2 paraphrases at >=0.9, signature-regex match, cross-class drain-vs-guard regression, unclassified negative) \u2014 'uv run pytest -q tests/test_lore017_gateway_guard.py' => '8 passed'. (4) Live match/compile proof: 'uv run lore match \"banned command tripped the gateway guard\"' => 'gateway-guard-violation confidence=0.90'; 'uv run lore compile --class gateway-guard-violation --format md' renders the runbook (2 read-only checks, 4-step recovery ladder, 3 guardrails, evidence trail). Full suite on current tree: 'uv run pytest -q' => '259 passed in 0.21s' (259 = 238 + LORE-016 additions); 'uv run ruff check .' => 'All checks passed!'.\nLORE-017 fully satisfies its criterion: the gateway-guard-violation class is seeded into the closed registry, stale counts were swept, 8 classify tests pass, and live match/compile both prove the class end-to-end.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 Closed-registry seed edit in lore/classes.py + stale-count sweep + classify tests + live match/compile proof: All four sub-elements verified. (1) Closed-registry seed edit: commit 198f2b0 adds FailureClass id='gateway-guard-violation' to SEED_CLASSES in lore/classes.py (4 signature patterns, 8 keywords, provenance citing 2026-09-24 dogfood); ClassRegistry.register still raises RuntimeError \u2014 live check printed 'REFUSED: the failure-class registry is closed and curated...' and len(get_registry())==11. (2) Stale-count sweep: README.md:138/256 (10 curated classes, 238 tests), CHANGELOG.md:18/42 (10 curated, 238), docs/INSTALL.md:50/57 (238 passed, 10 test files); verified 238 passed at commit 198f2b0 in worktree lore-LORE-017 (uv run pytest -q => '238 passed in 0.30s'). Remaining '148'/'9 failure classes' strings live only in docs/dogfood/* historical reports that document the LORE-019 staleness finding, not live claims. (3) Classify tests: tests/test_lore017_gateway_guard.py has 8 tests (registry membership, total count 11, canonical symptom + 2 paraphrases at >=0.9, signature-regex match, cross-class drain-vs-guard regression, unclassified negative) \u2014 'uv run pytest -q tests/test_lore017_gateway_guard.py' => '8 passed'. (4) Live match/compile proof: 'uv run lore match \"banned command tripped the gateway guard\"' => 'gateway-guard-violation confidence=0.90'; 'uv run lore compile --class gateway-guard-violation --format md' renders the runbook (2 read-only checks, 4-step recovery ladder, 3 guardrails, evidence trail). Full suite on current tree: 'uv run pytest -q' => '259 passed in 0.21s' (259 = 238 + LORE-016 additions); 'uv run ruff check .' => 'All checks passed!'.\nLORE-017 fully satisfies its criterion: the gateway-guard-violation class is seeded into the closed registry, stale counts were swept, 8 classify tests pass, and live match/compile both prove the class end-to-end.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "Closed-registry seed edit in lore/classes.py + stale-count sweep + classify tests + live match/compile proof",
+                "status": "PASS",
+                "detail": "All four sub-elements verified. (1) Closed-registry seed edit: commit 198f2b0 adds FailureClass id='gateway-guard-violation' to SEED_CLASSES in lore/classes.py (4 signature patterns, 8 keywords, provenance citing 2026-09-24 dogfood); ClassRegistry.register still raises RuntimeError \u2014 live check printed 'REFUSED: the failure-class registry is closed and curated...' and len(get_registry())==11. (2) Stale-count sweep: README.md:138/256 (10 curated classes, 238 tests), CHANGELOG.md:18/42 (10 curated, 238), docs/INSTALL.md:50/57 (238 passed, 10 test files); verified 238 passed at commit 198f2b0 in worktree lore-LORE-017 (uv run pytest -q => '238 passed in 0.30s'). Remaining '148'/'9 failure classes' strings live only in docs/dogfood/* historical reports that document the LORE-019 staleness finding, not live claims. (3) Classify tests: tests/test_lore017_gateway_guard.py has 8 tests (registry membership, total count 11, canonical symptom + 2 paraphrases at >=0.9, signature-regex match, cross-class drain-vs-guard regression, unclassified negative) \u2014 'uv run pytest -q tests/test_lore017_gateway_guard.py' => '8 passed'. (4) Live match/compile proof: 'uv run lore match \"banned command tripped the gateway guard\"' => 'gateway-guard-violation confidence=0.90'; 'uv run lore compile --class gateway-guard-violation --format md' renders the runbook (2 read-only checks, 4-step recovery ladder, 3 guardrails, evidence trail). Full suite on current tree: 'uv run pytest -q' => '259 passed in 0.21s' (259 = 238 + LORE-016 additions); 'uv run ruff check .' => 'All checks passed!'."
+              }
+            ],
+            "summary": "LORE-017 fully satisfies its criterion: the gateway-guard-violation class is seeded into the closed registry, stale counts were swept, 8 classify tests pass, and live match/compile both prove the class end-to-end."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-017\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 Closed-registry seed edit in lore/classes.py + stale-count sweep + classify tests + live match/compile proof: All four sub-elements verified. (1) Closed-registry seed edit: commit 198f2b0 adds FailureClass id='gateway-guard-violation' to SEED_CLASSES in lore/classes.py (4 signature patterns, 8 keywords, provenance citing 2026-09-24 dogfood); ClassRegistry.register still raises RuntimeError \u2014 live check printed 'REFUSED: the failure-class registry is closed and curated...' and len(get_registry())==11. (2) Stale-count sweep: README.md:138/256 (10 curated classes, 238 tests), CHANGELOG.md:18/42 (10 curated, 238), docs/INSTALL.md:50/57 (238 passed, 10 test files); verified 238 passed at commit 198f2b0 in worktree lore-LORE-017 (uv run pytest -q => '238 passed in 0.30s'). Remaining '148'/'9 failure classes' strings live only in docs/dogfood/* historical reports that document the LORE-019 staleness finding, not live claims. (3) Classify tests: tests/test_lore017_gateway_guard.py has 8 tests (registry membership, total count 11, canonical symptom + 2 paraphrases at >=0.9, signature-regex match, cross-class drain-vs-guard regression, unclassified negative) \u2014 'uv run pytest -q tests/test_lore017_gateway_guard.py' => '8 passed'. (4) Live match/compile proof: 'uv run lore match \"banned command tripped the gateway guard\"' => 'gateway-guard-violation confidence=0.90'; 'uv run lore compile --class gateway-guard-violation --format md' renders the runbook (2 read-only checks, 4-step recovery ladder, 3 guardrails, evidence trail). Full suite on current tree: 'uv run pytest -q' => '259 passed in 0.21s' (259 = 238 + LORE-016 additions); 'uv run ruff check .' => 'All checks passed!'.\nLORE-017 fully satisfies its criterion: the gateway-guard-violation class is seeded into the closed registry, stale counts were swept, 8 classify tests pass, and live match/compile both prove the class end-to-end.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-25T08:49:29.906961",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-25T08:49:29.917937+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 1345,
+        "truncated": false,
+        "source": "git show 7597257ef96f"
+      }
+    ],
+    "task_id": "LORE-017"
+  }
+}

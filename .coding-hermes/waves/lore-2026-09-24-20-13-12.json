@@ -7,7 +7,7 @@
   "base_sha": "c6556662c93ba0db846dfe3edb68fca58f2a8a3c",
   "recovery": {
     "recovered_tick": "lore-2026-09-24-18-11-36",
-    "action": "verified-complete — 3/3 merges present in main (217c6d7, d202660, c4ddfb1), worktrees removed, branches wt/LORE-009/010/011 deleted, judge verdicts e3c9927/de30ed77/bb84c814 PASS, manifest already status=complete; finished_at stamped this tick; 5 stale merged wt/LORE-003/006/007/008/016 branches left in place (branch deletion approval-gated on this surface; merged branches stay as evidence)"
+    "action": "verified-complete \u2014 3/3 merges present in main (217c6d7, d202660, c4ddfb1), worktrees removed, branches wt/LORE-009/010/011 deleted, judge verdicts e3c9927/de30ed77/bb84c814 PASS, manifest already status=complete; finished_at stamped this tick; 5 stale merged wt/LORE-003/006/007/008/016 branches left in place (branch deletion approval-gated on this surface; merged branches stay as evidence)"
   },
   "workers": [
     {
@@ -27,7 +27,12 @@
       "scope": "Add gateway-guard-violation class via closed-registry seed edit in lore/classes.py + stale-count sweep + classify tests + live match/compile proof (dogfood 2026-09-24 finding)"
     }
   ],
-  "independence": "LORE-016 touches only tests/; LORE-017 touches lore/classes.py (+ possibly lore/consult.py notes) — disjoint file sets, both branch from c655666; no depends_on edges between them (verified from board rows)",
-  "foreman_ops_this_tick": "v0.1.0 annotated tag cut at c655666 and pushed (verified refs/tags/v0.1.0 on origin) — closes QA-LORE-1's 'no release tags' blocker; QA-LORE-1 stays open until the QA foreman re-runs the upgrade cell",
-  "status": "dispatched"
+  "independence": "LORE-016 touches only tests/; LORE-017 touches lore/classes.py (+ possibly lore/consult.py notes) \u2014 disjoint file sets, both branch from c655666; no depends_on edges between them (verified from board rows)",
+  "foreman_ops_this_tick": "v0.1.0 annotated tag cut at c655666 and pushed (verified refs/tags/v0.1.0 on origin) \u2014 closes QA-LORE-1's 'no release tags' blocker; QA-LORE-1 stays open until the QA foreman re-runs the upgrade cell",
+  "status": "dispatched",
+  "finished_at": "2026-09-25T08:52:00-05:00",
+  "recovery_2": {
+    "recovered_tick": "lore-2026-09-24-20-13-12",
+    "action": "both wave-6 branches re-gated green on their tips (LORE-016 2d8f3dd: 251 passed; LORE-017 198f2b0: 238 passed, ruff clean), merged serially into main (6f4a97a, 130b897) with gates re-run per merge; merged-tree failure (LORE-016 test hardcoded 10 reports vs 11 after the new class) fixed foreman-direct 7597257 deriving the count from SEED_CLASSES; tier-2 verdicts f9d3cd7a (LORE-016) and 6c5b5b67 (LORE-017) PASS; guard --full PASS whole-tree on final tree; LORE-017 row closed, LORE-016 row already carried the earlier wave's closure"
+  }
 }

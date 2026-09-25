@@ -1,0 +1,33 @@
+commit 7597257ef96fcf7c2db30efe5291a3692f9fcab2
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Fri Sep 25 03:47:58 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Fri Sep 25 03:47:58 2026 -0500
+
+    test: derive validate --execute report count from SEED_CLASSES (LORE-017 class addition). Addresses LORE-016, LORE-017.
+---
+ tests/test_lore016_qa_audit.py | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/tests/test_lore016_qa_audit.py b/tests/test_lore016_qa_audit.py
+index 1d670c9..31e92d3 100644
+--- a/tests/test_lore016_qa_audit.py
++++ b/tests/test_lore016_qa_audit.py
+@@ -17,6 +17,7 @@ import json
+ import pytest
+ 
+ from lore.__main__ import main
++from lore.classes import SEED_CLASSES
+ from lore.compiler import compile_class
+ from lore.runbook import Runbook
+ 
+@@ -245,7 +246,8 @@ def test_cli_validate_execute_uses_injected_runner_gate_approved_only(
+     assert code == 0
+     reports = json.loads(out)
+     assert reports, "all registry classes are linted"
+-    assert len(reports) == 10  # 9 curated + unclassified
++    expected = len(SEED_CLASSES) + 1  # curated + unclassified
++    assert len(reports) == expected
+     ran = {
+         r["command"] for rep in reports for r in rep["results"] if r["outcome"] == "ok"
+     }

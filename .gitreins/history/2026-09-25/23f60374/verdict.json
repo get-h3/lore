@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-016",
+  "task_title": "QA audit coverage for the v0.1.0 CLI + API surface",
+  "task_criteria": [
+    "Error-path tests per CLI subcommand, fail-open consult tests, runbook JSON round-trip, plan-mode no-execution side-effect test; tests-only, behavior frozen at v0.1.0"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "7597257ef96fcf7c2db30efe5291a3692f9fcab2",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T084759.242590Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n3:48AM INF scanned ~1253371 bytes (1.25 MB) in 158ms\n3:48AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 63 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T084759.242590Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 259 items\n\ntests/test_absorb.py .........................                           [  9%]\ntests/test_classes.py ........                                           [ 12%]\ntests/test_classifier.py ........                                        [ 15%]\ntests/test_cli_surface.py .....................                          [ 23%]\ntests/test_compiler.py .............................                     [ 35%]\ntests/test_consult.py ....................                               [ 42%]\ntests/test_evidence.py ......................                            [ 51%]\ntests/test_lore011_drain_acceptance.py .......                           [ 54%]\ntests/test_lore016_qa_audit.py .....................                     [ 62%]\ntests/test_lore017_gateway_guard.py ........                             [ 65%]\ntests/test_near_miss.py .........                                        [ 68%]\ntests/test_validate.py ................................................. [ 87%]\n................................                                         [100%]\n\n============================= 259 passed in 0.22s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T084759.242590Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 Error-path tests per CLI subcommand, fail-open consult tests, runbook JSON round-trip, plan-mode no-execution side-effect test; tests-only, behavior frozen at v0.1.0: tests/test_lore016_qa_audit.py (298 lines, 21 tests) covers all four required areas. Error paths per subcommand: match (test_cli_match_missing_text_is_argparse_exit2 exit2, test_cli_match_no_candidates_branch_exits_1 exit1, test_cli_match_no_match_prints_honest_unclassified_exit0), consult (3 tests), compile (test_cli_compile_unknown_class_exit2_stderr_named), validate (test_cli_validate_unknown_class_exit2), gate (test_cli_gate_missing_decision_is_argparse_exit2), absorb (test_cli_absorb_unknown_class_failsafe_payload_exit0), no-subcommand (test_cli_no_subcommand_is_argparse_exit2); show's unknown-class error path is covered in tests/test_cli_surface.py:45; audit is read-only with no error path. Fail-open consult: test_cli_consult_without_title_fail_open_exit0, test_cli_consult_json_no_match_exit0, test_cli_consult_failure_json_no_match_exit0 assert exit 0 + empty results matching lore/__main__.py:94-137. Runbook JSON round-trip: test_cli_show_json_round_trips_to_equal_runbook and test_cli_compile_json_round_trips_for_every_class use Runbook.from_dict/to_dict (lore/runbook.py:82) asserting lossless equality. Plan-mode no-execution: test_cli_validate_plan_mode_executes_no_commands booby-traps both lore.validate._default_runner and lore.validate.subprocess.run across 3 argv shapes, asserting calls==[] (non-vacuous since plan path lore/__main__.py:160-191 never calls the runner). Tests-only: git diff 2d8f3dd^..2d8f3dd and 7597257^..7597257 touch ONLY tests/test_lore016_qa_audit.py \u2014 no lore/ product code changed, behavior frozen at v0.1.0. Test run: `uv run pytest -x --tb=short` -> 259 passed in 0.22s (exit 0); focused run -> 21 passed.\nLORE-016 QA audit tests fully satisfy all four required coverage areas, are tests-only with no product behavior change, and the full suite passes (259 passed).",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 Error-path tests per CLI subcommand, fail-open consult tests, runbook JSON round-trip, plan-mode no-execution side-effect test; tests-only, behavior frozen at v0.1.0: tests/test_lore016_qa_audit.py (298 lines, 21 tests) covers all four required areas. Error paths per subcommand: match (test_cli_match_missing_text_is_argparse_exit2 exit2, test_cli_match_no_candidates_branch_exits_1 exit1, test_cli_match_no_match_prints_honest_unclassified_exit0), consult (3 tests), compile (test_cli_compile_unknown_class_exit2_stderr_named), validate (test_cli_validate_unknown_class_exit2), gate (test_cli_gate_missing_decision_is_argparse_exit2), absorb (test_cli_absorb_unknown_class_failsafe_payload_exit0), no-subcommand (test_cli_no_subcommand_is_argparse_exit2); show's unknown-class error path is covered in tests/test_cli_surface.py:45; audit is read-only with no error path. Fail-open consult: test_cli_consult_without_title_fail_open_exit0, test_cli_consult_json_no_match_exit0, test_cli_consult_failure_json_no_match_exit0 assert exit 0 + empty results matching lore/__main__.py:94-137. Runbook JSON round-trip: test_cli_show_json_round_trips_to_equal_runbook and test_cli_compile_json_round_trips_for_every_class use Runbook.from_dict/to_dict (lore/runbook.py:82) asserting lossless equality. Plan-mode no-execution: test_cli_validate_plan_mode_executes_no_commands booby-traps both lore.validate._default_runner and lore.validate.subprocess.run across 3 argv shapes, asserting calls==[] (non-vacuous since plan path lore/__main__.py:160-191 never calls the runner). Tests-only: git diff 2d8f3dd^..2d8f3dd and 7597257^..7597257 touch ONLY tests/test_lore016_qa_audit.py \u2014 no lore/ product code changed, behavior frozen at v0.1.0. Test run: `uv run pytest -x --tb=short` -> 259 passed in 0.22s (exit 0); focused run -> 21 passed.\nLORE-016 QA audit tests fully satisfy all four required coverage areas, are tests-only with no product behavior change, and the full suite passes (259 passed).",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "Error-path tests per CLI subcommand, fail-open consult tests, runbook JSON round-trip, plan-mode no-execution side-effect test; tests-only, behavior frozen at v0.1.0",
+                "status": "PASS",
+                "detail": "tests/test_lore016_qa_audit.py (298 lines, 21 tests) covers all four required areas. Error paths per subcommand: match (test_cli_match_missing_text_is_argparse_exit2 exit2, test_cli_match_no_candidates_branch_exits_1 exit1, test_cli_match_no_match_prints_honest_unclassified_exit0), consult (3 tests), compile (test_cli_compile_unknown_class_exit2_stderr_named), validate (test_cli_validate_unknown_class_exit2), gate (test_cli_gate_missing_decision_is_argparse_exit2), absorb (test_cli_absorb_unknown_class_failsafe_payload_exit0), no-subcommand (test_cli_no_subcommand_is_argparse_exit2); show's unknown-class error path is covered in tests/test_cli_surface.py:45; audit is read-only with no error path. Fail-open consult: test_cli_consult_without_title_fail_open_exit0, test_cli_consult_json_no_match_exit0, test_cli_consult_failure_json_no_match_exit0 assert exit 0 + empty results matching lore/__main__.py:94-137. Runbook JSON round-trip: test_cli_show_json_round_trips_to_equal_runbook and test_cli_compile_json_round_trips_for_every_class use Runbook.from_dict/to_dict (lore/runbook.py:82) asserting lossless equality. Plan-mode no-execution: test_cli_validate_plan_mode_executes_no_commands booby-traps both lore.validate._default_runner and lore.validate.subprocess.run across 3 argv shapes, asserting calls==[] (non-vacuous since plan path lore/__main__.py:160-191 never calls the runner). Tests-only: git diff 2d8f3dd^..2d8f3dd and 7597257^..7597257 touch ONLY tests/test_lore016_qa_audit.py \u2014 no lore/ product code changed, behavior frozen at v0.1.0. Test run: `uv run pytest -x --tb=short` -> 259 passed in 0.22s (exit 0); focused run -> 21 passed."
+              }
+            ],
+            "summary": "LORE-016 QA audit tests fully satisfy all four required coverage areas, are tests-only with no product behavior change, and the full suite passes (259 passed)."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-016\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 Error-path tests per CLI subcommand, fail-open consult tests, runbook JSON round-trip, plan-mode no-execution side-effect test; tests-only, behavior frozen at v0.1.0: tests/test_lore016_qa_audit.py (298 lines, 21 tests) covers all four required areas. Error paths per subcommand: match (test_cli_match_missing_text_is_argparse_exit2 exit2, test_cli_match_no_candidates_branch_exits_1 exit1, test_cli_match_no_match_prints_honest_unclassified_exit0), consult (3 tests), compile (test_cli_compile_unknown_class_exit2_stderr_named), validate (test_cli_validate_unknown_class_exit2), gate (test_cli_gate_missing_decision_is_argparse_exit2), absorb (test_cli_absorb_unknown_class_failsafe_payload_exit0), no-subcommand (test_cli_no_subcommand_is_argparse_exit2); show's unknown-class error path is covered in tests/test_cli_surface.py:45; audit is read-only with no error path. Fail-open consult: test_cli_consult_without_title_fail_open_exit0, test_cli_consult_json_no_match_exit0, test_cli_consult_failure_json_no_match_exit0 assert exit 0 + empty results matching lore/__main__.py:94-137. Runbook JSON round-trip: test_cli_show_json_round_trips_to_equal_runbook and test_cli_compile_json_round_trips_for_every_class use Runbook.from_dict/to_dict (lore/runbook.py:82) asserting lossless equality. Plan-mode no-execution: test_cli_validate_plan_mode_executes_no_commands booby-traps both lore.validate._default_runner and lore.validate.subprocess.run across 3 argv shapes, asserting calls==[] (non-vacuous since plan path lore/__main__.py:160-191 never calls the runner). Tests-only: git diff 2d8f3dd^..2d8f3dd and 7597257^..7597257 touch ONLY tests/test_lore016_qa_audit.py \u2014 no lore/ product code changed, behavior frozen at v0.1.0. Test run: `uv run pytest -x --tb=short` -> 259 passed in 0.22s (exit 0); focused run -> 21 passed.\nLORE-016 QA audit tests fully satisfy all four required coverage areas, are tests-only with no product behavior change, and the full suite passes (259 passed).\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-25T08:48:48.296316",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-25T08:48:48.306652+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 1345,
+        "truncated": false,
+        "source": "git show 7597257ef96f"
+      }
+    ],
+    "task_id": "LORE-016"
+  }
+}
