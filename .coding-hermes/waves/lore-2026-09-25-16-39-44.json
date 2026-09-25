@@ -1,0 +1,83 @@
+{
+  "tick_id": "lore-2026-09-25-16-39-44",
+  "project": "lore",
+  "workdir": "~/lore",
+  "base": "origin/main",
+  "base_sha": "37a2f06",
+  "status": "recovering",
+  "created_at": "2026-09-25T16:55:00-05:00",
+  "finished_at": "2026-09-25T18:40:00-05:00",
+  "merge_order": [
+    "LORE-022",
+    "LORE-023",
+    "LORE-024",
+    "LORE-027"
+  ],
+  "note": "Wave of 4: 022 freshness docs (README+__main__), 023 classifier vocabulary (classes+classifier), 024 template outcome (validate), 027 INSTALL scope note (docs). LORE-026 deferred to serial post-wave (touches both validate.py and classes.py). LORE-025 already fixed by dogfood-3 commit 37a2f06 - foreman verifies + closes directly.",
+  "tasks": [
+    {
+      "id": "LORE-022",
+      "worktree": "~/worktrees/lore-LORE-022",
+      "branch": "wt/LORE-022",
+      "base": "origin/main",
+      "base_sha": "37a2f06",
+      "model": "glm-5.3-flash",
+      "provider": "xkiro",
+      "brief": "/tmp/brief-LORE-022.txt",
+      "paths": [
+        "README.md",
+        "lore/__main__.py",
+        "tests/"
+      ],
+      "status": "merged",
+      "commit": "8b8b78c"
+    },
+    {
+      "id": "LORE-023",
+      "worktree": "~/worktrees/lore-LORE-023",
+      "branch": "wt/LORE-023",
+      "base": "origin/main",
+      "base_sha": "37a2f06",
+      "model": "glm-5.3-flash",
+      "provider": "xkiro",
+      "brief": "/tmp/brief-LORE-023.txt",
+      "paths": [
+        "lore/classes.py",
+        "lore/classifier.py",
+        "tests/"
+      ],
+      "status": "worker_died_pre_commit_redispatching"
+    },
+    {
+      "id": "LORE-024",
+      "worktree": "~/worktrees/lore-LORE-024",
+      "branch": "wt/LORE-024",
+      "base": "origin/main",
+      "base_sha": "37a2f06",
+      "model": "glm-5.3-flash",
+      "provider": "xkiro",
+      "brief": "/tmp/brief-LORE-024.txt",
+      "paths": [
+        "lore/validate.py",
+        "tests/test_validate.py"
+      ],
+      "status": "worker_died_pre_commit_redispatching"
+    },
+    {
+      "id": "LORE-027",
+      "worktree": "~/worktrees/lore-LORE-027",
+      "branch": "wt/LORE-027",
+      "base": "origin/main",
+      "base_sha": "37a2f06",
+      "model": "glm-5.3-flash",
+      "provider": "xkiro",
+      "brief": "/tmp/brief-LORE-027.txt",
+      "paths": [
+        "docs/INSTALL.md"
+      ],
+      "status": "merged",
+      "commit": "d807eb2"
+    }
+  ],
+  "outcomes": null
+}

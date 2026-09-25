@@ -1,0 +1,11 @@
+commit c538fe1e4d14008d6762dd939d71d104957656fd
+Merge: 8bf1283 d807eb2
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Fri Sep 25 13:18:34 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Fri Sep 25 13:18:34 2026 -0500
+
+    wave-recovery: merge LORE-027 INSTALL scope note (gate green 269 tests). Recovered from wave lore-2026-09-25-16-39-44
+
+ docs/INSTALL.md | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
