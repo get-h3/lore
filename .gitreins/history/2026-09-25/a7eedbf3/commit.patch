@@ -1,0 +1,43 @@
+commit 02286e4194633d8b54111b2c0421d60bb628f77d
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Fri Sep 25 05:31:58 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Fri Sep 25 05:31:58 2026 -0500
+
+    chore: bump version to 0.1.1 so pip upgrade from v0.1.0 reinstalls. Addresses QA-LORE-1.
+---
+ CHANGELOG.md   | 7 +++++++
+ pyproject.toml | 2 +-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 376cacc..82d56e9 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
+ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+ 
++## [0.1.1] — 2026-09-25
++
++Post-release development version. Bumped from `0.1.0` so that
++`pip install --upgrade` from an installed `v0.1.0` actually reinstalls —
++during the QA-LORE-1 upgrade-path cell, upgrading from the tag to `main`
++was a silent no-op while both carried version `0.1.0`.
++
+ ## [0.1.0] — 2026-09-24
+ 
+ > Tagged `v0.1.0` (annotated tag on commit `c655666`) and the repository is
+diff --git a/pyproject.toml b/pyproject.toml
+index 1defd89..8adbaf3 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
+ 
+ [project]
+ name = "lore"
+-version = "0.1.0"
++version = "0.1.1"
+ description = "Runbook compiler: compiles fleet incident history into living, re-validated runbooks per failure class"
+ readme = "README.md"
+ requires-python = ">=3.11"

@@ -1,0 +1,119 @@
+{
+  "task_id": "QA-LORE-1",
+  "task_title": "Upgrade-path cell: install v0.1.0 then upgrade to main",
+  "task_criteria": [
+    "Fresh install of lore@v0.1.0 from the public GitHub repo succeeds and CLI works; in-place upgrade to main succeeds and pytest+CLI smoke pass on the upgraded install"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "02286e4194633d8b54111b2c0421d60bb628f77d",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T103200.649106Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n5:32AM INF scanned ~1912950 bytes (1.91 MB) in 215ms\n5:32AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 66 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T103200.649106Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 269 items\n\ntests/test_absorb.py .........................                           [  9%]\ntests/test_classes.py ........                                           [ 12%]\ntests/test_classifier.py ........                                        [ 15%]\ntests/test_cli_surface.py .....................                          [ 23%]\ntests/test_compiler.py .............................                     [ 33%]\ntests/test_consult.py ....................                               [ 41%]\ntests/test_evidence.py ......................                            [ 49%]\ntests/test_lore011_drain_acceptance.py .......                           [ 52%]\ntests/test_lore016_qa_audit.py .....................                     [ 59%]\ntests/test_lore017_gateway_guard.py ........                             [ 62%]\ntests/test_lore020_absorb_window.py ...                                  [ 63%]\ntests/test_lore021_naming_docs.py .......                                [ 66%]\ntests/test_near_miss.py .........                                        [ 69%]\ntests/test_validate.py ................................................. [ 88%]\n................................                                         [100%]\n\n============================= 269 passed in 0.28s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T103200.649106Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 Fresh install of lore@v0.1.0 from the public GitHub repo succeeds and CLI works; in-place upgrade to main succeeds and pytest+CLI smoke pass on the upgraded install: Reproduced end-to-end in a clean venv. (1) Fresh install: `pip install \"git+https://github.com/get-h3/lore.git@v0.1.0\"` -> exit 0, resolved to commit 1713ab81 (tag v0.1.0), `pip show lore` -> Version: 0.1.0; CLI works: `lore --help` exit 0 listing {match,consult,compile,validate,gate,absorb,show,audit}. (2) In-place upgrade: `pip install --upgrade \"git+https://github.com/get-h3/lore.git@main\"` -> exit 0 with log 'Found existing installation: lore 0.1.0 / Uninstalling lore-0.1.0 / Successfully installed lore-0.1.1' (a real reinstall, not a silent no-op \u2014 the exact failure the 0.1.0->0.1.1 bump in pyproject.toml:6 and uv.lock fixes); `pip show lore` -> Version: 0.1.1. (3) CLI smoke on upgraded install: `lore --help` exit 0, `lore match \"disk full on node\"` exit 0, `lore compile --help` exit 0, `lore gate --help` exit 0; installed package resolves to venv site-packages/lore/__init__.py with lore.__main__.main present. (4) pytest on upgraded install: `python -m pytest -q --tb=short` -> exit 0, '269 passed in 0.44s'; repo guard command `uv run pytest -x --tb=short` -> exit 0, '269 passed in 0.44s'.\nFresh v0.1.0 install from the public GitHub repo and in-place upgrade to main both succeed, with CLI smoke and 269 passing pytest tests on the upgraded 0.1.1 install.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 Fresh install of lore@v0.1.0 from the public GitHub repo succeeds and CLI works; in-place upgrade to main succeeds and pytest+CLI smoke pass on the upgraded install: Reproduced end-to-end in a clean venv. (1) Fresh install: `pip install \"git+https://github.com/get-h3/lore.git@v0.1.0\"` -> exit 0, resolved to commit 1713ab81 (tag v0.1.0), `pip show lore` -> Version: 0.1.0; CLI works: `lore --help` exit 0 listing {match,consult,compile,validate,gate,absorb,show,audit}. (2) In-place upgrade: `pip install --upgrade \"git+https://github.com/get-h3/lore.git@main\"` -> exit 0 with log 'Found existing installation: lore 0.1.0 / Uninstalling lore-0.1.0 / Successfully installed lore-0.1.1' (a real reinstall, not a silent no-op \u2014 the exact failure the 0.1.0->0.1.1 bump in pyproject.toml:6 and uv.lock fixes); `pip show lore` -> Version: 0.1.1. (3) CLI smoke on upgraded install: `lore --help` exit 0, `lore match \"disk full on node\"` exit 0, `lore compile --help` exit 0, `lore gate --help` exit 0; installed package resolves to venv site-packages/lore/__init__.py with lore.__main__.main present. (4) pytest on upgraded install: `python -m pytest -q --tb=short` -> exit 0, '269 passed in 0.44s'; repo guard command `uv run pytest -x --tb=short` -> exit 0, '269 passed in 0.44s'.\nFresh v0.1.0 install from the public GitHub repo and in-place upgrade to main both succeed, with CLI smoke and 269 passing pytest tests on the upgraded 0.1.1 install.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "Fresh install of lore@v0.1.0 from the public GitHub repo succeeds and CLI works; in-place upgrade to main succeeds and pytest+CLI smoke pass on the upgraded install",
+                "status": "PASS",
+                "detail": "Reproduced end-to-end in a clean venv. (1) Fresh install: `pip install \"git+https://github.com/get-h3/lore.git@v0.1.0\"` -> exit 0, resolved to commit 1713ab81 (tag v0.1.0), `pip show lore` -> Version: 0.1.0; CLI works: `lore --help` exit 0 listing {match,consult,compile,validate,gate,absorb,show,audit}. (2) In-place upgrade: `pip install --upgrade \"git+https://github.com/get-h3/lore.git@main\"` -> exit 0 with log 'Found existing installation: lore 0.1.0 / Uninstalling lore-0.1.0 / Successfully installed lore-0.1.1' (a real reinstall, not a silent no-op \u2014 the exact failure the 0.1.0->0.1.1 bump in pyproject.toml:6 and uv.lock fixes); `pip show lore` -> Version: 0.1.1. (3) CLI smoke on upgraded install: `lore --help` exit 0, `lore match \"disk full on node\"` exit 0, `lore compile --help` exit 0, `lore gate --help` exit 0; installed package resolves to venv site-packages/lore/__init__.py with lore.__main__.main present. (4) pytest on upgraded install: `python -m pytest -q --tb=short` -> exit 0, '269 passed in 0.44s'; repo guard command `uv run pytest -x --tb=short` -> exit 0, '269 passed in 0.44s'."
+              }
+            ],
+            "summary": "Fresh v0.1.0 install from the public GitHub repo and in-place upgrade to main both succeed, with CLI smoke and 269 passing pytest tests on the upgraded 0.1.1 install."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: QA-LORE-1\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 Fresh install of lore@v0.1.0 from the public GitHub repo succeeds and CLI works; in-place upgrade to main succeeds and pytest+CLI smoke pass on the upgraded install: Reproduced end-to-end in a clean venv. (1) Fresh install: `pip install \"git+https://github.com/get-h3/lore.git@v0.1.0\"` -> exit 0, resolved to commit 1713ab81 (tag v0.1.0), `pip show lore` -> Version: 0.1.0; CLI works: `lore --help` exit 0 listing {match,consult,compile,validate,gate,absorb,show,audit}. (2) In-place upgrade: `pip install --upgrade \"git+https://github.com/get-h3/lore.git@main\"` -> exit 0 with log 'Found existing installation: lore 0.1.0 / Uninstalling lore-0.1.0 / Successfully installed lore-0.1.1' (a real reinstall, not a silent no-op \u2014 the exact failure the 0.1.0->0.1.1 bump in pyproject.toml:6 and uv.lock fixes); `pip show lore` -> Version: 0.1.1. (3) CLI smoke on upgraded install: `lore --help` exit 0, `lore match \"disk full on node\"` exit 0, `lore compile --help` exit 0, `lore gate --help` exit 0; installed package resolves to venv site-packages/lore/__init__.py with lore.__main__.main present. (4) pytest on upgraded install: `python -m pytest -q --tb=short` -> exit 0, '269 passed in 0.44s'; repo guard command `uv run pytest -x --tb=short` -> exit 0, '269 passed in 0.44s'.\nFresh v0.1.0 install from the public GitHub repo and in-place upgrade to main both succeed, with CLI smoke and 269 passing pytest tests on the upgraded 0.1.1 install.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-25T10:33:29.208679",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-25T10:33:29.220562+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 1664,
+        "truncated": false,
+        "source": "git show 02286e419463"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 250,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "QA-LORE-1"
+  }
+}
