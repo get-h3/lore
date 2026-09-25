@@ -17,6 +17,7 @@ import json
 import pytest
 
 from lore.__main__ import main
+from lore.classes import SEED_CLASSES
 from lore.compiler import compile_class
 from lore.runbook import Runbook
 
@@ -245,7 +246,8 @@ def test_cli_validate_execute_uses_injected_runner_gate_approved_only(
     assert code == 0
     reports = json.loads(out)
     assert reports, "all registry classes are linted"
-    assert len(reports) == 10  # 9 curated + unclassified
+    expected = len(SEED_CLASSES) + 1  # curated + unclassified
+    assert len(reports) == expected
     ran = {
         r["command"] for rep in reports for r in rep["results"] if r["outcome"] == "ok"
     }
