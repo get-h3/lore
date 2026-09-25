@@ -257,7 +257,7 @@ def test_lint_no_data_sentinel_is_absent_never_executed():
 
 def test_lint_refused_commands_are_reported_not_skipped():
     runner = FakeRunner()
-    rb = _rb_with(_check(1, "rm -rf /tmp/x", read_only=False))
+    rb = _rb_with(_check(1, "rm -rf /tmp/x", read_only=True))
     report = lint_runbook(rb, runner=runner)
     assert report.results[0].outcome == "refused"
     assert runner.calls == [], "refused commands must never reach the runner"
@@ -359,7 +359,7 @@ def test_apply_lint_template_plus_real_error_still_flips_stale():
 @pytest.mark.parametrize("outcome", DRIFT_OUTCOMES)
 def test_apply_lint_flips_stale_on_every_drift_outcome(outcome):
     if outcome == "refused":
-        rb = _rb_with(_check(1, "rm -rf /tmp/x", read_only=False))
+        rb = _rb_with(_check(1, "rm -rf /tmp/x", read_only=True))
         runner = FakeRunner()
     else:
         rb = _fresh_runbook()
@@ -426,3 +426,89 @@ def test_apply_lint_reason_is_renderable():
     reason = report.stale_reason or ""
     assert "check 7" in reason and "(error)" in reason
     assert report.to_dict()["stale_reason"] == reason
+
+
+# ------------------------------------------------- LORE-026: plan-only marks
+def test_mutating_check_reports_template_not_refused():
+    """A registry-marked MUTATING check (read_only=False) is PLAN-ONLY.
+
+    The one seeded MUTATING check (guard-degradation control worktree,
+    LORE-026) is reported as ``template`` — never executed, never drift —
+    the same honest incompleteness as an unfilled placeholder: the validator
+    refuses to execute write-shaped checks while they stay in the registry,
+    and the class must not stale from its own diagnostic. The default-deny
+    gate itself is untouched: ``is_read_only_command`` still says False.
+    """
+    rb = compile_class("guard-degradation")
+    mutating = [c for c in rb.checks if not c.read_only]
+    assert len(mutating) == 1, "exactly one seeded MUTATING check exists"
+    assert not is_read_only_command(mutating[0].command), (
+        "the gate stays default-deny on the write-shaped command"
+    )
+
+    runner = FakeRunner()
+    report = lint_runbook(rb, runner=runner)
+    result = next(r for r in report.results if r.command == mutating[0].command)
+    assert result.outcome == OUTCOME_TEMPLATE
+    assert result.exit_code is None
+    assert runner.calls == [], "a MUTATING check must never reach the runner"
+    assert report.stale_reason is None, "plan-only checks are not drift"
+
+
+def test_mutating_class_is_not_staled_by_its_own_diagnostic():
+    runner = FakeRunner(0)
+    rb = compile_class("guard-degradation")
+    report = lint_runbook(rb, runner=runner)
+    assert all(r.outcome in ("ok", OUTCOME_TEMPLATE) for r in report.results), (
+        f"nothing drifts: {[r.outcome for r in report.results]}"
+    )
+    new = apply_lint(report, rb)
+    assert new.status == STATUS_PROPOSAL
+
+
+def test_unmarked_write_shaped_command_still_refuses():
+    """Default-deny intact: an UNMARKED write-shaped command is drift.
+
+    Only the registry's explicit read_only=False plan-only mark gets the
+    never-executed/not-drift treatment; a runbook check that claims
+    read_only=True while carrying a write shape (git worktree add, commit,
+    push) is still refused — and refusal still flips the runbook stale.
+    """
+    for cmd in (
+        "git worktree add /tmp/wt HEAD",
+        "git commit -m x",
+        "git push origin main",
+    ):
+        runner = FakeRunner()
+        rb = _rb_with(_check(1, cmd, read_only=True))
+        report = lint_runbook(rb, runner=runner)
+        assert report.results[0].outcome == "refused", cmd
+        assert runner.calls == [], f"must never execute: {cmd}"
+        assert report.stale_reason is not None, cmd
+        assert apply_lint(report, rb).status == STATUS_STALE
+
+
+def test_full_registry_lint_never_refuses_a_seeded_check():
+    """Compiler/validator agreement (LORE-026): nothing the compiler emits
+    drifts the lint into ``refused``. Every seeded check is either
+    runner-safe (gate-approved, filled or template-slotted) or carries the
+    plan-only mark — the class registry never emits a check whose only lint
+    outcome would be drift from the gate."""
+    runner = FakeRunner(0)
+    for rb in compile_all():
+        report = lint_runbook(rb, runner=runner)
+        refused = [r for r in report.results if r.outcome == "refused"]
+        assert refused == [], f"{rb.class_id}: {refused}"
+        assert report.stale_reason is None, rb.class_id
+
+
+def test_gate_accepts_grep_since_marker_shapes():
+    """LORE-026 pins: grep is a flag-agnostic plain reader — the seeded
+    ``--since-marker`` check passes the gate both as-seeded (placeholder
+    path) and FILLED (real path). The gate has no grep flag allow-list to
+    loosen; a filled run's unknown-flag exit is binary truth, not a refusal."""
+    assert is_read_only_command("grep -c 'spawn' <scheduler-log> --since-marker")
+    assert is_read_only_command("grep -c 'spawn' /var/log/scheduler.log --since-marker")
+    assert is_read_only_command(
+        "grep -c 'spawn' /var/log/scheduler.log --since-marker 2>/dev/null"
+    )

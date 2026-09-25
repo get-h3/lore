@@ -92,6 +92,24 @@ every render (never hidden — an operator must know what to fill) but are
 neither drift nor passes. The default-deny gate is untouched: a command
 that is BOTH unfilled and not positively read-only still reports
 ``refused`` (the safety verdict wins over the template note).
+
+PLAN-ONLY CHECKS (LORE-026 — compiler/validator agreement)
+----------------------------------------------------------
+
+The class registry can seed a check the default-deny gate can never run:
+a genuinely write-shaped diagnostic (``git worktree add`` — the
+guard-degradation control-worktree proof). Such checks are marked
+``read_only=False`` (rendered MUTATING) at the source, and the lint
+honors that mark: a ``read_only=False`` check reports ``template`` —
+never executed, never drift — the same honest incompleteness as an
+unfilled slot, because the refusal is the check's PLANNED state, not
+rot. This keeps the compiler and the validator in agreement (everything
+emitted is either executable or plan-only) WITHOUT loosening the gate:
+``is_read_only_command`` still refuses every write-shaped command
+(worktree add, commit, push...), and a check that claims
+``read_only=True`` while carrying a write shape still reports ``refused``
+as drift — only the registry's explicit plan-only mark gets the
+never-executed/not-drift treatment.
 """
 
 from __future__ import annotations
@@ -745,6 +763,19 @@ def lint_runbook(
         timed_out = False
         if cmd == NO_VALID_EVIDENCE or not cmd:
             outcome = OUTCOME_ABSENT
+        elif not check.read_only:
+            # LORE-026 plan-only: the registry marked this check MUTATING
+            # (e.g. the guard-degradation control-worktree git worktree
+            # add). The default-deny gate CAN never approve it and must
+            # never be loosened to: the mark itself is the honest statement
+            # that this check is a plan, not an executable probe. Reported
+            # as ``template`` — never executed, never drift — so the class
+            # does not stale from its own diagnostic.
+            outcome = OUTCOME_TEMPLATE
+            stderr = (
+                "plan-only check — the registry marks it MUTATING "
+                "(read_only=False); the default-deny gate will never run it"
+            )
         elif not is_read_only_command(check.command):
             outcome = "refused"
         elif (token := _unfilled_placeholder_token(check.command)) is not None:
