@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] — 2026-09-25
+
+Post-release development version. Bumped from `0.1.0` so that
+`pip install --upgrade` from an installed `v0.1.0` actually reinstalls —
+during the QA-LORE-1 upgrade-path cell, upgrading from the tag to `main`
+was a silent no-op while both carried version `0.1.0`.
+
 ## [0.1.0] — 2026-09-24
 
 > Tagged `v0.1.0` (annotated tag on commit `c655666`) and the repository is
