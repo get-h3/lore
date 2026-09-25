@@ -222,6 +222,35 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
         provenance=SEED_PROVENANCE
         + " From the 08-29/30 chat-archive hole that backups could not restore (CHATGAP-001).",
     ),
+    FailureClass(
+        id="gateway-guard-violation",
+        name="Gateway guard violation",
+        description=(
+            "A banned or denied command tripped the gateway guard (hardline "
+            "block), or the same guard failure repeats across ticks. Recovery "
+            "re-shapes the command — split it, use an allowed verb or tool, "
+            "sandbox or route it — it NEVER retries the same command verbatim."
+        ),
+        signature_patterns=(
+            r"gateway\s+guard",
+            r"(banned|denied)\s+command",
+            r"hardline\s+block",
+            r"guard\s+(failure|block).{0,60}repeat(s|ed)?\s+across\s+ticks",
+        ),
+        keywords=(
+            "gateway guard",
+            "banned command",
+            "denied command",
+            "hardline block",
+            "guard",
+            "blocked",
+            "banned",
+            "retry",
+        ),
+        provenance=SEED_PROVENANCE
+        + " From the 2026-09-24 integration dogfood finding that 'banned command "
+        "tripped the gateway guard' had no home in the registry.",
+    ),
 )
 
 UNCLASSIFIED_CLASS = FailureClass(
