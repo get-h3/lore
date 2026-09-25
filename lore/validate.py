@@ -65,12 +65,33 @@ OUTCOME VOCABULARY (small and closed)::
     error    ran, non-zero exit — DRIFT
     refused  the gate refused it (not positively read-only) — DRIFT
     absent   no sourced command (the ``no data`` sentinel) — honest absence
+    template unfilled ``<placeholder>`` slots — reported, NEVER executed;
+             not drift (fill the runbook, then re-lint)
     timeout  ran past the bounded timeout — DRIFT
     unknown  the runner returned something unclassifiable — DRIFT
 
 ``error``/``timeout``/``refused``/``unknown`` are DRIFT outcomes; any drift
-flips the runbook to ``stale`` (see ``apply_lint``). A runbook whose lint
-shows only ``ok``/``absent`` is NOT stale.
+flips the runbook to ``stale`` (see ``apply_lint``). ``template`` is NOT
+drift: a runbook whose lint shows only ``ok``/``absent``/``template`` is
+NOT stale — its real checks were linted honestly and its unfilled slots
+are reported visibly rather than poisoning the whole class (a bare
+``<token>`` parses as shell input redirection and would shell-error every
+such check as a phantom ``error``).
+
+--execute CONTRACT — it expects a FILLED runbook
+------------------------------------------------
+
+``--execute`` re-runs each check as a live read-only command. A runbook
+still carrying ``<placeholder>`` template slots (e.g. ``git -C <main-tree>
+status``) is INCOMPLETE INPUT, not a broken system: before executing
+anything the lint detects unfilled ``<token>`` slots (quote-aware — a
+``<...>`` inside quotes is literal text such as a grep pattern, not a
+slot) and reports those checks as ``template`` with a fill-me detail
+line on ``stderr``, WITHOUT running them. Template checks stay visible in
+every render (never hidden — an operator must know what to fill) but are
+neither drift nor passes. The default-deny gate is untouched: a command
+that is BOTH unfilled and not positively read-only still reports
+``refused`` (the safety verdict wins over the template note).
 """
 
 from __future__ import annotations
@@ -89,6 +110,7 @@ __all__ = [
     "COMMAND_TIMEOUT_SECONDS",
     "DRIFT_OUTCOMES",
     "HONESTY_LABEL",
+    "OUTCOME_TEMPLATE",
     "OUTCOME_VOCABULARY",
     "CheckResult",
     "CommandResult",
@@ -108,13 +130,25 @@ HONESTY_LABEL = (
 )
 
 # The closed outcome vocabulary (documented in the module docstring).
-OUTCOME_VOCABULARY = ("ok", "error", "refused", "absent", "timeout", "unknown")
+OUTCOME_VOCABULARY = (
+    "ok",
+    "error",
+    "refused",
+    "absent",
+    "template",
+    "timeout",
+    "unknown",
+)
 
 # Outcomes that constitute drift and flip a runbook to ``stale``.
 DRIFT_OUTCOMES = ("error", "timeout", "refused", "unknown")
 
 # Outcome for "no sourced command" (the honest-absence sentinel).
 OUTCOME_ABSENT = "absent"
+
+# Outcome for a check still carrying unfilled ``<placeholder>`` slots:
+# reported visibly, never executed, never drift (see module docstring).
+OUTCOME_TEMPLATE = "template"
 
 # Bounded execution for the default runner: no interactive terminal, no
 # unbounded waits.
@@ -613,9 +647,27 @@ def _classify(result: object) -> str:
     return "ok" if rc == 0 else "error"
 
 
+def _unfilled_placeholder_token(command: str) -> str | None:
+    """Return the FIRST unfilled ``<placeholder>`` slot in the command.
+
+    Quote-aware: ``<...>`` inside quoted spans is literal text (a grep
+    pattern such as ``'<key-name>'`` or a jq filter), not a template slot —
+    only placeholders the shell would see count. The runner shell would
+    parse a bare ``<token>`` as input redirection, so an unfilled slot must
+    never reach it (module docstring: --execute expects a FILLED runbook).
+    """
+    unquoted = _unquoted(command)
+    match = _PLACEHOLDER_RE.search(unquoted)
+    return match.group(0) if match else None
+
+
 @dataclass(frozen=True)
 class CheckResult:
-    """One check's lint outcome (closed vocabulary, see module docstring)."""
+    """One check's lint outcome (closed vocabulary, see module docstring).
+
+    ``template`` results carry the offending ``<token>`` on ``stderr`` and
+    are never executed (``exit_code`` stays ``None``).
+    """
 
     class_id: str
     order: int
@@ -677,7 +729,10 @@ def lint_runbook(
     command via ``subprocess.run(shell=True, capture_output=True,
     timeout=COMMAND_TIMEOUT_SECONDS, stdin=DEVNULL)`` — bounded and never
     interactive. The ``no data`` sentinel is reported as ``absent``: never
-    executed, never counted as pass or failure.
+    executed, never counted as pass or failure. A check still carrying
+    unfilled ``<placeholder>`` slots is reported as ``template`` (with the
+    offending token on ``stderr``): never executed, never drift —
+    --execute expects a FILLED runbook (see the module docstring).
     """
     run = runner if runner is not None else _default_runner
     ts = _utc_now()
@@ -692,6 +747,12 @@ def lint_runbook(
             outcome = OUTCOME_ABSENT
         elif not is_read_only_command(check.command):
             outcome = "refused"
+        elif (token := _unfilled_placeholder_token(check.command)) is not None:
+            outcome = OUTCOME_TEMPLATE
+            stderr = (
+                "template check — fill <placeholder> args before "
+                f"executing; {token} is not shell syntax"
+            )
         else:
             try:
                 result = run(check.command)
@@ -730,8 +791,9 @@ def apply_lint(report: LintReport, runbook: Runbook) -> Runbook:
     Returns a NEW frozen Runbook (``dataclasses.replace`` — never mutate).
     The runbook flips to ``STATUS_STALE`` when the report shows ANY drift
     (``error``/``timeout``/``refused``/``unknown``). A report with nothing
-    but ``ok``/``absent`` outcomes does NOT flip the runbook — absence of a
-    sourced command is honest absence, not rot.
+    but ``ok``/``absent``/``template`` outcomes does NOT flip the runbook —
+    honest absence and unfilled ``<placeholder>`` slots are not rot
+    (template checks are reported visibly; fill them and re-lint).
 
     Honesty laws: this NEVER sets ``last_validated`` (a lint run is not
     operator attestation) and NEVER moves status to ``validated`` — only a
