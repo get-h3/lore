@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-029",
+  "task_title": "Count-sync guard: automate test-count claims in docs",
+  "task_criteria": [
+    "scripts/test-count.txt holds the single canonical test count; scripts/check-test-count.sh sweeps *.md for stale '<N> passed'/'<N> tests' literals (exit 1 + file:line on drift; exit 2 on missing/non-numeric canonical; dated-record allowlist; exit 0 on clean tree); a pytest test asserts the canonical count equals the live collected count; README.md and docs/INSTALL.md carry no stale count literals; uv run pytest -q green and uv run ruff check . clean"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "ba95c0287be752f10c34d7780fe02a41fd53639c",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T232657.908703Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n6:27PM INF scanned ~2167376 bytes (2.17 MB) in 392ms\n6:27PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 73 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T232657.908703Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 289 items\n\ntests/test_absorb.py .........................                           [  8%]\ntests/test_classes.py .........                                          [ 11%]\ntests/test_classifier.py ........                                        [ 14%]\ntests/test_cli_surface.py .....................                          [ 21%]\ntests/test_compiler.py .............................                     [ 31%]\ntests/test_consult.py ....................                               [ 38%]\ntests/test_count_guard.py ..                                             [ 39%]\ntests/test_evidence.py ......................                            [ 47%]\ntests/test_lore011_drain_acceptance.py .......                           [ 49%]\ntests/test_lore016_qa_audit.py .....................                     [ 56%]\ntests/test_lore017_gateway_guard.py ........                             [ 59%]\ntests/test_lore020_absorb_window.py ...                                  [ 60%]\ntests/test_lore021_naming_docs.py .......                                [ 62%]\ntests/test_lore022_freshness_docs.py .....                               [ 64%]\ntests/test_near_miss.py ..............                                   [ 69%]\ntests/test_validate.py ................................................. [ 86%]\n.......................................                                  [100%]\n\n============================= 289 passed in 0.76s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260925T232657.908703Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 scripts/test-count.txt holds the single canonical test count; scripts/check-test-count.sh sweeps *.md for stale '<N> passed'/'<N> tests' literals (exit 1 + file:line on drift; exit 2 on missing/non-numeric canonical; dated-record allowlist; exit 0 on clean tree); a pytest test asserts the canonical count equals the live collected count; README.md and docs/INSTALL.md carry no stale count literals; uv run pytest -q green and uv run ruff check . clean: scripts/test-count.txt contains exactly '289'. check-test-count.sh verified live: clean tree -> 'PASS: test-count guard: canonical=289 matches live=289' EXIT=0; missing canonical -> 'ERROR: canonical count file ... not found' EXIT=2; non-numeric ('abc') -> 'ERROR: ... is not a single number' EXIT=2; drift literal (README '999 passed') -> '330:999 passed' + 'FAIL: stale test-count literal(s)' EXIT=1; canonical mismatch (123 vs live 289) -> 'FAIL: test-count drift' EXIT=1. Allowlist verified: CHANGELOG.md/docs/dogfood/*/docs/acceptance/* with 999/888/777 literals -> EXIT=0. tests/test_count_guard.py::test_canonical_count_matches_live_collected_count asserts canonical == live collected count and PASSED (2 passed in 0.27s). README.md:118,257 and docs/INSTALL.md:52,59 carry 289 (current, not stale). uv run pytest -q -> '289 passed in 0.62s'; uv run ruff check . -> 'All checks passed!' (exit 0).\n",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 scripts/test-count.txt holds the single canonical test count; scripts/check-test-count.sh sweeps *.md for stale '<N> passed'/'<N> tests' literals (exit 1 + file:line on drift; exit 2 on missing/non-numeric canonical; dated-record allowlist; exit 0 on clean tree); a pytest test asserts the canonical count equals the live collected count; README.md and docs/INSTALL.md carry no stale count literals; uv run pytest -q green and uv run ruff check . clean: scripts/test-count.txt contains exactly '289'. check-test-count.sh verified live: clean tree -> 'PASS: test-count guard: canonical=289 matches live=289' EXIT=0; missing canonical -> 'ERROR: canonical count file ... not found' EXIT=2; non-numeric ('abc') -> 'ERROR: ... is not a single number' EXIT=2; drift literal (README '999 passed') -> '330:999 passed' + 'FAIL: stale test-count literal(s)' EXIT=1; canonical mismatch (123 vs live 289) -> 'FAIL: test-count drift' EXIT=1. Allowlist verified: CHANGELOG.md/docs/dogfood/*/docs/acceptance/* with 999/888/777 literals -> EXIT=0. tests/test_count_guard.py::test_canonical_count_matches_live_collected_count asserts canonical == live collected count and PASSED (2 passed in 0.27s). README.md:118,257 and docs/INSTALL.md:52,59 carry 289 (current, not stale). uv run pytest -q -> '289 passed in 0.62s'; uv run ruff check . -> 'All checks passed!' (exit 0).\n",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "scripts/test-count.txt holds the single canonical test count; scripts/check-test-count.sh sweeps *.md for stale '<N> passed'/'<N> tests' literals (exit 1 + file:line on drift; exit 2 on missing/non-numeric canonical; dated-record allowlist; exit 0 on clean tree); a pytest test asserts the canonical count equals the live collected count; README.md and docs/INSTALL.md carry no stale count literals; uv run pytest -q green and uv run ruff check . clean",
+                "status": "PASS",
+                "detail": "scripts/test-count.txt contains exactly '289'. check-test-count.sh verified live: clean tree -> 'PASS: test-count guard: canonical=289 matches live=289' EXIT=0; missing canonical -> 'ERROR: canonical count file ... not found' EXIT=2; non-numeric ('abc') -> 'ERROR: ... is not a single number' EXIT=2; drift literal (README '999 passed') -> '330:999 passed' + 'FAIL: stale test-count literal(s)' EXIT=1; canonical mismatch (123 vs live 289) -> 'FAIL: test-count drift' EXIT=1. Allowlist verified: CHANGELOG.md/docs/dogfood/*/docs/acceptance/* with 999/888/777 literals -> EXIT=0. tests/test_count_guard.py::test_canonical_count_matches_live_collected_count asserts canonical == live collected count and PASSED (2 passed in 0.27s). README.md:118,257 and docs/INSTALL.md:52,59 carry 289 (current, not stale). uv run pytest -q -> '289 passed in 0.62s'; uv run ruff check . -> 'All checks passed!' (exit 0)."
+              }
+            ],
+            "summary": ""
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-029\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 scripts/test-count.txt holds the single canonical test count; scripts/check-test-count.sh sweeps *.md for stale '<N> passed'/'<N> tests' literals (exit 1 + file:line on drift; exit 2 on missing/non-numeric canonical; dated-record allowlist; exit 0 on clean tree); a pytest test asserts the canonical count equals the live collected count; README.md and docs/INSTALL.md carry no stale count literals; uv run pytest -q green and uv run ruff check . clean: scripts/test-count.txt contains exactly '289'. check-test-count.sh verified live: clean tree -> 'PASS: test-count guard: canonical=289 matches live=289' EXIT=0; missing canonical -> 'ERROR: canonical count file ... not found' EXIT=2; non-numeric ('abc') -> 'ERROR: ... is not a single number' EXIT=2; drift literal (README '999 passed') -> '330:999 passed' + 'FAIL: stale test-count literal(s)' EXIT=1; canonical mismatch (123 vs live 289) -> 'FAIL: test-count drift' EXIT=1. Allowlist verified: CHANGELOG.md/docs/dogfood/*/docs/acceptance/* with 999/888/777 literals -> EXIT=0. tests/test_count_guard.py::test_canonical_count_matches_live_collected_count asserts canonical == live collected count and PASSED (2 passed in 0.27s). README.md:118,257 and docs/INSTALL.md:52,59 carry 289 (current, not stale). uv run pytest -q -> '289 passed in 0.62s'; uv run ruff check . -> 'All checks passed!' (exit 0).\n\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-25T23:27:32.823238",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-25T23:27:32.838982+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 860,
+        "truncated": false,
+        "source": "git show ba95c0287be7"
+      }
+    ],
+    "task_id": "LORE-029"
+  }
+}

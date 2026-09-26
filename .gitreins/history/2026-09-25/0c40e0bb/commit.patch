@@ -1,0 +1,16 @@
+commit ba95c0287be752f10c34d7780fe02a41fd53639c
+Merge: 1e0ff7c 557c474
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Fri Sep 25 18:26:39 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Fri Sep 25 18:26:39 2026 -0500
+
+    wave-tick: merge LORE-029 count-sync guard — canonical 289 in scripts/test-count.txt, check-test-count.sh sweep+parity, README/INSTALL/skill literals synced. Tick lore-2026-09-25-23-11-19
+
+ README.md                   |  4 +--
+ docs/INSTALL.md             |  4 +--
+ scripts/check-test-count.sh | 69 +++++++++++++++++++++++++++++++++++++++++++++
+ scripts/test-count.txt      |  1 +
+ skills/lore-usage/SKILL.md  |  2 +-
+ tests/test_count_guard.py   | 66 +++++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 141 insertions(+), 5 deletions(-)

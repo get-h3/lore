@@ -15,5 +15,7 @@
       "session_id": "proc_74db0861e8a2",
       "gitreins_task": "LORE-029"
     }
-  ]
+  ],
+  "finished_at": "2026-09-26T00:50:00Z",
+  "recovery_note": "Recovery verified: merge ba95c02 already on main, gates green (289 passed, ruff clean), push parity 0, tier-2 verdict 364a7481 PASS (artifact committed), merged branches deleted. Closed by recovery tick lore-2026-09-26-00-42-43."
 }
