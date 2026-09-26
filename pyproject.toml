@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lore"
-version = "0.1.1"
+version = "0.1.2"
 description = "Runbook compiler: compiles fleet incident history into living, re-validated runbooks per failure class"
 readme = "README.md"
 requires-python = ">=3.11"

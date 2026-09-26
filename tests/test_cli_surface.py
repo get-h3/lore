@@ -285,3 +285,47 @@ def test_cli_absorb_window_performs_no_filesystem_writes(tmp_path, monkeypatch):
     )
     assert code == 0
     assert _tree_digest(tmp_path) == before
+
+
+# ------------------------------------------------------------------- version
+def test_version_single_source_of_truth():
+    """LORE-041: the declared package version must agree everywhere it lives.
+
+    pyproject.toml is the single source of truth; lore.__version__ and the
+    uv.lock entry must match it. This pins the drift class where the module
+    constant lagged the pyproject version (0.1.0 vs 0.1.1 at bump time).
+    """
+    import importlib.metadata
+    import pathlib
+    import tomllib
+
+    pyproject = pathlib.Path(__file__).resolve().parent.parent / "pyproject.toml"
+    declared = tomllib.loads(pyproject.read_text(encoding="utf-8"))["project"][
+        "version"
+    ]
+
+    # module constant matches pyproject
+    import lore
+
+    assert lore.__version__ == declared, (
+        f"lore.__version__ ({lore.__version__}) != pyproject version ({declared})"
+    )
+
+    # installed distribution metadata matches (the editable install is
+    # refreshed by `uv sync`; the lock carries the same version)
+    assert importlib.metadata.version("lore") == declared
+
+    # uv.lock carries the same version (no lock drift after a bump)
+    lock = (pathlib.Path(__file__).resolve().parent.parent / "uv.lock").read_text(
+        encoding="utf-8"
+    )
+    import re
+
+    lock_version = re.search(r'name = "lore"\nversion = "([^"]+)"', lock)
+    assert lock_version is not None, "uv.lock has no lore package entry"
+    assert lock_version.group(1) == declared, (
+        f"uv.lock lore version ({lock_version.group(1)}) != pyproject ({declared})"
+    )
+
+    # sanity: not a placeholder and still in the 0.1.x line this repo ships
+    assert declared.startswith("0.1.")

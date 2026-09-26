@@ -120,7 +120,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 319 passed
+uv run pytest -q        # 320 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -254,13 +254,13 @@ Standalone tools; pairs compound — pulse joins logsey, digest cites everything
 
 ## Status
 
-**v0.1.0 — early.** Kicked off 2026-09-23. Split honestly into what runs today
+**v0.1.2 — early.** Kicked off 2026-09-23. Split honestly into what runs today
 and what does not:
 
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **319 tests passing** and a clean `ruff check`.
+  with **320 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published

@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
 Once `.venv` exists, run the full gate from the repository root:
 
 ```sh
-uv run pytest -q                    # tests (green at 319 passed)
+uv run pytest -q                    # tests (green at 320 passed)
 uv run ruff check .                 # lint — "All checks passed!"
 uv run ruff format --check .        # formatting — "N files already formatted"
 uv run scripts/check-test-count.sh  # test-count sync guard

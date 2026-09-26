@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] — 2026-09-26
+
+Version refresh only — no code changes. Bumped from `0.1.1` after a stale-version
+audit (`uv pip list --outdated` flagged the editable install; the published
+"0.8.6 latest" on the index belongs to a different `lore` package, not this
+repo). Also syncs the module-level `lore.__version__`, which had drifted to
+`0.1.0` while `pyproject.toml` carried `0.1.1`. Not released: no tag, no
+publish — the bump keeps the upgrade path live for installed `v0.1.x`
+tool installs (same rationale as the 0.1.1 bump).
+
 ## [0.1.1] — 2026-09-25
 
 Post-release development version. Bumped from `0.1.0` so that
