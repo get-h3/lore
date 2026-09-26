@@ -293,7 +293,8 @@ and what does not:
   `--source` (LORE-020) threads the provenance marker into every per-class
   proposal payload, same None-rule as the single-proposal path: omitted, the
   payloads keep their original shape with no `source` key.
-- Install guide: [docs/INSTALL.md](docs/INSTALL.md). Runbook-store design
+- Install guide: [docs/INSTALL.md](docs/INSTALL.md) (dependency vulnerability
+  scanning: "Dependency vulnerability scanning"). Runbook-store design
   decision: [docs/RUNBOOK-STORE.md](docs/RUNBOOK-STORE.md).
 
 ### Planned / in flight — named, not promised as runnable
