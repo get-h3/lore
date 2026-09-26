@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
 Once `.venv` exists, run the full gate from the repository root:
 
 ```sh
-uv run pytest -q                    # tests (green at 320 passed)
+uv run pytest -q                    # tests (green at 325 passed)
 uv run ruff check .                 # lint — "All checks passed!"
 uv run ruff format --check .        # formatting — "N files already formatted"
 uv run scripts/check-test-count.sh  # test-count sync guard
@@ -35,6 +35,28 @@ uv run scripts/check-test-count.sh  # test-count sync guard
 `scripts/test-count.txt` (exit 0 = in parity, 1 = drift, 2 = guard
 misconfigured). If it reports drift, do not edit the canonical count to match
 your change; say so in your PR so the count is updated deliberately.
+
+## Benchmarks
+
+`scripts/bench.py` measures the core hot paths offline with stdlib `timeit`
+(no new dependency, no network): classifier match paths (signature hit,
+keyword hit, full-registry miss scan, `classify_all` ranking), the compiler
+(`compile_class`/`compile_all`), and the validator's default-deny gate
+(`is_read_only_command`). Inputs are deterministic constants mirroring
+`tests/test_classifier.py`; reported numbers are measured wall-clock (the
+minimum per-call time over repeated batches) — they are data, not thresholds,
+and the script never fails on a slow number. It DOES fail (exit 2) when the
+measured code's behaviour contract breaks, so a run is never a benchmark of
+silently-changed code.
+
+```sh
+uv run python scripts/bench.py               # full measured run
+uv run python scripts/bench.py --check-only  # validate setup only, exit fast
+uv run python scripts/bench.py --number 500 --repeats 7
+```
+
+Harness contract (not timing) is pinned by `tests/test_bench.py`; ordinary
+pytest collection never runs the timing loops.
 
 ## CLI smoke checks
 
