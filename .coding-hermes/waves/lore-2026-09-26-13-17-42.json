@@ -28,8 +28,14 @@
       "reason": "Worker remained alive for more than 10 minutes without producing edits or a commit; terminated. No implementation landed. GitReins Tier-1 was force-completed for lifecycle closure only; it is not an implementation verdict."
     }
   ],
+  "recovery": {
+    "recovered_at": "2026-09-26T16:03:40-05:00",
+    "action": "re-gated both preserved branch tips; both were identical to main with no implementation diff, so no merge or fixup dispatch was warranted. Both failed tasks remain failed with the original timeout/no-implementation reasons; missing worktrees confirmed; branches preserved as evidence."
+  },
   "outcomes": {
     "status": "failed",
     "finished_at": "2026-09-26T13:35:00-05:00"
-  }
+  },
+  "status": "recovered",
+  "finished_at": "2026-09-26T16:03:40-05:00"
 }
