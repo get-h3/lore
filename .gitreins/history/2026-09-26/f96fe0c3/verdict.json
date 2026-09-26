@@ -1,0 +1,85 @@
+{
+  "task_id": "LORE-040",
+  "task_title": "Refresh stale usage-skill test count",
+  "task_criteria": [
+    "skills/lore-usage/SKILL.md uses the current canonical/live test count 319 instead of 309; scripts/check-test-count.sh passes; uv run pytest -q, scoped ruff check/format, and project-scoped pip-audit remain green."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "9a67e96ac329cbfc2b431d11eef0274ca87f4ec3",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260926T094235.212372Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n4:43AM INF scanned ~2448928 bytes (2.45 MB) in 307ms\n4:43AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 80 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260926T094235.212372Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 319 items\n\ntests/test_absorb.py .........................                           [  7%]\ntests/test_classes.py .........                                          [ 10%]\ntests/test_classifier.py ............                                    [ 14%]\ntests/test_cli_surface.py .....................                          [ 21%]\ntests/test_compiler.py .............................                     [ 30%]\ntests/test_consult.py ....................                               [ 36%]\ntests/test_count_guard.py ............                                   [ 40%]\ntests/test_evidence.py ......................                            [ 47%]\ntests/test_lore011_drain_acceptance.py .......                           [ 49%]\ntests/test_lore016_qa_audit.py .....................                     [ 55%]\ntests/test_lore017_gateway_guard.py ........                             [ 58%]\ntests/test_lore020_absorb_window.py ...                                  [ 59%]\ntests/test_lore021_naming_docs.py .......                                [ 61%]\ntests/test_lore022_freshness_docs.py .....                               [ 63%]\ntests/test_lore030_ux_guard.py ....                                      [ 64%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 68%]\ntests/test_near_miss.py ..............                                   [ 72%]\ntests/test_validate.py ................................................. [ 87%]\n.......................................                                  [100%]\n\n============================= 319 passed in 1.02s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260926T094235.212372Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    }
+  },
+  "summary": "Judge Result: LORE-040\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-26T09:43:05.708480",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-26T09:43:05.722320+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 69707,
+        "truncated": false,
+        "source": "git show 9a67e96ac329"
+      }
+    ],
+    "task_id": "LORE-040"
+  }
+}
