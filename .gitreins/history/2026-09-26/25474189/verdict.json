@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-030",
+  "task_title": "Fresh-clone UX: fail fast with clear message when pytest runs without --extra dev",
+  "task_criteria": [
+    "bare uv sync in a fresh public clone then uv run pytest fails FAST with a clear message naming uv sync --extra dev; documented quickstart (uv sync --extra dev && uv run pytest) stays green; uv run pytest -q green on main and ruff clean"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "4f67b603e73f9f6a7ec4183b78ba67ec5c35f276",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260926T005500.312138Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n8:03PM INF scanned ~2213061 bytes (2.21 MB) in 290ms\n8:03PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 76 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260926T005500.312138Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 293 items\n\ntests/test_absorb.py .........................                           [  8%]\ntests/test_classes.py .........                                          [ 11%]\ntests/test_classifier.py ........                                        [ 14%]\ntests/test_cli_surface.py .....................                          [ 21%]\ntests/test_compiler.py .............................                     [ 31%]\ntests/test_consult.py ....................                               [ 38%]\ntests/test_count_guard.py ..                                             [ 38%]\ntests/test_evidence.py ......................                            [ 46%]\ntests/test_lore011_drain_acceptance.py .......                           [ 48%]\ntests/test_lore016_qa_audit.py .....................                     [ 55%]\ntests/test_lore017_gateway_guard.py ........                             [ 58%]\ntests/test_lore020_absorb_window.py ...                                  [ 59%]\ntests/test_lore021_naming_docs.py .......                                [ 62%]\ntests/test_lore022_freshness_docs.py .....                               [ 63%]\ntests/test_lore030_ux_guard.py ....                                      [ 65%]\ntests/test_near_miss.py ..............                                   [ 69%]\ntests/test_validate.py ................................................. [ 86%]\n.......................................                                  [100%]\n\n============================= 293 passed in 0.55s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260926T005500.312138Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 bare uv sync in a fresh public clone then uv run pytest fails FAST with a clear message naming uv sync --extra dev; documented quickstart (uv sync --extra dev && uv run pytest) stays green; uv run pytest -q green on main and ruff clean: Fresh clone (git clone /home/kara/lore /tmp/lore_fresh @4f67b60) + bare `uv sync` (installs only lore==0.1.1, no pytest) + `uv run pytest` in a clean env (env -i, PATH excluding host dev venv): EXIT=4 (pytest.ExitCode.USAGE_ERROR), output is exactly 2 lines \u2014 'ERROR: pytest could not import the lore package from this checkout... Fix: run uv sync --extra dev, then uv run pytest. See docs/INSTALL.md.' \u2014 with grep -c ModuleNotFoundError = 0 (no traceback flood) and wall time 0.66s (fails FAST). Guard is tests/conftest.py pytest_configure() raising pytest.UsageError(_FIX_MESSAGE) when `import lore` raises ModuleNotFoundError. Documented quickstart in the same fresh clone: `uv sync --extra dev` (installs pytest==9.1.1, ruff==0.16.8) then `uv run pytest -q` => EXIT=0, '293 passed in 0.47s'. Main tree: `uv run pytest -q` => '293 passed in 0.54s' (exit 0); `uv run ruff check .` => 'All checks passed!' (exit 0); LORE-030 regression file `uv run pytest tests/test_lore030_ux_guard.py -q` => '4 passed'. Docs name the fix: README.md:33/36 and docs/INSTALL.md:20/23.\nVerified end-to-end: bare uv sync + uv run pytest fails fast with exit 4 and one clear message naming 'uv sync --extra dev', while the documented quickstart and main tree stay green (293 passed, ruff clean).",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 bare uv sync in a fresh public clone then uv run pytest fails FAST with a clear message naming uv sync --extra dev; documented quickstart (uv sync --extra dev && uv run pytest) stays green; uv run pytest -q green on main and ruff clean: Fresh clone (git clone /home/kara/lore /tmp/lore_fresh @4f67b60) + bare `uv sync` (installs only lore==0.1.1, no pytest) + `uv run pytest` in a clean env (env -i, PATH excluding host dev venv): EXIT=4 (pytest.ExitCode.USAGE_ERROR), output is exactly 2 lines \u2014 'ERROR: pytest could not import the lore package from this checkout... Fix: run uv sync --extra dev, then uv run pytest. See docs/INSTALL.md.' \u2014 with grep -c ModuleNotFoundError = 0 (no traceback flood) and wall time 0.66s (fails FAST). Guard is tests/conftest.py pytest_configure() raising pytest.UsageError(_FIX_MESSAGE) when `import lore` raises ModuleNotFoundError. Documented quickstart in the same fresh clone: `uv sync --extra dev` (installs pytest==9.1.1, ruff==0.16.8) then `uv run pytest -q` => EXIT=0, '293 passed in 0.47s'. Main tree: `uv run pytest -q` => '293 passed in 0.54s' (exit 0); `uv run ruff check .` => 'All checks passed!' (exit 0); LORE-030 regression file `uv run pytest tests/test_lore030_ux_guard.py -q` => '4 passed'. Docs name the fix: README.md:33/36 and docs/INSTALL.md:20/23.\nVerified end-to-end: bare uv sync + uv run pytest fails fast with exit 4 and one clear message naming 'uv sync --extra dev', while the documented quickstart and main tree stay green (293 passed, ruff clean).",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "bare uv sync in a fresh public clone then uv run pytest fails FAST with a clear message naming uv sync --extra dev; documented quickstart (uv sync --extra dev && uv run pytest) stays green; uv run pytest -q green on main and ruff clean",
+                "status": "PASS",
+                "detail": "Fresh clone (git clone /home/kara/lore /tmp/lore_fresh @4f67b60) + bare `uv sync` (installs only lore==0.1.1, no pytest) + `uv run pytest` in a clean env (env -i, PATH excluding host dev venv): EXIT=4 (pytest.ExitCode.USAGE_ERROR), output is exactly 2 lines \u2014 'ERROR: pytest could not import the lore package from this checkout... Fix: run uv sync --extra dev, then uv run pytest. See docs/INSTALL.md.' \u2014 with grep -c ModuleNotFoundError = 0 (no traceback flood) and wall time 0.66s (fails FAST). Guard is tests/conftest.py pytest_configure() raising pytest.UsageError(_FIX_MESSAGE) when `import lore` raises ModuleNotFoundError. Documented quickstart in the same fresh clone: `uv sync --extra dev` (installs pytest==9.1.1, ruff==0.16.8) then `uv run pytest -q` => EXIT=0, '293 passed in 0.47s'. Main tree: `uv run pytest -q` => '293 passed in 0.54s' (exit 0); `uv run ruff check .` => 'All checks passed!' (exit 0); LORE-030 regression file `uv run pytest tests/test_lore030_ux_guard.py -q` => '4 passed'. Docs name the fix: README.md:33/36 and docs/INSTALL.md:20/23."
+              }
+            ],
+            "summary": "Verified end-to-end: bare uv sync + uv run pytest fails fast with exit 4 and one clear message naming 'uv sync --extra dev', while the documented quickstart and main tree stay green (293 passed, ruff clean)."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-030\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 bare uv sync in a fresh public clone then uv run pytest fails FAST with a clear message naming uv sync --extra dev; documented quickstart (uv sync --extra dev && uv run pytest) stays green; uv run pytest -q green on main and ruff clean: Fresh clone (git clone /home/kara/lore /tmp/lore_fresh @4f67b60) + bare `uv sync` (installs only lore==0.1.1, no pytest) + `uv run pytest` in a clean env (env -i, PATH excluding host dev venv): EXIT=4 (pytest.ExitCode.USAGE_ERROR), output is exactly 2 lines \u2014 'ERROR: pytest could not import the lore package from this checkout... Fix: run uv sync --extra dev, then uv run pytest. See docs/INSTALL.md.' \u2014 with grep -c ModuleNotFoundError = 0 (no traceback flood) and wall time 0.66s (fails FAST). Guard is tests/conftest.py pytest_configure() raising pytest.UsageError(_FIX_MESSAGE) when `import lore` raises ModuleNotFoundError. Documented quickstart in the same fresh clone: `uv sync --extra dev` (installs pytest==9.1.1, ruff==0.16.8) then `uv run pytest -q` => EXIT=0, '293 passed in 0.47s'. Main tree: `uv run pytest -q` => '293 passed in 0.54s' (exit 0); `uv run ruff check .` => 'All checks passed!' (exit 0); LORE-030 regression file `uv run pytest tests/test_lore030_ux_guard.py -q` => '4 passed'. Docs name the fix: README.md:33/36 and docs/INSTALL.md:20/23.\nVerified end-to-end: bare uv sync + uv run pytest fails fast with exit 4 and one clear message naming 'uv sync --extra dev', while the documented quickstart and main tree stay green (293 passed, ruff clean).\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-26T01:04:19.617634",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-26T01:04:19.633950+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 511,
+        "truncated": false,
+        "source": "git show 4f67b603e73f"
+      }
+    ],
+    "task_id": "LORE-030"
+  }
+}

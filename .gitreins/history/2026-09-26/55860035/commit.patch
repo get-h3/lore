@@ -1,0 +1,13 @@
+commit 4f67b603e73f9f6a7ec4183b78ba67ec5c35f276
+Merge: fcff8a1 749a9fd
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Fri Sep 25 20:02:47 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Fri Sep 25 20:02:47 2026 -0500
+
+    wave-tick: merge LORE-031 venv-scoped pip-audit docs pin. Tick lore-2026-09-26-00-42-43
+
+ README.md       |  3 ++-
+ docs/INSTALL.md | 12 ++++++++++++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
+

@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-031",
+  "task_title": "Pin venv-scoped pip-audit invocation in dev docs",
+  "task_criteria": [
+    "dev docs specify the venv-scoped pip-audit invocation (pip-audit --path .venv/lib/python3*/site-packages); documented command audits only the project venv and not host site-packages; uv run pytest -q green on main and ruff clean"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "4f67b603e73f9f6a7ec4183b78ba67ec5c35f276",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260926T005500.312138Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n8:04PM INF scanned ~2213061 bytes (2.21 MB) in 281ms\n8:04PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 76 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260926T005500.312138Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 293 items\n\ntests/test_absorb.py .........................                           [  8%]\ntests/test_classes.py .........                                          [ 11%]\ntests/test_classifier.py ........                                        [ 14%]\ntests/test_cli_surface.py .....................                          [ 21%]\ntests/test_compiler.py .............................                     [ 31%]\ntests/test_consult.py ....................                               [ 38%]\ntests/test_count_guard.py ..                                             [ 38%]\ntests/test_evidence.py ......................                            [ 46%]\ntests/test_lore011_drain_acceptance.py .......                           [ 48%]\ntests/test_lore016_qa_audit.py .....................                     [ 55%]\ntests/test_lore017_gateway_guard.py ........                             [ 58%]\ntests/test_lore020_absorb_window.py ...                                  [ 59%]\ntests/test_lore021_naming_docs.py .......                                [ 62%]\ntests/test_lore022_freshness_docs.py .....                               [ 63%]\ntests/test_lore030_ux_guard.py ....                                      [ 65%]\ntests/test_near_miss.py ..............                                   [ 69%]\ntests/test_validate.py ................................................. [ 86%]\n.......................................                                  [100%]\n\n============================= 293 passed in 0.54s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260926T005500.312138Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 dev docs specify the venv-scoped pip-audit invocation (pip-audit --path .venv/lib/python3*/site-packages); documented command audits only the project venv and not host site-packages; uv run pytest -q green on main and ruff clean: docs/INSTALL.md:66-76 adds '### Dependency vulnerability scanning' documenting exactly `pip-audit --path .venv/lib/python3*/site-packages` (line 69) and explicitly states bare `pip-audit`/`uv run pip-audit` audits the HOST python environment; README.md:300-301 cross-references the section. Empirically verified the documented command scopes to the venv only: `pip-audit --path .venv/lib/python3*/site-packages` -> 'No known vulnerabilities found' (exit 0), while bare `pip-audit` -> host packages (louis, python-apt, ubuntu-pro-client, ufw, etc.). Glob expands to .venv/lib/python3.14/site-packages. Tests on main: `uv run pytest -q` -> '293 passed in 0.44s', EXIT=0. Lint: `uv run ruff check .` -> 'All checks passed!', EXIT=0.\nDev docs pin the venv-scoped pip-audit invocation (verified to audit only the project venv, not host site-packages), with pytest green (293 passed) and ruff clean on main.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 dev docs specify the venv-scoped pip-audit invocation (pip-audit --path .venv/lib/python3*/site-packages); documented command audits only the project venv and not host site-packages; uv run pytest -q green on main and ruff clean: docs/INSTALL.md:66-76 adds '### Dependency vulnerability scanning' documenting exactly `pip-audit --path .venv/lib/python3*/site-packages` (line 69) and explicitly states bare `pip-audit`/`uv run pip-audit` audits the HOST python environment; README.md:300-301 cross-references the section. Empirically verified the documented command scopes to the venv only: `pip-audit --path .venv/lib/python3*/site-packages` -> 'No known vulnerabilities found' (exit 0), while bare `pip-audit` -> host packages (louis, python-apt, ubuntu-pro-client, ufw, etc.). Glob expands to .venv/lib/python3.14/site-packages. Tests on main: `uv run pytest -q` -> '293 passed in 0.44s', EXIT=0. Lint: `uv run ruff check .` -> 'All checks passed!', EXIT=0.\nDev docs pin the venv-scoped pip-audit invocation (verified to audit only the project venv, not host site-packages), with pytest green (293 passed) and ruff clean on main.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "dev docs specify the venv-scoped pip-audit invocation (pip-audit --path .venv/lib/python3*/site-packages); documented command audits only the project venv and not host site-packages; uv run pytest -q green on main and ruff clean",
+                "status": "PASS",
+                "detail": "docs/INSTALL.md:66-76 adds '### Dependency vulnerability scanning' documenting exactly `pip-audit --path .venv/lib/python3*/site-packages` (line 69) and explicitly states bare `pip-audit`/`uv run pip-audit` audits the HOST python environment; README.md:300-301 cross-references the section. Empirically verified the documented command scopes to the venv only: `pip-audit --path .venv/lib/python3*/site-packages` -> 'No known vulnerabilities found' (exit 0), while bare `pip-audit` -> host packages (louis, python-apt, ubuntu-pro-client, ufw, etc.). Glob expands to .venv/lib/python3.14/site-packages. Tests on main: `uv run pytest -q` -> '293 passed in 0.44s', EXIT=0. Lint: `uv run ruff check .` -> 'All checks passed!', EXIT=0."
+              }
+            ],
+            "summary": "Dev docs pin the venv-scoped pip-audit invocation (verified to audit only the project venv, not host site-packages), with pytest green (293 passed) and ruff clean on main."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-031\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 dev docs specify the venv-scoped pip-audit invocation (pip-audit --path .venv/lib/python3*/site-packages); documented command audits only the project venv and not host site-packages; uv run pytest -q green on main and ruff clean: docs/INSTALL.md:66-76 adds '### Dependency vulnerability scanning' documenting exactly `pip-audit --path .venv/lib/python3*/site-packages` (line 69) and explicitly states bare `pip-audit`/`uv run pip-audit` audits the HOST python environment; README.md:300-301 cross-references the section. Empirically verified the documented command scopes to the venv only: `pip-audit --path .venv/lib/python3*/site-packages` -> 'No known vulnerabilities found' (exit 0), while bare `pip-audit` -> host packages (louis, python-apt, ubuntu-pro-client, ufw, etc.). Glob expands to .venv/lib/python3.14/site-packages. Tests on main: `uv run pytest -q` -> '293 passed in 0.44s', EXIT=0. Lint: `uv run ruff check .` -> 'All checks passed!', EXIT=0.\nDev docs pin the venv-scoped pip-audit invocation (verified to audit only the project venv, not host site-packages), with pytest green (293 passed) and ruff clean on main.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-26T01:05:47.847747",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-26T01:05:47.858737+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 511,
+        "truncated": false,
+        "source": "git show 4f67b603e73f"
+      }
+    ],
+    "task_id": "LORE-031"
+  }
+}
