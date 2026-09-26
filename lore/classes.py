@@ -63,7 +63,15 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
         ),
         signature_patterns=(
             r"index\.lock",
-            r"worktree\s+(reap|deleted|collision)",
+            r"worktree\s+(reap\b|collision)",
+            # LORE-034: bare "worktree deleted" belongs to the collision
+            # family only WITH sibling/collision context — the specific
+            # reap-classified-merged loss (zero commits / never committed)
+            # is the dedicated worktree-reap-data-loss class, which sits
+            # AFTER this class in the registry, so the generic alternative
+            # must not swallow its phrasings (first class wins in the
+            # classifier's registry order).
+            r"worktree\s+deleted.{0,60}(sibling|collision|index\.lock|swept)",
             r"(sibling|concurrent)\s+worker\s+.{0,40}(reset|stage|sweep|checkout)",
             # LORE-023 (dogfood 2026-09-25 run 3): the shared-checkout family
             # also produces EMPTY COMMITS (a sibling commit lands your message
@@ -289,6 +297,15 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
         signature_patterns=(
             r"docs?\s+still\s+cit(e|es)\s+the\s+old\s+(test\s+)?count",
             r"(readme|docs?|documentation)\s+(claims?|says|states|cites?|lists)\s+\d+\s+(tests?|passes?)\s+but\s+(the\s+)?suite\s+(has|runs|contains|shows)\s+\d+",
+            # LORE-035: the "docs say N tests, actual count on <ref> is M"
+            # shape (and "documentation lists N but the real count is M") —
+            # the most common natural drift-report phrasing. The mismatch
+            # marker is REQUIRED, so a doc quoting one number without
+            # conflict never fires this pattern (token-exact: matches the
+            # drift phrase, never the surrounding sentence).
+            r"(readme|docs?|documentation)\s+(say|says|list|lists|show|shows|state|states|claim|claims)\s+\d+\s+(tests?|passes?).{0,40}(actual|real)\s+(count|number)\s+(on\s+\S+\s+)?is\s+\d+",
+            r"(documentation|docs?)\s+(lists?|says?)\s+\d+\s+tests?\s+but\s+the\s+(real|actual)\s+(count|number)\s+is\s+\d+",
+            r"actual\s+count\s+on\s+\S+\s+is\s+\d+",
             r"stale\s+(test|doc|docs)\s+count",
             r"docs?\s+drift(ed|ing)?(?=\s|!|\.|,|$)",
             r"count[- ]sync\s+guard",
@@ -305,6 +322,83 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
         + " From LORE-019 (stale test count in README), LORE-025 (usage skill "
         "stale), LORE-028 (docs drift after a wave), LORE-029 (count-sync "
         "guard): doctrine is count-sync guards, derived counts, re-verify fresh.",
+    ),
+    FailureClass(
+        id="worktree-reap-data-loss",
+        name="Worktree reap data loss",
+        description=(
+            "A reaper or cleanup pass classified a worktree as merged from "
+            "branch state alone (branch equals base means merged) and deleted "
+            "work that was never committed — fresh zero-commit worktrees "
+            "vanish mid-flight. Fix: reap only at end of tick after merge "
+            "confirmation; classify by commit presence, never branch state; "
+            "never reap a worktree an in-flight worker owns."
+        ),
+        # matched_signature stays token-exact: each pattern anchors on the
+        # reap/classified-merged + un-committed-work pair (zero-commit / no
+        # commits / never committed), never the surrounding sentence.
+        # Negative space: "worktree merged and removed after merge
+        # confirmation" is a HEALTHY post-merge reap, not data loss — no
+        # pattern fires without an un-committed-work marker.
+        signature_patterns=(
+            r"reap(ed|er|s)?\s+deleted\s+(a\s+|the\s+)?(fresh\s+)?zero[- ]commit\s+worktree",
+            r"deleted\s+(a\s+|the\s+)?(fresh\s+)?zero[- ]commit\s+worktree",
+            r"zero[- ]commit\s+worktree\s+(vanished|deleted|gone)(?=\s|!|\.|,|$)",
+            r"(reaper|watchdog|cleanup\s+pass).{0,60}worktree.{0,60}(had\s+no\s+commits|never\s+committed)",
+            r"classified\s+merged.{0,60}(no\s+commits|zero[- ]commit|never\s+committed)",
+            r"worktree\s+deleted.{0,60}(had\s+no\s+commits|zero[- ]commit|never\s+committed)",
+        ),
+        keywords=(
+            "reap",
+            "reaper",
+            "worktree",
+            "watchdog",
+            "zero-commit",
+            "deleted work",
+            "fresh worktree",
+            "merged classification",
+        ),
+        provenance=SEED_PROVENANCE
+        + " From LORE-034: worktree.sh reap --all classified a fresh "
+        "zero-commit worktree as merged from branch state alone and deleted "
+        "it mid-dispatch (crier t363 precedent); 2026-09-26 discovery stress "
+        "test returned unclassified.",
+    ),
+    FailureClass(
+        id="fast-forward-push-reject",
+        name="Fast-forward push reject",
+        description=(
+            "git push rejected as non-fast-forward because a sibling deploy "
+            "or worker advanced the remote first. Fix: fetch, pull --rebase, "
+            "re-run the gate battery on the rebased tree, then push; verify "
+            "origin/branch equals local HEAD before reporting the tick "
+            "complete."
+        ),
+        # matched_signature stays token-exact. Negative space: an
+        # auth-shaped refusal ("push rejected: permission denied (publickey)")
+        # is a DIFFERENT failure class — every pattern requires a divergence
+        # marker (non-fast-forward / diverged / advanced), never a bare
+        # "push rejected".
+        signature_patterns=(
+            r"non[- ]fast[- ]forward",
+            r"push\s+(was\s+)?rejected.{0,60}(non[- ]fast[- ]forward|diverged|remote\s+advanced|origin\s+advanced)",
+            r"(origin|remote)\s+(has\s+)?(diverged|advanced)",
+            r"pull\s+--rebase",
+        ),
+        keywords=(
+            "non-fast-forward",
+            "non-fast forward",
+            "push rejected",
+            "diverged",
+            "rejected push",
+            "rebase",
+            "origin advanced",
+        ),
+        provenance=SEED_PROVENANCE
+        + " From LORE-034: sibling deploys advanced the remote mid-tick and "
+        "the worker's push rejected non-fast-forward; doctrine is fetch, "
+        "pull --rebase, re-gate, push. 2026-09-26 discovery stress test "
+        "returned unclassified.",
     ),
 )
 

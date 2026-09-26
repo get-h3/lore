@@ -545,6 +545,66 @@ _CHECKS: dict[str, list[Check]] = {
             ],
         ),
     ],
+    "worktree-reap-data-loss": [
+        Check(
+            order=1,
+            command="git worktree list",
+            expected_healthy="every worktree listed is owned by a live worker or already merged",
+            expected_incident="a worktree the brief dispatched is missing from the list",
+            decision="the reap removed it — salvage from the dispatch brief, never from the tree",
+            read_only=True,
+            evidence=[
+                {
+                    "kind": "incident",
+                    "detail": "LORE-034: reap --all deleted a fresh zero-commit worktree mid-dispatch",
+                }
+            ],
+        ),
+        Check(
+            order=2,
+            command="git -C <worktree> rev-parse HEAD",
+            expected_healthy="the worktree carries at least one commit ahead of base",
+            expected_incident="the target is gone or sits at base with zero commits of its own",
+            decision="classify reap-safety by COMMIT PRESENCE, never branch state",
+            read_only=True,
+            evidence=[
+                {
+                    "kind": "gap",
+                    "detail": "branch == base is not 'merged': a zero-commit worktree is UN-merged work",
+                }
+            ],
+        ),
+    ],
+    "fast-forward-push-reject": [
+        Check(
+            order=1,
+            command="git fetch origin && git rev-parse HEAD origin/main",
+            expected_healthy="origin/main equals local HEAD (fast-forward held)",
+            expected_incident="origin/main advanced past local HEAD — a sibling landed first",
+            decision="the remote moved mid-tick; rebase local work onto it before pushing",
+            read_only=True,
+            evidence=[
+                {
+                    "kind": "incident",
+                    "detail": "LORE-034: sibling deploy advanced the remote while the worker held a stale HEAD",
+                }
+            ],
+        ),
+        Check(
+            order=2,
+            command="git log --oneline -5",
+            expected_healthy="the local branch sits on top of the fetched origin tip",
+            expected_incident="local HEAD and origin diverged (both sides hold commits the other lacks)",
+            decision="non-fast-forward confirmed by history, not by the error text alone",
+            read_only=True,
+            evidence=[
+                {
+                    "kind": "gap",
+                    "detail": "a bare 'push rejected' is ambiguous — name the divergence before re-running the gate",
+                }
+            ],
+        ),
+    ],
     UNCLASSIFIED_ID: [],
 }
 _RECOVERY_LADDERS: dict[str, list[str]] = {
@@ -614,6 +674,18 @@ _RECOVERY_LADDERS: dict[str, list[str]] = {
         "Let the count-sync guard sweep living docs; fix everything it names, not just the one you noticed.",
         "Prefer DERIVED counts in docs/tests over hardcoded literals (LORE-017 precedent).",
     ],
+    "worktree-reap-data-loss": [
+        "Stop the reaper before it deletes further — kill the reap pass, then account for every worktree it touched.",
+        "Salvage from evidence OUTSIDE the deleted tree: the dispatch brief, the tick log, the worker's report.",
+        "Re-classify reap eligibility by COMMIT PRESENCE (rev-parse HEAD vs base), never branch state alone.",
+        "Reap only at end-of-tick after merge confirmation, and never reap a worktree an in-flight worker owns.",
+    ],
+    "fast-forward-push-reject": [
+        "Fetch and read the real divergence: git rev-parse HEAD origin/<branch> — never assume from the error text alone.",
+        "Rebase local work onto the fetched origin tip (pull --rebase), resolving conflicts against the sibling's landed state.",
+        "Re-run the gate battery on the REBASED tree — the gate green was earned on the pre-rebase HEAD and does not transfer.",
+        "Verify origin/<branch> equals local HEAD after the push before reporting the tick complete.",
+    ],
     UNCLASSIFIED_ID: [],
 }
 
@@ -673,6 +745,16 @@ _GUARDRAILS: dict[str, list[str]] = {
         "Never hardcode a test/class count in a test — derive it from the source of truth.",
         "Never ship a count-changing wave without syncing the doc literals in the same commit.",
         "Never 'fix' the doc by rounding to a vague phrase — the guard needs exact numbers.",
+    ],
+    "worktree-reap-data-loss": [
+        "Never run worktree.sh reap --all except at end-of-tick post-merge — it deletes fresh zero-commit worktrees (LORE-034).",
+        "Never classify a worktree as 'merged' from branch state alone (branch == base) — classify by commit presence.",
+        "Never reap a worktree an in-flight worker owns — zero commits means work in progress, not work finished.",
+    ],
+    "fast-forward-push-reject": [
+        "Never force-push over the divergence — rebase onto the sibling's landed state instead.",
+        "Never re-run the gate battery before the rebase — a green gate on the pre-rebase HEAD is not gate-equivalent.",
+        "Never report the tick complete until origin/<branch> equals local HEAD — the push is the last step, not the middle one.",
     ],
     UNCLASSIFIED_ID: [],
 }
@@ -775,6 +857,34 @@ _EVIDENCE_TRAILS: dict[str, list[dict]] = {
         {
             "kind": "incident",
             "detail": "2026-09-26 discovery stress test: 'docs still cite the old test count' returned unclassified",
+        },
+    ],
+    "worktree-reap-data-loss": [
+        {
+            "kind": "board",
+            "detail": "LORE-034 seed class 'worktree-reap-data-loss' (closed-registry seed edit)",
+        },
+        {
+            "kind": "incident",
+            "detail": "worktree.sh reap --all deleted a fresh zero-commit worktree mid-dispatch (crier t363 precedent)",
+        },
+        {
+            "kind": "gap",
+            "detail": "2026-09-26 discovery stress test: 'watchdog reaped the worktree, branch classified merged though it had no commits' returned unclassified",
+        },
+    ],
+    "fast-forward-push-reject": [
+        {
+            "kind": "board",
+            "detail": "LORE-034 seed class 'fast-forward-push-reject' (closed-registry seed edit)",
+        },
+        {
+            "kind": "incident",
+            "detail": "sibling deploys advanced the remote mid-tick; push rejected non-fast-forward after a green local gate",
+        },
+        {
+            "kind": "gap",
+            "detail": "2026-09-26 discovery stress test: 'git push rejected non-fast-forward, origin has diverged' returned unclassified",
         },
     ],
     UNCLASSIFIED_ID: [

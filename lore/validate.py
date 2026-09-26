@@ -411,6 +411,12 @@ _GIT_READ_ONLY_VERBS = frozenset(
         "blame",
         "shortlog",
         "describe",
+        # LORE-034: `fetch` is network read-only on the REMOTE — it updates
+        # remote-tracking refs only, never local branches, the index, or the
+        # working tree. The fast-forward-push-reject runbook needs it to read
+        # the true origin divergence before deciding to rebase. Everything
+        # actually mutating (pull, push, reset, checkout...) stays refused.
+        "fetch",
     }
 )
 

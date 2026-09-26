@@ -16,6 +16,8 @@ SEED_CLASS_IDS = [
     "ingest-backfill-gap",
     "gateway-guard-violation",
     "docs-count-drift",
+    "worktree-reap-data-loss",
+    "fast-forward-push-reject",
 ]
 
 
