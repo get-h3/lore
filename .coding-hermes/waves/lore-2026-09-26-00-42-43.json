@@ -1,0 +1,28 @@
+{
+  "tick_id": "lore-2026-09-26-00-42-43",
+  "wave_budget": 3,
+  "composed": 2,
+  "recovered_from": "lore-2026-09-25-23-11-19 (verified closed: merge ba95c02 on main, 289 passed, ruff clean, tier-2 PASS 364a7481; manifest finished_at set by recovery)",
+  "tasks": [
+    {
+      "task_id": "LORE-030",
+      "worktree": "/home/kara/worktrees/lore-LORE-030",
+      "branch": "wt/LORE-030",
+      "base_sha": "ca376f3",
+      "brief": "/tmp/lore-tick0042/brief_LORE-030.md",
+      "worker_model": "glm-5.3-flash",
+      "worker_provider": "ollama-cloud",
+      "gitreins_task": "LORE-030"
+    },
+    {
+      "task_id": "LORE-031",
+      "worktree": "/home/kara/worktrees/lore-LORE-031",
+      "branch": "wt/LORE-031",
+      "base_sha": "ca376f3",
+      "brief": "/tmp/lore-tick0042/brief_LORE-031.md",
+      "worker_model": "glm-5.3-flash",
+      "worker_provider": "ollama-cloud",
+      "gitreins_task": "LORE-031"
+    }
+  ]
+}
