@@ -28,6 +28,16 @@ evaluator:
   # evaluator.max_iterations is the effective cap (proven by importing
   # engine.eval_cap.eval_cap_from_config, not by grepping).
   max_iterations: 50
+  # 2026-09-26 LORE-037: wall-clock cap. 9 source files; the audit
+  # (check-gitreins-judge.py) requires max_time to be set. 30m matches the
+  # schema template's own commented example — no starvation recorded at this
+  # rung on a repo this size (iterations are the binding knob, see above).
+  max_time: "30m"
+# defaults.model — the judge model. deepseek-v4-flash is the canonical cheap
+# judge (env GITREINS_LLM_MODEL agrees); api_key_env omitted because
+# GITREINS_LLM_API_KEY is provided by the environment.
+defaults:
+  model: deepseek-v4-flash
 history:
   enabled: true
   storage: git
