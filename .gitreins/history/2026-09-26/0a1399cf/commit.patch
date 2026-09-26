@@ -1,0 +1,354 @@
+commit 53e3d7b3322b80a1620eafcaf9306e26cc26a379
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Sat Sep 26 00:22:56 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Sat Sep 26 00:22:56 2026 -0500
+
+    feat: add docs-count-drift failure class. Addresses LORE-032.
+    
+    One new curated class in the closed SEED_CLASSES registry so docs/count-drift
+    phrasings ("docs still cite the old test count", "README claims 293 tests but
+    the suite has 301") classify instead of falling back to unclassified. Scope is
+    docs/count drift only — runbook placeholder lint, validator refusal, and
+    fresh-clone pytest vocabularies stay out by design (near-miss guard test pins
+    gateway-drain-window unaffected).
+    
+    - lore/classes.py: docs-count-drift seed entry (signature patterns, keywords,
+      provenance citing LORE-019/025/028/029 + the count-sync doctrine).
+    - lore/compiler.py: checks / recovery ladder / guardrails / evidence trail for
+      the new class, following the LORE-017 per-class shape. Check 1 uses a
+      gate-approvable python3 -c collect-only form (default-deny gate untouched).
+    - tests/test_classifier.py: stress phrase, count-mismatch variant, token-exact
+      matched_signature, and the gateway near-miss overreach guard.
+    - tests/test_classes.py + tests/test_lore017_gateway_guard.py: registry count
+      pin DERIVED from SEED_CLASSES instead of hardcoded == 11 (LORE-017
+      precedent); SEED_CLASS_IDS list gains the missing gateway-guard-violation
+      entry so the derived pin stays exact.
+    - README.md / docs/INSTALL.md / skills/lore-usage/SKILL.md /
+      scripts/test-count.txt: count literals 293 → 297 and "10 curated classes" →
+      11 — the count-sync guard caught the drift and these land in the same
+      commit, per LORE-029 doctrine.
+    
+    Verified: uv run pytest -q (297 passed), ruff check + format --check clean,
+    lore match stress phrase → docs-count-drift confidence=0.90, lore audit lists
+    the new class, count-sync guard PASS (canonical=297 matches live=297).
+---
+ README.md                           |  6 ++--
+ docs/INSTALL.md                     |  4 +--
+ lore/classes.py                     | 31 +++++++++++++++++++
+ lore/compiler.py                    | 62 +++++++++++++++++++++++++++++++++++++
+ scripts/test-count.txt              |  2 +-
+ skills/lore-usage/SKILL.md          |  2 +-
+ tests/test_classes.py               | 10 ++++--
+ tests/test_classifier.py            | 43 +++++++++++++++++++++++++
+ tests/test_lore017_gateway_guard.py |  9 ++++--
+ 9 files changed, 157 insertions(+), 12 deletions(-)
+
+diff --git a/README.md b/README.md
+index a19ec81..ac63196 100644
+--- a/README.md
++++ b/README.md
+@@ -119,7 +119,7 @@ uv run python -m lore compile --class does-not-exist ; echo "exit=$?"
+ Run the tests and lint that gate every change:
+ 
+ ```sh
+-uv run pytest -q        # 293 passed
++uv run pytest -q        # 297 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -257,8 +257,8 @@ and what does not:
+ 
+ ### Shipped — runs today, verified on `main`
+ 
+-- The failure-class taxonomy + classifier (10 curated classes + `unclassified`),
+-  with **293 tests passing** and a clean `ruff check`.
++- The failure-class taxonomy + classifier (11 curated classes + `unclassified`),
++  with **297 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 33b81cb..9fd9fb1 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -51,14 +51,14 @@ Real output on the current tree:
+ ........................................................................ [ 55%]
+ ........................................................................ [ 83%]
+ ...........................................                              [100%]
+-293 passed
++297 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **293 tests** (16 test files: taxonomy, classifier,
++The count to expect is **297 tests** (16 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+diff --git a/lore/classes.py b/lore/classes.py
+index ed832f9..58d482e 100644
+--- a/lore/classes.py
++++ b/lore/classes.py
+@@ -275,6 +275,37 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
+         + " From the 2026-09-24 integration dogfood finding that 'banned command "
+         "tripped the gateway guard' had no home in the registry.",
+     ),
++    FailureClass(
++        id="docs-count-drift",
++        name="Docs count drift",
++        description=(
++            "Documentation (README, INSTALL, skill prose) cites a stale count — "
++            "test count, suite size, endpoint list — that code changed out from "
++            "under it. Fix: recount from source, sync the doc claim in the same "
++            "commit, and let count-sync guards catch the drift."
++        ),
++        # matched_signature stays token-exact: each pattern matches only the
++        # drift phrase itself, never the surrounding sentence.
++        signature_patterns=(
++            r"docs?\s+still\s+cit(e|es)\s+the\s+old\s+(test\s+)?count",
++            r"(readme|docs?|documentation)\s+(claims?|says|states|cites?|lists)\s+\d+\s+(tests?|passes?)\s+but\s+(the\s+)?suite\s+(has|runs|contains|shows)\s+\d+",
++            r"stale\s+(test|doc|docs)\s+count",
++            r"docs?\s+drift(ed|ing)?(?=\s|!|\.|,|$)",
++            r"count[- ]sync\s+guard",
++        ),
++        keywords=(
++            "docs",
++            "doc drift",
++            "test count",
++            "stale count",
++            "README",
++            "count-sync",
++        ),
++        provenance=SEED_PROVENANCE
++        + " From LORE-019 (stale test count in README), LORE-025 (usage skill "
++        "stale), LORE-028 (docs drift after a wave), LORE-029 (count-sync "
++        "guard): doctrine is count-sync guards, derived counts, re-verify fresh.",
++    ),
+ )
+ 
+ UNCLASSIFIED_CLASS = FailureClass(
+diff --git a/lore/compiler.py b/lore/compiler.py
+index ee2d85b..ac7ca6a 100644
+--- a/lore/compiler.py
++++ b/lore/compiler.py
+@@ -512,6 +512,39 @@ _CHECKS: dict[str, list[Check]] = {
+             ],
+         ),
+     ],
++    "docs-count-drift": [
++        Check(
++            order=1,
++            command=(
++                "python3 -c \"import sys, pytest; pytest.main(['--collect-only', "
++                "'-q', '-p', 'no:cacheprovider'])\" | tail -1"
++            ),
++            expected_healthy="collected count equals the canonical count file",
++            expected_incident="collected count differs from the doc-claimed count",
++            decision="recount from source (the collector), never from the docs",
++            read_only=True,
++            evidence=[
++                {
++                    "kind": "incident",
++                    "detail": "LORE-029 count-sync guard: live collection is the truth",
++                }
++            ],
++        ),
++        Check(
++            order=2,
++            command="grep -rnE '[0-9]{2,4} (passed|tests)' README.md docs/ skills/",
++            expected_healthy="every count literal equals the canonical count",
++            expected_incident="a living doc cites a count that no longer matches",
++            decision="list every stale literal before editing — drift is rarely in one file",
++            read_only=True,
++            evidence=[
++                {
++                    "kind": "incident",
++                    "detail": "LORE-019: README test-count literal went stale after a wave",
++                }
++            ],
++        ),
++    ],
+     UNCLASSIFIED_ID: [],
+ }
+ _RECOVERY_LADDERS: dict[str, list[str]] = {
+@@ -575,6 +608,12 @@ _RECOVERY_LADDERS: dict[str, list[str]] = {
+         "Sandbox or route it: run the risky part where it is permitted (a scope that allows it, an approved wrapper).",
+         "Re-run the re-shaped form; a second denial of the ORIGINAL text means the shape never changed.",
+     ],
++    "docs-count-drift": [
++        "Recount from source (pytest --collect-only, wc -l, the producer) — never from the docs.",
++        "Sync every stale count literal in living docs in the SAME commit as the change.",
++        "Let the count-sync guard sweep living docs; fix everything it names, not just the one you noticed.",
++        "Prefer DERIVED counts in docs/tests over hardcoded literals (LORE-017 precedent).",
++    ],
+     UNCLASSIFIED_ID: [],
+ }
+ 
+@@ -630,6 +669,11 @@ _GUARDRAILS: dict[str, list[str]] = {
+         "Never weaken or bypass the guard to let one command through — re-shape the command instead.",
+         "Never treat a guard block as a transient — the same denial repeating across ticks is a reshaping bug.",
+     ],
++    "docs-count-drift": [
++        "Never hardcode a test/class count in a test — derive it from the source of truth.",
++        "Never ship a count-changing wave without syncing the doc literals in the same commit.",
++        "Never 'fix' the doc by rounding to a vague phrase — the guard needs exact numbers.",
++    ],
+     UNCLASSIFIED_ID: [],
+ }
+ 
+@@ -715,6 +759,24 @@ _EVIDENCE_TRAILS: dict[str, list[dict]] = {
+             "detail": "LORE-017 seed class 'gateway guard violation' (closed-registry seed edit)",
+         },
+     ],
++    "docs-count-drift": [
++        {
++            "kind": "board",
++            "detail": "LORE-032 seed class 'docs-count-drift' (closed-registry seed edit)",
++        },
++        {
++            "kind": "incident",
++            "detail": "LORE-019/LORE-025/LORE-028: stale doc counts after waves (README, usage skill, docs drift)",
++        },
++        {
++            "kind": "gap",
++            "detail": "LORE-029 count-sync guard: scripts/test-count.txt is the canonical count; sweep living docs for drift",
++        },
++        {
++            "kind": "incident",
++            "detail": "2026-09-26 discovery stress test: 'docs still cite the old test count' returned unclassified",
++        },
++    ],
+     UNCLASSIFIED_ID: [
+         {
+             "kind": "board",
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index 8975db9..95de1ee 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-293
+\ No newline at end of file
++297
+diff --git a/skills/lore-usage/SKILL.md b/skills/lore-usage/SKILL.md
+index b44e9cb..e944d61 100644
+--- a/skills/lore-usage/SKILL.md
++++ b/skills/lore-usage/SKILL.md
+@@ -88,7 +88,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
+ ## Dev loop
+ 
+ ```sh
+-uv run pytest -q    # expect: 293 passed in <1s (count synced to scripts/test-count.txt, LORE-029)
++uv run pytest -q    # expect: 297 passed in <1s (count synced to scripts/test-count.txt, LORE-029)
+ uv run ruff check . # expect: All checks passed!
+ ```
+ 
+diff --git a/tests/test_classes.py b/tests/test_classes.py
+index fd5a75f..bee8ed8 100644
+--- a/tests/test_classes.py
++++ b/tests/test_classes.py
+@@ -14,6 +14,8 @@ SEED_CLASS_IDS = [
+     "guard-degradation",
+     "spawn-hot-loop",
+     "ingest-backfill-gap",
++    "gateway-guard-violation",
++    "docs-count-drift",
+ ]
+ 
+ 
+@@ -79,8 +81,12 @@ def test_registry_size_is_pinned_closed():
+     # LORE-023: the registry is a CLOSED curated list; its size is pinned so
+     # class sprawl cannot arrive quietly. Vocabulary growth goes into the
+     # EXISTING classes' patterns/keywords, never into new ids.
+-    # 10 curated seed classes + unclassified (grep -c 'id="' lore/classes.py).
+-    assert len(get_registry()) == 11
++    # LORE-032: the count is DERIVED from the seed table instead of hardcoded
++    # (LORE-017 precedent) — the pin is "curated ids + unclassified", so a new
++    # curated class lands loudly in the diff, never silently.
++    curated_ids = {c.id for c in get_registry().all_classes()} - {UNCLASSIFIED_ID}
++    assert len(get_registry()) == len(SEED_CLASS_IDS) + 1
++    assert curated_ids == set(SEED_CLASS_IDS)
+ 
+ 
+ def test_registry_lookup_unknown_returns_none():
+diff --git a/tests/test_classifier.py b/tests/test_classifier.py
+index 14af646..5574872 100644
+--- a/tests/test_classifier.py
++++ b/tests/test_classifier.py
+@@ -44,6 +44,10 @@ SIGNATURE_FIXTURES = {
+         "chat archive shows a hole for 08-29/30: ingest pipeline reported success but "
+         "the destination is missing rows, backfill needed"
+     ),
++    "docs-count-drift": (
++        "docs still cite the old test count: README claims 293 tests but the suite "
++        "has 301 after the wave, count-sync guard should have caught the drift"
++    ),
+ }
+ 
+ KEYWORD_FIXTURES = {
+@@ -145,3 +149,42 @@ def test_empty_input_is_unclassified():
+     result = classify("")
+     assert result.class_id == UNCLASSIFIED_ID
+     assert result.confidence == 0.0
++
++
++# ---------------------------------------------------------------- docs-count-drift (LORE-032)
++STRESS_PHRASE = "docs still cite the old test count"
++
++
++def test_stress_phrase_classifies_docs_count_drift():
++    # The exact phrase the 2026-09-26 discovery stress test showed returning
++    # unclassified; must now land on the new class with real confidence.
++    result = classify(STRESS_PHRASE)
++    assert result.class_id == "docs-count-drift"
++    assert result.confidence >= 0.5
++
++
++def test_count_mismatch_variant_classifies_docs_count_drift():
++    result = classify("README claims 293 tests but the suite has 301")
++    assert result.class_id == "docs-count-drift"
++    assert result.confidence >= 0.5
++
++
++def test_docs_count_drift_matched_signature_is_token_exact():
++    # matched_signature must be the drift token itself, not the sentence
++    # around it (same contract as the other seed classes).
++    result = classify(
++        "the README claims 293 tests but the suite has 301 after the wave"
++    )
++    assert result.matched_signature is not None
++    assert "293" in result.matched_signature and "301" in result.matched_signature
++    assert len(result.matched_signature) < len(
++        "the README claims 293 tests but the suite has 301 after the wave"
++    )
++
++
++def test_gateway_drain_near_miss_not_stolen():
++    # Keyword-overreach guard: an unrelated gateway incident must still land
++    # on gateway-drain-window, never on docs-count-drift.
++    result = classify("gateway restarted and in-flight requests got 503")
++    assert result.class_id == "gateway-drain-window"
++    assert result.confidence >= 0.8
+diff --git a/tests/test_lore017_gateway_guard.py b/tests/test_lore017_gateway_guard.py
+index df3b2b6..3b4062d 100644
+--- a/tests/test_lore017_gateway_guard.py
++++ b/tests/test_lore017_gateway_guard.py
+@@ -17,9 +17,12 @@ def test_gateway_guard_class_in_registry():
+     assert 4 <= len(cls.keywords) <= 8
+ 
+ 
+-def test_registry_total_count_11_incl_unclassified():
+-    reg = get_registry()
+-    assert len(reg) == 11
++def test_registry_total_count_derived():
++    # LORE-032: derive the count from SEED_CLASSES (LORE-017 precedent) —
++    # curated classes + unclassified, never a hardcoded literal.
++    from lore.classes import SEED_CLASSES
++
++    assert len(get_registry()) == len(SEED_CLASSES) + 1
+ 
+ 
+ def test_canonical_symptom_classifies_high_confidence():
