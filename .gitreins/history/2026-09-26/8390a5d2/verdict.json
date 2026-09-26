@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-041",
+  "task_title": "Refresh lore package version after PyPI release",
+  "task_criteria": [
+    "Version metadata and lock are refreshed to the next correct project version; tests/lint/format/count gates pass; no publish or tag."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "6c41e0285238a88ed8ef2e7d3e8c80e5b6ab2cc4",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260926T101049.877869Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n5:11AM INF scanned ~2465850 bytes (2.47 MB) in 1.8s\n5:11AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 80 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260926T101049.877869Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 320 items\n\ntests/test_absorb.py .........................                           [  7%]\ntests/test_classes.py .........                                          [ 10%]\ntests/test_classifier.py ............                                    [ 14%]\ntests/test_cli_surface.py ......................                         [ 21%]\ntests/test_compiler.py .............................                     [ 30%]\ntests/test_consult.py ....................                               [ 36%]\ntests/test_count_guard.py ............                                   [ 40%]\ntests/test_evidence.py ......................                            [ 47%]\ntests/test_lore011_drain_acceptance.py .......                           [ 49%]\ntests/test_lore016_qa_audit.py .....................                     [ 55%]\ntests/test_lore017_gateway_guard.py ........                             [ 58%]\ntests/test_lore020_absorb_window.py ...                                  [ 59%]\ntests/test_lore021_naming_docs.py .......                                [ 61%]\ntests/test_lore022_freshness_docs.py .....                               [ 63%]\ntests/test_lore030_ux_guard.py ....                                      [ 64%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 68%]\ntests/test_near_miss.py ..............                                   [ 72%]\ntests/test_validate.py ................................................. [ 87%]\n.......................................                                  [100%]\n\n============================= 320 passed in 4.09s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260926T101049.877869Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 Version metadata and lock are refreshed to the next correct project version; tests/lint/format/count gates pass; no publish or tag.: Version refreshed to next correct patch 0.1.2 across all sources: pyproject.toml:7 version=\"0.1.2\" (was 0.1.1), lore/__init__.py:3 __version__=\"0.1.2\" (was drifted 0.1.0), uv.lock:25 name=\"lore\" version=\"0.1.2\", installed metadata 0.1.2; git history confirms 0.1.0->0.1.1->0.1.2. Docs synced (CHANGELOG.md:9 [0.1.2] entry, README.md:257 v0.1.2, docs/INSTALL.md/CONTRIBUTING.md/skills/lore-usage/SKILL.md 319->320). Gates run fresh: `uv lock --check` exit 0 (Resolved 8 packages); `uv run pytest -x --tb=short` exit 0 '320 passed in 3.35s'; `uv run ruff check . --quiet` exit 0; `uv run ruff format --check .` exit 0 '102 files already formatted'; `sh scripts/check-test-count.sh` exit 0 'PASS: canonical=320 matches live=320; class-count=13; no stale count literals'; read_lsp_diagnostics 0 findings. New test tests/test_cli_surface.py:291 test_version_single_source_of_truth is RED-proven (simulated __version__=0.1.0 -> FAILED at line 310; restored -> passes). No publish/tag: `git tag --list` shows only pre-existing v0.1.0, `git tag --points-at HEAD` empty, .github/workflows/ contains only ci.yml (no publish/twine/gh release), no dist artifacts in HEAD. Working tree clean.\nVersion metadata, module constant, and uv.lock are all refreshed to the next correct patch 0.1.2 with all tests/lint/format/count gates passing and no publish or tag created.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 Version metadata and lock are refreshed to the next correct project version; tests/lint/format/count gates pass; no publish or tag.: Version refreshed to next correct patch 0.1.2 across all sources: pyproject.toml:7 version=\"0.1.2\" (was 0.1.1), lore/__init__.py:3 __version__=\"0.1.2\" (was drifted 0.1.0), uv.lock:25 name=\"lore\" version=\"0.1.2\", installed metadata 0.1.2; git history confirms 0.1.0->0.1.1->0.1.2. Docs synced (CHANGELOG.md:9 [0.1.2] entry, README.md:257 v0.1.2, docs/INSTALL.md/CONTRIBUTING.md/skills/lore-usage/SKILL.md 319->320). Gates run fresh: `uv lock --check` exit 0 (Resolved 8 packages); `uv run pytest -x --tb=short` exit 0 '320 passed in 3.35s'; `uv run ruff check . --quiet` exit 0; `uv run ruff format --check .` exit 0 '102 files already formatted'; `sh scripts/check-test-count.sh` exit 0 'PASS: canonical=320 matches live=320; class-count=13; no stale count literals'; read_lsp_diagnostics 0 findings. New test tests/test_cli_surface.py:291 test_version_single_source_of_truth is RED-proven (simulated __version__=0.1.0 -> FAILED at line 310; restored -> passes). No publish/tag: `git tag --list` shows only pre-existing v0.1.0, `git tag --points-at HEAD` empty, .github/workflows/ contains only ci.yml (no publish/twine/gh release), no dist artifacts in HEAD. Working tree clean.\nVersion metadata, module constant, and uv.lock are all refreshed to the next correct patch 0.1.2 with all tests/lint/format/count gates passing and no publish or tag created.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "Version metadata and lock are refreshed to the next correct project version; tests/lint/format/count gates pass; no publish or tag.",
+                "status": "PASS",
+                "detail": "Version refreshed to next correct patch 0.1.2 across all sources: pyproject.toml:7 version=\"0.1.2\" (was 0.1.1), lore/__init__.py:3 __version__=\"0.1.2\" (was drifted 0.1.0), uv.lock:25 name=\"lore\" version=\"0.1.2\", installed metadata 0.1.2; git history confirms 0.1.0->0.1.1->0.1.2. Docs synced (CHANGELOG.md:9 [0.1.2] entry, README.md:257 v0.1.2, docs/INSTALL.md/CONTRIBUTING.md/skills/lore-usage/SKILL.md 319->320). Gates run fresh: `uv lock --check` exit 0 (Resolved 8 packages); `uv run pytest -x --tb=short` exit 0 '320 passed in 3.35s'; `uv run ruff check . --quiet` exit 0; `uv run ruff format --check .` exit 0 '102 files already formatted'; `sh scripts/check-test-count.sh` exit 0 'PASS: canonical=320 matches live=320; class-count=13; no stale count literals'; read_lsp_diagnostics 0 findings. New test tests/test_cli_surface.py:291 test_version_single_source_of_truth is RED-proven (simulated __version__=0.1.0 -> FAILED at line 310; restored -> passes). No publish/tag: `git tag --list` shows only pre-existing v0.1.0, `git tag --points-at HEAD` empty, .github/workflows/ contains only ci.yml (no publish/twine/gh release), no dist artifacts in HEAD. Working tree clean."
+              }
+            ],
+            "summary": "Version metadata, module constant, and uv.lock are all refreshed to the next correct patch 0.1.2 with all tests/lint/format/count gates passing and no publish or tag created."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-041\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 Version metadata and lock are refreshed to the next correct project version; tests/lint/format/count gates pass; no publish or tag.: Version refreshed to next correct patch 0.1.2 across all sources: pyproject.toml:7 version=\"0.1.2\" (was 0.1.1), lore/__init__.py:3 __version__=\"0.1.2\" (was drifted 0.1.0), uv.lock:25 name=\"lore\" version=\"0.1.2\", installed metadata 0.1.2; git history confirms 0.1.0->0.1.1->0.1.2. Docs synced (CHANGELOG.md:9 [0.1.2] entry, README.md:257 v0.1.2, docs/INSTALL.md/CONTRIBUTING.md/skills/lore-usage/SKILL.md 319->320). Gates run fresh: `uv lock --check` exit 0 (Resolved 8 packages); `uv run pytest -x --tb=short` exit 0 '320 passed in 3.35s'; `uv run ruff check . --quiet` exit 0; `uv run ruff format --check .` exit 0 '102 files already formatted'; `sh scripts/check-test-count.sh` exit 0 'PASS: canonical=320 matches live=320; class-count=13; no stale count literals'; read_lsp_diagnostics 0 findings. New test tests/test_cli_surface.py:291 test_version_single_source_of_truth is RED-proven (simulated __version__=0.1.0 -> FAILED at line 310; restored -> passes). No publish/tag: `git tag --list` shows only pre-existing v0.1.0, `git tag --points-at HEAD` empty, .github/workflows/ contains only ci.yml (no publish/twine/gh release), no dist artifacts in HEAD. Working tree clean.\nVersion metadata, module constant, and uv.lock are all refreshed to the next correct patch 0.1.2 with all tests/lint/format/count gates passing and no publish or tag created.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-26T10:12:19.848374",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-26T10:12:19.867311+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 9067,
+        "truncated": false,
+        "source": "git show 6c41e0285238"
+      }
+    ],
+    "task_id": "LORE-041"
+  }
+}

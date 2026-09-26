@@ -1,0 +1,228 @@
+commit 6c41e0285238a88ed8ef2e7d3e8c80e5b6ab2cc4
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Sat Sep 26 05:10:48 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Sat Sep 26 05:10:48 2026 -0500
+
+    chore: refresh package version. Addresses LORE-041.
+    
+    Bump pyproject version 0.1.1 -> 0.1.2 (next patch; no unreleased-version
+    convention beyond patch bumps in the changelog). The 'latest 0.8.6' reported
+    by uv pip list --outdated belongs to a different lore package on the index —
+    not this repo, and not authorization to publish. No tag, no release.
+    
+    Also syncs the module-level lore.__version__, which had drifted to 0.1.0
+    while pyproject carried 0.1.1. Adds tests/test_cli_surface.py::test_version_
+    single_source_of_truth (pyproject = source of truth; pins __version__,
+    installed metadata, and uv.lock against it; RED-proven against the drift).
+    Syncs scripts/test-count.txt + living-doc literals 319 -> 320 per LORE-029.
+    
+    Gates: uv lock --check ok; 320 passed; ruff check clean; ruff format --check
+    clean; scripts/check-test-count.sh PASS (canonical=320, class-count=13).
+---
+ CHANGELOG.md               | 10 ++++++++++
+ CONTRIBUTING.md            |  2 +-
+ README.md                  |  6 +++---
+ docs/INSTALL.md            |  4 ++--
+ lore/__init__.py           |  2 +-
+ pyproject.toml             |  2 +-
+ scripts/test-count.txt     |  2 +-
+ skills/lore-usage/SKILL.md |  2 +-
+ tests/test_cli_surface.py  | 44 ++++++++++++++++++++++++++++++++++++++++++++
+ uv.lock                    |  2 +-
+ 10 files changed, 65 insertions(+), 11 deletions(-)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 82d56e9..9aac9bd 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
+ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+ 
++## [0.1.2] — 2026-09-26
++
++Version refresh only — no code changes. Bumped from `0.1.1` after a stale-version
++audit (`uv pip list --outdated` flagged the editable install; the published
++"0.8.6 latest" on the index belongs to a different `lore` package, not this
++repo). Also syncs the module-level `lore.__version__`, which had drifted to
++`0.1.0` while `pyproject.toml` carried `0.1.1`. Not released: no tag, no
++publish — the bump keeps the upgrade path live for installed `v0.1.x`
++tool installs (same rationale as the 0.1.1 bump).
++
+ ## [0.1.1] — 2026-09-25
+ 
+ Post-release development version. Bumped from `0.1.0` so that
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index 310324e..472fadf 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
+ Once `.venv` exists, run the full gate from the repository root:
+ 
+ ```sh
+-uv run pytest -q                    # tests (green at 319 passed)
++uv run pytest -q                    # tests (green at 320 passed)
+ uv run ruff check .                 # lint — "All checks passed!"
+ uv run ruff format --check .        # formatting — "N files already formatted"
+ uv run scripts/check-test-count.sh  # test-count sync guard
+diff --git a/README.md b/README.md
+index 53d2030..381220c 100644
+--- a/README.md
++++ b/README.md
+@@ -120,7 +120,7 @@ Run the tests and lint that gate every change (see
+ [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
+ 
+ ```sh
+-uv run pytest -q        # 319 passed
++uv run pytest -q        # 320 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -254,13 +254,13 @@ Standalone tools; pairs compound — pulse joins logsey, digest cites everything
+ 
+ ## Status
+ 
+-**v0.1.0 — early.** Kicked off 2026-09-23. Split honestly into what runs today
++**v0.1.2 — early.** Kicked off 2026-09-23. Split honestly into what runs today
+ and what does not:
+ 
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
+-  with **319 tests passing** and a clean `ruff check`.
++  with **320 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index e04eee2..9faee34 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -51,14 +51,14 @@ Real output on the current tree:
+ ........................................................................ [ 55%]
+ ........................................................................ [ 83%]
+ ...........................................                              [100%]
+-319 passed
++320 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **319 tests** (18 test files: taxonomy, classifier,
++The count to expect is **320 tests** (19 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+diff --git a/lore/__init__.py b/lore/__init__.py
+index ff9d950..89a4b0e 100644
+--- a/lore/__init__.py
++++ b/lore/__init__.py
+@@ -1,6 +1,6 @@
+ """lore: compile the fleet's incident history into living runbooks per failure class."""
+ 
+-__version__ = "0.1.0"
++__version__ = "0.1.2"
+ 
+ from lore.classes import UNCLASSIFIED_ID, ClassRegistry, FailureClass, get_registry
+ 
+diff --git a/pyproject.toml b/pyproject.toml
+index 8adbaf3..dc906c7 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
+ 
+ [project]
+ name = "lore"
+-version = "0.1.1"
++version = "0.1.2"
+ description = "Runbook compiler: compiles fleet incident history into living, re-validated runbooks per failure class"
+ readme = "README.md"
+ requires-python = ">=3.11"
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index 9b5c454..18eed13 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-319
++320
+diff --git a/skills/lore-usage/SKILL.md b/skills/lore-usage/SKILL.md
+index bc62a95..bb6adc5 100644
+--- a/skills/lore-usage/SKILL.md
++++ b/skills/lore-usage/SKILL.md
+@@ -88,7 +88,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
+ ## Dev loop
+ 
+ ```sh
+-uv run pytest -q    # expect: 319 passed in <1s (count synced to scripts/test-count.txt, LORE-029)
++uv run pytest -q    # expect: 320 passed in <1s (count synced to scripts/test-count.txt, LORE-029)
+ uv run ruff check . # expect: All checks passed!
+ ```
+ 
+diff --git a/tests/test_cli_surface.py b/tests/test_cli_surface.py
+index 2998e76..4f82329 100644
+--- a/tests/test_cli_surface.py
++++ b/tests/test_cli_surface.py
+@@ -285,3 +285,47 @@ def test_cli_absorb_window_performs_no_filesystem_writes(tmp_path, monkeypatch):
+     )
+     assert code == 0
+     assert _tree_digest(tmp_path) == before
++
++
++# ------------------------------------------------------------------- version
++def test_version_single_source_of_truth():
++    """LORE-041: the declared package version must agree everywhere it lives.
++
++    pyproject.toml is the single source of truth; lore.__version__ and the
++    uv.lock entry must match it. This pins the drift class where the module
++    constant lagged the pyproject version (0.1.0 vs 0.1.1 at bump time).
++    """
++    import importlib.metadata
++    import pathlib
++    import tomllib
++
++    pyproject = pathlib.Path(__file__).resolve().parent.parent / "pyproject.toml"
++    declared = tomllib.loads(pyproject.read_text(encoding="utf-8"))["project"][
++        "version"
++    ]
++
++    # module constant matches pyproject
++    import lore
++
++    assert lore.__version__ == declared, (
++        f"lore.__version__ ({lore.__version__}) != pyproject version ({declared})"
++    )
++
++    # installed distribution metadata matches (the editable install is
++    # refreshed by `uv sync`; the lock carries the same version)
++    assert importlib.metadata.version("lore") == declared
++
++    # uv.lock carries the same version (no lock drift after a bump)
++    lock = (pathlib.Path(__file__).resolve().parent.parent / "uv.lock").read_text(
++        encoding="utf-8"
++    )
++    import re
++
++    lock_version = re.search(r'name = "lore"\nversion = "([^"]+)"', lock)
++    assert lock_version is not None, "uv.lock has no lore package entry"
++    assert lock_version.group(1) == declared, (
++        f"uv.lock lore version ({lock_version.group(1)}) != pyproject ({declared})"
++    )
++
++    # sanity: not a placeholder and still in the 0.1.x line this repo ships
++    assert declared.startswith("0.1.")
+diff --git a/uv.lock b/uv.lock
+index e21837d..9885b82 100644
+--- a/uv.lock
++++ b/uv.lock
+@@ -22,7 +22,7 @@ wheels = [
+ 
+ [[package]]
+ name = "lore"
+-version = "0.1.1"
++version = "0.1.2"
+ source = { editable = "." }
+ 
+ [package.optional-dependencies]
