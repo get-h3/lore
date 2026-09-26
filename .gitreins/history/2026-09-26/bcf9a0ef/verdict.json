@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-038",
+  "task_title": "Refresh stale direct dev dependency: ruff 0.16.8 to 0.16.9",
+  "task_criteria": [
+    "Refresh the project lock/install metadata to the latest compatible ruff without unrelated dependency churn; uv run pytest -q, uv run ruff check ., uv run ruff format --check ., and scripts/check-test-count.sh all pass."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "96cc26c9db6fc7b4b90dde38f1adb587efa00fbe",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260926T080943.373584Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n3:49AM INF scanned ~2428738 bytes (2.43 MB) in 325ms\n3:49AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 79 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260926T080943.373584Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 319 items\n\ntests/test_absorb.py .........................                           [  7%]\ntests/test_classes.py .........                                          [ 10%]\ntests/test_classifier.py ............                                    [ 14%]\ntests/test_cli_surface.py .....................                          [ 21%]\ntests/test_compiler.py .............................                     [ 30%]\ntests/test_consult.py ....................                               [ 36%]\ntests/test_count_guard.py ............                                   [ 40%]\ntests/test_evidence.py ......................                            [ 47%]\ntests/test_lore011_drain_acceptance.py .......                           [ 49%]\ntests/test_lore016_qa_audit.py .....................                     [ 55%]\ntests/test_lore017_gateway_guard.py ........                             [ 58%]\ntests/test_lore020_absorb_window.py ...                                  [ 59%]\ntests/test_lore021_naming_docs.py .......                                [ 61%]\ntests/test_lore022_freshness_docs.py .....                               [ 63%]\ntests/test_lore030_ux_guard.py ....                                      [ 64%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 68%]\ntests/test_near_miss.py ..............                                   [ 72%]\ntests/test_validate.py ................................................. [ 87%]\n.......................................                                  [100%]\n\n============================= 319 passed in 1.08s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260926T080943.373584Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 Refresh the project lock/install metadata to the latest compatible ruff without unrelated dependency churn; uv run pytest -q, uv run ruff check ., uv run ruff format --check ., and scripts/check-test-count.sh all pass.: uv.lock line 86 updated ruff 0.16.8 -> 0.16.9; `git diff ff181ff f2b3ff4 -- uv.lock | grep '^[+-]version'` yields only the single '-version = \"0.16.8\"' / '+version = \"0.16.9\"' pair (all other hunks are ruff sdist/wheel URLs+hashes), so no unrelated dependency churn. `uv lock --check` exit 0 and `uv tree` reports 'ruff v0.16.9'; after `uv sync --extra dev`, .venv/bin/ruff --version = 0.16.9. All four required commands pass: `uv run pytest -q` -> '319 passed in 1.85s' exit 0; `uv run ruff check .` -> 'All checks passed!' exit 0; `uv run ruff format --check .` -> '96 files already formatted' exit 0; `sh scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=319 matches live=319; class-count=13; no stale count literals in living docs' exit 0.\nuv.lock refreshed ruff 0.16.8->0.16.9 with no unrelated churn, and all four required commands (pytest, ruff check, ruff format --check, check-test-count.sh) pass.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 Refresh the project lock/install metadata to the latest compatible ruff without unrelated dependency churn; uv run pytest -q, uv run ruff check ., uv run ruff format --check ., and scripts/check-test-count.sh all pass.: uv.lock line 86 updated ruff 0.16.8 -> 0.16.9; `git diff ff181ff f2b3ff4 -- uv.lock | grep '^[+-]version'` yields only the single '-version = \"0.16.8\"' / '+version = \"0.16.9\"' pair (all other hunks are ruff sdist/wheel URLs+hashes), so no unrelated dependency churn. `uv lock --check` exit 0 and `uv tree` reports 'ruff v0.16.9'; after `uv sync --extra dev`, .venv/bin/ruff --version = 0.16.9. All four required commands pass: `uv run pytest -q` -> '319 passed in 1.85s' exit 0; `uv run ruff check .` -> 'All checks passed!' exit 0; `uv run ruff format --check .` -> '96 files already formatted' exit 0; `sh scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=319 matches live=319; class-count=13; no stale count literals in living docs' exit 0.\nuv.lock refreshed ruff 0.16.8->0.16.9 with no unrelated churn, and all four required commands (pytest, ruff check, ruff format --check, check-test-count.sh) pass.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "Refresh the project lock/install metadata to the latest compatible ruff without unrelated dependency churn; uv run pytest -q, uv run ruff check ., uv run ruff format --check ., and scripts/check-test-count.sh all pass.",
+                "status": "PASS",
+                "detail": "uv.lock line 86 updated ruff 0.16.8 -> 0.16.9; `git diff ff181ff f2b3ff4 -- uv.lock | grep '^[+-]version'` yields only the single '-version = \"0.16.8\"' / '+version = \"0.16.9\"' pair (all other hunks are ruff sdist/wheel URLs+hashes), so no unrelated dependency churn. `uv lock --check` exit 0 and `uv tree` reports 'ruff v0.16.9'; after `uv sync --extra dev`, .venv/bin/ruff --version = 0.16.9. All four required commands pass: `uv run pytest -q` -> '319 passed in 1.85s' exit 0; `uv run ruff check .` -> 'All checks passed!' exit 0; `uv run ruff format --check .` -> '96 files already formatted' exit 0; `sh scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=319 matches live=319; class-count=13; no stale count literals in living docs' exit 0."
+              }
+            ],
+            "summary": "uv.lock refreshed ruff 0.16.8->0.16.9 with no unrelated churn, and all four required commands (pytest, ruff check, ruff format --check, check-test-count.sh) pass."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-038\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 Refresh the project lock/install metadata to the latest compatible ruff without unrelated dependency churn; uv run pytest -q, uv run ruff check ., uv run ruff format --check ., and scripts/check-test-count.sh all pass.: uv.lock line 86 updated ruff 0.16.8 -> 0.16.9; `git diff ff181ff f2b3ff4 -- uv.lock | grep '^[+-]version'` yields only the single '-version = \"0.16.8\"' / '+version = \"0.16.9\"' pair (all other hunks are ruff sdist/wheel URLs+hashes), so no unrelated dependency churn. `uv lock --check` exit 0 and `uv tree` reports 'ruff v0.16.9'; after `uv sync --extra dev`, .venv/bin/ruff --version = 0.16.9. All four required commands pass: `uv run pytest -q` -> '319 passed in 1.85s' exit 0; `uv run ruff check .` -> 'All checks passed!' exit 0; `uv run ruff format --check .` -> '96 files already formatted' exit 0; `sh scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=319 matches live=319; class-count=13; no stale count literals in living docs' exit 0.\nuv.lock refreshed ruff 0.16.8->0.16.9 with no unrelated churn, and all four required commands (pytest, ruff check, ruff format --check, check-test-count.sh) pass.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-26T08:49:29.660506",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-26T08:49:29.676438+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 454,
+        "truncated": false,
+        "source": "git show 96cc26c9db6f"
+      }
+    ],
+    "task_id": "LORE-038"
+  }
+}

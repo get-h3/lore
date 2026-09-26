@@ -1,0 +1,11 @@
+commit 96cc26c9db6fc7b4b90dde38f1adb587efa00fbe
+Merge: ff181ff f2b3ff4
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Sat Sep 26 03:47:48 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Sat Sep 26 03:47:48 2026 -0500
+
+    merge LORE-038 ruff dependency refresh
+
+ uv.lock | 38 +++++++++++++++++++-------------------
+ 1 file changed, 19 insertions(+), 19 deletions(-)
