@@ -1,0 +1,32 @@
+commit d09538c7c98b9952d716623edbc839d9ebdbcbb7
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Sat Sep 26 02:59:18 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Sat Sep 26 02:59:18 2026 -0500
+
+    fix: configure GitReins judge fields. Addresses LORE-037.
+---
+ .gitreins/config.yaml | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/.gitreins/config.yaml b/.gitreins/config.yaml
+index f489188..606de21 100644
+--- a/.gitreins/config.yaml
++++ b/.gitreins/config.yaml
+@@ -28,6 +28,16 @@ evaluator:
+   # evaluator.max_iterations is the effective cap (proven by importing
+   # engine.eval_cap.eval_cap_from_config, not by grepping).
+   max_iterations: 50
++  # 2026-09-26 LORE-037: wall-clock cap. 9 source files; the audit
++  # (check-gitreins-judge.py) requires max_time to be set. 30m matches the
++  # schema template's own commented example — no starvation recorded at this
++  # rung on a repo this size (iterations are the binding knob, see above).
++  max_time: "30m"
++# defaults.model — the judge model. deepseek-v4-flash is the canonical cheap
++# judge (env GITREINS_LLM_MODEL agrees); api_key_env omitted because
++# GITREINS_LLM_API_KEY is provided by the environment.
++defaults:
++  model: deepseek-v4-flash
+ history:
+   enabled: true
+   storage: git
