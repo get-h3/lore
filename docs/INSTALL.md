@@ -63,6 +63,18 @@ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
 your run says something else, you are on a different revision — check
 `git log` before trusting this document.
 
+### Dependency vulnerability scanning
+
+```sh
+pip-audit --path .venv/lib/python3*/site-packages
+```
+
+Bare `pip-audit` (and `uv run pip-audit`) resolves to the host `pip-audit`
+binary and audits the HOST python environment — it reports findings unrelated
+to this project (observed: hundreds of host-system findings). Scope it to this
+repo's venv with the `--path` invocation above; a clean venv returns
+"No known vulnerabilities found".
+
 ## First run
 
 ### `--help` — the whole shipped surface
