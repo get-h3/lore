@@ -1,0 +1,32 @@
+{
+  "scheduler_tick_id": "lore-2026-09-26-07-18-04",
+  "project": "lore",
+  "base_sha": "09f11cf",
+  "budget": 2,
+  "workers": [
+    {
+      "task_id": "LORE-036",
+      "worktree": "~/worktrees/lore-LORE-036",
+      "branch": "wt/LORE-036",
+      "model": "glm-5.3-flash",
+      "provider": "ollama-cloud",
+      "status": "complete",
+      "worker_commit": "3f435ed",
+      "merge_commit": "bba6511",
+      "guard": "PASS",
+      "judge": "PASS",
+      "ci": "GREEN"
+    }
+  ],
+  "outcomes": [
+    {
+      "task_id": "LORE-036",
+      "status": "complete",
+      "commit": "bba6511",
+      "tests": "319 passed",
+      "ruff": "clean",
+      "pushed": true
+    }
+  ],
+  "finished_at": "2026-09-26T02:44:00Z"
+}

@@ -1,0 +1,16 @@
+commit bba6511be6ac4a6e82bec8e596197d1816ba54fe
+Merge: 09f11cf 3f435ed
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Sat Sep 26 02:41:47 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Sat Sep 26 02:41:47 2026 -0500
+
+    Merge branch 'wt/LORE-036'
+
+ README.md                   |   4 +-
+ docs/INSTALL.md             |   4 +-
+ scripts/check-test-count.sh |  36 +++---
+ scripts/count_sweep.py      | 217 ++++++++++++++++++++++++++++++++++
+ scripts/test-count.txt      |   2 +-
+ tests/test_count_guard.py   | 277 ++++++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 517 insertions(+), 23 deletions(-)
