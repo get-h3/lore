@@ -45,25 +45,25 @@ fi
 # Date/record paths are allowlisted above; a self-referencing line (quoting
 # scripts/test-count.txt or the canonical number as the sync target) is
 # exempt, as is this guard itself.
-DRIFT=0
-for f in $(git ls-files '*.md'); do
-    case "$f" in
-        scripts/test-count.txt|scripts/check-test-count.sh) continue ;;
-        *.sh) continue ;;
-        CHANGELOG.md|docs/dogfood/*|.gitreins/*|.coding-hermes/*|docs/acceptance/*) continue ;;
-    esac
-    [ -f "$f" ] || continue
-    # Only lines whose count differs from canonical are drift; lines that
-    # correctly quote the canonical number are healthy.
-    HITS=$(grep -nE '[0-9]{2,4} (passed|tests)' -- "$f" | grep -v 'scripts/test-count.txt' | grep -vE "(^|[^0-9])$CANONICAL (passed|tests)" || true)
-    [ -z "$HITS" ] && continue
-    printf '%s\n' "$HITS"
-    DRIFT=1
-done
-if [ "$DRIFT" -eq 1 ]; then
-    echo "FAIL: stale test-count literal(s) above (canonical is $CANONICAL); fix them or the wave ships stale docs" >&2
+#
+# LORE-036: the sweep lives in scripts/count_sweep.py and covers BOTH
+# families — test-count literals ('N passed'/'N tests', vs the canonical
+# count) and class-count literals ('N failure classes'/'N curated classes',
+# vs len(SEED_CLASSES) derived from lore/classes.py). Delegating keeps one
+# allowlist and one implementation; exit 2 here means misconfigured.
+SWEEP_OUT=$(python3 scripts/count_sweep.py "$CANONICAL" . 2>&1)
+SWEEP_RC=$?
+if [ "$SWEEP_RC" -eq 2 ]; then
+    printf '%s\n' "$SWEEP_OUT" >&2
+    exit 2
+fi
+if [ "$SWEEP_RC" -ne 0 ]; then
+    printf '%s\n' "$SWEEP_OUT" >&2
     exit 1
 fi
 
-echo "PASS: test-count guard: canonical=$CANONICAL matches live=$LIVE; no stale count literals in living docs"
+# Banner only: the derived class count (already swept above) for the PASS line.
+CLASS_COUNT=$(python3 scripts/count_sweep.py --class-count . 2>/dev/null) || exit 2
+
+echo "PASS: test-count guard: canonical=$CANONICAL matches live=$LIVE; class-count=$CLASS_COUNT; no stale count literals in living docs"
 exit 0
