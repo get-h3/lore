@@ -512,6 +512,39 @@ _CHECKS: dict[str, list[Check]] = {
             ],
         ),
     ],
+    "docs-count-drift": [
+        Check(
+            order=1,
+            command=(
+                "python3 -c \"import sys, pytest; pytest.main(['--collect-only', "
+                "'-q', '-p', 'no:cacheprovider'])\" | tail -1"
+            ),
+            expected_healthy="collected count equals the canonical count file",
+            expected_incident="collected count differs from the doc-claimed count",
+            decision="recount from source (the collector), never from the docs",
+            read_only=True,
+            evidence=[
+                {
+                    "kind": "incident",
+                    "detail": "LORE-029 count-sync guard: live collection is the truth",
+                }
+            ],
+        ),
+        Check(
+            order=2,
+            command="grep -rnE '[0-9]{2,4} (passed|tests)' README.md docs/ skills/",
+            expected_healthy="every count literal equals the canonical count",
+            expected_incident="a living doc cites a count that no longer matches",
+            decision="list every stale literal before editing — drift is rarely in one file",
+            read_only=True,
+            evidence=[
+                {
+                    "kind": "incident",
+                    "detail": "LORE-019: README test-count literal went stale after a wave",
+                }
+            ],
+        ),
+    ],
     UNCLASSIFIED_ID: [],
 }
 _RECOVERY_LADDERS: dict[str, list[str]] = {
@@ -575,6 +608,12 @@ _RECOVERY_LADDERS: dict[str, list[str]] = {
         "Sandbox or route it: run the risky part where it is permitted (a scope that allows it, an approved wrapper).",
         "Re-run the re-shaped form; a second denial of the ORIGINAL text means the shape never changed.",
     ],
+    "docs-count-drift": [
+        "Recount from source (pytest --collect-only, wc -l, the producer) — never from the docs.",
+        "Sync every stale count literal in living docs in the SAME commit as the change.",
+        "Let the count-sync guard sweep living docs; fix everything it names, not just the one you noticed.",
+        "Prefer DERIVED counts in docs/tests over hardcoded literals (LORE-017 precedent).",
+    ],
     UNCLASSIFIED_ID: [],
 }
 
@@ -629,6 +668,11 @@ _GUARDRAILS: dict[str, list[str]] = {
         "Never retry a banned command verbatim — a hardline block is deterministic, retrying proves nothing.",
         "Never weaken or bypass the guard to let one command through — re-shape the command instead.",
         "Never treat a guard block as a transient — the same denial repeating across ticks is a reshaping bug.",
+    ],
+    "docs-count-drift": [
+        "Never hardcode a test/class count in a test — derive it from the source of truth.",
+        "Never ship a count-changing wave without syncing the doc literals in the same commit.",
+        "Never 'fix' the doc by rounding to a vague phrase — the guard needs exact numbers.",
     ],
     UNCLASSIFIED_ID: [],
 }
@@ -713,6 +757,24 @@ _EVIDENCE_TRAILS: dict[str, list[dict]] = {
         {
             "kind": "board",
             "detail": "LORE-017 seed class 'gateway guard violation' (closed-registry seed edit)",
+        },
+    ],
+    "docs-count-drift": [
+        {
+            "kind": "board",
+            "detail": "LORE-032 seed class 'docs-count-drift' (closed-registry seed edit)",
+        },
+        {
+            "kind": "incident",
+            "detail": "LORE-019/LORE-025/LORE-028: stale doc counts after waves (README, usage skill, docs drift)",
+        },
+        {
+            "kind": "gap",
+            "detail": "LORE-029 count-sync guard: scripts/test-count.txt is the canonical count; sweep living docs for drift",
+        },
+        {
+            "kind": "incident",
+            "detail": "2026-09-26 discovery stress test: 'docs still cite the old test count' returned unclassified",
         },
     ],
     UNCLASSIFIED_ID: [

@@ -44,6 +44,10 @@ SIGNATURE_FIXTURES = {
         "chat archive shows a hole for 08-29/30: ingest pipeline reported success but "
         "the destination is missing rows, backfill needed"
     ),
+    "docs-count-drift": (
+        "docs still cite the old test count: README claims 293 tests but the suite "
+        "has 301 after the wave, count-sync guard should have caught the drift"
+    ),
 }
 
 KEYWORD_FIXTURES = {
@@ -145,3 +149,42 @@ def test_empty_input_is_unclassified():
     result = classify("")
     assert result.class_id == UNCLASSIFIED_ID
     assert result.confidence == 0.0
+
+
+# ---------------------------------------------------------------- docs-count-drift (LORE-032)
+STRESS_PHRASE = "docs still cite the old test count"
+
+
+def test_stress_phrase_classifies_docs_count_drift():
+    # The exact phrase the 2026-09-26 discovery stress test showed returning
+    # unclassified; must now land on the new class with real confidence.
+    result = classify(STRESS_PHRASE)
+    assert result.class_id == "docs-count-drift"
+    assert result.confidence >= 0.5
+
+
+def test_count_mismatch_variant_classifies_docs_count_drift():
+    result = classify("README claims 293 tests but the suite has 301")
+    assert result.class_id == "docs-count-drift"
+    assert result.confidence >= 0.5
+
+
+def test_docs_count_drift_matched_signature_is_token_exact():
+    # matched_signature must be the drift token itself, not the sentence
+    # around it (same contract as the other seed classes).
+    result = classify(
+        "the README claims 293 tests but the suite has 301 after the wave"
+    )
+    assert result.matched_signature is not None
+    assert "293" in result.matched_signature and "301" in result.matched_signature
+    assert len(result.matched_signature) < len(
+        "the README claims 293 tests but the suite has 301 after the wave"
+    )
+
+
+def test_gateway_drain_near_miss_not_stolen():
+    # Keyword-overreach guard: an unrelated gateway incident must still land
+    # on gateway-drain-window, never on docs-count-drift.
+    result = classify("gateway restarted and in-flight requests got 503")
+    assert result.class_id == "gateway-drain-window"
+    assert result.confidence >= 0.8

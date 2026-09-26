@@ -14,6 +14,8 @@ SEED_CLASS_IDS = [
     "guard-degradation",
     "spawn-hot-loop",
     "ingest-backfill-gap",
+    "gateway-guard-violation",
+    "docs-count-drift",
 ]
 
 
@@ -79,8 +81,12 @@ def test_registry_size_is_pinned_closed():
     # LORE-023: the registry is a CLOSED curated list; its size is pinned so
     # class sprawl cannot arrive quietly. Vocabulary growth goes into the
     # EXISTING classes' patterns/keywords, never into new ids.
-    # 10 curated seed classes + unclassified (grep -c 'id="' lore/classes.py).
-    assert len(get_registry()) == 11
+    # LORE-032: the count is DERIVED from the seed table instead of hardcoded
+    # (LORE-017 precedent) — the pin is "curated ids + unclassified", so a new
+    # curated class lands loudly in the diff, never silently.
+    curated_ids = {c.id for c in get_registry().all_classes()} - {UNCLASSIFIED_ID}
+    assert len(get_registry()) == len(SEED_CLASS_IDS) + 1
+    assert curated_ids == set(SEED_CLASS_IDS)
 
 
 def test_registry_lookup_unknown_returns_none():

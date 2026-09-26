@@ -17,9 +17,12 @@ def test_gateway_guard_class_in_registry():
     assert 4 <= len(cls.keywords) <= 8
 
 
-def test_registry_total_count_11_incl_unclassified():
-    reg = get_registry()
-    assert len(reg) == 11
+def test_registry_total_count_derived():
+    # LORE-032: derive the count from SEED_CLASSES (LORE-017 precedent) —
+    # curated classes + unclassified, never a hardcoded literal.
+    from lore.classes import SEED_CLASSES
+
+    assert len(get_registry()) == len(SEED_CLASSES) + 1
 
 
 def test_canonical_symptom_classifies_high_confidence():

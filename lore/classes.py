@@ -275,6 +275,37 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
         + " From the 2026-09-24 integration dogfood finding that 'banned command "
         "tripped the gateway guard' had no home in the registry.",
     ),
+    FailureClass(
+        id="docs-count-drift",
+        name="Docs count drift",
+        description=(
+            "Documentation (README, INSTALL, skill prose) cites a stale count — "
+            "test count, suite size, endpoint list — that code changed out from "
+            "under it. Fix: recount from source, sync the doc claim in the same "
+            "commit, and let count-sync guards catch the drift."
+        ),
+        # matched_signature stays token-exact: each pattern matches only the
+        # drift phrase itself, never the surrounding sentence.
+        signature_patterns=(
+            r"docs?\s+still\s+cit(e|es)\s+the\s+old\s+(test\s+)?count",
+            r"(readme|docs?|documentation)\s+(claims?|says|states|cites?|lists)\s+\d+\s+(tests?|passes?)\s+but\s+(the\s+)?suite\s+(has|runs|contains|shows)\s+\d+",
+            r"stale\s+(test|doc|docs)\s+count",
+            r"docs?\s+drift(ed|ing)?(?=\s|!|\.|,|$)",
+            r"count[- ]sync\s+guard",
+        ),
+        keywords=(
+            "docs",
+            "doc drift",
+            "test count",
+            "stale count",
+            "README",
+            "count-sync",
+        ),
+        provenance=SEED_PROVENANCE
+        + " From LORE-019 (stale test count in README), LORE-025 (usage skill "
+        "stale), LORE-028 (docs drift after a wave), LORE-029 (count-sync "
+        "guard): doctrine is count-sync guards, derived counts, re-verify fresh.",
+    ),
 )
 
 UNCLASSIFIED_CLASS = FailureClass(
