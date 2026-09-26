@@ -1,0 +1,73 @@
+# Contributing to lore
+
+Thanks for helping build lore — the runbook compiler that turns "how did we fix
+this last time — and does it still work?" into one provable lookup. This guide
+covers the supported development and verification loop. Everything below was
+run on this repository; if a command fails for you as written, that is a bug in
+this document — please open an issue.
+
+## Setup
+
+Python 3.11+ and [uv](https://docs.astral.sh/uv/). From a clean checkout:
+
+```sh
+git clone https://github.com/get-h3/lore
+cd lore
+uv sync --extra dev
+```
+
+Bare `uv sync` (without `--extra dev`) is not enough for running tests —
+pytest and ruff come from the dev extra. If pytest cannot import `lore`, you
+skipped it; the suite fails fast with that reminder.
+
+## Verify your environment
+
+Once `.venv` exists, run the full gate from the repository root:
+
+```sh
+uv run pytest -q                    # tests (green at 319 passed)
+uv run ruff check .                 # lint — "All checks passed!"
+uv run ruff format --check .        # formatting — "N files already formatted"
+uv run scripts/check-test-count.sh  # test-count sync guard
+```
+
+`scripts/check-test-count.sh` compares the collected test count against
+`scripts/test-count.txt` (exit 0 = in parity, 1 = drift, 2 = guard
+misconfigured). If it reports drift, do not edit the canonical count to match
+your change; say so in your PR so the count is updated deliberately.
+
+## CLI smoke checks
+
+Read-only probes against the shipped CLI (all safe to run in any checkout):
+
+```sh
+uv run lore --help
+uv run lore match "drain 503"
+uv run lore compile --class gateway-drain-window --format md
+uv run lore validate --class gateway-drain-window
+```
+
+`lore validate` in its default mode is plan-only: it lists what *would* run and
+executes nothing (`--execute` opts in to the gate-approved read-only commands).
+Note the honesty line these commands carry: the lint proves commands **parse
+and answer — not that recovery succeeds**. A runbook that has never been
+re-validated says "no data" rather than a confident-looking date.
+
+## Making changes
+
+- **Focused tests.** Run the targeted tests for what you touched first
+  (`uv run pytest tests/<module>_test.py -q` or `-k <pattern>`), then the full
+  suite before you open a PR. A new function gets a test; a bug fix gets a
+  regression test, proven failing (red) before the fix.
+- **Documentation changes.** Docs are part of the verified surface: if you edit
+  a README/docs command or a number the docs state, re-run that exact command
+  and paste real output. A doc that promises a command that does not run is a
+  bug like any other.
+- **Small commits.** Path-limited commits only; subject format
+  `type: description. Addresses <task-id>.`. Match the surrounding code's
+  import order, naming, and error handling. Add no dependencies without
+  discussion — lore's zero-runtime-dependency stance is a feature.
+- **Pull requests.** CI runs pytest + ruff on every PR; keep it green. State
+  what you verified in the PR description (which commands you ran and what they
+  printed). Never claim a pass you did not run — absence of a check is
+  reported, never papered over.

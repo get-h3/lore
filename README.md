@@ -116,7 +116,8 @@ uv run python -m lore compile --class does-not-exist ; echo "exit=$?"
 # exit=2
 ```
 
-Run the tests and lint that gate every change:
+Run the tests and lint that gate every change (see
+[CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
 uv run pytest -q        # 319 passed
