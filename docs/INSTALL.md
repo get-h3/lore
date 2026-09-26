@@ -20,6 +20,8 @@ cd lore
 uv sync --extra dev
 ```
 
+> Bare `uv sync` (without `--extra dev`) is not enough for running tests — tests need `--extra dev`.
+
 `uv sync --extra dev` provisions `.venv` plus pytest and ruff. Real output
 (versions will drift; the shape will not):
 
@@ -49,14 +51,14 @@ Real output on the current tree:
 ........................................................................ [ 55%]
 ........................................................................ [ 83%]
 ...........................................                              [100%]
-289 passed
+293 passed
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **289 tests** (15 test files: taxonomy, classifier,
+The count to expect is **293 tests** (16 test files: taxonomy, classifier,
 compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
 your run says something else, you are on a different revision — check
 `git log` before trusting this document.
