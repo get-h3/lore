@@ -1,0 +1,584 @@
+commit c761e2bf587e681e5df4bab66d7c5cad002c0694
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Sat Sep 26 01:31:50 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Sat Sep 26 01:31:50 2026 -0500
+
+    feat: add worktree-reap-data-loss + fast-forward-push-reject classes; widen docs-count-drift; sync doc counts. Addresses LORE-034, LORE-035, LORE-033.
+    
+    Two new curated classes in the closed SEED_CLASSES registry so the
+    2026-09-26 discovery stress test phrasings classify instead of falling
+    back to unclassified (LORE-017/LORE-032 closed-registry precedent):
+    
+    - lore/classes.py: worktree-reap-data-loss seed (reap/classified-merged
+      phrasings anchored on an un-committed-work marker: zero-commit, no
+      commits, never committed — a healthy post-merge reap never fires it) and
+      fast-forward-push-reject seed (every pattern requires a divergence
+      marker: non-fast-forward / diverged / advanced — an auth-shaped
+      "permission denied" refusal never fires it). LORE-035 rides here:
+      docs-count-drift gains three signature patterns covering the
+      "docs say N tests, actual count on <ref> is M" shape and the
+      "documentation lists N but the real count is M" close variant; keywords
+      and description untouched.
+    - lore/classes.py (shared-checkout-collision): narrowed the broad
+      "worktree deleted" alternative to require sibling/collision context so
+      it cannot swallow the reap-data-loss phrasings in registry order (first
+      class wins); "worktree reap" and "collision" alternatives keep the
+      existing fixtures green.
+    - lore/compiler.py: checks / recovery ladders / guardrails / evidence
+      trails for both new classes, following the LORE-017 per-class shape.
+      All seeded checks are read_only=True and gate-approved.
+    - lore/validate.py: `git fetch` added to the read-only git verbs — it is
+      network read-only on the REMOTE (updates remote-tracking refs only,
+      never local branches/index/tree); the fast-forward-push-reject runbook
+      needs it to read the true origin divergence. pull/push/reset/checkout
+      stay refused (test_unmarked_write_shaped_command_still_refuses pins it).
+    - tests/test_lore034_reap_and_push_classes.py: canonical inputs 1/2/3,
+      shape variants for each, near-miss guards ("worktree merged and removed
+      after merge confirmation" stays off the reap class; "push rejected:
+      permission denied (publickey)" stays off the push-reject class;
+      "README claims 148 tests but the suite shows 297" regression pin for
+      the widened docs seed), out-of-vocabulary unclassified pin, and
+      registry-count assertions DERIVED from SEED_CLASSES (base + 2, registry
+      = seeds + 1) per the LORE-017 derived-count precedent.
+    - tests/test_classes.py: SEED_CLASS_IDS gains the two new ids so the
+      derived registry pin stays exact.
+    - README.md / docs/INSTALL.md / skills/lore-usage/SKILL.md /
+      scripts/test-count.txt (LORE-033 count sync): "10 failure classes" ->
+      13 (the LORE-032 wave had already left line 142 one behind), class-id
+      list carries all 13, "11 curated classes" -> 13, test-count literals
+      297 -> 309 (18 test files), canonical count file 297 -> 309.
+    
+    Verified: uv run pytest -q (309 passed), ruff check + format --check
+    clean, sh scripts/check-test-count.sh PASS (canonical=309 matches
+    live=309), classify() on all three stress inputs lands the right class at
+    confidence 0.90, both near-miss inputs stay off their neighboring classes.
+---
+ README.md                                   |  11 +--
+ docs/INSTALL.md                             |   4 +-
+ lore/classes.py                             |  96 +++++++++++++++++++-
+ lore/compiler.py                            | 110 +++++++++++++++++++++++
+ lore/validate.py                            |   6 ++
+ scripts/test-count.txt                      |   2 +-
+ skills/lore-usage/SKILL.md                  |   2 +-
+ tests/test_classes.py                       |   2 +
+ tests/test_lore034_reap_and_push_classes.py | 135 ++++++++++++++++++++++++++++
+ 9 files changed, 358 insertions(+), 10 deletions(-)
+
+diff --git a/README.md b/README.md
+index ac63196..063fc5d 100644
+--- a/README.md
++++ b/README.md
+@@ -119,7 +119,7 @@ uv run python -m lore compile --class does-not-exist ; echo "exit=$?"
+ Run the tests and lint that gate every change:
+ 
+ ```sh
+-uv run pytest -q        # 297 passed
++uv run pytest -q        # 309 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -139,13 +139,14 @@ unclassified	confidence=0.00	evidence: none
+ 
+ ## What the classifier knows today
+ 
+-The curated registry holds **10 failure classes** plus an explicit
++The curated registry holds **13 failure classes** plus an explicit
+ `unclassified` bucket:
+ 
+ `gateway-drain-window` · `shared-checkout-collision` · `secret-env-clobber` ·
+ `disk-pressure-corruption` · `cooldown-pin-drift` · `key-rotation-expiry` ·
+ `guard-degradation` · `spawn-hot-loop` · `ingest-backfill-gap` ·
+-`gateway-guard-violation`
++`gateway-guard-violation` · `docs-count-drift` · `worktree-reap-data-loss` ·
++`fast-forward-push-reject`
+ 
+ Each class carries signature patterns and keyword evidence; matches print the
+ class id, a confidence, and the evidence that drove the match — never a naked
+@@ -257,8 +258,8 @@ and what does not:
+ 
+ ### Shipped — runs today, verified on `main`
+ 
+-- The failure-class taxonomy + classifier (11 curated classes + `unclassified`),
+-  with **297 tests passing** and a clean `ruff check`.
++- The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
++  with **309 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 9fd9fb1..b06620f 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -51,14 +51,14 @@ Real output on the current tree:
+ ........................................................................ [ 55%]
+ ........................................................................ [ 83%]
+ ...........................................                              [100%]
+-297 passed
++309 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **297 tests** (16 test files: taxonomy, classifier,
++The count to expect is **309 tests** (18 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+diff --git a/lore/classes.py b/lore/classes.py
+index 58d482e..e2ec35f 100644
+--- a/lore/classes.py
++++ b/lore/classes.py
+@@ -63,7 +63,15 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
+         ),
+         signature_patterns=(
+             r"index\.lock",
+-            r"worktree\s+(reap|deleted|collision)",
++            r"worktree\s+(reap\b|collision)",
++            # LORE-034: bare "worktree deleted" belongs to the collision
++            # family only WITH sibling/collision context — the specific
++            # reap-classified-merged loss (zero commits / never committed)
++            # is the dedicated worktree-reap-data-loss class, which sits
++            # AFTER this class in the registry, so the generic alternative
++            # must not swallow its phrasings (first class wins in the
++            # classifier's registry order).
++            r"worktree\s+deleted.{0,60}(sibling|collision|index\.lock|swept)",
+             r"(sibling|concurrent)\s+worker\s+.{0,40}(reset|stage|sweep|checkout)",
+             # LORE-023 (dogfood 2026-09-25 run 3): the shared-checkout family
+             # also produces EMPTY COMMITS (a sibling commit lands your message
+@@ -289,6 +297,15 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
+         signature_patterns=(
+             r"docs?\s+still\s+cit(e|es)\s+the\s+old\s+(test\s+)?count",
+             r"(readme|docs?|documentation)\s+(claims?|says|states|cites?|lists)\s+\d+\s+(tests?|passes?)\s+but\s+(the\s+)?suite\s+(has|runs|contains|shows)\s+\d+",
++            # LORE-035: the "docs say N tests, actual count on <ref> is M"
++            # shape (and "documentation lists N but the real count is M") —
++            # the most common natural drift-report phrasing. The mismatch
++            # marker is REQUIRED, so a doc quoting one number without
++            # conflict never fires this pattern (token-exact: matches the
++            # drift phrase, never the surrounding sentence).
++            r"(readme|docs?|documentation)\s+(say|says|list|lists|show|shows|state|states|claim|claims)\s+\d+\s+(tests?|passes?).{0,40}(actual|real)\s+(count|number)\s+(on\s+\S+\s+)?is\s+\d+",
++            r"(documentation|docs?)\s+(lists?|says?)\s+\d+\s+tests?\s+but\s+the\s+(real|actual)\s+(count|number)\s+is\s+\d+",
++            r"actual\s+count\s+on\s+\S+\s+is\s+\d+",
+             r"stale\s+(test|doc|docs)\s+count",
+             r"docs?\s+drift(ed|ing)?(?=\s|!|\.|,|$)",
+             r"count[- ]sync\s+guard",
+@@ -306,6 +323,83 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
+         "stale), LORE-028 (docs drift after a wave), LORE-029 (count-sync "
+         "guard): doctrine is count-sync guards, derived counts, re-verify fresh.",
+     ),
++    FailureClass(
++        id="worktree-reap-data-loss",
++        name="Worktree reap data loss",
++        description=(
++            "A reaper or cleanup pass classified a worktree as merged from "
++            "branch state alone (branch equals base means merged) and deleted "
++            "work that was never committed — fresh zero-commit worktrees "
++            "vanish mid-flight. Fix: reap only at end of tick after merge "
++            "confirmation; classify by commit presence, never branch state; "
++            "never reap a worktree an in-flight worker owns."
++        ),
++        # matched_signature stays token-exact: each pattern anchors on the
++        # reap/classified-merged + un-committed-work pair (zero-commit / no
++        # commits / never committed), never the surrounding sentence.
++        # Negative space: "worktree merged and removed after merge
++        # confirmation" is a HEALTHY post-merge reap, not data loss — no
++        # pattern fires without an un-committed-work marker.
++        signature_patterns=(
++            r"reap(ed|er|s)?\s+deleted\s+(a\s+|the\s+)?(fresh\s+)?zero[- ]commit\s+worktree",
++            r"deleted\s+(a\s+|the\s+)?(fresh\s+)?zero[- ]commit\s+worktree",
++            r"zero[- ]commit\s+worktree\s+(vanished|deleted|gone)(?=\s|!|\.|,|$)",
++            r"(reaper|watchdog|cleanup\s+pass).{0,60}worktree.{0,60}(had\s+no\s+commits|never\s+committed)",
++            r"classified\s+merged.{0,60}(no\s+commits|zero[- ]commit|never\s+committed)",
++            r"worktree\s+deleted.{0,60}(had\s+no\s+commits|zero[- ]commit|never\s+committed)",
++        ),
++        keywords=(
++            "reap",
++            "reaper",
++            "worktree",
++            "watchdog",
++            "zero-commit",
++            "deleted work",
++            "fresh worktree",
++            "merged classification",
++        ),
++        provenance=SEED_PROVENANCE
++        + " From LORE-034: worktree.sh reap --all classified a fresh "
++        "zero-commit worktree as merged from branch state alone and deleted "
++        "it mid-dispatch (crier t363 precedent); 2026-09-26 discovery stress "
++        "test returned unclassified.",
++    ),
++    FailureClass(
++        id="fast-forward-push-reject",
++        name="Fast-forward push reject",
++        description=(
++            "git push rejected as non-fast-forward because a sibling deploy "
++            "or worker advanced the remote first. Fix: fetch, pull --rebase, "
++            "re-run the gate battery on the rebased tree, then push; verify "
++            "origin/branch equals local HEAD before reporting the tick "
++            "complete."
++        ),
++        # matched_signature stays token-exact. Negative space: an
++        # auth-shaped refusal ("push rejected: permission denied (publickey)")
++        # is a DIFFERENT failure class — every pattern requires a divergence
++        # marker (non-fast-forward / diverged / advanced), never a bare
++        # "push rejected".
++        signature_patterns=(
++            r"non[- ]fast[- ]forward",
++            r"push\s+(was\s+)?rejected.{0,60}(non[- ]fast[- ]forward|diverged|remote\s+advanced|origin\s+advanced)",
++            r"(origin|remote)\s+(has\s+)?(diverged|advanced)",
++            r"pull\s+--rebase",
++        ),
++        keywords=(
++            "non-fast-forward",
++            "non-fast forward",
++            "push rejected",
++            "diverged",
++            "rejected push",
++            "rebase",
++            "origin advanced",
++        ),
++        provenance=SEED_PROVENANCE
++        + " From LORE-034: sibling deploys advanced the remote mid-tick and "
++        "the worker's push rejected non-fast-forward; doctrine is fetch, "
++        "pull --rebase, re-gate, push. 2026-09-26 discovery stress test "
++        "returned unclassified.",
++    ),
+ )
+ 
+ UNCLASSIFIED_CLASS = FailureClass(
+diff --git a/lore/compiler.py b/lore/compiler.py
+index ac7ca6a..fbd40d9 100644
+--- a/lore/compiler.py
++++ b/lore/compiler.py
+@@ -545,6 +545,66 @@ _CHECKS: dict[str, list[Check]] = {
+             ],
+         ),
+     ],
++    "worktree-reap-data-loss": [
++        Check(
++            order=1,
++            command="git worktree list",
++            expected_healthy="every worktree listed is owned by a live worker or already merged",
++            expected_incident="a worktree the brief dispatched is missing from the list",
++            decision="the reap removed it — salvage from the dispatch brief, never from the tree",
++            read_only=True,
++            evidence=[
++                {
++                    "kind": "incident",
++                    "detail": "LORE-034: reap --all deleted a fresh zero-commit worktree mid-dispatch",
++                }
++            ],
++        ),
++        Check(
++            order=2,
++            command="git -C <worktree> rev-parse HEAD",
++            expected_healthy="the worktree carries at least one commit ahead of base",
++            expected_incident="the target is gone or sits at base with zero commits of its own",
++            decision="classify reap-safety by COMMIT PRESENCE, never branch state",
++            read_only=True,
++            evidence=[
++                {
++                    "kind": "gap",
++                    "detail": "branch == base is not 'merged': a zero-commit worktree is UN-merged work",
++                }
++            ],
++        ),
++    ],
++    "fast-forward-push-reject": [
++        Check(
++            order=1,
++            command="git fetch origin && git rev-parse HEAD origin/main",
++            expected_healthy="origin/main equals local HEAD (fast-forward held)",
++            expected_incident="origin/main advanced past local HEAD — a sibling landed first",
++            decision="the remote moved mid-tick; rebase local work onto it before pushing",
++            read_only=True,
++            evidence=[
++                {
++                    "kind": "incident",
++                    "detail": "LORE-034: sibling deploy advanced the remote while the worker held a stale HEAD",
++                }
++            ],
++        ),
++        Check(
++            order=2,
++            command="git log --oneline -5",
++            expected_healthy="the local branch sits on top of the fetched origin tip",
++            expected_incident="local HEAD and origin diverged (both sides hold commits the other lacks)",
++            decision="non-fast-forward confirmed by history, not by the error text alone",
++            read_only=True,
++            evidence=[
++                {
++                    "kind": "gap",
++                    "detail": "a bare 'push rejected' is ambiguous — name the divergence before re-running the gate",
++                }
++            ],
++        ),
++    ],
+     UNCLASSIFIED_ID: [],
+ }
+ _RECOVERY_LADDERS: dict[str, list[str]] = {
+@@ -614,6 +674,18 @@ _RECOVERY_LADDERS: dict[str, list[str]] = {
+         "Let the count-sync guard sweep living docs; fix everything it names, not just the one you noticed.",
+         "Prefer DERIVED counts in docs/tests over hardcoded literals (LORE-017 precedent).",
+     ],
++    "worktree-reap-data-loss": [
++        "Stop the reaper before it deletes further — kill the reap pass, then account for every worktree it touched.",
++        "Salvage from evidence OUTSIDE the deleted tree: the dispatch brief, the tick log, the worker's report.",
++        "Re-classify reap eligibility by COMMIT PRESENCE (rev-parse HEAD vs base), never branch state alone.",
++        "Reap only at end-of-tick after merge confirmation, and never reap a worktree an in-flight worker owns.",
++    ],
++    "fast-forward-push-reject": [
++        "Fetch and read the real divergence: git rev-parse HEAD origin/<branch> — never assume from the error text alone.",
++        "Rebase local work onto the fetched origin tip (pull --rebase), resolving conflicts against the sibling's landed state.",
++        "Re-run the gate battery on the REBASED tree — the gate green was earned on the pre-rebase HEAD and does not transfer.",
++        "Verify origin/<branch> equals local HEAD after the push before reporting the tick complete.",
++    ],
+     UNCLASSIFIED_ID: [],
+ }
+ 
+@@ -674,6 +746,16 @@ _GUARDRAILS: dict[str, list[str]] = {
+         "Never ship a count-changing wave without syncing the doc literals in the same commit.",
+         "Never 'fix' the doc by rounding to a vague phrase — the guard needs exact numbers.",
+     ],
++    "worktree-reap-data-loss": [
++        "Never run worktree.sh reap --all except at end-of-tick post-merge — it deletes fresh zero-commit worktrees (LORE-034).",
++        "Never classify a worktree as 'merged' from branch state alone (branch == base) — classify by commit presence.",
++        "Never reap a worktree an in-flight worker owns — zero commits means work in progress, not work finished.",
++    ],
++    "fast-forward-push-reject": [
++        "Never force-push over the divergence — rebase onto the sibling's landed state instead.",
++        "Never re-run the gate battery before the rebase — a green gate on the pre-rebase HEAD is not gate-equivalent.",
++        "Never report the tick complete until origin/<branch> equals local HEAD — the push is the last step, not the middle one.",
++    ],
+     UNCLASSIFIED_ID: [],
+ }
+ 
+@@ -777,6 +859,34 @@ _EVIDENCE_TRAILS: dict[str, list[dict]] = {
+             "detail": "2026-09-26 discovery stress test: 'docs still cite the old test count' returned unclassified",
+         },
+     ],
++    "worktree-reap-data-loss": [
++        {
++            "kind": "board",
++            "detail": "LORE-034 seed class 'worktree-reap-data-loss' (closed-registry seed edit)",
++        },
++        {
++            "kind": "incident",
++            "detail": "worktree.sh reap --all deleted a fresh zero-commit worktree mid-dispatch (crier t363 precedent)",
++        },
++        {
++            "kind": "gap",
++            "detail": "2026-09-26 discovery stress test: 'watchdog reaped the worktree, branch classified merged though it had no commits' returned unclassified",
++        },
++    ],
++    "fast-forward-push-reject": [
++        {
++            "kind": "board",
++            "detail": "LORE-034 seed class 'fast-forward-push-reject' (closed-registry seed edit)",
++        },
++        {
++            "kind": "incident",
++            "detail": "sibling deploys advanced the remote mid-tick; push rejected non-fast-forward after a green local gate",
++        },
++        {
++            "kind": "gap",
++            "detail": "2026-09-26 discovery stress test: 'git push rejected non-fast-forward, origin has diverged' returned unclassified",
++        },
++    ],
+     UNCLASSIFIED_ID: [
+         {
+             "kind": "board",
+diff --git a/lore/validate.py b/lore/validate.py
+index f936bbc..3d1a737 100644
+--- a/lore/validate.py
++++ b/lore/validate.py
+@@ -411,6 +411,12 @@ _GIT_READ_ONLY_VERBS = frozenset(
+         "blame",
+         "shortlog",
+         "describe",
++        # LORE-034: `fetch` is network read-only on the REMOTE — it updates
++        # remote-tracking refs only, never local branches, the index, or the
++        # working tree. The fast-forward-push-reject runbook needs it to read
++        # the true origin divergence before deciding to rebase. Everything
++        # actually mutating (pull, push, reset, checkout...) stays refused.
++        "fetch",
+     }
+ )
+ 
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index 95de1ee..e0da8ae 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-297
++309
+\ No newline at end of file
+diff --git a/skills/lore-usage/SKILL.md b/skills/lore-usage/SKILL.md
+index e944d61..d88c36d 100644
+--- a/skills/lore-usage/SKILL.md
++++ b/skills/lore-usage/SKILL.md
+@@ -88,7 +88,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
+ ## Dev loop
+ 
+ ```sh
+-uv run pytest -q    # expect: 297 passed in <1s (count synced to scripts/test-count.txt, LORE-029)
++uv run pytest -q    # expect: 309 passed in <1s (count synced to scripts/test-count.txt, LORE-029)
+ uv run ruff check . # expect: All checks passed!
+ ```
+ 
+diff --git a/tests/test_classes.py b/tests/test_classes.py
+index bee8ed8..1e96ad3 100644
+--- a/tests/test_classes.py
++++ b/tests/test_classes.py
+@@ -16,6 +16,8 @@ SEED_CLASS_IDS = [
+     "ingest-backfill-gap",
+     "gateway-guard-violation",
+     "docs-count-drift",
++    "worktree-reap-data-loss",
++    "fast-forward-push-reject",
+ ]
+ 
+ 
+diff --git a/tests/test_lore034_reap_and_push_classes.py b/tests/test_lore034_reap_and_push_classes.py
+new file mode 100644
+index 0000000..acae692
+--- /dev/null
++++ b/tests/test_lore034_reap_and_push_classes.py
+@@ -0,0 +1,135 @@
++"""LORE-034/035: worktree-reap-data-loss + fast-forward-push-reject classes
++and the docs-count-drift signature widening.
++
++Covers the 2026-09-26 discovery stress test that returned unclassified for
++both new failure modes plus the most common natural drift-report phrasing,
++with near-miss guards pinning the neighboring classes (registry stays a
++closed curated list; counts are DERIVED from SEED_CLASSES, never hardcoded).
++"""
++
++from lore.classes import (
++    SEED_CLASSES,
++    UNCLASSIFIED_ID,
++    get_registry,
++)
++from lore.classifier import classify
++
++REAP_CLASS = "worktree-reap-data-loss"
++PUSH_CLASS = "fast-forward-push-reject"
++DOCS_CLASS = "docs-count-drift"
++
++# ---------------------------------------------------------------- input 1
++REAP_INPUT = (
++    "watchdog reaped the worktree, branch classified merged though it had no commits"
++)
++REAP_VARIANTS = [
++    "reap deleted the fresh zero-commit worktree",
++    "worktree deleted though it had no commits",
++    "the reaper removed the worktree mid-dispatch; its work was never committed",
++]
++
++# ---------------------------------------------------------------- input 2
++PUSH_INPUT = "git push rejected non-fast-forward, origin has diverged"
++PUSH_VARIANTS = [
++    "push rejected non-fast-forward",
++    "push was rejected because the remote advanced",
++    "origin advanced while the worker held a stale HEAD: push rejected",
++]
++
++# ---------------------------------------------------------------- input 3
++DOCS_INPUT = "docs say 230 tests, actual count on HEAD is 297"
++DOCS_VARIANTS = [
++    "documentation lists 200 tests but the real count is 301",
++    "README says 148 tests, actual count on main is 202",
++]
++
++# ---------------------------------------------------------------- near miss
++NEAR_MISS_REAP_HEALTHY = "worktree merged and removed after merge confirmation"
++NEAR_MISS_PUSH_AUTH = "push rejected: permission denied (publickey)"
++DOCS_REGRESSION_PIN = "README claims 148 tests but the suite shows 297"
++
++OUT_OF_VOCABULARY = "the quarterly report covers widget sales and marketing spend"
++
++
++def test_canonical_reap_phrase_classifies():
++    result = classify(REAP_INPUT)
++    assert result.class_id == REAP_CLASS
++    assert result.confidence >= 0.9
++
++
++def test_canonical_push_phrase_classifies():
++    result = classify(PUSH_INPUT)
++    assert result.class_id == PUSH_CLASS
++    assert result.confidence >= 0.9
++
++
++def test_canonical_docs_phrase_classifies():
++    result = classify(DOCS_INPUT)
++    assert result.class_id == DOCS_CLASS
++    assert result.confidence >= 0.9
++
++
++def test_reap_variants_classify():
++    for text in REAP_VARIANTS:
++        result = classify(text)
++        assert result.class_id == REAP_CLASS, text
++        assert result.confidence >= 0.9, text
++
++
++def test_push_variants_classify():
++    for text in PUSH_VARIANTS:
++        result = classify(text)
++        assert result.class_id == PUSH_CLASS, text
++        assert result.confidence >= 0.9, text
++
++
++def test_docs_variants_classify():
++    for text in DOCS_VARIANTS:
++        result = classify(text)
++        assert result.class_id == DOCS_CLASS, text
++        assert result.confidence >= 0.9, text
++
++
++def test_healthy_post_merge_reap_is_NOT_reap_data_loss():
++    # Negative space: a worktree merged AND removed after merge
++    # confirmation is a healthy end-of-tick reap — no un-committed-work
++    # marker, so the new class must not fire.
++    result = classify(NEAR_MISS_REAP_HEALTHY)
++    assert result.class_id != REAP_CLASS
++
++
++def test_permission_denied_push_is_NOT_fast_forward_reject():
++    # Negative space: an auth-shaped refusal is a DIFFERENT failure
++    # class — every signature pattern requires a divergence marker
++    # (non-fast-forward / diverged / advanced), never a bare refusal.
++    result = classify(NEAR_MISS_PUSH_AUTH)
++    assert result.class_id != PUSH_CLASS
++
++
++def test_existing_docs_pattern_regression_pin():
++    # The pre-existing "claims N tests but the suite shows M" pattern must
++    # keep working after the signature widening (LORE-035 added shapes, it
++    # did not touch this one).
++    result = classify(DOCS_REGRESSION_PIN)
++    assert result.class_id == DOCS_CLASS
++    assert result.confidence >= 0.9
++
++
++def test_out_of_vocabulary_stays_unclassified():
++    result = classify(OUT_OF_VOCABULARY)
++    assert result.class_id == UNCLASSIFIED_ID
++    assert result.confidence == 0.0
++
++
++def test_registry_counts_derived_from_seeds():
++    # LORE-017/LORE-032 precedent: the pin is DERIVED — base = the seed
++    # table minus the two new ids, registry = curated ids + unclassified.
++    base = [c for c in SEED_CLASSES if c.id not in (REAP_CLASS, PUSH_CLASS)]
++    assert len(SEED_CLASSES) == len(base) + 2
++    assert len(get_registry()) == len(SEED_CLASSES) + 1
++
++
++def test_new_seed_ids_are_in_the_registry():
++    curated = {c.id for c in get_registry().all_classes()} - {UNCLASSIFIED_ID}
++    assert REAP_CLASS in curated
++    assert PUSH_CLASS in curated
