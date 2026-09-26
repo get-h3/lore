@@ -1,0 +1,549 @@
+commit efe1301465e5c818c566d6cd14d40d019ff708cd
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Sat Sep 26 07:07:31 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Sat Sep 26 07:07:31 2026 -0500
+
+    perf: add core path benchmarks. Addresses LORE-042.
+    
+    scripts/bench.py: focused, offline, stdlib-timeit benchmarks for the
+    representative hot paths — classifier (signature hit, keyword hit,
+    full-registry miss scan, classify_all ranking), compiler
+    (compile_class/compile_all), and the validator's default-deny gate
+    (is_read_only_command). Deterministic fixture inputs mirroring
+    tests/test_classifier.py; reported numbers are measured wall-clock
+    (min of repeated batches), never thresholds; the script exits 2 when the
+    measured code's behaviour contract breaks, so a run can never be a
+    benchmark of silently-changed code.
+    
+    tests/test_bench.py: harness-contract tests only (no timing thresholds):
+    --check-only passes on the current tree and prints no numbers, named
+    operations are listed, usage error is exit 2 without a traceback, and a
+    poisoned fixture proves the fail-closed path. pytest never runs the
+    timing loops.
+    
+    Count sync (LORE-029): suite grows 320 -> 325; scripts/test-count.txt and
+    the living count literals (README, CONTRIBUTING, docs/INSTALL,
+    skills/lore-usage) updated in the same commit.
+    
+    Gates on this commit's tree: uv run pytest -q = 325 passed; ruff check
+    and ruff format --check clean; scripts/check-test-count.sh PASS
+    (canonical=325 live=325, class-count=13); uv lock --check clean; real
+    bench.py run captured (7 operations measured).
+    
+    Co-authored-by: Alexis Okuwa <wojonstech@gmail.com>
+---
+ CONTRIBUTING.md            |  24 +++-
+ README.md                  |   4 +-
+ docs/INSTALL.md            |   4 +-
+ scripts/bench.py           | 289 +++++++++++++++++++++++++++++++++++++++++++++
+ scripts/test-count.txt     |   2 +-
+ skills/lore-usage/SKILL.md |   2 +-
+ tests/test_bench.py        |  99 ++++++++++++++++
+ 7 files changed, 417 insertions(+), 7 deletions(-)
+
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index 472fadf..bbf84aa 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
+ Once `.venv` exists, run the full gate from the repository root:
+ 
+ ```sh
+-uv run pytest -q                    # tests (green at 320 passed)
++uv run pytest -q                    # tests (green at 325 passed)
+ uv run ruff check .                 # lint — "All checks passed!"
+ uv run ruff format --check .        # formatting — "N files already formatted"
+ uv run scripts/check-test-count.sh  # test-count sync guard
+@@ -36,6 +36,28 @@ uv run scripts/check-test-count.sh  # test-count sync guard
+ misconfigured). If it reports drift, do not edit the canonical count to match
+ your change; say so in your PR so the count is updated deliberately.
+ 
++## Benchmarks
++
++`scripts/bench.py` measures the core hot paths offline with stdlib `timeit`
++(no new dependency, no network): classifier match paths (signature hit,
++keyword hit, full-registry miss scan, `classify_all` ranking), the compiler
++(`compile_class`/`compile_all`), and the validator's default-deny gate
++(`is_read_only_command`). Inputs are deterministic constants mirroring
++`tests/test_classifier.py`; reported numbers are measured wall-clock (the
++minimum per-call time over repeated batches) — they are data, not thresholds,
++and the script never fails on a slow number. It DOES fail (exit 2) when the
++measured code's behaviour contract breaks, so a run is never a benchmark of
++silently-changed code.
++
++```sh
++uv run python scripts/bench.py               # full measured run
++uv run python scripts/bench.py --check-only  # validate setup only, exit fast
++uv run python scripts/bench.py --number 500 --repeats 7
++```
++
++Harness contract (not timing) is pinned by `tests/test_bench.py`; ordinary
++pytest collection never runs the timing loops.
++
+ ## CLI smoke checks
+ 
+ Read-only probes against the shipped CLI (all safe to run in any checkout):
+diff --git a/README.md b/README.md
+index 381220c..eec95b9 100644
+--- a/README.md
++++ b/README.md
+@@ -120,7 +120,7 @@ Run the tests and lint that gate every change (see
+ [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
+ 
+ ```sh
+-uv run pytest -q        # 320 passed
++uv run pytest -q        # 325 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -260,7 +260,7 @@ and what does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
+-  with **320 tests passing** and a clean `ruff check`.
++  with **325 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 9faee34..518b9eb 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -51,14 +51,14 @@ Real output on the current tree:
+ ........................................................................ [ 55%]
+ ........................................................................ [ 83%]
+ ...........................................                              [100%]
+-320 passed
++325 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **320 tests** (19 test files: taxonomy, classifier,
++The count to expect is **325 tests** (19 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+diff --git a/scripts/bench.py b/scripts/bench.py
+new file mode 100755
+index 0000000..1b043a0
+--- /dev/null
++++ b/scripts/bench.py
+@@ -0,0 +1,289 @@
++#!/usr/bin/env python3
++"""bench.py — focused offline benchmarks for lore's hot paths (LORE-042).
++
++Measures, with the stdlib ``timeit`` module only (no new runtime/dev
++dependency), the representative core paths a responder's run touches:
++
++  classify (signature hit / keyword hit / full-miss worst case),
++  classify_all (ranked candidates over the whole registry),
++  compile_class / compile_all (runbook compiler), and
++  is_read_only_command (the validator's default-deny gate).
++
++Contract:
++
++- Inputs are DETERMINISTIC module constants (mirroring the classifier test
++  fixtures) — every run measures the same work, so numbers are comparable
++  across runs on the same machine.
++- The harness is ``timeit.Timer(...).repeat(repeats, number)``; the reported
++  per-call time is the MINIMUM of ``repeats`` batches (best-case stable
++  estimate, standard timeit practice — never an average that hides outliers).
++- Numbers are MEASURED wall-clock, not thresholds: this script asserts
++  nothing about how fast the code is and never fails on a slow number.
++  What it DOES fail on is invalid setup (exit 2): every operation is first
++  executed and its behaviour validated against the package's contract
++  (expected class ids, statuses, gate verdicts). A benchmark run over code
++  whose behaviour changed is worse than no benchmark, so it refuses to run.
++- Fully offline: imports ``lore`` only, no network, no filesystem writes.
++
++Usage (from a clean checkout with ``uv sync --extra dev`` done)::
++
++    uv run python scripts/bench.py               # full measured run
++    uv run python scripts/bench.py --check-only  # validate setup, exit fast
++    uv run python scripts/bench.py --number 500 --repeats 7
++
++Exit codes: 0 = measured (or setup valid with --check-only), 2 = invalid
++setup, 1 = usage error (argparse).
++"""
++
++from __future__ import annotations
++
++import argparse
++import sys
++import timeit
++from collections.abc import Callable
++
++from lore import classifier, validate
++from lore.compiler import compile_all, compile_class
++
++# ------------------------------------------------------- deterministic inputs
++# Frozen symptom texts (NOT randomly generated): the signature fixture and
++# keyword fixture mirror tests/test_classifier.py so benchmark work is stable
++# across runs and machines.
++
++SIGNATURE_HIT_TEXT = (
++    "hermes gateway restart: batch config change applied, expect up to 30 min "
++    "of drain 503s while in-flight requests finish"
++)
++KEYWORD_HIT_TEXT = (
++    "gateway maintenance: drain window planned, 503s expected, "
++    "reload afterwards, restart if needed"
++)
++FULL_MISS_TEXT = "purple elephant unicycle parade"
++GATE_COMMAND = "git -C <main-tree> rev-parse HEAD && git -C <worktree> rev-parse HEAD"
++
++DEFAULT_NUMBER = 200
++DEFAULT_REPEATS = 5
++
++
++class SetupError(RuntimeError):
++    """Benchmark setup is invalid (behaviour contract broken) — exit 2."""
++
++
++class Operation:
++    """One named benchmark operation plus its behaviour check."""
++
++    def __init__(
++        self, name: str, what: str, fn: Callable[[], object], check: Callable[[], None]
++    ) -> None:
++        self.name = name
++        self.what = what
++        self.fn = fn
++        self.check = check
++
++
++def _validate_setup() -> None:
++    """Assert every measured path still behaves per its contract.
++
++    Raises SetupError on the FIRST mismatch; a benchmark whose subject changed
++    behaviour must not print measured numbers (they would be numbers for code
++    that no longer does what the name says).
++    """
++    checks: list[tuple[str, Callable[[], None]]] = [
++        (
++            "classify signature hit -> gateway-drain-window (0.9)",
++            lambda: _require(
++                classifier.classify(SIGNATURE_HIT_TEXT).class_id
++                == "gateway-drain-window"
++                and classifier.classify(SIGNATURE_HIT_TEXT).confidence == 0.9,
++                "classify(SIGNATURE_HIT_TEXT) must label gateway-drain-window at 0.9",
++            ),
++        ),
++        (
++            "classify keyword hit -> gateway-drain-window (keyword path)",
++            lambda: _require(
++                classifier.classify(KEYWORD_HIT_TEXT).class_id == "gateway-drain-window"
++                and classifier.classify(KEYWORD_HIT_TEXT).matched_signature is None,
++                "classify(KEYWORD_HIT_TEXT) must be a keyword match (no signature)",
++            ),
++        ),
++        (
++            "classify full miss -> unclassified (0.0)",
++            lambda: _require(
++                classifier.classify(FULL_MISS_TEXT).is_unclassified,
++                "classify(FULL_MISS_TEXT) must return unclassified",
++            ),
++        ),
++        (
++            "compile_class(gateway-drain-window) -> proposal runbook",
++            lambda: _require(
++                compile_class("gateway-drain-window").status == "proposal"
++                and compile_class("gateway-drain-window").class_id
++                == "gateway-drain-window",
++                "compile_class('gateway-drain-window') must compile a proposal",
++            ),
++        ),
++        (
++            "is_read_only_command(gate command) -> True",
++            lambda: _require(
++                validate.is_read_only_command(GATE_COMMAND) is True,
++                "is_read_only_command(GATE_COMMAND) must be True",
++            ),
++        ),
++    ]
++    for label, check in checks:
++        try:
++            check()
++        except SetupError:
++            raise
++        except Exception as exc:
++            raise SetupError(f"{label}: unexpected error: {exc}") from exc
++
++
++def _require(condition: object, message: str) -> None:
++    if not condition:
++        raise SetupError(f"invalid benchmark setup: {message}")
++
++
++def build_operations() -> list[Operation]:
++    """The named, offline benchmark operations (validated before timing)."""
++    return [
++        Operation(
++            name="classify_signature_hit",
++            what="classify() one text matched by a registry signature regex",
++            fn=lambda: classifier.classify(SIGNATURE_HIT_TEXT),
++            check=lambda: _require(
++                classifier.classify(SIGNATURE_HIT_TEXT).class_id
++                == "gateway-drain-window",
++                "signature-hit fixture must classify gateway-drain-window",
++            ),
++        ),
++        Operation(
++            name="classify_keyword_hit",
++            what="classify() one text matched only by keywords (threshold path)",
++            fn=lambda: classifier.classify(KEYWORD_HIT_TEXT),
++            check=lambda: _require(
++                classifier.classify(KEYWORD_HIT_TEXT).class_id == "gateway-drain-window"
++                and classifier.classify(KEYWORD_HIT_TEXT).matched_signature is None,
++                "keyword-hit fixture must classify gateway-drain-window by keyword",
++            ),
++        ),
++        Operation(
++            name="classify_full_miss_scan",
++            what="classify() worst case: no match, scans the entire registry",
++            fn=lambda: classifier.classify(FULL_MISS_TEXT),
++            check=lambda: _require(
++                classifier.classify(FULL_MISS_TEXT).is_unclassified,
++                "miss fixture must return unclassified",
++            ),
++        ),
++        Operation(
++            name="classify_all_rank",
++            what="classify_all(): score + rank candidates across all classes",
++            fn=lambda: classifier.classify_all(KEYWORD_HIT_TEXT),
++            check=lambda: _require(
++                len(classifier.classify_all(KEYWORD_HIT_TEXT)) >= 1,
++                "classify_all must return candidates",
++            ),
++        ),
++        Operation(
++            name="compile_class_gateway",
++            what="compile_class() for the doctrine class (checks + ladder)",
++            fn=lambda: compile_class("gateway-drain-window"),
++            check=lambda: _require(
++                compile_class("gateway-drain-window").status == "proposal",
++                "compile_class must produce a proposal runbook",
++            ),
++        ),
++        Operation(
++            name="compile_all_registry",
++            what="compile_all(): one runbook per registry class",
++            fn=lambda: compile_all(),
++            check=lambda: _require(
++                len(compile_all()) >= 1, "compile_all must compile the registry"
++            ),
++        ),
++        Operation(
++            name="validate_read_only_gate",
++            what="is_read_only_command(): default-deny gate on a chained command",
++            fn=lambda: validate.is_read_only_command(GATE_COMMAND),
++            check=lambda: _require(
++                validate.is_read_only_command(GATE_COMMAND) is True,
++                "gate fixture must be recognized as read-only",
++            ),
++        ),
++    ]
++
++
++def main(argv: list[str] | None = None) -> int:
++    parser = argparse.ArgumentParser(
++        prog="bench.py",
++        description="Focused offline benchmarks for lore's core paths "
++        "(stdlib timeit; measured numbers, no thresholds).",
++    )
++    parser.add_argument(
++        "--number",
++        type=int,
++        default=DEFAULT_NUMBER,
++        help=f"calls per timing batch (default {DEFAULT_NUMBER})",
++    )
++    parser.add_argument(
++        "--repeats",
++        type=int,
++        default=DEFAULT_REPEATS,
++        help=f"timing batches; the MIN is reported (default {DEFAULT_REPEATS})",
++    )
++    parser.add_argument(
++        "--check-only",
++        action="store_true",
++        help="validate the setup only (no timing loops), then exit",
++    )
++    args = parser.parse_args(argv)
++    if args.number < 1 or args.repeats < 1:
++        print("ERROR: --number and --repeats must be >= 1", file=sys.stderr)
++        return 2
++
++    try:
++        ops = build_operations()
++        # Validate every operation's behaviour contract BEFORE timing any of
++        # them (the Operation.check lambdas re-assert per op).
++        _validate_setup()
++        for op in ops:
++            op.check()
++    except SetupError as exc:
++        print(f"FAIL: {exc}", file=sys.stderr)
++        return 2
++
++    if args.check_only:
++        print(f"OK: benchmark setup valid ({len(ops)} operations); not timed")
++        for op in ops:
++            print(f"  {op.name}: {op.what}")
++        return 0
++
++    # Warm each operation once so first-call lazy compilation (the classifier's
++    # _compiled() registry build) is not charged to the first timing batch.
++    for op in ops:
++        op.fn()
++
++    print(
++        "lore benchmarks (stdlib timeit; deterministic inputs; "
++        "per-call = min of <repeats> batches x <number> calls; "
++        "measured wall-clock, not thresholds)"
++    )
++    header = (
++        f"{'operation':<28} {'us/op':>10} {'ops/sec':>12} {'number':>8} {'repeats':>8}"
++    )
++    print(header)
++    for op in ops:
++        timer = timeit.Timer(op.fn)
++        best = min(timer.repeat(args.repeats, args.number)) / args.number
++        print(
++            f"{op.name:<28} {best * 1e6:>10.2f} {1 / best:>12.0f} "
++            f"{args.number:>8} {args.repeats:>8}"
++        )
++        print(f"    # {op.what}")
++    print(f"PASS: {len(ops)} operations measured")
++    return 0
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index 18eed13..6ac793b 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-320
++325
+diff --git a/skills/lore-usage/SKILL.md b/skills/lore-usage/SKILL.md
+index bb6adc5..ce486be 100644
+--- a/skills/lore-usage/SKILL.md
++++ b/skills/lore-usage/SKILL.md
+@@ -88,7 +88,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
+ ## Dev loop
+ 
+ ```sh
+-uv run pytest -q    # expect: 320 passed in <1s (count synced to scripts/test-count.txt, LORE-029)
++uv run pytest -q    # expect: 325 passed in <1s (count synced to scripts/test-count.txt, LORE-029)
+ uv run ruff check . # expect: All checks passed!
+ ```
+ 
+diff --git a/tests/test_bench.py b/tests/test_bench.py
+new file mode 100644
+index 0000000..f55439e
+--- /dev/null
++++ b/tests/test_bench.py
+@@ -0,0 +1,99 @@
++"""LORE-042: benchmark harness contract (scripts/bench.py).
++
++These tests pin the harness CONTRACT, never timing numbers: setup validation
++(exit 2 on broken behaviour), exit codes, and named-operation output shape.
++pytest never executes the timing loops (the benchmark is a scripts/ runner,
++not collected pytest work) except through subprocess with --check-only,
++which runs no timing loops at all.
++"""
++
++from __future__ import annotations
++
++import subprocess
++import sys
++from pathlib import Path
++
++REPO_ROOT = Path(__file__).resolve().parent.parent
++BENCH = REPO_ROOT / "scripts" / "bench.py"
++
++
++def _run_bench(*argv: str) -> subprocess.CompletedProcess[str]:
++    return subprocess.run(
++        [sys.executable, str(BENCH), *argv],
++        capture_output=True,
++        text=True,
++        timeout=120,
++        cwd=REPO_ROOT,
++        check=False,
++    )
++
++
++# ------------------------------------------------------------ setup contract
++def test_check_only_passes_on_current_tree():
++    proc = _run_bench("--check-only")
++    assert proc.returncode == 0, proc.stderr
++    assert "benchmark setup valid" in proc.stdout
++    # --check-only must not print measured numbers.
++    assert "us/op" not in proc.stdout
++
++
++def test_named_operations_listed_in_setup_validation():
++    proc = _run_bench("--check-only")
++    stdout = proc.stdout
++    # The representative hot paths the task names, each by name.
++    assert "classify_signature_hit" in stdout
++    assert "classify_keyword_hit" in stdout
++    assert "classify_full_miss_scan" in stdout
++    assert "compile_class_gateway" in stdout
++    assert "validate_read_only_gate" in stdout
++
++
++def test_usage_error_is_exit_2_not_a_traceback():
++    proc = _run_bench("--number", "0")
++    assert proc.returncode == 2
++    assert "--number and --repeats must be >= 1" in proc.stderr
++    assert "Traceback" not in (proc.stdout + proc.stderr)
++
++
++def test_broken_setup_fails_closed_before_timing():
++    """The benchmark must exit 2 when the measured code's contract breaks."""
++    # Prove the fail-closed path directly on the validation entry point:
++    # poison a fixture that must classify as gateway-drain-window and the
++    # setup validator must refuse to run (SetupError, no numbers printed).
++    script = (
++        f"import sys; sys.path.insert(0, {str(BENCH.parent)!r}); "
++        + "import bench; "
++        + "bench.SIGNATURE_HIT_TEXT = 'poisoned fixture that matches nothing'; "
++        + "sys.exit(bench.main(['--check-only']))"
++    )
++    proc = subprocess.run(
++        [sys.executable, "-c", script],
++        capture_output=True,
++        text=True,
++        timeout=60,
++        cwd=REPO_ROOT,
++        check=False,
++    )
++    assert proc.returncode == 2, (proc.stdout, proc.stderr)
++    assert "invalid benchmark setup" in proc.stderr
++    assert "us/op" not in proc.stdout
++
++
++# ----------------------------------------------------- deterministic inputs
++def test_benchmark_inputs_are_module_constants_not_random():
++    """Deterministic inputs: import and compare against the frozen literals."""
++    import importlib.util
++
++    spec = importlib.util.spec_from_file_location("lore_bench", BENCH)
++    assert spec and spec.loader
++    bench = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(bench)
++    assert bench.SIGNATURE_HIT_TEXT and isinstance(bench.SIGNATURE_HIT_TEXT, str)
++    assert bench.KEYWORD_HIT_TEXT and isinstance(bench.KEYWORD_HIT_TEXT, str)
++    assert bench.FULL_MISS_TEXT and isinstance(bench.FULL_MISS_TEXT, str)
++    assert bench.GATE_COMMAND and isinstance(bench.GATE_COMMAND, str)
++    # Same constants returned by build_operations() every call (deterministic).
++    ops1 = bench.build_operations()
++    ops2 = bench.build_operations()
++    assert [op.name for op in ops1] == [op.name for op in ops2]
++    assert [op.what for op in ops1] == [op.what for op in ops2]
