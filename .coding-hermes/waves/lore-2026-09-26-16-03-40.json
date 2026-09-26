@@ -1,0 +1,35 @@
+{
+  "tick_id": "lore-2026-09-26-16-03-40",
+  "project": "lore",
+  "base": "origin/main",
+  "base_sha": "b9dc3cb",
+  "wave_budget": 1,
+  "recovery": {
+    "recovered_tick": "lore-2026-09-26-13-17-42",
+    "action": "Re-gated preserved failed branches; no implementation diffs, no merges or fixups. Preserved evidence branches and confirmed missing worktrees. Recovery manifest closed before normal work."
+  },
+  "tasks": [
+    {
+      "id": "E2E-001",
+      "branch": "wt/E2E-001",
+      "worktree": "/home/kara/worktrees/lore-E2E-001",
+      "base_sha": "b9dc3cb",
+      "commit_sha": "202ae96",
+      "merge_sha": "80025ac",
+      "status": "merged",
+      "gates": "325 passed, ruff clean, format clean, diff check clean, GitReins full PASS",
+      "push_parity": 0,
+      "ci": "GREEN"
+    },
+    {
+      "id": "INFRA-LORE-043",
+      "branch": "wt/INFRA-LORE-043",
+      "worktree": "~/worktrees/lore-INFRA-LORE-043",
+      "base_sha": "ed29a1f",
+      "status": "failed",
+      "reason": "Worker timed out with no implementation; recovery branch was identical to main and gates were green only on unchanged base; preserved as evidence."
+    }
+  ],
+  "status": "complete",
+  "finished_at": "2026-09-26T16:42:11-05:00"
+}
