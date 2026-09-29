@@ -69,14 +69,22 @@ OUTCOME VOCABULARY (small and closed)::
              not drift (fill the runbook, then re-lint)
     timeout  ran past the bounded timeout — DRIFT
     unknown  the runner returned something unclassifiable — DRIFT
+    env-absent  the check ran and the process was NOT FOUND on this box
+             (exit 127, or the runner raised OSError/FileNotFoundError) —
+             the environment lacks the tool; NOT drift by itself
+             (REVIEW-LORE-003: exit 127 says nothing about whether the
+             runbook's expectation still holds)
 
 ``error``/``timeout``/``refused``/``unknown`` are DRIFT outcomes; any drift
 flips the runbook to ``stale`` (see ``apply_lint``). ``template`` is NOT
-drift: a runbook whose lint shows only ``ok``/``absent``/``template`` is
-NOT stale — its real checks were linted honestly and its unfilled slots
-are reported visibly rather than poisoning the whole class (a bare
-``<token>`` parses as shell input redirection and would shell-error every
-such check as a phantom ``error``).
+drift, and neither is ``env-absent``: a runbook whose lint shows only
+``ok``/``absent``/``template``/``env-absent`` is NOT stale — its real
+checks were linted honestly, its unfilled slots are reported visibly, and
+its not-found tools report the MACHINE, not rot. Real drift (the command
+exists and its output/exit differs from the curated expectation) still
+flips ``stale``; ``LintReport.stale_reason`` names only the drifted
+checks, so a report that mixes one drifted check with several env-absent
+checks still names the drifted one alone.
 
 --execute CONTRACT — it expects a FILLED runbook
 ------------------------------------------------
@@ -128,6 +136,7 @@ __all__ = [
     "COMMAND_TIMEOUT_SECONDS",
     "DRIFT_OUTCOMES",
     "HONESTY_LABEL",
+    "OUTCOME_ENV_ABSENT",
     "OUTCOME_TEMPLATE",
     "OUTCOME_VOCABULARY",
     "CheckResult",
@@ -156,6 +165,7 @@ OUTCOME_VOCABULARY = (
     "template",
     "timeout",
     "unknown",
+    "env-absent",
 )
 
 # Outcomes that constitute drift and flip a runbook to ``stale``.
@@ -163,6 +173,11 @@ DRIFT_OUTCOMES = ("error", "timeout", "refused", "unknown")
 
 # Outcome for "no sourced command" (the honest-absence sentinel).
 OUTCOME_ABSENT = "absent"
+
+# REVIEW-LORE-003: outcome for a check whose process was NOT FOUND on this
+# box (exit 127, or the runner raised OSError/FileNotFoundError). Honest
+# absence of the ENVIRONMENT, not drift of the runbook.
+OUTCOME_ENV_ABSENT = "env-absent"
 
 # Outcome for a check still carrying unfilled ``<placeholder>`` slots:
 # reported visibly, never executed, never drift (see module docstring).
@@ -216,6 +231,12 @@ def _default_runner(command: str) -> CommandResult:
             timed_out=True,
         )
     except OSError as exc:
+        if isinstance(exc, FileNotFoundError):
+            # REVIEW-LORE-003: the process itself was not found — same
+            # meaning as a shell exit 127, one classification upstream.
+            return CommandResult(
+                returncode=127, stdout="", stderr=f"runner error: {exc}"
+            )
         return CommandResult(
             returncode=None,
             stdout="",
@@ -659,12 +680,35 @@ def _utc_now() -> str:
     return datetime.now(UTC).isoformat(timespec="seconds")
 
 
+def _not_found_detail(result: object) -> str | None:
+    """REVIEW-LORE-003: did this result mean PROCESS NOT FOUND?
+
+    Exit 127 is the shell's ``command not found`` — the environment lacks
+    the binary. Also catches a runner that surfaces FileNotFoundError
+    directly (its stderr says so, returncode None). Everything else —
+    exit 128 git-level errors, real non-zero exits — is NOT claimed here:
+    exit 127 says nothing about the runbook's expectation, exit 128 might.
+    """
+    rc = getattr(result, "returncode", None)
+    if rc == 127:
+        return "command not found on this box (exit 127) — environment absent"
+    stderr = str(getattr(result, "stderr", "") or "")
+    if rc is None and (
+        isinstance(getattr(result, "stderr", None), Exception)
+        or "No such file or directory" in stderr
+    ):
+        return f"runner could not spawn the process: {stderr.strip()}"
+    return None
+
+
 def _classify(result: object) -> str:
     """Map a runner result onto the closed outcome vocabulary."""
     if result is None:
         return "unknown"
     if getattr(result, "timed_out", False):
         return "timeout"
+    if _not_found_detail(result) is not None:
+        return OUTCOME_ENV_ABSENT
     rc = getattr(result, "returncode", None)
     if isinstance(rc, bool) or not isinstance(rc, int):
         return "unknown"
@@ -721,7 +765,25 @@ class LintReport:
         return [r.order for r in self.results if r.outcome in DRIFT_OUTCOMES]
 
     @property
+    def env_absent_orders(self) -> list[int]:
+        """REVIEW-LORE-003: checks whose process was NOT FOUND on this box.
+
+        Reported separately from drift so callers can render the honest
+        split: these checks say nothing about whether the runbook's
+        expectation still holds — the environment lacks the tool.
+        """
+        return [r.order for r in self.results if r.outcome == OUTCOME_ENV_ABSENT]
+
+    @property
     def stale_reason(self) -> str | None:
+        """Why this runbook went stale — DRIFTED checks only.
+
+        Env-absent checks are deliberately NOT named here (and never flip
+        stale): a report consisting only of ``env-absent`` returns None.
+        When drift exists, the reason names the drifted checks; the
+        env-absent ones stay visible as their own outcome on each
+        ``CheckResult`` / ``env_absent_orders``.
+        """
         drift = [
             (r.order, r.outcome) for r in self.results if r.outcome in DRIFT_OUTCOMES
         ]
@@ -737,6 +799,7 @@ class LintReport:
             "honesty_label": self.honesty_label,
             "created_at": self.created_at,
             "drifted_orders": self.drifted_orders,
+            "env_absent_orders": self.env_absent_orders,
             "stale_reason": self.stale_reason,
         }
 
@@ -828,9 +891,12 @@ def apply_lint(report: LintReport, runbook: Runbook) -> Runbook:
     Returns a NEW frozen Runbook (``dataclasses.replace`` — never mutate).
     The runbook flips to ``STATUS_STALE`` when the report shows ANY drift
     (``error``/``timeout``/``refused``/``unknown``). A report with nothing
-    but ``ok``/``absent``/``template`` outcomes does NOT flip the runbook —
-    honest absence and unfilled ``<placeholder>`` slots are not rot
-    (template checks are reported visibly; fill them and re-lint).
+    but ``ok``/``absent``/``template``/``env-absent`` outcomes does NOT
+    flip the runbook — honest absence, unfilled ``<placeholder>`` slots,
+    and not-found tools (REVIEW-LORE-003: exit 127 / FileNotFoundError =
+    the environment lacks the command, not runbook rot) are not drift.
+    Real drift — the command exists and its output/exit differs from the
+    curated expectation — still flips ``stale``.
 
     Honesty laws: this NEVER sets ``last_validated`` (a lint run is not
     operator attestation) and NEVER moves status to ``validated`` — only a
