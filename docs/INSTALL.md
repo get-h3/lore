@@ -182,6 +182,59 @@ That is not a failure — absence is a first-class answer here. An unknown
 symptom says `unclassified` loudly; inventing classes without approval is not
 allowed.
 
+#### `--explain` — echo the near-misses
+
+Add `--explain` and the classifier prints a `near-misses:` section after the
+candidates — the top-3 below-threshold classes with their raw keyword scores.
+Evidence only, never a label:
+
+```sh
+uv run python -m lore match "gateway drain 503" --explain
+```
+
+```
+gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain; keyword:gateway
+unclassified	confidence=0.00	evidence: none
+near-misses:
+  guard-degradation  score=0.17  (1/6 keywords: gate)
+```
+
+Use it when a symptom returns `unclassified`: the near-misses show which
+curated class was nearly named and which of its keywords fired, so you can
+phrase the symptom the registry's way.
+
+### `consult` — tick-start runbook refs (fail-open)
+
+`lore consult` classifies a task title (positional; `--detail` is classified
+together with the title) and prints the matching runbook **refs** — class id,
+status, check count — never the payload. Exit 0 even on no match (fail-open),
+so a tick-start pipeline can call it unconditionally:
+
+```sh
+uv run python -m lore consult "gateway drain 503" --json
+```
+
+```json
+{
+  "matched": true,
+  "matched_classes": ["gateway-drain-window"],
+  "runbook_refs": [
+    {
+      "class_id": "gateway-drain-window",
+      "name": "Gateway drain window",
+      "status": "proposal",
+      "last_validated": null,
+      "check_count": 7
+    }
+  ],
+  "elapsed_ms": 4.2
+}
+```
+
+No match prints `"matched": false` (or the text equivalent) and exits 0.
+The other mode, `lore consult --failure "<guard output>"`, is documented in
+the README ("Guard-failure suggestions").
+
 ### `compile` — emit the runbook proposal
 
 ```sh

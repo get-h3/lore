@@ -76,6 +76,26 @@ doctrine**: an unknown symptom says `unclassified` loudly rather than
 pretending to recognize it. Inventing classes without approval is not allowed;
 absorbing into `unclassified` always is.
 
+### Near-misses (evidence echo)
+
+Add `--explain` to a match and the classifier echoes the top-3 below-threshold
+candidates with their raw keyword scores — evidence only, never a label:
+
+```sh
+uv run python -m lore match "gateway drain 503" --explain
+```
+
+```
+gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain; keyword:gateway
+unclassified	confidence=0.00	evidence: none
+near-misses:
+  guard-degradation  score=0.17  (1/6 keywords: gate)
+```
+
+If a symptom gets `unclassified`, the near-misses section shows which curated
+class was *nearly* named and what its keywords are, so you can phrase the
+symptom the registry's way. Nothing is auto-labeled — the registry stays closed.
+
 Now compile the runbook for the class you just matched:
 
 ```sh
@@ -206,12 +226,54 @@ a provenance marker instead of a separate flow:
 2. On close, the decision goes through the gate like any incident closure:
    `lore gate --decision absorb --class <id> --lesson "<text>" --source dogfood-dagger`
    (or `--decision no-new-lesson --reason "..."` when nothing was learned).
+   Two provenance flags are available: `--ref <board-row-or-incident-id>`
+   carries the row/incident id the decision closes, and `--decided-at
+   <ISO-8601>` records when it was decided — never invented when omitted.
+   Example: `lore gate --decision no-new-lesson --reason "covered by v0.1 docs"
+   --ref QA-LORE-2`.
    With `--source`, the verdict line carries it: `GATE: ALLOW (absorb -> <id>)
    source: qa-dagger`. Omitted, the output is byte-identical to the original
    gate — default behavior is unchanged.
 3. The registry stays closed either way: an unknown class is still denied,
    and nothing is ever written by the gate itself (propose-not-write holds
    for QA/dogfood exactly as it holds for incidents).
+
+## Tick-start consult (title mode)
+
+Besides the guard-failure mode above, `lore consult` takes a task title (and
+optionally a `--detail`) and returns the matching runbook refs for tick-start
+context — the same pattern the fleet's dispatch flow uses. Fail-open: no match
+is an empty result and **exit 0**, never an error.
+
+```sh
+uv run python -m lore consult "gateway drain 503" --json
+```
+
+Real output:
+
+```json
+{
+  "matched": true,
+  "matched_classes": ["gateway-drain-window"],
+  "runbook_refs": [
+    {
+      "class_id": "gateway-drain-window",
+      "name": "Gateway drain window",
+      "status": "proposal",
+      "last_validated": null,
+      "check_count": 7
+    }
+  ],
+  "elapsed_ms": 4.2
+}
+```
+
+- The title (and `--detail`, classified together with it) is matched against
+  the failure-class registry; `runbook_refs` carries lightweight refs only —
+  never the runbook payload.
+- `--json` prints the ConsultResult as JSON (shown above); default is text.
+- No match → `"matched": false`, no refs, exit 0. A pipeline can call this
+  unconditionally.
 
 ## Guard-failure suggestions (LORE-009)
 
