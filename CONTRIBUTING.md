@@ -36,6 +36,32 @@ uv run scripts/check-test-count.sh  # test-count sync guard
 misconfigured). If it reports drift, do not edit the canonical count to match
 your change; say so in your PR so the count is updated deliberately.
 
+`scripts/count_sweep.py` is the sweep engine behind that guard. It scans the
+living Markdown for stale count literals in two families:
+
+- **test counts** (`"<N> passed"` / `"<N> tests"`) against
+  `scripts/test-count.txt`
+- **class counts** (`"<N> failure classes"` / `"<N> curated classes"`) against
+  a count **derived** from `len(SEED_CLASSES)` in `lore/classes.py` — the
+  class count is never a second hand-maintained literal
+
+It runs as part of `scripts/check-test-count.sh` (which passes the canonical
+test count). Its exit contract is the same shape as the shell guard:
+0 = clean, 1 = drift detected (one `path:line: text` line per hit printed to
+stdout), 2 = misconfigured (the canonical file is missing/non-numeric or
+`lore/classes.py` cannot be loaded).
+
+Dated records (CHANGELOG, `docs/dogfood/`, `docs/acceptance/`, git-reins and
+board logs) are allowlisted — a number there was true when written and is
+never flagged.
+
+```sh
+python scripts/count_sweep.py <canonical-test-count> [repo-root]
+# Exit 0: clean
+# Exit 1: drift detected (file:line printed)
+# Exit 2: misconfigured (canonical file missing or non-numeric)
+```
+
 ## Benchmarks
 
 `scripts/bench.py` measures the core hot paths offline with stdlib `timeit`
