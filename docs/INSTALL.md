@@ -51,14 +51,14 @@ Real output on the current tree:
 ........................................................................ [ 55%]
 ........................................................................ [ 83%]
 ...........................................                              [100%]
-340 passed
+348 passed
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **340 tests** (20 test files: taxonomy, classifier,
+The count to expect is **348 tests** (20 test files: taxonomy, classifier,
 compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
 your run says something else, you are on a different revision — check
 `git log` before trusting this document.
@@ -100,7 +100,9 @@ positional arguments:
                         --execute to run the gate-approved read-only commands
     gate                closure absorb-gate (LORE-008): machine-check a lesson
                         decision (absorb or no-new-lesson ack); exit 0 =
-                        allowed, 1 = denied
+                        allowed, 1 = denied; opt-in --record PATH appends one
+                        JSONL audit record per ALLOWED verdict (denials never
+                        write)
     absorb              build the runbook-update PROPOSAL for an absorb
                         decision (stdout only — propose-not-write, nothing is
                         written)
@@ -335,7 +337,10 @@ parse_logsey_export` — a header line plus a fenced block of log lines), then:
    marker (omitted, the payloads keep their shape with no `source` key);
 3. an empty trail is an explicit empty result — exit 0, not an error; and
 4. **propose-not-write**: nothing is ever written, stdout is the only side
-   effect.
+   effect — with one explicit, documented exception: `lore gate --record
+   PATH` (opt-in) APPENDS one JSONL audit record per ALLOWED verdict so a
+   closure approval can be audited later. Without that flag, and for every
+   DENY, the gate writes nothing anywhere.
 
 ````sh
 printf 'logsey export --window 2h\n```\n2026-09-24T10:00:00 unit=loreforge gateway drain 503 while restart\n```\n' \

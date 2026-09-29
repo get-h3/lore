@@ -140,7 +140,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 340 passed
+uv run pytest -q        # 348 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -231,9 +231,16 @@ a provenance marker instead of a separate flow:
    <ISO-8601>` records when it was decided — never invented when omitted.
    Example: `lore gate --decision no-new-lesson --reason "covered by v0.1 docs"
    --ref QA-LORE-2`.
-   With `--source`, the verdict line carries it: `GATE: ALLOW (absorb -> <id>)
-   source: qa-dagger`. Omitted, the output is byte-identical to the original
+   With `--source`, the verdict line carries it: `GATE: ALLOW (absorb -> <id>)`
+   `source: qa-dagger`. Omitted, the output is byte-identical to the original
    gate — default behavior is unchanged.
+   With the opt-in `--record PATH` (REVIEW-LORE-001), an ALLOWED verdict also
+   APPENDS one JSONL audit record to PATH so the approval can be audited
+   later (`decided_at`, `decision`, `class_id`, `lesson`, `reason`,
+   `ack_ref`, `source`, `allowed`, `errors`, `tool_version` — grep-stable,
+   one JSON object per line, appended per invocation). Without `--record`
+   the gate still writes nothing anywhere. A DENY never writes, even with
+   `--record` (it prints its errors and exits 1).
 3. The registry stays closed either way: an unknown class is still denied,
    and nothing is ever written by the gate itself (propose-not-write holds
    for QA/dogfood exactly as it holds for incidents).
@@ -322,7 +329,7 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **340 tests passing** and a clean `ruff check`.
+  with **348 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published
