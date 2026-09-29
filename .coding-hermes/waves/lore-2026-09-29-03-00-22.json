@@ -1,0 +1,41 @@
+{
+  "tick_id": "lore-2026-09-29-03-00-22",
+  "project": "lore",
+  "workdir": "/home/kara/lore",
+  "tasks": [
+    {
+      "id": "DOC-1",
+      "title": "match --explain (near-misses echo) undocumented in README/INSTALL",
+      "worktree": "/home/kara/worktrees/lore-DOC-1",
+      "branch": "wt/DOC-1",
+      "worker_model": "glm-5.3-flash",
+      "worker_provider": "ollama-cloud"
+    },
+    {
+      "id": "DOC-2",
+      "title": "consult title/detail mode undocumented",
+      "worktree": "/home/kara/worktrees/lore-DOC-2",
+      "branch": "wt/DOC-2",
+      "worker_model": "glm-5.3-flash",
+      "worker_provider": "ollama-cloud"
+    },
+    {
+      "id": "DOC-3",
+      "title": "gate flags --decided-at and --ref undocumented",
+      "worktree": "/home/kara/worktrees/lore-DOC-3",
+      "branch": "wt/DOC-3",
+      "worker_model": "glm-5.3-flash",
+      "worker_provider": "ollama-cloud"
+    },
+    {
+      "id": "DOC-4",
+      "title": "scripts/count_sweep.py undocumented in CONTRIBUTING",
+      "worktree": "/home/kara/worktrees/lore-DOC-4",
+      "branch": "wt/DOC-4",
+      "worker_model": "glm-5.3-flash",
+      "worker_provider": "ollama-cloud"
+    }
+  ],
+  "dispatched_at": "2026-09-29T03:00:22-05:00",
+  "status": "dispatching"
+}

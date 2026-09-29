@@ -1,0 +1,163 @@
+commit e4528312fa85503f3cb8a25b32ce35f961b9dc10
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Mon Sep 28 22:14:54 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Mon Sep 28 22:14:54 2026 -0500
+
+    docs: document match --explain, consult title mode, and gate --ref/--decided-at flags. Addresses DOC-1, DOC-2, DOC-3.
+---
+ README.md       | 62 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ docs/INSTALL.md | 53 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 115 insertions(+)
+
+diff --git a/README.md b/README.md
+index eec95b9..9b0dfa7 100644
+--- a/README.md
++++ b/README.md
+@@ -76,6 +76,26 @@ doctrine**: an unknown symptom says `unclassified` loudly rather than
+ pretending to recognize it. Inventing classes without approval is not allowed;
+ absorbing into `unclassified` always is.
+ 
++### Near-misses (evidence echo)
++
++Add `--explain` to a match and the classifier echoes the top-3 below-threshold
++candidates with their raw keyword scores — evidence only, never a label:
++
++```sh
++uv run python -m lore match "gateway drain 503" --explain
++```
++
++```
++gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain; keyword:gateway
++unclassified	confidence=0.00	evidence: none
++near-misses:
++  guard-degradation  score=0.17  (1/6 keywords: gate)
++```
++
++If a symptom gets `unclassified`, the near-misses section shows which curated
++class was *nearly* named and what its keywords are, so you can phrase the
++symptom the registry's way. Nothing is auto-labeled — the registry stays closed.
++
+ Now compile the runbook for the class you just matched:
+ 
+ ```sh
+@@ -206,6 +226,11 @@ a provenance marker instead of a separate flow:
+ 2. On close, the decision goes through the gate like any incident closure:
+    `lore gate --decision absorb --class <id> --lesson "<text>" --source dogfood-dagger`
+    (or `--decision no-new-lesson --reason "..."` when nothing was learned).
++   Two provenance flags are available: `--ref <board-row-or-incident-id>`
++   carries the row/incident id the decision closes, and `--decided-at
++   <ISO-8601>` records when it was decided — never invented when omitted.
++   Example: `lore gate --decision no-new-lesson --reason "covered by v0.1 docs"
++   --ref QA-LORE-2`.
+    With `--source`, the verdict line carries it: `GATE: ALLOW (absorb -> <id>)
+    source: qa-dagger`. Omitted, the output is byte-identical to the original
+    gate — default behavior is unchanged.
+@@ -213,6 +238,43 @@ a provenance marker instead of a separate flow:
+    and nothing is ever written by the gate itself (propose-not-write holds
+    for QA/dogfood exactly as it holds for incidents).
+ 
++## Tick-start consult (title mode)
++
++Besides the guard-failure mode above, `lore consult` takes a task title (and
++optionally a `--detail`) and returns the matching runbook refs for tick-start
++context — the same pattern the fleet's dispatch flow uses. Fail-open: no match
++is an empty result and **exit 0**, never an error.
++
++```sh
++uv run python -m lore consult "gateway drain 503" --json
++```
++
++Real output:
++
++```json
++{
++  "matched": true,
++  "matched_classes": ["gateway-drain-window"],
++  "runbook_refs": [
++    {
++      "class_id": "gateway-drain-window",
++      "name": "Gateway drain window",
++      "status": "proposal",
++      "last_validated": null,
++      "check_count": 7
++    }
++  ],
++  "elapsed_ms": 4.2
++}
++```
++
++- The title (and `--detail`, classified together with it) is matched against
++  the failure-class registry; `runbook_refs` carries lightweight refs only —
++  never the runbook payload.
++- `--json` prints the ConsultResult as JSON (shown above); default is text.
++- No match → `"matched": false`, no refs, exit 0. A pipeline can call this
++  unconditionally.
++
+ ## Guard-failure suggestions (LORE-009)
+ 
+ When a gitreins guard fails, its output can be queried for a matching
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 518b9eb..967ad00 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -182,6 +182,59 @@ That is not a failure — absence is a first-class answer here. An unknown
+ symptom says `unclassified` loudly; inventing classes without approval is not
+ allowed.
+ 
++#### `--explain` — echo the near-misses
++
++Add `--explain` and the classifier prints a `near-misses:` section after the
++candidates — the top-3 below-threshold classes with their raw keyword scores.
++Evidence only, never a label:
++
++```sh
++uv run python -m lore match "gateway drain 503" --explain
++```
++
++```
++gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain; keyword:gateway
++unclassified	confidence=0.00	evidence: none
++near-misses:
++  guard-degradation  score=0.17  (1/6 keywords: gate)
++```
++
++Use it when a symptom returns `unclassified`: the near-misses show which
++curated class was nearly named and which of its keywords fired, so you can
++phrase the symptom the registry's way.
++
++### `consult` — tick-start runbook refs (fail-open)
++
++`lore consult` classifies a task title (positional; `--detail` is classified
++together with the title) and prints the matching runbook **refs** — class id,
++status, check count — never the payload. Exit 0 even on no match (fail-open),
++so a tick-start pipeline can call it unconditionally:
++
++```sh
++uv run python -m lore consult "gateway drain 503" --json
++```
++
++```json
++{
++  "matched": true,
++  "matched_classes": ["gateway-drain-window"],
++  "runbook_refs": [
++    {
++      "class_id": "gateway-drain-window",
++      "name": "Gateway drain window",
++      "status": "proposal",
++      "last_validated": null,
++      "check_count": 7
++    }
++  ],
++  "elapsed_ms": 4.2
++}
++```
++
++No match prints `"matched": false` (or the text equivalent) and exits 0.
++The other mode, `lore consult --failure "<guard output>"`, is documented in
++the README ("Guard-failure suggestions").
++
+ ### `compile` — emit the runbook proposal
+ 
+ ```sh
