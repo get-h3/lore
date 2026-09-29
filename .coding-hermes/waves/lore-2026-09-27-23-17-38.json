@@ -1,0 +1,27 @@
+{
+  "tick": "lore-2026-09-27-23-17-38",
+  "project": "lore",
+  "created_at": "2026-09-27T23:33:30Z",
+  "wave_budget": 1,
+  "mode": "serial-fallback",
+  "workers": [
+    {
+      "task_id": "DOC-1",
+      "worktree": "~/worktrees/lore-DOC-1-2",
+      "branch": "wt/DOC-1-2",
+      "base": "origin/main",
+      "base_sha": "4058907",
+      "model": "glm-5.3-flash",
+      "provider": "ollama-cloud",
+      "status": "merged-via-foreman-direct (DOC-1 complete on board; wave closed by recovery tick lore-2026-09-29-10-40-01)"
+    }
+  ],
+  "outcomes": [
+    {
+      "task_id": "DOC-1",
+      "status": "complete",
+      "note": "DOC-1..DOC-4 landed in commits e452831 + 6e43a29 (see f3a8951 board close); branch wt/DOC-1-2 zero unique commits, cleaned"
+    }
+  ],
+  "finished_at": "2026-09-29T10:45:00-05:00"
+}
