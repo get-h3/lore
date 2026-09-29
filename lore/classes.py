@@ -48,6 +48,13 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
             r"drain\s+503",
             r"gateway\s+(restart|reload|drain)",
             r"in[- ]flight\s+requests?\s+(finish|drain|503)",
+            # REVIEW-LORE-002: natural drain-window phrasings measured
+            # returning unclassified with score 0.00. Token-exact: each
+            # anchors on a 503/drain co-occurrence, never a bare "503" (a
+            # bare 503 alone stays unclassified / belongs to no class).
+            r"503s?\s+(errors?\s+)?during\s+(the\s+)?drain",
+            r"503s?\s+while\s+draining",
+            r"drain[- ]?window\s+503s?",
         ),
         keywords=("503", "drain", "gateway", "restart", "reload", "drain window"),
         provenance=SEED_PROVENANCE
@@ -114,6 +121,11 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
             r"(?:\.env(?:\.example)?|(?<!\.)env)\s+(?:twins?|clobber|overwrite)",
             r"clobber(ed|ing)?\s+(by\s+)?(the\s+)?(example|\.env)",
             r"container[- ]env\s+repair",
+            # REVIEW-LORE-002: "env file got clobbered" measured returning
+            # unclassified with score 0.00. Requires BOTH the env object and
+            # a clobber verb so a bare "env file" never fires this class;
+            # matched_signature stays token-exact ("env file ... clobbered").
+            r"(?<!\.)env\s+files?\s+(got\s+|was\s+|were\s+)?clobbered",
         ),
         keywords=(
             ".env",
