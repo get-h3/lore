@@ -51,14 +51,14 @@ Real output on the current tree:
 ........................................................................ [ 55%]
 ........................................................................ [ 83%]
 ...........................................                              [100%]
-325 passed
+332 passed
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **325 tests** (19 test files: taxonomy, classifier,
+The count to expect is **332 tests** (20 test files: taxonomy, classifier,
 compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
 your run says something else, you are on a different revision — check
 `git log` before trusting this document.
@@ -132,10 +132,16 @@ reporting the machine, not runbook rot.
 
 Reading the outcome classes when diagnosing:
 
-- exit 127 — the command is not on this box (environment)
+- `env-absent` — the command is not on this box (exit 127, or the runner
+  could not spawn it). The environment lacks the tool; this does NOT flip
+  the runbook to `stale` — `stale_reason` names only genuinely drifted
+  checks, so a logsey-less box reports the missing tool without marking
+  every runbook rotten.
 - exit 128 — not a git repository, or another git-level environment error
+  (still counted as drift `error`)
 - shell syntax errors naming a `<token>` — template placeholders not yet filled
-- everything else — genuine output drift worth investigating
+- everything else — genuine output drift worth investigating (the runbook
+  flips to `stale`)
 
 ### `match` — classify a symptom
 

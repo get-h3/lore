@@ -140,7 +140,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 325 passed
+uv run pytest -q        # 332 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -322,7 +322,7 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **325 tests passing** and a clean `ruff check`.
+  with **332 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published
@@ -338,7 +338,11 @@ and what does not:
   mode** — it lists what *would* run and executes nothing; `--execute` opts in.
   The report carries a machine-checkable honesty label: the lint proves commands
   *parse and answer*, **not** that recovery *succeeds*. No schedule is installed
-  yet (a separate task owns the weekly timer).
+  yet (a separate task owns the weekly timer). An executed check whose process
+  is not found on the box (exit 127 / `FileNotFoundError`) reports the distinct
+  `env-absent` outcome and does not flip the runbook to `stale` — only real
+  drift (the command exists but its output/exit differs) does; `stale_reason`
+  names the drifted checks only.
 - `lore show <class> [--evidence] [--format json|md]` — prints the compiled
   runbook for one class (human-markdown default); `--evidence` adds the class's
   provenance line plus its evidence trail. Unknown class exits 2 (the registry
