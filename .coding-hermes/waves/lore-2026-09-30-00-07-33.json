@@ -1,0 +1,44 @@
+{
+  "tick": "lore-2026-09-30-00-07-33",
+  "project": "lore",
+  "created_at": "2026-09-30T00:40:00-05:00",
+  "wave_budget": 2,
+  "mode": "wave",
+  "recovery": {
+    "note": "Recovered prior waves FIRST this tick: lore-2026-09-29-03-00-22 (0 workers, manifest closed) and lore-2026-09-29-10-40-01 (4 tasks: REVIEW-LORE-001 d0f0266 + README-1 5d5988e rebased and merged by this tick; REVIEW-LORE-002 7788c7d + REVIEW-LORE-003 0585393 had landed earlier; all rows closed, gitreins verdicts PASS, worktrees reaped, manifests finished_at set).",
+    "leftover_branches": "Merged wt/* branches preserved as evidence per fleet convention."
+  },
+  "workers": [
+    {
+      "task_id": "INFRA-LORE-043",
+      "worktree": "/home/kara/worktrees/lore-INFRA-LORE-043",
+      "branch": "wt/INFRA-LORE-043",
+      "base": "origin/main",
+      "base_sha": "fc8bf07",
+      "files": "pyproject.toml, scripts/audit-deps.sh",
+      "title": "Project-scoped pip-audit in dev extras + audit-deps.sh (retry; prior worker timed out with zero commits)"
+    },
+    {
+      "task_id": "RELEASE-LORE-004",
+      "worktree": "/home/kara/worktrees/lore-RELEASE-LORE-004",
+      "branch": "wt/RELEASE-LORE-004",
+      "base": "origin/main",
+      "base_sha": "fc8bf07",
+      "files": "scripts/release.sh, docs/RELEASE.md, .github/workflows/release-check.yml",
+      "title": "Release tooling + docs + tag-gated version-parity CI (machinery only; NO cut authorized)"
+    }
+  ],
+  "independence_check": "INFRA-LORE-043 writes pyproject.toml [dev] extras + new scripts/audit-deps.sh only. RELEASE-LORE-004 writes new scripts/release.sh + new docs/RELEASE.md + new .github/workflows/release-check.yml only; its brief explicitly forbids touching pyproject.toml, ci.yml, README.md, CONTRIBUTING.md, docs/INSTALL.md, CHANGELOG.md, scripts/test-count.txt, and lore/ sources. Writer sets are fully disjoint; no shared file, so no merge-time conflict expected. Board rows have no depends_on edges (verified from tasks.jsonl).",
+  "excluded": {
+    "RELEASE-LORE-001": "P1 but needs owner release-cut authorization (no RELEASE-cut row exists); README-2 and RELEASE-LORE-003 legs gated on it",
+    "RELEASE-LORE-002": "P1 owner decision: PyPI distribution name 'lore' is squatted (instacart/lore, verified live this tick); naming is Bane's call, not dispatchable",
+    "RELEASE-LORE-003": "Remediation plan; depends on RELEASE-LORE-001/002 decisions",
+    "README-2": "Explicitly gated on the release cut (verify README version claim when the tag is cut)",
+    "QA-LORE-2": "Documentation/evidence row for the PyPI squat; superseded-as-action by RELEASE-LORE-002 owner decision; close-out needs the naming decision",
+    "QA-LORE-3": "QA-harness cell finding (vacuous chaos-disconnect green); belongs to the lore-qa lane battery, not this foreman's code surface"
+  },
+  "merge_order": [
+    "INFRA-LORE-043",
+    "RELEASE-LORE-004"
+  ]
+}
