@@ -140,7 +140,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 348 passed
+uv run pytest -q        # 349 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -314,12 +314,14 @@ truth. Same spine: evidence-first, honesty-labeled, pocket-scale.
 
 | Tool | The question it answers |
 |---|---|
-| [logsey](https://github.com/get-h3/logsey) | What happened on this box? |
-| [pulse](https://github.com/get-h3/pulse) | What was the machine doing when it failed? |
+| logsey *(private)* | What happened on this box? |
+| pulse *(private)* | What was the machine doing when it failed? |
 | [lore](https://github.com/get-h3/lore) | How did we fix this last time — and does it still work? |
-| [digest](https://github.com/get-h3/digest) | What needs me today? |
+| digest *(private)* | What needs me today? |
 
 Standalone tools; pairs compound — pulse joins logsey, digest cites everything.
+(logsey, pulse, and digest are private / not yet public — no repository links
+until they are.)
 
 ## Status
 
@@ -329,7 +331,7 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **348 tests passing** and a clean `ruff check`.
+  with **349 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published
