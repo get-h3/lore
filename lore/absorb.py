@@ -27,8 +27,9 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 
+import lore
 from lore.classes import get_registry
 from lore.classifier import classify
 from lore.compiler import propose
@@ -43,6 +44,7 @@ __all__ = [
     "absorb_sweep",
     "gate_close",
     "validate_close_decision",
+    "verdict_record",
 ]
 
 DECISION_ABSORB = "absorb"
@@ -125,6 +127,36 @@ def validate_close_decision(d: AbsorbDecision) -> GateVerdict:
 def gate_close(d: AbsorbDecision) -> GateVerdict:
     """Run the gate. Side effects: NONE (propose-not-write holds)."""
     return validate_close_decision(d)
+
+
+def verdict_record(
+    v: GateVerdict,
+    *,
+    decided_at: str | None = None,
+    tool_version: str = lore.__version__,
+) -> dict:
+    """Build one durable, grep-stable audit record (REVIEW-LORE-001).
+
+    Pure data — nothing is written here; the CALLER (the CLI, only under the
+    explicit opt-in ``--record PATH`` flag) appends it as one JSONL line.
+    ``decided_at`` is the operator's ``--decided-at`` when given, otherwise
+    the current UTC time stamped at record-build time (a durable audit
+    record must be able to answer "when"; the CLI's printed verdict itself
+    never invents timestamps).
+    """
+    d = v.decision
+    return {
+        "decided_at": decided_at or datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "decision": d.decision if d else None,
+        "class_id": d.class_id if d else None,
+        "lesson": d.lesson if d else "",
+        "reason": d.reason if d else "",
+        "ack_ref": d.ack_ref if d else None,
+        "source": d.source if d else None,
+        "allowed": v.allowed,
+        "errors": list(v.errors),
+        "tool_version": tool_version,
+    }
 
 
 def absorb_proposal(class_id: str, lesson: str, source: str | None = None) -> dict:

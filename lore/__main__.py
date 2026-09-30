@@ -33,6 +33,7 @@ from lore.absorb import (
     absorb_sweep,
     gate_close,
     parse_duration,
+    verdict_record,
 )
 from lore.classifier import classify_all, near_misses
 from lore.compiler import NO_VALID_EVIDENCE, compile_all, compile_class
@@ -224,7 +225,15 @@ def _cmd_validate(args: argparse.Namespace) -> int:
 def _cmd_gate(args: argparse.Namespace) -> int:
     """LORE-008: machine-checked closure gate. Prints the verdict + errors.
 
-    Exit 0 when allowed, 1 when denied. The gate NEVER writes anything.
+    Exit 0 when allowed, 1 when denied. The gate NEVER writes anything —
+    EXCEPT under the explicit opt-in ``--record PATH`` (REVIEW-LORE-001):
+    then one JSONL audit record is APPENDED, and only for an ALLOWED
+    verdict. A denied gate still writes nothing (denials are not recorded
+    unless that is asked for later as a separate capability).
+
+    Record shape (grep-stable, one JSON object per line): decided_at,
+    decision, class_id, lesson, reason, ack_ref, source, allowed, errors[],
+    tool_version.
     """
     d = AbsorbDecision(
         decision=args.decision,
@@ -239,6 +248,11 @@ def _cmd_gate(args: argparse.Namespace) -> int:
     print(verdict.summary())
     for err in verdict.errors:
         print(f"error: {err}")
+    record_path = getattr(args, "record", None)
+    if record_path and verdict.allowed:
+        rec = verdict_record(verdict, decided_at=args.decided_at)
+        with open(record_path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(rec, sort_keys=True) + "\n")
     return 0 if verdict.allowed else 1
 
 
@@ -603,6 +617,18 @@ def build_parser() -> argparse.ArgumentParser:
         "--reason", default="", help="why no new lesson (no-new-lesson)"
     )
     gate_p.add_argument("--ref", default=None, help="board row / incident id")
+    gate_p.add_argument(
+        "--record",
+        default=None,
+        metavar="PATH",
+        help=(
+            "REVIEW-LORE-001 OPT-IN: append one durable JSONL audit record "
+            "to PATH for an ALLOWED verdict (decided_at, decision, "
+            "class_id, lesson, reason, ack_ref, source, allowed, errors, "
+            "tool_version). Denials NEVER write, even with --record. "
+            "Without this flag the gate writes nothing anywhere."
+        ),
+    )
     gate_p.add_argument(
         "--decided-at",
         dest="decided_at",
