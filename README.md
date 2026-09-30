@@ -140,7 +140,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 349 passed
+uv run pytest -q        # 353 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -152,6 +152,14 @@ Zero runtime dependencies, so installation is instant:
 uv tool install git+https://github.com/get-h3/lore
 lore match "key rotation expired"
 ```
+
+> **Never `pip install lore`.** That distribution name on PyPI belongs to an
+> unrelated third-party package (instacart/lore) — this project is **not**
+> published there, and never will be under the bare name. The PyPI
+> *distribution* name reserved for us is `get-h3-lore`, but publishing is not
+> enabled: install from source (`uv sync`) or via `uv tool install` from the
+> git URL above. The import package (`import lore`) and the console command
+> (`lore ...`) stay exactly as they are.
 
 ```
 key-rotation-expiry	confidence=0.90	evidence: signature:rotation expired; keyword:expired; keyword:rotation
@@ -331,7 +339,7 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **349 tests passing** and a clean `ruff check`.
+  with **353 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published

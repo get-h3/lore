@@ -35,6 +35,13 @@ uv sync --extra dev
 
 pip-only alternative: `python3 -m venv .venv && .venv/bin/pip install -e .[dev]`.
 
+> **Never `pip install lore`.** The bare `lore` name on PyPI is an unrelated
+> foreign package (instacart/lore) — this project is not published there under
+> that name, and must never be installed from PyPI as `lore`. Our PyPI
+> *distribution* name is `get-h3-lore`, but we do not publish to PyPI: this is a
+> source-only install. Installing from source (as above) is the only supported
+> path; `import lore` and the `lore` command are unaffected by the naming.
+
 ## Verify the install
 
 Run the test suite and the linter — the same gates every change to this repo passes:
@@ -51,14 +58,14 @@ Real output on the current tree:
 ........................................................................ [ 55%]
 ........................................................................ [ 83%]
 ...........................................                              [100%]
-349 passed
+353 passed
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **349 tests** (21 test files: taxonomy, classifier,
+The count to expect is **353 tests** (24 test files: taxonomy, classifier,
 compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
 your run says something else, you are on a different revision — check
 `git log` before trusting this document.
@@ -319,6 +326,12 @@ exit=2
 uv tool install git+https://github.com/get-h3/lore
 lore match "key rotation expired"
 ```
+
+> **Never `pip install lore`.** The bare `lore` name on PyPI belongs to an
+> unrelated foreign package (instacart/lore). This project is not on PyPI under
+> that name; its distribution name is `get-h3-lore`, and we do not publish to
+> PyPI — source installs and `uv tool install` from the git URL are the only
+> supported paths.
 
 ```
 key-rotation-expiry	confidence=0.90	evidence: signature:rotation expired; keyword:expired; keyword:rotation

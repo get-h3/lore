@@ -6,6 +6,11 @@ How to cut a release. **Nobody cuts without a board-authorized RELEASE-cut row.*
 
 Releases are annotated git tags named `vX.Y.Z` (e.g. `v0.1.2`). The tag is always
 derived from the version stamp — never invented by hand. Existing tags: `v0.1.0`.
+Release artifacts are git tags only. The PyPI distribution name for this project
+is `get-h3-lore`, and PyPI publishing is NOT enabled: releases never go to PyPI.
+The bare name `lore` on PyPI is a foreign, unrelated package (instacart/lore)
+and must never be used — installing `pip install lore` installs someone else's
+software.
 
 ## Version-stamp files
 
