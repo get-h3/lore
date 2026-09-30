@@ -1,0 +1,80 @@
+name: release-check
+
+# Tag-gated release integrity: whenever a v* tag is pushed, assert that the
+# version stamp agrees everywhere — pyproject.toml == lore.__version__ ==
+# newest numeric CHANGELOG.md heading == the tag itself (without the leading v).
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  version-consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Assert version stamp == changelog == tag
+        run: |
+          python - <<'EOF'
+          import os, re, sys
+          from pathlib import Path
+
+          errors = []
+
+          pyproject = Path("pyproject.toml").read_text()
+          m = re.search(r'^version\s*=\s*"([^"]+)"', pyproject, re.MULTILINE)
+          if not m:
+              errors.append("pyproject.toml: no version = \"...\" found")
+              pyproject_version = None
+          else:
+              pyproject_version = m.group(1)
+
+          init = Path("lore/__init__.py").read_text()
+          m = re.search(r'^__version__\s*=\s*"([^"]+)"', init, re.MULTILINE)
+          if not m:
+              errors.append("lore/__init__.py: no __version__ = \"...\" found")
+              init_version = None
+          else:
+              init_version = m.group(1)
+
+          numeric_headings = re.findall(
+              r'^##\s+\[(\d+\.\d+(?:\.\d+)?)\]', Path("CHANGELOG.md").read_text(), re.MULTILINE
+          )
+          if not numeric_headings:
+              errors.append("CHANGELOG.md: no numeric '## [X.Y.Z]' heading found")
+              changelog_version = None
+          else:
+              changelog_version = numeric_headings[0]
+
+          tag = os.environ.get("GITHUB_REF_NAME", "")
+          tag_version = tag[1:] if tag.startswith("v") else tag
+          if not re.fullmatch(r"\d+\.\d+(?:\.\d+)?", tag_version):
+              errors.append(f"tag '{tag}' does not look like vX.Y.Z")
+
+          values = {
+              "pyproject.toml": pyproject_version,
+              "lore.__version__": init_version,
+              "CHANGELOG newest heading": changelog_version,
+              "tag (without v)": tag_version,
+          }
+          distinct = {v for v in values.values() if v is not None}
+          if len(distinct) > 1:
+              for name, val in values.items():
+                  errors.append(f"version mismatch: {name} = {val!r}")
+
+          if errors:
+              print("RELEASE-CHECK FAILED:", file=sys.stderr)
+              for e in errors:
+                  print(f"  - {e}", file=sys.stderr)
+              sys.exit(1)
+
+          print(f"release-check ok: all sources agree on {next(iter(distinct))}")
+          EOF
