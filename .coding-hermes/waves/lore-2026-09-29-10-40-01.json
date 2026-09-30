@@ -9,10 +9,42 @@
     "leftover_branches": "8 zero-commit branches (wt/INFRA-LORE-043, wt/LORE-022/023/024/026/027/030/031) deleted after verifying ahead=0 and worktree list clean; wt/INFRA-LORE-043 row keeps its preserved-evidence foreman_note."
   },
   "workers": [
-    {"task_id": "REVIEW-LORE-002", "worktree": "/home/kara/worktrees/lore-REVIEW-LORE-002", "branch": "wt/REVIEW-LORE-002", "base": "origin/main", "base_sha": "f3a8951", "files": "lore/classes.py, tests/test_classifier.py", "title": "Classifier recall: 4 measured miss phrasings"},
-    {"task_id": "REVIEW-LORE-003", "worktree": "/home/kara/worktrees/lore-REVIEW-LORE-003", "branch": "wt/REVIEW-LORE-003", "base": "origin/main", "base_sha": "f3a8951", "files": "lore/validate.py, lore/__main__.py, tests/test_validate.py, docs/INSTALL.md", "title": "env-absent (exit 127) must not flip runbooks stale"},
-    {"task_id": "REVIEW-LORE-001", "worktree": "/home/kara/worktrees/lore-REVIEW-LORE-001", "branch": "wt/REVIEW-LORE-001", "base": "origin/main", "base_sha": "f3a8951", "files": "lore/__main__.py, lore/absorb.py, tests/, README.md", "title": "gate --record: durable opt-in approval record"},
-    {"task_id": "README-1", "worktree": "/home/kara/worktrees/lore-README-1", "branch": "wt/README-1", "base": "origin/main", "base_sha": "f3a8951", "files": "README.md, tests/", "title": "README: 3 dead get-h3 sibling links -> plain text + offline guard"}
+    {
+      "task_id": "REVIEW-LORE-002",
+      "worktree": "/home/kara/worktrees/lore-REVIEW-LORE-002",
+      "branch": "wt/REVIEW-LORE-002",
+      "base": "origin/main",
+      "base_sha": "f3a8951",
+      "files": "lore/classes.py, tests/test_classifier.py",
+      "title": "Classifier recall: 4 measured miss phrasings"
+    },
+    {
+      "task_id": "REVIEW-LORE-003",
+      "worktree": "/home/kara/worktrees/lore-REVIEW-LORE-003",
+      "branch": "wt/REVIEW-LORE-003",
+      "base": "origin/main",
+      "base_sha": "f3a8951",
+      "files": "lore/validate.py, lore/__main__.py, tests/test_validate.py, docs/INSTALL.md",
+      "title": "env-absent (exit 127) must not flip runbooks stale"
+    },
+    {
+      "task_id": "REVIEW-LORE-001",
+      "worktree": "/home/kara/worktrees/lore-REVIEW-LORE-001",
+      "branch": "wt/REVIEW-LORE-001",
+      "base": "origin/main",
+      "base_sha": "f3a8951",
+      "files": "lore/__main__.py, lore/absorb.py, tests/, README.md",
+      "title": "gate --record: durable opt-in approval record"
+    },
+    {
+      "task_id": "README-1",
+      "worktree": "/home/kara/worktrees/lore-README-1",
+      "branch": "wt/README-1",
+      "base": "origin/main",
+      "base_sha": "f3a8951",
+      "files": "README.md, tests/",
+      "title": "README: 3 dead get-h3 sibling links -> plain text + offline guard"
+    }
   ],
   "independence_check": "REVIEW-LORE-002 = lore/classes.py + classifier tests. REVIEW-LORE-003 = lore/validate.py + validate tests + docs/INSTALL.md validate section. REVIEW-LORE-001 = lore/__main__.py gate subcommand + absorb helper + README gate section. README-1 = README.md agent-ops table + its own guard test. Disjoint writer sets except concurrent README.md edits (README-1 table vs REVIEW-LORE-001 gate section, REVIEW-LORE-003 validate section) -> conflict contingency: README.md is SECOND-writer-resolved by the foreman rebase at merge; every other file is single-writer. Board rows all depends_on=null (verified); no edge between the four.",
   "excluded": {
@@ -22,6 +54,14 @@
     "RELEASE-LORE-004": "release tooling - sequence after the release-surface decisions settle",
     "README-2": "explicitly gated on the release cut (verify README version claim when the tag is cut)"
   },
-  "merge_order": ["REVIEW-LORE-002", "REVIEW-LORE-003", "REVIEW-LORE-001", "README-1"],
-  "merge_order_note": "README-1 LAST: it is the README.md writer most likely to collide with the two other README edit sites; rebase it onto the merged tree before gating."
+  "merge_order": [
+    "REVIEW-LORE-002",
+    "REVIEW-LORE-003",
+    "REVIEW-LORE-001",
+    "README-1"
+  ],
+  "merge_order_note": "README-1 LAST: it is the README.md writer most likely to collide with the two other README edit sites; rebase it onto the merged tree before gating.",
+  "finished_at": "2026-09-30T00:28:26+00:00",
+  "status": "finished",
+  "recovery_note": "Recovered by tick lore-2026-09-30-00-07-33: all 4 tasks merged to main (REVIEW-LORE-002 7788c7d + REVIEW-LORE-003 0585393 landed by an earlier tick; REVIEW-LORE-001 d0f0266 and README-1 5d5988e rebased + merged by this tick), gates green at each merge, pushed, board rows closed, worktrees reaped. Merged wt/* branches kept as evidence."
 }
