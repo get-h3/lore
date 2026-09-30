@@ -1,0 +1,15 @@
+commit 5d5988ed1659795955d3034a7d18cc0e08a0590e
+Merge: d0f0266 0960c5e
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Tue Sep 29 19:24:43 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Tue Sep 29 19:24:43 2026 -0500
+
+    merge: README-1 private agent-ops siblings as text + offline link guard (wave lore-2026-09-29-10-40-01 recovery)
+
+ CONTRIBUTING.md            |  2 +-
+ README.md                  | 12 +++++++-----
+ docs/INSTALL.md            |  4 ++--
+ scripts/test-count.txt     |  2 +-
+ tests/test_readme_links.py | 30 ++++++++++++++++++++++++++++++
+ 5 files changed, 41 insertions(+), 9 deletions(-)
