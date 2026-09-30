@@ -312,8 +312,10 @@ def test_version_single_source_of_truth():
     )
 
     # installed distribution metadata matches (the editable install is
-    # refreshed by `uv sync`; the lock carries the same version)
-    assert importlib.metadata.version("lore") == declared
+    # refreshed by `uv sync`; the lock carries the same version). The
+    # DISTRIBUTION name is `get-h3-lore` — the bare `lore` on PyPI is an
+    # unrelated foreign package (RELEASE-LORE-002).
+    assert importlib.metadata.version("get-h3-lore") == declared
 
     # uv.lock carries the same version (no lock drift after a bump)
     lock = (pathlib.Path(__file__).resolve().parent.parent / "uv.lock").read_text(
@@ -321,10 +323,10 @@ def test_version_single_source_of_truth():
     )
     import re
 
-    lock_version = re.search(r'name = "lore"\nversion = "([^"]+)"', lock)
-    assert lock_version is not None, "uv.lock has no lore package entry"
+    lock_version = re.search(r'name = "get-h3-lore"\nversion = "([^"]+)"', lock)
+    assert lock_version is not None, "uv.lock has no get-h3-lore package entry"
     assert lock_version.group(1) == declared, (
-        f"uv.lock lore version ({lock_version.group(1)}) != pyproject ({declared})"
+        f"uv.lock get-h3-lore version ({lock_version.group(1)}) != pyproject ({declared})"
     )
 
     # sanity: not a placeholder and still in the 0.1.x line this repo ships
