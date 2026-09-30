@@ -1,0 +1,13 @@
+commit 78a2a647e902d3ea72619f41bd459825c8550cc5
+Merge: d9877ce cedada3
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Tue Sep 29 19:49:35 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Tue Sep 29 19:49:35 2026 -0500
+
+    merge: RELEASE-LORE-004 release tooling + docs + tag-gated version CI (wave lore-2026-09-30-00-07-33)
+
+ .github/workflows/release-check.yml |  80 ++++++++++++++++++++++++
+ docs/RELEASE.md                     |  63 +++++++++++++++++++
+ scripts/release.sh                  | 117 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 260 insertions(+)
