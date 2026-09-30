@@ -32,3 +32,4 @@ node_modules/
 .gitreins/logs/
 .gitreins/qa-ledger.jsonl
 lore.egg-info/
+get_h3_lore.egg-info/
