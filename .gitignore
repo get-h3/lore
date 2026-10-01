@@ -31,5 +31,9 @@ node_modules/
 .gitreins/usage.jsonl
 .gitreins/logs/
 .gitreins/qa-ledger.jsonl
+
+# lore's per-box local state (LORE-045: validate-history.jsonl is per-box
+# EVIDENCE a lint ran HERE — per-cwd, never attestation, never committed)
+.lore/
 lore.egg-info/
 get_h3_lore.egg-info/

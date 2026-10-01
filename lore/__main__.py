@@ -44,8 +44,33 @@ from lore.evidence import (
     attach_evidence,
     parse_logsey_export,
 )
-from lore.runbook import Runbook
-from lore.validate import is_read_only_command, lint_runbook
+from lore.runbook import STATUS_PROPOSAL, STATUS_STALE, STATUS_VALIDATED, Runbook
+from lore.validate import (
+    HISTORY_FILE,
+    is_read_only_command,
+    last_local_validation,
+    lint_runbook,
+    local_validation_note,
+    persist_validate_history,
+)
+
+
+def _local_validation_line(class_id: str) -> str | None:
+    """LORE-045: the honest lint-run line when the LOCAL history has one.
+
+    Used ONLY when a runbook's own ``last_validated`` is None (never
+    attested): consult/compile then surface the last real ``validate
+    --execute`` run from ``.lore/validate-history.jsonl`` as
+    "last lint-validated … (local history, not operator attestation)".
+    Honesty laws intact: the runbook's ``last_validated`` stays None and
+    the status is never moved to ``validated`` — this is EVIDENCE a lint
+    ran, clearly labeled as not attestation. No history → None → callers
+    render exactly what they rendered before ("never validated").
+    """
+    rec = last_local_validation(class_id)
+    if rec is None:
+        return None
+    return local_validation_note(rec)
 
 
 def _cmd_match(args: argparse.Namespace) -> int:
@@ -87,8 +112,30 @@ def _cmd_compile(args: argparse.Namespace) -> int:
     if args.format == "json":
         print(json.dumps([rb.to_dict() for rb in runbooks], indent=2))
     else:
-        out = [rb.to_markdown() for rb in runbooks]
-        print("\n".join(out))
+        blocks: list[str] = []
+        for rb in runbooks:
+            md = rb.to_markdown()
+            # LORE-045: when a class has NEVER been operator-attested but a
+            # real ``validate --execute`` run is recorded in the LOCAL
+            # history, surface it honestly INSIDE the runbook block — right
+            # under the freshness line. The runbook's own "Last validated:
+            # no data (never validated)" stays EXACTLY as today (the field
+            # is never touched); the added line says what the lint run is:
+            # local history, not operator attestation.
+            if rb.last_validated is None:
+                line = _local_validation_line(rb.class_id)
+                if line is not None:
+                    marker = "- **Last validated:**"
+                    marker_idx = md.find(marker)
+                    if marker_idx != -1:
+                        line_start = md.find("\n", marker_idx) + 1
+                        md = (
+                            md[:line_start]
+                            + (f"- **Last lint-validated:** {line}\n")
+                            + md[line_start:]
+                        )
+            blocks.append(md)
+        print("\n".join(blocks))
     return 0
 
 
@@ -117,6 +164,13 @@ def _cmd_consult(args: argparse.Namespace) -> int:
                 f"this class has a runbook: {s['class_id']} ({s['name']}) "
                 f"status={s['status']} last_validated={lv} checks={s['check_count']}"
             )
+            # LORE-045: an unattested runbook still surfaces its last real
+            # lint run from the LOCAL history — labeled as a lint run, not
+            # operator attestation. last_validated/status stay untouched.
+            if s["last_validated"] is None:
+                line = _local_validation_line(s["class_id"])
+                if line is not None:
+                    print(f"  {line}")
             for c in s["checks"]:
                 print(f"  check {c['order']}: {c['command']}")
         return 0
@@ -135,6 +189,12 @@ def _cmd_consult(args: argparse.Namespace) -> int:
             f"runbook: {ref['class_id']} ({ref['name']}) "
             f"status={ref['status']} last_validated={lv} checks={ref['check_count']}"
         )
+        if ref["last_validated"] is None:
+            line = _local_validation_line(ref["class_id"])
+            if line is not None:
+                # Indented, so a scripting consumer's per-class `runbook:` line
+                # stays the last column-aligned row (LORE-046's concern).
+                print(f"  {line}")
     return 0
 
 
@@ -207,6 +267,12 @@ def _cmd_validate(args: argparse.Namespace) -> int:
 
     # Explicit --execute: run gate-approved read-only commands only.
     reports = [lint_runbook(rb) for rb in runbooks]
+    # LORE-045: a real --execute run no longer evaporates — one JSONL record
+    # per class is appended to the LOCAL history in the CURRENT working
+    # directory. Plan-only runs (returned above) write NOTHING. Drifted runs
+    # are persisted too (drift is data); the honesty law holds: nothing here
+    # sets runbook.last_validated or moves a status to validated.
+    records = persist_validate_history(reports)
     if args.format == "json":
         print(json.dumps([r.to_dict() for r in reports], indent=2))
     else:
@@ -219,6 +285,23 @@ def _cmd_validate(args: argparse.Namespace) -> int:
             print(f"  stale_reason: {reason if reason else 'none'}")
             print(f"  honesty: {report.honesty_label}")
             print()
+        # Say where the run went, so the operator knows it did not evaporate.
+        dest = HISTORY_FILE
+        print(
+            f"history: {len(records)} record(s) appended to {dest} "
+            f"(local lint history, not operator attestation)"
+        )
+    # LORE-045 honesty law, asserted at the seam every run passes through:
+    # persisting local lint history must never bleed into the runbook's
+    # attestation fields. (Runbooks are freshly compiled/frozen objects —
+    # the lint path never mutates them; if that ever changes, test 5 fails.)
+    for rb in runbooks:
+        assert rb.last_validated is None or isinstance(rb.last_validated, str), (
+            "last_validated must stay untouched by the lint path"
+        )
+        assert rb.status in (STATUS_PROPOSAL, STATUS_STALE, STATUS_VALIDATED), (
+            "status must stay in the closed vocabulary"
+        )
     return 0
 
 
