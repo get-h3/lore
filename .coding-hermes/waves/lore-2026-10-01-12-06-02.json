@@ -1,0 +1,3 @@
+{"tick":"lore-2026-10-01-12-06-02","wave_budget":6,"workers":[
+{"task_id":"LORE-041","worktree":"/home/kara/worktrees/lore-LORE-041","branch":"wt/LORE-041","base_sha":"3eb36c7","brief":"/tmp/lore-wave-LORE-041.md","model":"glm-5.3-flash","provider":"ollama-cloud"},
+{"task_id":"LORE-044","worktree":"/home/kara/worktrees/lore-LORE-044","branch":"wt/LORE-044","base_sha":"3eb36c7","brief":"/tmp/lore-wave-LORE-044.md","model":"glm-5.3-flash","provider":"ollama-cloud"}]}
