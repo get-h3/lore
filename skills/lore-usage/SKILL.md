@@ -83,12 +83,30 @@ exist", run `uv tool upgrade lore` before filing a bug.
   `from lore.compiler import compile_class, compile_all`.
   Pitfalls: `NearMiss` exposes `raw_score` (the CLI prints it as `score=`),
   plus `n_hits/n_keywords/hit_keywords`; `Classification.evidence` is a list
-  of DICTS (`e["kind"]`, `e["detail"]`), not objects.
+  of DICTS (`e["kind"]`, `e["detail"]`), not objects; and `Classification`
+  has NO `near_misses` attribute — near-misses are a SEPARATE call,
+  `near_misses(text)` (a first-time consumer that guesses `c.near_misses`
+  gets an AttributeError; run-4 verified).
+- Paste tails, not paraphrases. Signature-bearing input classifies instantly
+  (0.90 in ~50-65 ms); phrasing the symptom in your own words risks the
+  registry's vocabulary blind spots. Known blind spots (2026-10-01, run 4):
+  git's canonical collision error ("would be overwritten by checkout") misses
+  `shared-checkout-collision` AND the near-miss echo ranks
+  `secret-env-clobber` first on "overwritten" (LORE-041); a consult title
+  carrying 3/8 collision keywords still misses (`KEYWORD_THRESHOLD=0.6`)
+  — wire integrations to `--failure`/raw output text, not titles (LORE-043).
+- Fresh-box install (run 4, all three paths pass): anonymous clone works;
+  `uv sync --extra dev` ≈9 s incl. a 4 s uv bootstrap from the astral-sh/uv
+  GitHub release tarball; pip fallback (`venv` + `pip install -e ".[dev]"`)
+  ≈15 s; `uv tool install` ≈2 s. INSTALL.md does not yet say how to GET uv
+  (its docs' installer is a curl-piped-to-shell one-liner — the tarball
+  route needs only curl+tar), and bare Debian lacks `unzip`, which
+  `uv self update` wants (LORE-044).
 
 ## Dev loop
 
 ```sh
-uv run pytest -q    # expect: 325 passed in <1s (count synced to scripts/test-count.txt, LORE-029)
+uv run pytest -q    # expect: 353 passed (count synced to scripts/test-count.txt, LORE-029)
 uv run ruff check . # expect: All checks passed!
 ```
 

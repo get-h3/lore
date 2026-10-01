@@ -186,3 +186,76 @@ explanation:
    shared-checkout-collision — green on the control host — to stale. The
    lint reports the machine, not just the runbook; run it where the fleet
    actually runs.
+
+## Run 4 — the 3 a.m. drill, the library consumer, and all three install paths (2026-10-01, HEAD f60974c)
+
+**Angle.** Runs 1–3 fed lore tidy symptom phrases. Run 4 pasted raw log
+tails the way incidents actually arrive, drove the library from an external
+consumer for the first time, and repeated the fresh-machine leg across ALL
+THREE documented install paths (uv sync / pip fallback / uv tool install).
+
+**What the drill taught.**
+
+1. **Signature-bearing tails classify near-instantly and honestly.** Drain
+   503 tail: 0.90 with signature + 5 keywords in 65 ms. Cooldown tail: 0.90.
+   The evidence echo and the honesty labels held under ugly multi-line
+   input — `--explain`, `consult --failure` (full 7-check runbook appended),
+   and the `absorb --window` sweep (6-line logsey-contract trail → 3
+   per-class proposals + 1 honest `unclassified`, `--source` threaded) all
+   behaved as documented.
+
+2. **The registry's vocabulary blind spot is now the recall bottleneck
+   (LORE-041, LORE-043).** Git's canonical collision error ("Your local
+   changes … would be overwritten by checkout / Aborting") shares ZERO
+   vocabulary with `shared-checkout-collision` — and the near-miss echo
+   ranks `secret-env-clobber` FIRST on the word "overwritten", pointing the
+   responder at the wrong family. The same gap reaches the integration
+   surface: a title carrying 3/8 collision keywords misses
+   (`KEYWORD_THRESHOLD=0.6`, `lore/classifier.py:27`) and fail-open exit 0
+   turns that into silence for the tick-start flow. The lesson matches
+   LORE-016/023 but is sharper: this is not a *stranger paraphrase*, it is
+   the CANONICAL error text of the fleet's most recurring incident class.
+
+3. **Library consumer friction is small and known-shaped.** The one trap:
+   `Classification` has no `near_misses` attribute — near-misses are a
+   separate `near_misses(text)` call (`lore/classifier.py:248`). A first
+   consumer guesses wrong exactly where the CLI looks richest (AttributeError).
+   Same naming-split family as LORE-021 (`raw_score` vs `score=`); recorded
+   as cross-evidence there. Everything else imported and ran as documented:
+   `classify`, `classify_all`, `near_misses`, `compile_class` — 3 tails
+   triaged, runbooks compiled, in 6 ms total.
+
+4. **The flagship runbook carries the doctrine.** `lore show
+   gateway-drain-window`: 7 ordered checks with healthy-vs-incident output,
+   decisions, and DATED incident evidence (SIGKILL/214 in-flight 2026-08-14;
+   queue_depth=14 loss 2026-09-05; 25–30 min drain window 2026-09-16). The
+   recovery ladder IS the fleet's real doctrine (batch, pause-first,
+   announce, never SIGKILL). The only blemish is the LORE-024 placeholder
+   class — and run 4 adds: `consult --failure` prints that placeholder to
+   the operator as the literal command to run.
+
+5. **All three install paths pass fresh — the gap is one prerequisite
+   sentence (LORE-044).** Fresh Debian 12 (Python 3.13.5, no uv, no unzip):
+   anonymous clone 4 s (LORE-018's public flip proven end-to-end), uv
+   bootstrap from the GitHub release tarball 4 s (the uv docs' curl-piped-
+   to-shell installer is unusable on gated surfaces), `uv sync --extra dev`
+   5 s, pip fallback 15 s, `uv tool install` 2 s; 353 tests in 2 s; headline
+   matches correct on the bare box; unknown class exits 2 with the known
+   list. What the docs never say: how to GET uv, and that bare Debian lacks
+   `unzip` (needed by `uv self update`).
+
+**Multi-tenant-box lesson (environment, not lore).** The bunker host's /tmp
+is shared across agent users: a sibling agent owned `/tmp/pip.log`, so my
+first pip-fallback attempt died on `Permission denied` AND my `tail` read
+the sibling's log (a PEP 668 message from someone else's run). Every scratch
+file on a multi-tenant box belongs in `$HOME`. Separately, kara-level ssh to
+all bunker boxes currently rejects `id_ed25519_bunker` (key regenerated
+2026-09-30 22:29, new pubkey never installed host-side); the agent leg is
+unaffected (per-spawn keys) but the root-rescue path is dead until the key
+is re-installed.
+
+**Right way recap for run 4 (for the next agent).** Paste tails, not
+paraphrases; read `--explain` bottom-up knowing the ranking is raw keyword
+fraction, not relevance; wire integrations to `--failure`/raw text, not
+titles; and when a fresh-box check fails on a multi-tenant host, check file
+OWNERSHIP in /tmp before debugging the project.
