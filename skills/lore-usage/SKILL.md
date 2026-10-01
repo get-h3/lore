@@ -89,10 +89,11 @@ exist", run `uv tool upgrade lore` before filing a bug.
   gets an AttributeError; run-4 verified).
 - Paste tails, not paraphrases. Signature-bearing input classifies instantly
   (0.90 in ~50-65 ms); phrasing the symptom in your own words risks the
-  registry's vocabulary blind spots. Known blind spots (2026-10-01, run 4):
-  git's canonical collision error ("would be overwritten by checkout") misses
-  `shared-checkout-collision` AND the near-miss echo ranks
-  `secret-env-clobber` first on "overwritten" (LORE-041); a consult title
+  registry's vocabulary blind spots. Fixed in LORE-041: git's canonical
+  collision error ("would be overwritten by checkout") now labels
+  `shared-checkout-collision` at 0.90; earlier it missed AND the near-miss
+  echo ranked `secret-env-clobber` first on "overwritten". Remaining known
+  blind spot (2026-10-01, run 4): a consult title
   carrying 3/8 collision keywords still misses (`KEYWORD_THRESHOLD=0.6`)
   — wire integrations to `--failure`/raw output text, not titles (LORE-043).
 - Fresh-box install (run 4, all three paths pass): anonymous clone works;
@@ -106,7 +107,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
 ## Dev loop
 
 ```sh
-uv run pytest -q    # expect: 353 passed (count synced to scripts/test-count.txt, LORE-029)
+uv run pytest -q    # expect: 364 passed (count synced to scripts/test-count.txt, LORE-029)
 uv run ruff check . # expect: All checks passed!
 ```
 
