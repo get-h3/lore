@@ -12,6 +12,28 @@ issue.
   and dev tools). Plain `pip` works too, but bare `pytest` exits 127 before a
   venv exists — see the AGENTS.md note.
 
+### Installing uv
+
+Obtaining uv on a normal surface is the official curl-to-shell installer:
+
+```sh
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+That command pipes a downloaded script straight into `sh` and downloads a
+release archive to unpack — it is unreachable on gated/blocked-network
+surfaces, and a bare box without an archive tool cannot unpack it either (the
+installer requires `tar`; Linux/macOS artifacts are `.tar.gz` — Windows-only
+`.zip` artifacts are the ones that need `unzip`). On such a surface, obtain
+the uv binary manually: download the standalone release for your platform from
+the [releases page](https://github.com/astral-sh/uv/releases/latest), put it
+on `PATH`, and continue below.
+
+Related bare-box notes: `uv self update` re-runs the same installer under the
+hood (so it needs that archive tool too), and it is available only to
+standalone-installer installs — a `pip`- or package-manager-installed uv
+upgrades with its manager instead (e.g. `pip install --upgrade uv`).
+
 ## Install from source
 
 ```sh
