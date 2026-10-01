@@ -88,6 +88,19 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
             # "core.bare", never the surrounding words).
             r"empty\s+commit(?=\s|!|\.|,|$)",
             r"core\.bare(?=\s|!|\.|,|$)",
+            # LORE-041 (dogfood 2026-10-01 run 4): git's canonical
+            # checkout-collision error text measured `unclassified 0.00`,
+            # with the near-miss echo mispointing responders at the
+            # secret-env family (LORE-016/023 precedent — absorb the
+            # canonical phrases as signatures, never loosen thresholds).
+            # Token-exact: each pattern matches only the phrase itself,
+            # never the surrounding sentence; the "overwritten" branch
+            # requires the "by checkout" tail so the secret-env family
+            # keeps its own "overwritten by .env.example twins" phrasings
+            # (its true positives carry ".env"/clobber context, never a
+            # bare git-collision "overwritten").
+            r"would\s+be\s+overwritten\s+by\s+checkout",
+            r"please\s+commit\s+your\s+changes\s+or\s+stash",
         ),
         keywords=(
             "index.lock",
@@ -131,7 +144,17 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
             ".env",
             ".env.example",
             "clobber",
-            "overwritten",
+            # LORE-041: the run-4 dogfood catch was "overwritten" — git's
+            # GENERIC error word — ranking this class FIRST (0.17) on
+            # git's canonical checkout-collision error text, above the
+            # true collision class. "twins" is the class-owning marker: it
+            # fires on the family's own vocabulary (".env.example twins",
+            # the seed incident phrase) and is absent from git error text,
+            # so the near-miss echo stops mispointing responders on the
+            # canonical collision error. "overwritten" on a clobber report
+            # still carries the class via its signature patterns (see the
+            # true-positive pins in tests/test_lore041_collision_canonical.py).
+            "twins",
             "secrets",
             "container env",
         ),
