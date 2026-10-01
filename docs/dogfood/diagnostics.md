@@ -259,3 +259,28 @@ paraphrases; read `--explain` bottom-up knowing the ranking is raw keyword
 fraction, not relevance; wire integrations to `--failure`/raw text, not
 titles; and when a fresh-box check fails on a multi-tenant host, check file
 OWNERSHIP in /tmp before debugging the project.
+
+## Run 5 — fix verification at HEAD + the operator surface (2026-10-01, HEAD 4265973)
+
+Run 5 is the same-day repeat. Per the repeat-run doctrine it first audited run
+4's claims (integration doc committed at 3eb36c7; LORE-041/044 closed by the
+foreman in c16116f) and then verified the fixes as a USER: git's canonical
+collision text now hits shared-checkout-collision at 0.90 with a clean
+near-miss list, and INSTALL.md's new "Installing uv" section was followed
+verbatim on a truly fresh bunker box (bunker-las-01 agent 23ada9bf; designated
+bunker-las-03 rejected the agent key — its skip row is on the board). Anonymous
+clone, uv bootstrap + `uv sync --extra dev` in 11 s, 364 tests + ruff green on
+the fresh box.
+
+The new surface was the operator side: run `lore validate --execute`, then ask
+what survived. Answer: nothing — consult/compile still say "never validated" a
+minute after a fully green lint on the same box (LORE-045). The lint result is
+stdout-only; the RUNBOOK-STORE two-homes design already names this disease for
+runbooks generally, and lore's own validation output is its first victim.
+Also filed: the confident-match output prints the unclassified 0.00 line under
+a 0.90 hit (LORE-046) — two answers on one screen.
+
+**Right way recap for run 5:** verify closed rows at HEAD, not via the suite;
+the same-day bunker exemption needs an UNCHANGED repo — HEAD moved 3 commits
+past run 4's leg, so the fresh box ran again; when the designated host
+refuses the key, probe siblings and substitute rather than skip.
