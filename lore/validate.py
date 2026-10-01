@@ -101,6 +101,34 @@ neither drift nor passes. The default-deny gate is untouched: a command
 that is BOTH unfilled and not positively read-only still reports
 ``refused`` (the safety verdict wins over the template note).
 
+LOCAL VALIDATION HISTORY (LORE-045 — the lint result stops evaporating)
+-----------------------------------------------------------------------
+
+A real ``validate --execute`` run is no longer stdout-only: after the
+reports are produced, ONE JSONL record PER CLASS is appended to
+``.lore/validate-history.jsonl`` in the CURRENT working directory
+(``HISTORY_FILE``):
+
+    {"class_id", "timestamp" (ISO-8601 FROM THE REPORT — never re-stamped),
+     "honesty_label" (verbatim), "outcomes" (check outcomes in order),
+     "drifted_orders"}
+
+Plan-only runs write NOTHING. Drifted runs are persisted too (drift is
+data — the record's ``drifted_orders`` says it drifted). ``consult`` /
+``compile --format md`` read this file READ-ONLY and, for a runbook whose
+``last_validated`` is still None, surface::
+
+    last lint-validated <timestamp> on this box (local history, not operator attestation)
+
+HONESTY LAW — INTACT: the history is EVIDENCE a lint ran HERE, never
+operator attestation. Nothing in this module ever sets
+``runbook.last_validated`` or moves ``status`` to ``validated``; the
+surface line names itself as a lint run, not attestation. No history
+(missing/empty file, no record for the class) → the output is exactly
+what it was before this section existed. The file is per-box local
+state (git-ignored) and is NOT a published registry — the runbook-store
+design (docs/RUNBOOK-STORE.md) remains the real home for durable history.
+
 PLAN-ONLY CHECKS (LORE-026 — compiler/validator agreement)
 ----------------------------------------------------------
 
