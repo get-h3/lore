@@ -140,7 +140,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 364 passed
+uv run pytest -q        # 384 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -339,7 +339,7 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **364 tests passing** and a clean `ruff check`.
+  with **384 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published
@@ -355,7 +355,14 @@ and what does not:
   mode** — it lists what *would* run and executes nothing; `--execute` opts in.
   The report carries a machine-checkable honesty label: the lint proves commands
   *parse and answer*, **not** that recovery *succeeds*. No schedule is installed
-  yet (a separate task owns the weekly timer).
+  yet (a separate task owns the weekly timer). A real `--execute` run is also
+  PERSISTED locally: one JSONL record per class is appended to
+  `.lore/validate-history.jsonl` in the current working directory (git-ignored,
+  per-box), and `lore consult` (both modes) plus `lore compile --format md`
+  surface it for a never-attested runbook as `last lint-validated <ts> on this
+  box (local history, not operator attestation)` — the lint result no longer
+  evaporates, and the honesty law holds: the runbook's own `last_validated`
+  stays untouched (LORE-045).
 - `lore show <class> [--evidence] [--format json|md]` — prints the compiled
   runbook for one class (human-markdown default); `--evidence` adds the class's
   provenance line plus its evidence trail. Unknown class exits 2 (the registry

@@ -123,11 +123,13 @@ never-executed/not-drift treatment.
 from __future__ import annotations
 
 import dataclasses
+import json
 import re
 import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from pathlib import Path
 
 from lore.compiler import NO_VALID_EVIDENCE, compile_all
 from lore.runbook import STATUS_STALE, Runbook
@@ -135,7 +137,9 @@ from lore.runbook import STATUS_STALE, Runbook
 __all__ = [
     "COMMAND_TIMEOUT_SECONDS",
     "DRIFT_OUTCOMES",
+    "HISTORY_FILE",
     "HONESTY_LABEL",
+    "LOCAL_VALIDATION_NOTE",
     "OUTCOME_ENV_ABSENT",
     "OUTCOME_TEMPLATE",
     "OUTCOME_VOCABULARY",
@@ -144,8 +148,11 @@ __all__ = [
     "LintReport",
     "apply_lint",
     "is_read_only_command",
+    "last_local_validation",
     "lint_all",
     "lint_runbook",
+    "local_validation_note",
+    "persist_validate_history",
 ]
 
 # The machine-checkable honesty label. Carried on every report. A green
@@ -921,3 +928,132 @@ def apply_lint(report: LintReport, runbook: Runbook) -> Runbook:
         for c in runbook.checks
     ]
     return dataclasses.replace(runbook, checks=new_checks, status=STATUS_STALE)
+
+
+# ------------------------------------------------- local validate history
+# LORE-045: a real ``validate --execute`` run used to evaporate — stdout
+# only, no trace on the box — so ``consult`` / ``compile`` honestly said
+# "never validated" seconds after a green live lint. These helpers persist
+# the run to a small local JSONL file and read it back. HONESTY CONTRACT
+# (intact, pinned by tests): the local history is EVIDENCE a lint ran on
+# this box, never operator attestation — ``persist_validate_history``
+# never touches ``runbook.last_validated`` or ``status``, nothing here
+# moves a runbook to ``validated``; the surfaced line says exactly that.
+HISTORY_FILE = Path(".lore") / "validate-history.jsonl"
+
+
+def append_history_records(
+    records: list[dict],
+    *,
+    path: Path | None = None,
+) -> list[dict]:
+    """LORE-045: append pre-built history records as JSONL, one file line each.
+
+    Pure write path (one per report, per class): creates the parent
+    directory, appends one ``json.dumps(sort_keys=True)`` line per record.
+    Returns the records it wrote (round-trip asserted by tests). Never
+    touches any runbook field — the honesty contract holds by construction.
+    """
+    target = path if path is not None else HISTORY_FILE
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with target.open("a", encoding="utf-8") as fh:
+        for rec in records:
+            fh.write(json.dumps(rec, sort_keys=True) + "\n")
+    return records
+
+
+def persist_validate_history(
+    reports: list[LintReport],
+    *,
+    path: Path | None = None,
+) -> list[dict]:
+    """LORE-045: persist one JSONL record PER LintReport (one per class).
+
+    Record shape (grep-stable, one JSON object per line, keys
+    alphabetically sorted by ``json.dumps(sort_keys=True)``)::
+
+        class_id        the failure class the report linted
+        timestamp       ISO-8601 from the report (its created_at; never
+                        re-stamped, never invented)
+        honesty_label   the report's verbatim lint-verified honesty label
+        outcomes        each check's lint outcome, in check order
+                        (closed vocabulary: ok/error/refused/absent/
+                        template/timeout/unknown/env-absent)
+        drifted_orders  the report's drifted check orders (drift is DATA —
+                        a drifted lint run is persisted too, the record
+                        says it drifted)
+
+    Returns the records appended. Plan-only validate calls never reach
+    this; consult/compile read the file read-only (see
+    :func:`last_local_validation`).
+    """
+    records: list[dict] = []
+    for report in reports:
+        rec = {
+            "class_id": report.class_id,
+            "timestamp": report.created_at,
+            "honesty_label": report.honesty_label,
+            "outcomes": [r.outcome for r in report.results],
+            "drifted_orders": list(report.drifted_orders),
+        }
+        records.append(rec)
+    return append_history_records(records, path=path)
+
+
+def last_local_validation(
+    class_id: str,
+    *,
+    path: Path | None = None,
+) -> dict | None:
+    """LORE-045: read the LOCAL history's newest record for one class_id.
+
+    Pure read path: returns None when the history file is missing, empty,
+    unreadable, or carries no record for this class; on a malformed line
+    the rest of the file still reads (a torn line is DATA loss for that
+    line only, never a crash in a read path). Never writes anything.
+    """
+    target = path if path is not None else HISTORY_FILE
+    try:
+        with target.open("r", encoding="utf-8") as fh:
+            lines = fh.readlines()
+    except OSError:
+        return None
+    found: dict | None = None
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        try:
+            rec = json.loads(stripped)
+        except ValueError:
+            continue  # a malformed line is skipped, not fatal
+        if not isinstance(rec, dict):
+            continue
+        if rec.get("class_id") != class_id:
+            continue
+        found = rec  # keep scanning: the NEWEST record wins
+    return found
+
+
+# The exact wording consult/compile surface for a local-history hit —
+# pinned here so tests and callers read one constant. Names both halves
+# of the honesty law: LOCAL EVIDENCE, NOT OPERATOR ATTESTATION.
+LOCAL_VALIDATION_NOTE = "local history, not operator attestation"
+
+
+def local_validation_note(
+    rec: dict,
+    *,
+    prefix: str = "on this box",
+) -> str:
+    """LORE-045: the honest lint-run line for a local-history record.
+
+    Format (grep-stable)::
+
+        last lint-validated <timestamp> on this box (local history, not operator attestation)
+
+    ``rec["timestamp"]`` is the record's verbatim ISO-8601 stamp — never
+    re-formatted and never a fabricated date.
+    """
+    ts = str(rec.get("timestamp") or "")
+    return f"last lint-validated {ts} {prefix} ({LOCAL_VALIDATION_NOTE})"
