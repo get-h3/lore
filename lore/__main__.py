@@ -35,6 +35,7 @@ from lore.absorb import (
     parse_duration,
     verdict_record,
 )
+from lore.classes import UNCLASSIFIED_ID
 from lore.classifier import classify_all, near_misses
 from lore.compiler import NO_VALID_EVIDENCE, compile_all, compile_class
 from lore.consult import ConsultResult, consult, consult_failure
@@ -78,7 +79,18 @@ def _cmd_match(args: argparse.Namespace) -> int:
     if not candidates:
         print("no candidates")
         return 1
-    for c in candidates:
+    # LORE-046: classify_all's contract is to ALWAYS carry the unclassified
+    # fallback (pinned by tests/test_lore016_qa_audit.py), so a confident
+    # match would otherwise print a second, confidence=0.00 row that reads
+    # like a second answer. Display-level fix only: without --explain the
+    # fallback row is suppressed from the printed candidates, while a TRUE
+    # miss (only the fallback in the list) still prints it — absence stays
+    # a first-class answer. With --explain the raw candidate list is shown
+    # untouched (evidence transparency).
+    printed = candidates
+    if not getattr(args, "explain", False):
+        printed = [c for c in candidates if c.class_id != UNCLASSIFIED_ID] or candidates
+    for c in printed:
         evidence = "; ".join(f"{e['kind']}:{e['detail']}" for e in c.evidence) or "none"
         print(f"{c.class_id}\tconfidence={c.confidence:.2f}\tevidence: {evidence}")
     if getattr(args, "explain", False):

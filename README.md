@@ -47,7 +47,6 @@ Real output:
 
 ```
 gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain
-unclassified	confidence=0.00	evidence: none
 ```
 
 Another real symptom, a different class:
@@ -58,7 +57,6 @@ uv run python -m lore match "secret .env clobber"
 
 ```
 secret-env-clobber	confidence=0.90	evidence: signature:.env clobber; keyword:.env; keyword:clobber
-unclassified	confidence=0.00	evidence: none
 ```
 
 And a symptom that matches nothing curated:
@@ -140,7 +138,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 404 passed
+uv run pytest -q        # 415 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -163,7 +161,6 @@ lore match "key rotation expired"
 
 ```
 key-rotation-expiry	confidence=0.90	evidence: signature:rotation expired; keyword:expired; keyword:rotation
-unclassified	confidence=0.00	evidence: none
 ```
 
 ## What the classifier knows today
@@ -347,7 +344,7 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **404 tests passing** and a clean `ruff check`.
+  with **415 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published

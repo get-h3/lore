@@ -78,16 +78,16 @@ Real output on the current tree:
 ```
 ........................................................................ [ 27%]
 ........................................................................ [ 55%]
-........................................................................ [ 83%]
+........................................................................ [ 86%]
 ...........................................                              [100%]
-404 passed
+415 passed
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **404 tests** (27 test files: taxonomy, classifier,
+The count to expect is **415 tests** (28 test files: taxonomy, classifier,
 compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
 your run says something else, you are on a different revision — check
 `git log` before trusting this document.
@@ -176,7 +176,6 @@ uv run python -m lore match "drain 503"
 
 ```
 gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain
-unclassified	confidence=0.00	evidence: none
 ```
 
 More real symptoms:
@@ -187,7 +186,6 @@ uv run python -m lore match "secret .env clobber"
 
 ```
 secret-env-clobber	confidence=0.90	evidence: signature:.env clobber; keyword:.env; keyword:clobber
-unclassified	confidence=0.00	evidence: none
 ```
 
 ```sh
@@ -196,7 +194,6 @@ uv run python -m lore match "key rotation expired"
 
 ```
 key-rotation-expiry	confidence=0.90	evidence: signature:rotation expired; keyword:expired; keyword:rotation
-unclassified	confidence=0.00	evidence: none
 ```
 
 A symptom that matches nothing curated:
@@ -362,7 +359,6 @@ lore match "key rotation expired"
 
 ```
 key-rotation-expiry	confidence=0.90	evidence: signature:rotation expired; keyword:expired; keyword:rotation
-unclassified	confidence=0.00	evidence: none
 ```
 
 ### The `absorb` trail contract
