@@ -1,0 +1,711 @@
+commit c74cb4e9ca826accf2e2dba7b63cf9c99a7af7f9
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Fri Oct 2 07:21:07 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Fri Oct 2 07:21:07 2026 -0500
+
+    fix: short-text keyword threshold for title-mode consult. Addresses LORE-043.
+    
+    The tick-start consult (LORE-007) classifies board-row TITLES, which are
+    short: the realistic 4-word title "worker worktree checkout collision"
+    carries 3/8 of the shared-checkout-collision keywords (raw score 0.375),
+    below the flat 0.6 KEYWORD_THRESHOLD, so consult returned matched:false
+    for the fleet's most recurring collision class (dogfood 2026-10-01
+    run 4). LORE-041 fixed the title+detail path where the detail holds the
+    canonical git error paste; this fix targets the TITLE-ONLY path.
+    
+    Shape: a length-scoped keyword GATE, not a blanket threshold drop.
+    
+    - lore/classifier.py: new SHORT_TEXT_WORD_LIMIT (8) and
+      SHORT_KEYWORD_THRESHOLD (0.3) constants plus _keyword_gate(text), which
+      picks the gate by word count; _keyword_confidence() takes the gate as a
+      parameter and classify/classify_all/near_misses all pass the
+      length-scoped gate so the three surfaces stay consistent. The cutoff is
+      principled and measured: board census (65 rows) has title p25 = 8 words
+      / median 14; the longest refusal pinned by near-miss tests ("container
+      env lost the API key after .env got clobbered") is 10 words, so 9 or a
+      naive 12 would flip pinned refusals — 8 keeps every existing pin.
+    - Honesty rule intact: keyword confidence stays capped at 0.5 with
+      keyword-only evidence, below-gate texts still return unclassified with
+      the near-miss echo, the long-text 0.6 gate is unchanged, and the
+      registry is untouched (13 curated classes, no new ids).
+    - tests: new tests/test_lore043_short_text_threshold.py (20 cells: the
+      title labels via classify/classify_all/consult/CLI; long 0.5-score and
+      quarter-score refusals survive; short below-gate refuses; sibling
+      classes keep their boundaries; title+detail signature path unchanged)
+      plus the LORE-021 naming-contract test now compares against the same
+      length-scoped gate the classifier used.
+    - docs: README/INSTALL consult sections document the short-title band;
+      skills/lore-usage blind-spot note updated (the run-4 gap is fixed);
+      USAGE skill dev-loop count stale literal 364->404 fixed in passing;
+      test-count literals synced (384->404, new canonical count);
+      CHANGELOG entry.
+---
+ CHANGELOG.md                               |  16 ++
+ CONTRIBUTING.md                            |   2 +-
+ README.md                                  |  12 +-
+ docs/INSTALL.md                            |   9 +-
+ lore/classifier.py                         | 108 ++++++++---
+ lore/consult.py                            |   9 +-
+ scripts/test-count.txt                     |   2 +-
+ skills/lore-usage/SKILL.md                 |  14 +-
+ tests/test_lore021_naming_docs.py          |   9 +-
+ tests/test_lore043_short_text_threshold.py | 280 +++++++++++++++++++++++++++++
+ 10 files changed, 425 insertions(+), 36 deletions(-)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 9aac9bd..f3cdca3 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
+ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+ 
++## [Unreleased]
++
++### Fixed
++
++- **LORE-043** — the tick-start consult (LORE-007) no longer goes silent on
++  short board-row TITLES. Keyword acceptance is now length-scoped: a text of
++  at most 8 words (the board census' title 25th percentile; the 10-word
++  paraphrase pinned as refused stays on the long path) accepts keyword
++  evidence at a 0.3 gate (was 0.6 for every length), so the 4-word title
++  `worker worktree checkout collision` (3/8 keywords = 0.375) labels
++  `shared-checkout-collision` at capped keyword confidence instead of
++  returning `matched:false`. The confidence cap (0.5), the keyword-only
++  evidence kind, the honesty refusal below the gate with its near-miss
++  echo, and the long-text 0.6 gate are all unchanged; the registry is
++  untouched (13 curated classes).
++
+ ## [0.1.2] — 2026-09-26
+ 
+ Version refresh only — no code changes. Bumped from `0.1.1` after a stale-version
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index 4d73c3f..7a4c75f 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
+ Once `.venv` exists, run the full gate from the repository root:
+ 
+ ```sh
+-uv run pytest -q                    # tests (green at 384 passed)
++uv run pytest -q                    # tests (green at 404 passed)
+ uv run ruff check .                 # lint — "All checks passed!"
+ uv run ruff format --check .        # formatting — "N files already formatted"
+ uv run scripts/check-test-count.sh  # test-count sync guard
+diff --git a/README.md b/README.md
+index bff7b8b..240c4df 100644
+--- a/README.md
++++ b/README.md
+@@ -140,7 +140,7 @@ Run the tests and lint that gate every change (see
+ [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
+ 
+ ```sh
+-uv run pytest -q        # 384 passed
++uv run pytest -q        # 404 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -286,6 +286,14 @@ Real output:
+ - The title (and `--detail`, classified together with it) is matched against
+   the failure-class registry; `runbook_refs` carries lightweight refs only —
+   never the runbook payload.
++- Titles are short, so short texts get a proportionate keyword gate (LORE-043):
++  a text of **at most 8 words** (the board census' title 25th percentile)
++  accepts keyword evidence at a **0.3** gate instead of the long-text 0.6 —
++  the 4-word title `worker worktree checkout collision` (3/8 keywords =
++  0.375) labels `shared-checkout-collision` at capped keyword confidence.
++  The honesty rule is unchanged: below-gate texts still return
++  `unclassified` (with a near-miss echo), long texts keep the strict 0.6
++  gate, and keyword evidence never reads as signature strength.
+ - `--json` prints the ConsultResult as JSON (shown above); default is text.
+ - No match → `"matched": false`, no refs, exit 0. A pipeline can call this
+   unconditionally.
+@@ -339,7 +347,7 @@ and what does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
+-  with **384 tests passing** and a clean `ruff check`.
++  with **404 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 1b08d5b..33d0229 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -80,14 +80,14 @@ Real output on the current tree:
+ ........................................................................ [ 55%]
+ ........................................................................ [ 83%]
+ ...........................................                              [100%]
+-384 passed
++404 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **384 tests** (26 test files: taxonomy, classifier,
++The count to expect is **404 tests** (27 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+@@ -263,6 +263,11 @@ uv run python -m lore consult "gateway drain 503" --json
+ ```
+ 
+ No match prints `"matched": false` (or the text equivalent) and exits 0.
++Short titles get a proportionate keyword gate (LORE-043): a text of at most
++8 words accepts keyword evidence at a 0.3 gate instead of the long-text 0.6
++(a realistic 4-word title like `worker worktree checkout collision` carries
++3/8 keywords = 0.375, which used to refuse silently). The honesty rule is
++unchanged — below-gate evidence still returns `unclassified`.
+ The other mode, `lore consult --failure "<guard output>"`, is documented in
+ the README ("Guard-failure suggestions").
+ 
+diff --git a/lore/classifier.py b/lore/classifier.py
+index b5036c2..dcc2946 100644
+--- a/lore/classifier.py
++++ b/lore/classifier.py
+@@ -4,14 +4,21 @@ Match strategy (in order):
+ 
+ 1. **Signature regex** match against the text = HIGH confidence (0.9).
+ 2. **Keyword score** (share of the class's keywords present, case-insensitive)
+-   = LOWER confidence, accepted only when the score clears
+-   :data:`KEYWORD_THRESHOLD` (0.6). Keyword-only confidence is capped at 0.5
+-   so a keyword match can never be mistaken for signature strength.
++   = LOWER confidence, accepted only when the score clears the keyword gate:
++   :data:`KEYWORD_THRESHOLD` (0.6) for LONG texts, or the lower
++   :data:`SHORT_KEYWORD_THRESHOLD` (0.3) when the text is SHORT (at most
++   :data:`SHORT_TEXT_WORD_LIMIT` words). Keyword-only confidence is capped
++   at 0.5 so a keyword match can never be mistaken for signature strength.
++   The short band exists for the tick-start consult (LORE-007), whose input
++   is a board row's TITLE (LORE-043): titles are short, so demanding 60% of
++   a class's vocabulary from ~4 words starved the classifier of real
++   evidence — the band lowers only the acceptance GATE for keyword
++   evidence, never the confidence scaling and never the honesty rule.
+ 3. Otherwise → :data:`UNCLASSIFIED_ID` with 0.0 confidence.
+ 
+-Honesty rule: a weak (below-threshold) match is NEVER labeled as a specific
+-class — it returns unclassified. A specific label always carries its evidence
+-(kind: ``signature`` or ``keyword``) so callers can audit why.
++Honesty rule: a weak (below-gate) match is NEVER labeled as a specific
++class — it returns unclassified. A specific label always carries its
++evidence (kind: ``signature`` or ``keyword``) so callers can audit why.
+ """
+ 
+ from __future__ import annotations
+@@ -24,9 +31,33 @@ from lore.classes import UNCLASSIFIED_ID, FailureClass, get_registry
+ # Confidence levels.
+ SIGNATURE_CONFIDENCE = 0.9
+ KEYWORD_CONFIDENCE_MAX = 0.5  # keyword-only matches never reach signature strength
+-KEYWORD_THRESHOLD = 0.6  # fraction of a class's keywords required to accept
++KEYWORD_THRESHOLD = (
++    0.6  # fraction of a class's keywords required to accept (long texts)
++)
+ UNCLASSIFIED_CONFIDENCE = 0.0
+ 
++# LORE-043 (dogfood 2026-10-01 run 4): the tick-start consult classifies a
++# board row's TITLE, which is short — a realistic 4-word title carrying 3 of
++# 8 collision keywords (raw score 0.375) sat below the 0.6 long-text gate and
++# the consult returned ``matched:false`` for the fleet's most recurring
++# collision class. SHORT texts therefore accept keyword evidence at a lower
++# gate. Both constants are principled, and the pins in
++# tests/test_lore043_short_text_threshold.py hold them in place:
++#
++# - SHORT_TEXT_WORD_LIMIT = 8: the board census (65 historical rows,
++#   measured by the filing run) shows a median title of 14 words with a
++#   25th percentile of 8 — task titles cluster at or below 8 words. The
++#   threshold is deliberately BELOW the longest paraphrase the near-miss
++#   tests refuse ("container env lost the API key after .env got
++#   clobbered", 10 words — must stay on the long path), so 9 would flip a
++#   pinned refusal and 12 (a naive "titles are short" read) would flip two.
++# - SHORT_KEYWORD_THRESHOLD = 0.3: the brief's "2-3 keyword hits on a short
++#   title" shape (exact multiples of 8 and 6-keyword classes land at 0.25/
++#   0.333, so a fraction-of-3 gate keeps those two classes behaving the
++#   same while the LORE-043 title's 3/8 = 0.375 clears it).
++SHORT_TEXT_WORD_LIMIT = 8
++SHORT_KEYWORD_THRESHOLD = 0.3
++
+ _FALLBACK_SIGNATURE = r"$^"  # never matches (empty pattern guard for unclassified)
+ 
+ 
+@@ -113,19 +144,47 @@ def _keyword_hits(cls: FailureClass, lower_text: str) -> tuple[str, ...]:
+     return tuple(hits)
+ 
+ 
+-def _keyword_confidence(n_keywords: int, n_hits: int) -> float:
++def _keyword_gate(lower_text: str) -> float:
++    """Acceptance gate for keyword evidence, scoped by the text's length.
++
++    LORE-043: the tick-start consult (LORE-007) is fed board-row TITLES,
++    which are short — demanding :data:`KEYWORD_THRESHOLD` of a class's
++    vocabulary from ~4 words starved the classifier of real evidence and
++    left the fleet's most recurring collision class silent at tick start.
++    A text at most :data:`SHORT_TEXT_WORD_LIMIT` words long accepts
++    keyword evidence at the lower :data:`SHORT_KEYWORD_THRESHOLD`; every
++    longer text keeps the strict long-text gate.
++    """
++    if len(lower_text.split()) <= SHORT_TEXT_WORD_LIMIT:
++        return SHORT_KEYWORD_THRESHOLD
++    return KEYWORD_THRESHOLD
++
++
++def _keyword_confidence(
++    n_keywords: int, n_hits: int, gate: float = KEYWORD_THRESHOLD
++) -> float:
++    """Band-scaled keyword confidence, or 0.0 when the gate refuses.
++
++    ``gate`` is the acceptance threshold for THIS text (callers pass the
++    length-scoped gate from :func:`_keyword_gate`; the default keeps the
++    long-text gate for arithmetic-only callers). Below the gate the raw
++    score is refused as evidence for any label (0.0); at or above it the
++    score scales within the keyword band ``[gate, 1.0]`` so keyword
++    evidence stays visibly weaker than a signature match. Naming: this
++    band-scaled return value is the ``confidence`` classify labels
++    accepted matches with (CLI prints it as ``confidence=``); it is NOT
++    ``NearMiss.raw_score``, and the CLI's near-misses section prints
++    ``score=`` for that RAW fraction instead.
++    """
+     if n_keywords == 0 or n_hits == 0:
+         return 0.0
+     score = n_hits / n_keywords
+-    if score < KEYWORD_THRESHOLD:
+-        return 0.0  # below threshold: refused as evidence for any label
++    if score < gate:
++        return 0.0  # below gate: refused as evidence for any label
+     # Scale within the keyword band so keyword evidence stays visibly weaker
+-    # than a signature match. Naming: this band-scaled return value is the
+-    # ``confidence`` classify labels accepted matches with (CLI prints it as
+-    # ``confidence=``); it is NOT ``NearMiss.raw_score``, and the CLI's
+-    # near-misses section prints ``score=`` for that RAW fraction instead.
+-    span = 1.0 - KEYWORD_THRESHOLD
+-    return round(KEYWORD_CONFIDENCE_MAX * (KEYWORD_THRESHOLD + span * score), 3)
++    # than a signature match.
++    span = 1.0 - gate
++    return round(KEYWORD_CONFIDENCE_MAX * (gate + span * score), 3)
+ 
+ 
+ def classify(text: str) -> Classification:
+@@ -155,7 +214,8 @@ def classify(text: str) -> Classification:
+                     evidence=evidence,
+                 )
+ 
+-    # (2) Keyword score — lower confidence, threshold-gated.
++    # (2) Keyword score — lower confidence, length-scoped gate (LORE-043).
++    gate = _keyword_gate(lower_text)
+     best_id: str | None = None
+     best_conf = 0.0
+     best_hits: tuple[str, ...] = ()
+@@ -163,7 +223,7 @@ def classify(text: str) -> Classification:
+         if compiled.cls.id == UNCLASSIFIED_ID:
+             continue
+         hits = _keyword_hits(compiled.cls, lower_text)
+-        conf = _keyword_confidence(len(compiled.cls.keywords), len(hits))
++        conf = _keyword_confidence(len(compiled.cls.keywords), len(hits), gate)
+         if conf > best_conf:
+             best_id, best_conf, best_hits = compiled.cls.id, conf, hits
+ 
+@@ -219,7 +279,11 @@ def classify_all(text: str) -> list[Classification]:
+                 break
+         else:
+             hits = _keyword_hits(compiled.cls, lower_text)
+-            conf = _keyword_confidence(len(compiled.cls.keywords), len(hits))
++            conf = _keyword_confidence(
++                len(compiled.cls.keywords),
++                len(hits),
++                _keyword_gate(lower_text),
++            )
+             if conf > 0.0:
+                 candidates.append(
+                     Classification(
+@@ -269,7 +333,11 @@ def near_misses(text: str, limit: int = 3) -> list[NearMiss]:
+         if any(sig.search(text) for sig in compiled.signature_res):
+             continue  # signature-accepted: classify already labels this class
+         hits = _keyword_hits(compiled.cls, lower_text)
+-        conf = _keyword_confidence(len(compiled.cls.keywords), len(hits))
++        conf = _keyword_confidence(
++            len(compiled.cls.keywords),
++            len(hits),
++            _keyword_gate(lower_text),
++        )
+         if conf == 0.0 and hits:
+             misses.append(
+                 NearMiss(
+diff --git a/lore/consult.py b/lore/consult.py
+index 43c1573..a526a68 100644
+--- a/lore/consult.py
++++ b/lore/consult.py
+@@ -82,9 +82,12 @@ def consult(text: str) -> ConsultResult:
+     """Match symptom text against class signatures; attach runbook refs.
+ 
+     Takes the classifier's match ONLY when it is a real match (confidence
+-    > 0.0 — signature or accepted keyword, never the unclassified fallback),
+-    plus any additional classes from :func:`classify_all` that also matched,
+-    best first, capped at :data:`MAX_MATCHED_CLASSES`. Fail-open throughout.
++    > 0.0 — signature or length-gated keyword, never the unclassified
++    fallback; short texts like bare board-row titles accept keyword
++    evidence at the lower :data:`lore.classifier.SHORT_KEYWORD_THRESHOLD`
++    gate, LORE-043), plus any additional classes from
++    :func:`classify_all` that also matched, best first, capped at
++    :data:`MAX_MATCHED_CLASSES`. Fail-open throughout.
+     """
+     start = time.perf_counter()
+ 
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index e41567f..57db2e9 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-384
+\ No newline at end of file
++404
+\ No newline at end of file
+diff --git a/skills/lore-usage/SKILL.md b/skills/lore-usage/SKILL.md
+index 7941c84..867de8b 100644
+--- a/skills/lore-usage/SKILL.md
++++ b/skills/lore-usage/SKILL.md
+@@ -92,10 +92,14 @@ exist", run `uv tool upgrade lore` before filing a bug.
+   registry's vocabulary blind spots. Fixed in LORE-041: git's canonical
+   collision error ("would be overwritten by checkout") now labels
+   `shared-checkout-collision` at 0.90; earlier it missed AND the near-miss
+-  echo ranked `secret-env-clobber` first on "overwritten". Remaining known
+-  blind spot (2026-10-01, run 4): a consult title
+-  carrying 3/8 collision keywords still misses (`KEYWORD_THRESHOLD=0.6`)
+-  — wire integrations to `--failure`/raw output text, not titles (LORE-043).
++  echo ranked `secret-env-clobber` first on "overwritten". Fixed in
++  LORE-043: the title-only consult path no longer goes silent on short
++  titles — a text of ≤8 words (board-title 25th percentile; measured)
++  accepts keyword evidence at a ≥0.3 gate instead of the long-text 0.6, so
++  the 4-word title "worker worktree checkout collision" (3/8 keywords =
++  0.375) now labels `shared-checkout-collision` at keyword strength.
++  Long-text behavior is unchanged: a 10-word paraphrase that scored 0.5
++  still refuses and only echoes as a near-miss.
+ - Fresh-box install (run 4, all three paths pass): anonymous clone works;
+   `uv sync --extra dev` ≈9 s incl. a 4 s uv bootstrap from the astral-sh/uv
+   GitHub release tarball; pip fallback (`venv` + `pip install -e ".[dev]"`)
+@@ -107,7 +111,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
+ ## Dev loop
+ 
+ ```sh
+-uv run pytest -q    # expect: 364 passed (count synced to scripts/test-count.txt, LORE-029)
++uv run pytest -q    # expect: 404 passed (count synced to scripts/test-count.txt, LORE-029)
+ uv run ruff check . # expect: All checks passed!
+ ```
+ 
+diff --git a/tests/test_lore021_naming_docs.py b/tests/test_lore021_naming_docs.py
+index b7b8414..d2422f1 100644
+--- a/tests/test_lore021_naming_docs.py
++++ b/tests/test_lore021_naming_docs.py
+@@ -58,10 +58,14 @@ def test_cli_explain_prints_the_raw_fraction_as_score(capsys):
+ 
+ 
+ def test_band_scaled_value_is_the_confidence_for_an_accepted_keyword_match():
+-    # Above threshold: the band-scaled value IS the labeled confidence (the
++    # Above gate: the band-scaled value IS the labeled confidence (the
+     # CLI prints it as `confidence=`), and it differs from the raw fraction.
+     # Phrased so no signature regex fires (keyword-only acceptance).
++    # LORE-043: the gate is LENGTH-SCOPED, so the comparison must use the
++    # same gate the classifier used for THIS text (5 words -> the short
++    # band), not the default long-text gate.
+     from lore.classes import get_registry
++    from lore.classifier import _keyword_gate
+ 
+     text = "worktree checkout sibling collision reap"
+     cls = classify(text)
+@@ -69,7 +73,8 @@ def test_band_scaled_value_is_the_confidence_for_an_accepted_keyword_match():
+     assert cls.class_id == "shared-checkout-collision"
+     n_keywords = len(get_registry().get("shared-checkout-collision").keywords)
+     assert len(cls.matched_keywords) == 5  # all but "index.lock"
+-    scaled = _keyword_confidence(n_keywords, len(cls.matched_keywords))
++    gate = _keyword_gate(text.lower())
++    scaled = _keyword_confidence(n_keywords, len(cls.matched_keywords), gate)
+     assert scaled == cls.confidence
+     assert scaled != len(cls.matched_keywords) / n_keywords  # scaling ≠ identity
+ 
+diff --git a/tests/test_lore043_short_text_threshold.py b/tests/test_lore043_short_text_threshold.py
+new file mode 100644
+index 0000000..2a169a5
+--- /dev/null
++++ b/tests/test_lore043_short_text_threshold.py
+@@ -0,0 +1,280 @@
++"""LORE-043: short-text (title-mode) keyword threshold — consult must not go
++silent on realistic board-row TITLES.
++
++Dogfood 2026-10-01 run 4 measured the gap: the tick-start consult (LORE-007)
++is fed task TITLES, which are short. A realistic title
++
++    worker worktree checkout collision
++
++carries 3 of the 8 shared-checkout-collision keywords (worktree, checkout,
++collision) = raw score 0.375 — below the long-text KEYWORD_THRESHOLD of 0.6,
++so ``consult`` returned ``matched:false`` for the fleet's most recurring
++collision class. LORE-041 absorbed the canonical git error text, which fixed
++the title+detail path where the detail carries the paste — this row targets
++the TITLE-ONLY path, which carries only the title.
++
++Fix shape (deliberate band, not a blanket threshold drop — the honesty rule
++stays: a specific label must still carry its keyword evidence):
++
++- SHORT texts (<= :data:`SHORT_TEXT_WORD_LIMIT` words) accept keyword
++  evidence at a lower gate, :data:`SHORT_KEYWORD_THRESHOLD` (>= 0.3 = a
++  2-3 keyword hit on a short title like the LORE-043 one).
++- LONG texts keep the exact pre-change gate (:data:`KEYWORD_THRESHOLD` =
++  0.6): a near-miss score of 0.17 must refuse exactly as before.
++- Confidence stays capped at KEYWORD_CONFIDENCE_MAX (keyword evidence never
++  reads as signature strength) and the evidence kind stays ``keyword``.
++
++The cutoff is principled, not vibes: the board census shows a median title
++of 14 words with a 25th percentile of 8, so titles cluster at or below ~8
++words; the longest REFUSED paraphrase pinned by the near-miss tests ("two
++foremen committed to the same worktree checkout", 8 words; "container env
++lost the API key after .env got clobbered", 10 words) must stay on the long
++path — 9 or 12 would flip the 10-word one, so 8 is the ceiling that keeps
++every existing refusal pin intact.
++"""
++
++import json
++
++from lore.classes import SEED_CLASSES, UNCLASSIFIED_ID, get_registry
++from lore.classifier import (
++    KEYWORD_CONFIDENCE_MAX,
++    KEYWORD_THRESHOLD,
++    SHORT_KEYWORD_THRESHOLD,
++    SHORT_TEXT_WORD_LIMIT,
++    classify,
++    classify_all,
++    near_misses,
++)
++from lore.consult import consult, consult_task
++
++# The exact LORE-043 board-row title (dogfood run 4, docs/dogfood/
++# 2026-10-01-run4-integration.md) — title-only, no detail, no paste.
++LORE043_TITLE = "worker worktree checkout collision"
++
++# The longest paraphrase the near-miss tests refuse today; 10 words — the
++# reason the short cutoff cannot be 9 or 12 without flipping this refusal.
++LONG_REFUSED_PARAPHRASE = "container env lost the API key after .env got clobbered"
++
++# Canonical git error text (LORE-041 shape) used as the title+detail paste.
++CANONICAL_DETAIL = (
++    "error: Your local changes to the following files would be overwritten\n"
++    "by checkout:\n\ttests/test_x.py\n"
++    "Please commit your changes or stash them before you switch branches."
++)
++
++
++# ---------------------------------------------------------------- constants
++def test_short_text_constants_exist_and_keep_the_shape():
++    assert SHORT_KEYWORD_THRESHOLD < KEYWORD_THRESHOLD
++    # A raw score of exactly SHORT_KEYWORD_THRESHOLD (e.g. 2/8 = 0.25 hits)
++    # must NOT clear a 0.3 gate in the WRONG direction: the gate accepts
++    # scores AT or above it. The title's 0.375 clears both 0.3 and the long
++    # path stays strict at 0.6.
++    assert SHORT_TEXT_WORD_LIMIT >= 8, "the LORE-043 title itself must fit"
++    assert SHORT_TEXT_WORD_LIMIT < 10, (
++        "the 10-word refused paraphrase must stay on the LONG path"
++    )
++    assert KEYWORD_CONFIDENCE_MAX == 0.5, "keyword cap survives the band"
++
++
++def test_long_text_threshold_constant_is_unchanged():
++    assert KEYWORD_THRESHOLD == 0.6
++
++
++# ---------------------------------------------------------------- a) title path
++def test_lore043_title_returns_shared_checkout_collision():
++    result = classify(LORE043_TITLE)
++    assert result.class_id == "shared-checkout-collision"
++    assert result.confidence > 0.0
++    # Honest evidence: keyword-only, capped below signature strength, and it
++    # names the three keywords that fired (worktree, checkout, collision).
++    assert result.matched_signature is None
++    assert all(ev["kind"] == "keyword" for ev in result.evidence)
++    assert result.confidence <= KEYWORD_CONFIDENCE_MAX, (
++        "keyword evidence never reads as signature strength"
++    )
++    assert {"worktree", "checkout", "collision"} <= set(result.matched_keywords)
++
++
++def test_lore043_title_classify_all_keeps_fallback_and_ranking():
++    results = classify_all(LORE043_TITLE)
++    assert results[0].class_id == "shared-checkout-collision"
++    assert results[0].confidence > 0.0
++    confs = [c.confidence for c in results]
++    assert confs == sorted(confs, reverse=True), "candidates stay best-first"
++    assert results[-1].class_id == UNCLASSIFIED_ID, "fallback stays present"
++    ids = [c.class_id for c in results]
++    assert len(ids) == len(set(ids)), "no duplicate ids"
++
++
++def test_lore043_title_consult_reports_matched_true():
++    result = consult(LORE043_TITLE)
++    assert result.matched is True
++    assert "shared-checkout-collision" in result.matched_classes
++    assert result.runbook_refs, "a matched consult must carry up-to-3 runbook refs"
++    ref_ids = [r["class_id"] for r in result.runbook_refs]
++    assert "shared-checkout-collision" in ref_ids
++    assert result.elapsed_ms > 0.0
++
++
++def test_lore043_title_consult_json_round_trip():
++    result = consult(LORE043_TITLE)
++    payload = json.loads(json.dumps(result.to_dict()))
++    assert payload["matched"] is True
++    assert payload["matched_classes"][0] == "shared-checkout-collision"
++    assert isinstance(payload["elapsed_ms"], float)
++
++
++def test_lore043_cli_consult_json_prints_matched_true(capsys):
++    from lore.__main__ import main
++
++    rc = main(["consult", LORE043_TITLE, "--json"])
++    assert rc == 0
++    payload = json.loads(capsys.readouterr().out)
++    assert payload["matched"] is True
++    assert payload["matched_classes"][0] == "shared-checkout-collision"
++
++
++def test_lore043_title_consult_task_title_only_matches():
++    # consult_task with an EMPTY detail string is the title-only shape.
++    result = consult_task(LORE043_TITLE, "")
++    assert result.matched is True
++    assert "shared-checkout-collision" in result.matched_classes
++
++
++# ---------------------------------------------------------------- b) long-text guard
++def test_long_refused_paraphrase_stays_refused():
++    # The long path's gate is UNCHANGED: this 10-word paraphrase scored 0.5
++    # (best class 3/6 keywords, below 0.6) and refused pre-change; it must
++    # still refuse — the short band must not leak onto long texts.
++    assert len(LONG_REFUSED_PARAPHRASE.split()) > SHORT_TEXT_WORD_LIMIT
++    result = classify(LONG_REFUSED_PARAPHRASE)
++    assert result.class_id == UNCLASSIFIED_ID
++    assert result.confidence == 0.0
++    # The evidence echo stays available (LORE-016 contract).
++    misses = near_misses(LONG_REFUSED_PARAPHRASE)
++    assert "secret-env-clobber" in [nm.class_id for nm in misses]
++
++
++def test_long_text_weak_evidence_consult_stays_false():
++    # Criteria 4b: a LONG text with weak keyword evidence is still refused
++    # through the consult path too — matched:false, no refs, no exception.
++    result = consult(LONG_REFUSED_PARAPHRASE)
++    assert result.matched is False
++    assert result.matched_classes == []
++    assert result.runbook_refs == []
++
++
++def test_long_text_just_below_long_gate_stays_refused():
++    # A genuinely LONG text whose best raw score (3/6 gateway keywords =
++    # 0.5) sits just BELOW the long gate (0.6): refused before the change
++    # and refused after it — the band is length-scoped, not a global drop.
++    long_weak = (
++        "the gateway came back after its restart and the drain of queued "
++        "traffic finished; nothing failed for anyone"
++    )
++    assert len(long_weak.split()) > SHORT_TEXT_WORD_LIMIT
++    result = classify(long_weak)
++    assert result.class_id == UNCLASSIFIED_ID
++    assert result.confidence == 0.0
++
++
++def test_quarter_score_collision_paraphrase_stays_refused_on_both_paths():
++    # The symmetric guard: the dogfood "two foremen committed to the same
++    # worktree checkout" paraphrase carried 2/8 keywords (0.25) and refused
++    # pre-change. It is 8 words so it sits INSIDE the short band — but 0.25
++    # is still below the short gate too, so it refuses on BOTH paths. The
++    # pin: a quarter-score must never label, whichever gate applies.
++    text = "two foremen committed to the same worktree checkout"
++    result = classify(text)
++    assert result.class_id == UNCLASSIFIED_ID
++    assert result.confidence == 0.0
++    # ...and still echoes its own family as a near-miss (LORE-016 pin).
++    assert "shared-checkout-collision" in [nm.class_id for nm in near_misses(text)]
++
++
++def test_short_below_band_stays_refused_too():
++    # A SHORT text whose best keyword evidence sits below the SHORT gate
++    # never labels either: the honesty rule holds on both paths. One weak
++    # 1/7 hit (0.143) must not label a class.
++    text = "push rejected: permission denied (publickey)"
++    assert len(text.split()) <= SHORT_TEXT_WORD_LIMIT
++    result = classify(text)
++    assert result.class_id == UNCLASSIFIED_ID, (
++        "one weak keyword hit must never label a class"
++    )
++    assert "fast-forward-push-reject" in [nm.class_id for nm in near_misses(text)], (
++        "the refusal still echoes what almost matched"
++    )
++
++
++def test_off_vocabulary_short_text_stays_unclassified():
++    # Zero keyword hits: refused at any threshold, any length.
++    text = "quarterly report widget sales spend"
++    assert len(text.split()) <= SHORT_TEXT_WORD_LIMIT
++    result = classify(text)
++    assert result.class_id == UNCLASSIFIED_ID
++    assert result.confidence == 0.0
++    assert near_misses(text) == []
++
++
++def test_short_band_does_not_change_registry_shape():
++    # Criteria 3: no new failure classes, registry untouched.
++    assert len(SEED_CLASSES) == 13
++    curated = {c.id for c in get_registry().all_classes()} - {UNCLASSIFIED_ID}
++    assert len(curated) == len(SEED_CLASSES)
++    assert "shared-checkout-collision" in curated
++
++
++def test_registry_count_pin_derived_from_seeds():
++    # Guard the count the way the repo's own pins do (tests/test_lore034_
++    # reap_and_push_classes.py::test_registry_counts_derived_from_seeds).
++    assert len(get_registry()) == len(SEED_CLASSES) + 1
++
++
++# ---------------------------------------------------------------- c) title+detail path
++def test_title_plus_detail_path_still_matches():
++    # LORE-041's integration cell, re-run here as the (c) pin: the paste in
++    # the detail carries the signature and the class still lands.
++    result = consult_task(LORE043_TITLE, CANONICAL_DETAIL)
++    assert result.matched is True
++    assert "shared-checkout-collision" in result.matched_classes
++    ref = next(
++        r for r in result.runbook_refs if r["class_id"] == "shared-checkout-collision"
++    )
++    assert ref["check_count"] > 0
++
++
++def test_title_plus_detail_signature_evidence_still_dominates():
++    # With the paste in the detail the class must still label at SIGNATURE
++    # strength (0.9), not the short keyword band — the band only ever
++    # lowers the acceptance GATE for keyword evidence, never the value
++    # scaling, so signature evidence keeps its own strength.
++    combined = f"{LORE043_TITLE}\n{CANONICAL_DETAIL}"
++    result = classify(combined)
++    assert result.matched_signature is not None
++    assert result.confidence >= 0.9
++
++
++# ---------------------------------------------------------------- sibling-class guard
++def test_short_band_does_not_mislabel_drain_title():
++    # A SHORT title with 2/6 drain keywords (0.333) now labels its OWN
++    # class — fine under the band — but must never land on a sibling class.
++    text = "503s while requests drain during restart"
++    result = classify(text)
++    assert result.class_id == "gateway-drain-window"
++    assert result.matched_signature is None
++    assert all(ev["kind"] == "keyword" for ev in result.evidence)
++
++
++def test_short_env_paraphrase_lands_on_its_own_class_not_collision():
++    # A SHORT text whose best class is secret-env-clobber must keep the
++    # sibling boundary: clobber vocabulary cannot land on the collision
++    # class just because the band lowered both gates.
++    text = "env file secrets got clobbered"
++    assert len(text.split()) <= SHORT_TEXT_WORD_LIMIT
++    result = classify(text)
++    assert result.class_id == "secret-env-clobber"
++    assert result.matched_signature is None
++    assert all(ev["kind"] == "keyword" for ev in result.evidence)
++    assert result.class_id != "shared-checkout-collision"

@@ -1,0 +1,24 @@
+commit 796cd2af0f856d24494a5b64101255b64c14034c
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Sep 30 05:56:34 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Sep 30 05:56:34 2026 -0500
+
+    qa: QA-LORE-3 real network-cut run — suite 349 passed under bwrap no-net sandbox, e2e outbound verified blocked. Addresses QA-LORE-3.
+---
+ evidence/qa-lore-3-network-cut-2026-09-30.txt | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/evidence/qa-lore-3-network-cut-2026-09-30.txt b/evidence/qa-lore-3-network-cut-2026-09-30.txt
+new file mode 100644
+index 0000000..49a6ad8
+--- /dev/null
++++ b/evidence/qa-lore-3-network-cut-2026-09-30.txt
+@@ -0,0 +1,7 @@
++e2e net: URLError <urlopen error timed out>
++........................................................................ [ 20%]
++........................................................................ [ 41%]
++........................................................................ [ 61%]
++........................................................................ [ 82%]
++.............................................................            [100%]
++349 passed in 2.20s

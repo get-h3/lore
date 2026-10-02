@@ -1,0 +1,24 @@
+commit 6e890b4ee581ea272b8ca9298ef6a76d0361eb68
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Sep 30 12:22:18 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Sep 30 12:22:18 2026 -0500
+
+    chore: ignore get_h3_lore.egg-info (renamed distribution build artifact). Addresses RELEASE-LORE-002.
+    
+    Renaming the distribution lore -> get-h3-lore makes setuptools emit
+    get_h3_lore.egg-info/ instead of lore.egg-info/ on uv sync; ignore it like
+    its predecessor (untracked build output).
+---
+ .gitignore | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/.gitignore b/.gitignore
+index fcaff78..73928c5 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -32,3 +32,4 @@ node_modules/
+ .gitreins/logs/
+ .gitreins/qa-ledger.jsonl
+ lore.egg-info/
++get_h3_lore.egg-info/

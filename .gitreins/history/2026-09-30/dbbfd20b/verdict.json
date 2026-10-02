@@ -1,0 +1,93 @@
+{
+  "task_id": "RELEASE-LORE-002",
+  "task_title": "PyPI distribution name decision + source-only install posture",
+  "task_criteria": [
+    "Distribution name is a distinct, unoccupied name (get-h3-lore); pyproject name != bare lore; import package and console script remain 'lore'; README/INSTALL/RELEASE document that 'pip install lore' resolves to an unrelated third-party package and that installs are source-only; regression test pins the naming contract; suite + ruff + count guard green."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/lore",
+  "branch": "main",
+  "commit": "6e890b4ee581ea272b8ca9298ef6a76d0361eb68",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260930T172221.511518Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\n12:23PM INF scanned ~2979648 bytes (2.98 MB) in 473ms\n12:23PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 107 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260930T172221.511518Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.12.2\ncollected 353 items\n\ntests/test_absorb.py .........................                           [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [ 11%]\ntests/test_classifier.py ............                                    [ 14%]\ntests/test_cli_surface.py ......................                         [ 20%]\ntests/test_compiler.py .............................                     [ 28%]\ntests/test_consult.py ....................                               [ 34%]\ntests/test_count_guard.py ............                                   [ 37%]\ntests/test_dist_name.py ....                                             [ 39%]\ntests/test_evidence.py ......................                            [ 45%]\ntests/test_lore011_drain_acceptance.py .......                           [ 47%]\ntests/test_lore016_qa_audit.py .....................                     [ 53%]\ntests/test_lore017_gateway_guard.py ........                             [ 55%]\ntests/test_lore020_absorb_window.py ...                                  [ 56%]\ntests/test_lore021_naming_docs.py .......                                [ 58%]\ntests/test_lore022_freshness_docs.py .....                               [ 59%]\ntests/test_lore030_ux_guard.py ....                                      [ 60%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 64%]\ntests/test_near_miss.py ..............                                   [ 68%]\ntests/test_readme_links.py .                                             [ 68%]\ntests/test_review001_gate_record.py ........                             [ 70%]\ntests/test_review002_recall.py ........                                  [ 73%]\ntests/test_review003_env_absent.py .......                               [ 75%]\ntests/test_validate.py ................................................. [ 88%]\n.......................................                                  [100%]\n\n============================= 353 passed in 1.85s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/lore/.gitreins/logs/guard-20260930T172221.511518Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    }
+  },
+  "summary": "Judge Result: RELEASE-LORE-002\n\nStage tier1: PASS\n    \u2713 lint: ok (no output)\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: ============================= test session starts ==============================\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-09-30T17:23:46.788091",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-09-30T17:23:46.801919+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 862,
+        "truncated": false,
+        "source": "git show 6e890b4ee581"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 2961,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "RELEASE-LORE-002"
+  }
+}
