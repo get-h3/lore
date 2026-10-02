@@ -4,14 +4,21 @@ Match strategy (in order):
 
 1. **Signature regex** match against the text = HIGH confidence (0.9).
 2. **Keyword score** (share of the class's keywords present, case-insensitive)
-   = LOWER confidence, accepted only when the score clears
-   :data:`KEYWORD_THRESHOLD` (0.6). Keyword-only confidence is capped at 0.5
-   so a keyword match can never be mistaken for signature strength.
+   = LOWER confidence, accepted only when the score clears the keyword gate:
+   :data:`KEYWORD_THRESHOLD` (0.6) for LONG texts, or the lower
+   :data:`SHORT_KEYWORD_THRESHOLD` (0.3) when the text is SHORT (at most
+   :data:`SHORT_TEXT_WORD_LIMIT` words). Keyword-only confidence is capped
+   at 0.5 so a keyword match can never be mistaken for signature strength.
+   The short band exists for the tick-start consult (LORE-007), whose input
+   is a board row's TITLE (LORE-043): titles are short, so demanding 60% of
+   a class's vocabulary from ~4 words starved the classifier of real
+   evidence — the band lowers only the acceptance GATE for keyword
+   evidence, never the confidence scaling and never the honesty rule.
 3. Otherwise → :data:`UNCLASSIFIED_ID` with 0.0 confidence.
 
-Honesty rule: a weak (below-threshold) match is NEVER labeled as a specific
-class — it returns unclassified. A specific label always carries its evidence
-(kind: ``signature`` or ``keyword``) so callers can audit why.
+Honesty rule: a weak (below-gate) match is NEVER labeled as a specific
+class — it returns unclassified. A specific label always carries its
+evidence (kind: ``signature`` or ``keyword``) so callers can audit why.
 """
 
 from __future__ import annotations
@@ -24,8 +31,32 @@ from lore.classes import UNCLASSIFIED_ID, FailureClass, get_registry
 # Confidence levels.
 SIGNATURE_CONFIDENCE = 0.9
 KEYWORD_CONFIDENCE_MAX = 0.5  # keyword-only matches never reach signature strength
-KEYWORD_THRESHOLD = 0.6  # fraction of a class's keywords required to accept
+KEYWORD_THRESHOLD = (
+    0.6  # fraction of a class's keywords required to accept (long texts)
+)
 UNCLASSIFIED_CONFIDENCE = 0.0
+
+# LORE-043 (dogfood 2026-10-01 run 4): the tick-start consult classifies a
+# board row's TITLE, which is short — a realistic 4-word title carrying 3 of
+# 8 collision keywords (raw score 0.375) sat below the 0.6 long-text gate and
+# the consult returned ``matched:false`` for the fleet's most recurring
+# collision class. SHORT texts therefore accept keyword evidence at a lower
+# gate. Both constants are principled, and the pins in
+# tests/test_lore043_short_text_threshold.py hold them in place:
+#
+# - SHORT_TEXT_WORD_LIMIT = 8: the board census (65 historical rows,
+#   measured by the filing run) shows a median title of 14 words with a
+#   25th percentile of 8 — task titles cluster at or below 8 words. The
+#   threshold is deliberately BELOW the longest paraphrase the near-miss
+#   tests refuse ("container env lost the API key after .env got
+#   clobbered", 10 words — must stay on the long path), so 9 would flip a
+#   pinned refusal and 12 (a naive "titles are short" read) would flip two.
+# - SHORT_KEYWORD_THRESHOLD = 0.3: the brief's "2-3 keyword hits on a short
+#   title" shape (exact multiples of 8 and 6-keyword classes land at 0.25/
+#   0.333, so a fraction-of-3 gate keeps those two classes behaving the
+#   same while the LORE-043 title's 3/8 = 0.375 clears it).
+SHORT_TEXT_WORD_LIMIT = 8
+SHORT_KEYWORD_THRESHOLD = 0.3
 
 _FALLBACK_SIGNATURE = r"$^"  # never matches (empty pattern guard for unclassified)
 
@@ -113,19 +144,47 @@ def _keyword_hits(cls: FailureClass, lower_text: str) -> tuple[str, ...]:
     return tuple(hits)
 
 
-def _keyword_confidence(n_keywords: int, n_hits: int) -> float:
+def _keyword_gate(lower_text: str) -> float:
+    """Acceptance gate for keyword evidence, scoped by the text's length.
+
+    LORE-043: the tick-start consult (LORE-007) is fed board-row TITLES,
+    which are short — demanding :data:`KEYWORD_THRESHOLD` of a class's
+    vocabulary from ~4 words starved the classifier of real evidence and
+    left the fleet's most recurring collision class silent at tick start.
+    A text at most :data:`SHORT_TEXT_WORD_LIMIT` words long accepts
+    keyword evidence at the lower :data:`SHORT_KEYWORD_THRESHOLD`; every
+    longer text keeps the strict long-text gate.
+    """
+    if len(lower_text.split()) <= SHORT_TEXT_WORD_LIMIT:
+        return SHORT_KEYWORD_THRESHOLD
+    return KEYWORD_THRESHOLD
+
+
+def _keyword_confidence(
+    n_keywords: int, n_hits: int, gate: float = KEYWORD_THRESHOLD
+) -> float:
+    """Band-scaled keyword confidence, or 0.0 when the gate refuses.
+
+    ``gate`` is the acceptance threshold for THIS text (callers pass the
+    length-scoped gate from :func:`_keyword_gate`; the default keeps the
+    long-text gate for arithmetic-only callers). Below the gate the raw
+    score is refused as evidence for any label (0.0); at or above it the
+    score scales within the keyword band ``[gate, 1.0]`` so keyword
+    evidence stays visibly weaker than a signature match. Naming: this
+    band-scaled return value is the ``confidence`` classify labels
+    accepted matches with (CLI prints it as ``confidence=``); it is NOT
+    ``NearMiss.raw_score``, and the CLI's near-misses section prints
+    ``score=`` for that RAW fraction instead.
+    """
     if n_keywords == 0 or n_hits == 0:
         return 0.0
     score = n_hits / n_keywords
-    if score < KEYWORD_THRESHOLD:
-        return 0.0  # below threshold: refused as evidence for any label
+    if score < gate:
+        return 0.0  # below gate: refused as evidence for any label
     # Scale within the keyword band so keyword evidence stays visibly weaker
-    # than a signature match. Naming: this band-scaled return value is the
-    # ``confidence`` classify labels accepted matches with (CLI prints it as
-    # ``confidence=``); it is NOT ``NearMiss.raw_score``, and the CLI's
-    # near-misses section prints ``score=`` for that RAW fraction instead.
-    span = 1.0 - KEYWORD_THRESHOLD
-    return round(KEYWORD_CONFIDENCE_MAX * (KEYWORD_THRESHOLD + span * score), 3)
+    # than a signature match.
+    span = 1.0 - gate
+    return round(KEYWORD_CONFIDENCE_MAX * (gate + span * score), 3)
 
 
 def classify(text: str) -> Classification:
@@ -155,7 +214,8 @@ def classify(text: str) -> Classification:
                     evidence=evidence,
                 )
 
-    # (2) Keyword score — lower confidence, threshold-gated.
+    # (2) Keyword score — lower confidence, length-scoped gate (LORE-043).
+    gate = _keyword_gate(lower_text)
     best_id: str | None = None
     best_conf = 0.0
     best_hits: tuple[str, ...] = ()
@@ -163,7 +223,7 @@ def classify(text: str) -> Classification:
         if compiled.cls.id == UNCLASSIFIED_ID:
             continue
         hits = _keyword_hits(compiled.cls, lower_text)
-        conf = _keyword_confidence(len(compiled.cls.keywords), len(hits))
+        conf = _keyword_confidence(len(compiled.cls.keywords), len(hits), gate)
         if conf > best_conf:
             best_id, best_conf, best_hits = compiled.cls.id, conf, hits
 
@@ -219,7 +279,11 @@ def classify_all(text: str) -> list[Classification]:
                 break
         else:
             hits = _keyword_hits(compiled.cls, lower_text)
-            conf = _keyword_confidence(len(compiled.cls.keywords), len(hits))
+            conf = _keyword_confidence(
+                len(compiled.cls.keywords),
+                len(hits),
+                _keyword_gate(lower_text),
+            )
             if conf > 0.0:
                 candidates.append(
                     Classification(
@@ -269,7 +333,11 @@ def near_misses(text: str, limit: int = 3) -> list[NearMiss]:
         if any(sig.search(text) for sig in compiled.signature_res):
             continue  # signature-accepted: classify already labels this class
         hits = _keyword_hits(compiled.cls, lower_text)
-        conf = _keyword_confidence(len(compiled.cls.keywords), len(hits))
+        conf = _keyword_confidence(
+            len(compiled.cls.keywords),
+            len(hits),
+            _keyword_gate(lower_text),
+        )
         if conf == 0.0 and hits:
             misses.append(
                 NearMiss(

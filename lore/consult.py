@@ -82,9 +82,12 @@ def consult(text: str) -> ConsultResult:
     """Match symptom text against class signatures; attach runbook refs.
 
     Takes the classifier's match ONLY when it is a real match (confidence
-    > 0.0 — signature or accepted keyword, never the unclassified fallback),
-    plus any additional classes from :func:`classify_all` that also matched,
-    best first, capped at :data:`MAX_MATCHED_CLASSES`. Fail-open throughout.
+    > 0.0 — signature or length-gated keyword, never the unclassified
+    fallback; short texts like bare board-row titles accept keyword
+    evidence at the lower :data:`lore.classifier.SHORT_KEYWORD_THRESHOLD`
+    gate, LORE-043), plus any additional classes from
+    :func:`classify_all` that also matched, best first, capped at
+    :data:`MAX_MATCHED_CLASSES`. Fail-open throughout.
     """
     start = time.perf_counter()
 

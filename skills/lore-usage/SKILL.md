@@ -92,10 +92,14 @@ exist", run `uv tool upgrade lore` before filing a bug.
   registry's vocabulary blind spots. Fixed in LORE-041: git's canonical
   collision error ("would be overwritten by checkout") now labels
   `shared-checkout-collision` at 0.90; earlier it missed AND the near-miss
-  echo ranked `secret-env-clobber` first on "overwritten". Remaining known
-  blind spot (2026-10-01, run 4): a consult title
-  carrying 3/8 collision keywords still misses (`KEYWORD_THRESHOLD=0.6`)
-  — wire integrations to `--failure`/raw output text, not titles (LORE-043).
+  echo ranked `secret-env-clobber` first on "overwritten". Fixed in
+  LORE-043: the title-only consult path no longer goes silent on short
+  titles — a text of ≤8 words (board-title 25th percentile; measured)
+  accepts keyword evidence at a ≥0.3 gate instead of the long-text 0.6, so
+  the 4-word title "worker worktree checkout collision" (3/8 keywords =
+  0.375) now labels `shared-checkout-collision` at keyword strength.
+  Long-text behavior is unchanged: a 10-word paraphrase that scored 0.5
+  still refuses and only echoes as a near-miss.
 - Fresh-box install (run 4, all three paths pass): anonymous clone works;
   `uv sync --extra dev` ≈9 s incl. a 4 s uv bootstrap from the astral-sh/uv
   GitHub release tarball; pip fallback (`venv` + `pip install -e ".[dev]"`)
@@ -107,7 +111,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
 ## Dev loop
 
 ```sh
-uv run pytest -q    # expect: 364 passed (count synced to scripts/test-count.txt, LORE-029)
+uv run pytest -q    # expect: 404 passed (count synced to scripts/test-count.txt, LORE-029)
 uv run ruff check . # expect: All checks passed!
 ```
 

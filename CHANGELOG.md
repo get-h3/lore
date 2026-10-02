@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **LORE-043** — the tick-start consult (LORE-007) no longer goes silent on
+  short board-row TITLES. Keyword acceptance is now length-scoped: a text of
+  at most 8 words (the board census' title 25th percentile; the 10-word
+  paraphrase pinned as refused stays on the long path) accepts keyword
+  evidence at a 0.3 gate (was 0.6 for every length), so the 4-word title
+  `worker worktree checkout collision` (3/8 keywords = 0.375) labels
+  `shared-checkout-collision` at capped keyword confidence instead of
+  returning `matched:false`. The confidence cap (0.5), the keyword-only
+  evidence kind, the honesty refusal below the gate with its near-miss
+  echo, and the long-text 0.6 gate are all unchanged; the registry is
+  untouched (13 curated classes).
+
 ## [0.1.2] — 2026-09-26
 
 Version refresh only — no code changes. Bumped from `0.1.1` after a stale-version

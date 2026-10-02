@@ -58,10 +58,14 @@ def test_cli_explain_prints_the_raw_fraction_as_score(capsys):
 
 
 def test_band_scaled_value_is_the_confidence_for_an_accepted_keyword_match():
-    # Above threshold: the band-scaled value IS the labeled confidence (the
+    # Above gate: the band-scaled value IS the labeled confidence (the
     # CLI prints it as `confidence=`), and it differs from the raw fraction.
     # Phrased so no signature regex fires (keyword-only acceptance).
+    # LORE-043: the gate is LENGTH-SCOPED, so the comparison must use the
+    # same gate the classifier used for THIS text (5 words -> the short
+    # band), not the default long-text gate.
     from lore.classes import get_registry
+    from lore.classifier import _keyword_gate
 
     text = "worktree checkout sibling collision reap"
     cls = classify(text)
@@ -69,7 +73,8 @@ def test_band_scaled_value_is_the_confidence_for_an_accepted_keyword_match():
     assert cls.class_id == "shared-checkout-collision"
     n_keywords = len(get_registry().get("shared-checkout-collision").keywords)
     assert len(cls.matched_keywords) == 5  # all but "index.lock"
-    scaled = _keyword_confidence(n_keywords, len(cls.matched_keywords))
+    gate = _keyword_gate(text.lower())
+    scaled = _keyword_confidence(n_keywords, len(cls.matched_keywords), gate)
     assert scaled == cls.confidence
     assert scaled != len(cls.matched_keywords) / n_keywords  # scaling ≠ identity
 

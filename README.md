@@ -140,7 +140,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 384 passed
+uv run pytest -q        # 404 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -286,6 +286,14 @@ Real output:
 - The title (and `--detail`, classified together with it) is matched against
   the failure-class registry; `runbook_refs` carries lightweight refs only —
   never the runbook payload.
+- Titles are short, so short texts get a proportionate keyword gate (LORE-043):
+  a text of **at most 8 words** (the board census' title 25th percentile)
+  accepts keyword evidence at a **0.3** gate instead of the long-text 0.6 —
+  the 4-word title `worker worktree checkout collision` (3/8 keywords =
+  0.375) labels `shared-checkout-collision` at capped keyword confidence.
+  The honesty rule is unchanged: below-gate texts still return
+  `unclassified` (with a near-miss echo), long texts keep the strict 0.6
+  gate, and keyword evidence never reads as signature strength.
 - `--json` prints the ConsultResult as JSON (shown above); default is text.
 - No match → `"matched": false`, no refs, exit 0. A pipeline can call this
   unconditionally.
@@ -339,7 +347,7 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **384 tests passing** and a clean `ruff check`.
+  with **404 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published

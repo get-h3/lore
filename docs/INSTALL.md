@@ -80,14 +80,14 @@ Real output on the current tree:
 ........................................................................ [ 55%]
 ........................................................................ [ 83%]
 ...........................................                              [100%]
-384 passed
+404 passed
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **384 tests** (26 test files: taxonomy, classifier,
+The count to expect is **404 tests** (27 test files: taxonomy, classifier,
 compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
 your run says something else, you are on a different revision — check
 `git log` before trusting this document.
@@ -263,6 +263,11 @@ uv run python -m lore consult "gateway drain 503" --json
 ```
 
 No match prints `"matched": false` (or the text equivalent) and exits 0.
+Short titles get a proportionate keyword gate (LORE-043): a text of at most
+8 words accepts keyword evidence at a 0.3 gate instead of the long-text 0.6
+(a realistic 4-word title like `worker worktree checkout collision` carries
+3/8 keywords = 0.375, which used to refuse silently). The honesty rule is
+unchanged — below-gate evidence still returns `unclassified`.
 The other mode, `lore consult --failure "<guard output>"`, is documented in
 the README ("Guard-failure suggestions").
 
