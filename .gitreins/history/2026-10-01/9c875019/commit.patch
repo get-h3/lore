@@ -1,0 +1,18 @@
+commit 70d3e8b337922dde36e8dd42bc6cb50d0720cfbc
+Merge: 82bc9df 9945416
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Thu Oct 1 14:24:06 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Thu Oct 1 14:24:06 2026 -0500
+
+    merge: LORE-045 persist validate --execute results to local .lore history; surface in consult/compile
+
+ .gitignore                             |   4 +
+ CONTRIBUTING.md                        |   2 +-
+ README.md                              |  13 +-
+ docs/INSTALL.md                        |   4 +-
+ lore/__main__.py                       |  91 ++++-
+ lore/validate.py                       | 164 +++++++++
+ scripts/test-count.txt                 |   2 +-
+ tests/test_lore045_validate_history.py | 618 +++++++++++++++++++++++++++++++++
+ 8 files changed, 887 insertions(+), 11 deletions(-)

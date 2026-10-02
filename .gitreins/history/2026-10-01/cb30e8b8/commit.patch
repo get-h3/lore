@@ -1,0 +1,18 @@
+commit c16116f9eb5bff65c06c424fd2d684cd61c25174
+Merge: 9afd70e 0838af5
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Thu Oct 1 07:21:32 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Thu Oct 1 07:21:32 2026 -0500
+
+    merge: LORE-041 classifier — absorb git checkout-collision canonical error text into shared-checkout-collision
+
+ CONTRIBUTING.md                           |   2 +-
+ README.md                                 |   4 +-
+ docs/INSTALL.md                           |   4 +-
+ lore/classes.py                           |  25 ++++-
+ scripts/test-count.txt                    |   2 +-
+ skills/lore-usage/SKILL.md                |  11 +-
+ tests/test_lore041_collision_canonical.py | 165 ++++++++++++++++++++++++++++++
+ 7 files changed, 201 insertions(+), 12 deletions(-)
+
