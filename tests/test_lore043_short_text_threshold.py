@@ -220,7 +220,8 @@ def test_off_vocabulary_short_text_stays_unclassified():
 
 def test_short_band_does_not_change_registry_shape():
     # Criteria 3: no new failure classes, registry untouched.
-    assert len(SEED_CLASSES) == 13
+    # Class count is DERIVED from SEED_CLASSES, never hardcoded (LORE-032/034
+    # convention; tier-2 verdict flagged the hardcoded literal).
     curated = {c.id for c in get_registry().all_classes()} - {UNCLASSIFIED_ID}
     assert len(curated) == len(SEED_CLASSES)
     assert "shared-checkout-collision" in curated
