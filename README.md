@@ -338,7 +338,10 @@ until they are.)
 
 ## Status
 
-**v0.1.2 — early.** Kicked off 2026-09-23. Split honestly into what runs today
+Development version stamp **0.1.2** — **not released**: built from source, no tag.
+Tag **v0.1.0** (2026-09-24) is the last shipped version; it is the repo's only tag
+and its only GitHub Release object (commit `c655666`). The tree is **165 commits**
+past that tag. Kicked off 2026-09-23. Split honestly into what runs today
 and what does not:
 
 ### Shipped — runs today, verified on `main`
