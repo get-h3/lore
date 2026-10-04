@@ -284,3 +284,17 @@ a 0.90 hit (LORE-046) — two answers on one screen.
 the same-day bunker exemption needs an UNCHANGED repo — HEAD moved 3 commits
 past run 4's leg, so the fresh box ran again; when the designated host
 refuses the key, probe siblings and substitute rather than skip.
+
+## Run 6 — 2026-10-04 (gate/closure loop + run 4/5 fix verification)
+
+Ran the closure surface as the primary workflow for the first time: gate
+(ALLOW/DENY probes incl. --record opt-in persistence), absorb (class
+proposal + --window trail sweep, both the parse and explicit-empty paths),
+consult (failure mode + tick-start + fail-open), then fix-verified LORE-045
+(validate --execute → consult now carries the local-history lint timestamp
+with an honesty label while show/audit keep last_validated=no-data for
+operator attestation) and LORE-046 (unclassified noise line gone on
+confident matches) at HEAD main d034465. PyPI get-h3-lore still 404 —
+QA-LORE-4's closure remains process-state, and the gate ALLOW verdict with
+--ref QA-LORE-4 --source dogfood-run6 in the integration report is the
+closure artifact the foreman can act on. Warm match 40–50 ms; no PERF row.

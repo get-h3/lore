@@ -111,10 +111,29 @@ exist", run `uv tool upgrade lore` before filing a bug.
 ## Dev loop
 
 ```sh
-uv run pytest -q    # expect: 404 passed (count synced to scripts/test-count.txt, LORE-029)
+uv run pytest -q    # expect: 415 passed (count synced to scripts/test-count.txt, LORE-029)
 uv run ruff check . # expect: All checks passed!
 ```
 
 Board: `.coding-hermes/board/tasks.jsonl` (JSONL, last row per id wins,
 `LORE-*` ids). Commits: `type: description. Addresses <task-id>.`; GitReins
 Tier-1 guard runs pre-commit; never commit `.gitreins/` runtime artifacts.
+
+## The closure loop (run 6, 2026-10-04 — the surface this skill under-documents)
+
+- `gate` denials exit 1; ALLOWs exit 0 and write a JSONL row ONLY if
+  `--record PATH` was passed (opt-in; DENY never writes even with `--record`).
+- `absorb --window` needs a LOGSEY-EXPORT-shaped trail: a `logsey export`
+  line, a fenced block, then per-row lines starting with a BARE ISO
+  timestamp. A plain log is an explicit empty result (exit 0), not an error;
+  an input that CLAIMS an export but does not parse exits 2.
+- `validate --execute` never sets `last_validated` (operator attestation),
+  but it appends `./.lore/validate-history.jsonl` **per CWD**, and `consult`
+  reads that local history: after a green lint, consult shows
+  "last lint-validated <ts> on this box (local history, not operator
+  attestation)" while show/audit keep `no data`. Verify a "stale" claim by
+  checking WHICH command you asked — the two honesty fields diverge by design.
+- Fixture pitfall: validate's checks run in the CURRENT directory — run
+  `--execute` from a real checkout or git-based checks exit 128 and the
+  class records drifted_orders (in a non-repo CWD that is correct behavior,
+  the anti-rot signal working).
