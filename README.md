@@ -341,7 +341,9 @@ until they are.)
 Development version stamp **0.1.2** — **not released**: built from source, no tag.
 Tag **v0.1.0** (2026-09-24) is the last shipped version; it is the repo's only tag
 and its only GitHub Release object (commit `c655666`) — the tree is **over 160
-commits** past it. Kicked off 2026-09-23. Split honestly into what runs today
+commits** past it. Kicked off 2026-09-23. **Nothing is published to PyPI under
+any name** — install channels are git only (`uv sync`, `uv tool install git+...`);
+see the `pip install lore` warning above. Split honestly into what runs today
 and what does not:
 
 ### Shipped — runs today, verified on `main`
