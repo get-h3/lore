@@ -33,6 +33,11 @@ evaluator:
   # schema template's own commented example — no starvation recorded at this
   # rung on a repo this size (iterations are the binding knob, see above).
   max_time: "30m"
+  # 2026-10-03 releng: full test suite exceeds the default 180s under box load
+  # (load ~29; guard log shows pytest reaching 100% pass before the timeout
+  # kills it). Raised per the guard's own error hint. Board-only commits were
+  # failing to commit as a result.
+  test_timeout: 600
 # defaults.model — the judge model. deepseek-v4-flash is the canonical cheap
 # judge (env GITREINS_LLM_MODEL agrees); api_key_env omitted because
 # GITREINS_LLM_API_KEY is provided by the environment.
