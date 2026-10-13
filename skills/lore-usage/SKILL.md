@@ -145,3 +145,26 @@ Tier-1 guard runs pre-commit; never commit `.gitreins/` runtime artifacts.
   `--execute` from a real checkout or git-based checks exit 128 and the
   class records drifted_orders (in a non-repo CWD that is correct behavior,
   the anti-rot signal working).
+
+## The machine contract (run 8, 2026-10-13)
+
+- `show <c> --format json` == `compile --class <c> --format json` element 0
+  (modulo provenance/evidence_trail provenance blocks) — verified byte-equal
+  via `jq -S del(...)`. Scripts may use either.
+- Exit ladder, verified with direct `$?`: unknown class → 2 (compile and
+  gate absorb both); gate ack → 0; gate DENY → 1 (violations listed on
+  stderr-style output); consult unmatched → 0 fail-open 'no matching
+  runbook'. Script on the exit code, not the prose.
+- `audit --format json` lists 14 entries: 13 curated classes PLUS the
+  `unclassified` bucket (see run-7 LORE-051 — no flag marks the bucket).
+  Filter `.class_id != "unclassified"` before counting classes.
+- `absorb --window` trail contract: a `logsey export` marker line, a FENCED
+  ``` block, then one evidence line per row starting with a BARE ISO
+  timestamp. Anything claiming to be an export without the fence → rc=2
+  (error text does not state this contract — LORE-053). No marker at all →
+  rc=0 empty result.
+- `validate --execute` runs commands under /bin/sh: process substitution
+  (`diff <(...)`) hard-fails, and missing files (fleet.toml, ~/.hermes
+  paths) exit 1 → class flips 'stale'. On a box without the fleet layout,
+  expect 5/13 classes stale-by-environment; shared-checkout-collision is
+  the reliably-green class (LORE-052).

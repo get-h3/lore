@@ -339,3 +339,42 @@ How the pieces actually fit (the mental model a new agent needs):
    mean "all template-skipped" — env-absent label doesn't say how few checks ran),
    LORE-051 (audit's aggregate status hides that `unclassified` is a bucket, not
    a class; 14 vs 13+1 for scripted counters).
+
+## Run 8 (2026-10-13) — the machine contract
+
+Run 8 asked the question a script asks: do the `--format json` surfaces agree
+with each other, and do exit codes mean what a pipeline consumer assumes?
+
+**What the contract family is.** lore exposes the same runbook data through
+three JSON producers — `audit` (all classes, counts + freshness), `show <c>`
+(one class, full runbook), `compile --class <c>` (same, as a list-wrapped
+proposal). They are generated from the same compiled structures, and the run
+proved it: stripping provenance/evidence_trail and canonicalizing, `show`
+equals `compile[0]` byte-for-byte, and `audit`'s per-class check/command
+counts agree with both.
+
+**How the equality was nearly faked.** The first parity probe compared
+drain-window's `show` against secret-env-clobber's `compile` (wrong class —
+the tester grabbed the wrong fixture file). The diff was huge and real
+looking; the "defect" was tester error. Lesson: a parity probe must pin BOTH
+sides to the same fixture before believing a diff.
+
+**The exit ladder is honest where probed.** Unknown class → 2 everywhere
+(compile, gate absorb); gate ack → 0; consult unmatched → 0 with 'no matching
+runbook' (fail-open by design); DENY → 1 with every violation listed. All
+statuses were read with a direct `$?` after the command, never through a
+pipe (PIPESTATUS trap).
+
+**Where the contract frays: two edges, two rows.**
+- `validate --execute` shells out via /bin/sh and treats exit 1 from a
+  missing file the same as lint drift: 5/13 curated classes flip 'stale' on
+  the project's own working box. The schema already has an `env_absent`
+  outcome — it was [] in every class. LORE-052.
+- `absorb --window`'s fail-closed error (rc=2) is identical for unrelated
+  noise and for a real export missing its fence, and neither variant states
+  the accepted shape (fenced block + bare-ISO lines — documented only in
+  skills/lore-usage). LORE-053.
+
+**Why run 8 exists.** Runs 1-7 proved humans can use lore; run 8 proved
+machines can. The remaining friction is not correctness — it is that two
+error paths teach the internal state of the tool instead of the contract.
