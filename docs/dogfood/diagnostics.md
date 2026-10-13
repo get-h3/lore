@@ -298,3 +298,44 @@ confident matches) at HEAD main d034465. PyPI get-h3-lore still 404 —
 QA-LORE-4's closure remains process-state, and the gate ALLOW verdict with
 --ref QA-LORE-4 --source dogfood-run6 in the integration report is the
 closure artifact the foreman can act on. Warm match 40–50 ms; no PERF row.
+
+## Run 7 — 2026-10-13 (closure→audit-record round trip + lint persistence on fresh machines, HEAD fdfcea5)
+
+Angle untouched by runs 1-6: the full closure→persist→re-read loop as primary
+surface, plus LORE-045's validate-history persistence re-proven on machines that
+had never run lore (fresh consumer clone; fresh bunker-mvp box via agent lore-df7).
+
+How the pieces actually fit (the mental model a new agent needs):
+
+1. **The loop is consult → match → show/compile → validate (plan→execute) →
+   gate --record → absorb proposals.** Everything is stdout-only except two
+   writes, both local and both the point of the loop: `.lore/validate-history.jsonl`
+   (appended per CWD by `validate --execute`) and the gate's `--record PATH`
+   audit row (ALLOW only; a DENY appends nothing). "Propose-not-write" holds
+   everywhere else — the registry is never mutated by any verb.
+2. **The two persistence files answer different questions.** validate-history
+   answers "did the commands still run on THIS box" (consult surfaces it with
+   the 'local history, not operator attestation' label); gate --record answers
+   "who approved closing this finding and when" (auditable JSONL). Neither
+   touches the registry; neither fabricates a date.
+3. **Errors hit, and their meaning:**
+   - `$?` after `… | head` reads head's status, not lore's — pipe reads grade
+     the wrong element; check exit codes directly (`lore compile --class x;
+     echo $?` → 2 for the closed registry, correctly non-zero).
+   - `uv run pytest` after a bare `uv sync` fails with lore's own guard message
+     pointing at `uv sync --extra dev` — good UX, not a defect.
+   - bunker timing stamps written as `~/t0` read back as `$HOME/t0` mismatch —
+     scratch-leg hygiene, not a lore defect; the leg timings survive via per-leg
+     probes.
+4. **Fresh-box install contract re-proven end-to-end**: clone → uv tarball
+   installer → `uv sync --extra dev` → 415 tests + ruff clean → first match
+   0.14 s. The las bunker family (03/02/04/01) was offline; bunker-mvp
+   answered with bunkerd active — host substitution per the ephemeral-leg rule,
+   agent destroyed + residue census unchanged.
+5. **Findings**: LORE-049 (guard-failure vocabulary falls between
+   guard-degradation/secret-env-clobber/gateway-guard-violation — the fleet's own
+   most common guard text consults to no runbook), LORE-050 (placeholder checks
+   have no operator fill-in guidance; the lint history's drifted_orders=[] can
+   mean "all template-skipped" — env-absent label doesn't say how few checks ran),
+   LORE-051 (audit's aggregate status hides that `unclassified` is a bucket, not
+   a class; 14 vs 13+1 for scripted counters).

@@ -91,15 +91,23 @@ exist", run `uv tool upgrade lore` before filing a bug.
   (0.90 in ~50-65 ms); phrasing the symptom in your own words risks the
   registry's vocabulary blind spots. Fixed in LORE-041: git's canonical
   collision error ("would be overwritten by checkout") now labels
-  `shared-checkout-collision` at 0.90; earlier it missed AND the near-miss
+  now labels `shared-checkout-collision` at 0.90; earlier it missed AND the near-miss
   echo ranked `secret-env-clobber` first on "overwritten". Fixed in
   LORE-043: the title-only consult path no longer goes silent on short
   titles — a text of ≤8 words (board-title 25th percentile; measured)
   accepts keyword evidence at a ≥0.3 gate instead of the long-text 0.6, so
-  the 4-word title "worker worktree checkout collision" (3/8 keywords =
-  0.375) now labels `shared-checkout-collision` at keyword strength.
+  the 4-word title "worker worktree checkout collision" (3/8 keywords = 0.375) now labels
+  `shared-checkout-collision` at keyword strength.
   Long-text behavior is unchanged: a 10-word paraphrase that scored 0.5
   still refuses and only echoes as a near-miss.
+- Guard-failure consults: paste the guard's DECISION vocabulary, not its
+  finding list. Run 7 (2026-10-13, LORE-049): the fleet's most common guard
+  text — "guard FAILED: secrets detected sk-… in diff" — consults to
+  `no matching runbook` (fail-open exit 0); only gate-equivalence phrasing
+  ("guard … not gate-equivalent … main tree") labels `guard-degradation`.
+  No class yet owns plain "guard failed / secrets detected / lint failed"
+  tails. Until LORE-049 lands, append the runbook manually when the consult
+  comes back empty on a real failure — fail-open means empty ≠ healthy.
 - Fresh-box install (run 4, all three paths pass): anonymous clone works;
   `uv sync --extra dev` ≈9 s incl. a 4 s uv bootstrap from the astral-sh/uv
   GitHub release tarball; pip fallback (`venv` + `pip install -e ".[dev]"`)
