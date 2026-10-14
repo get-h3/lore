@@ -303,6 +303,17 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
             r"(banned|denied)\s+command",
             r"hardline\s+block",
             r"guard\s+(failure|block).{0,60}repeat(s|ed)?\s+across\s+ticks",
+            # LORE-049 (dogfood 2026-10-13): gitleaks-style secret detection
+            # tripping a verification guard ("guard FAILED: secrets detected
+            # in diff") measured `unclassified 0.00` — the guard-failure
+            # family owns the *guard tripping*, the secret-env class owns
+            # *env clobbering* (its "secrets" keyword alone is why this text
+            # echoed it at 0.17, below the gate). Token-exact co-occurrence:
+            # requires BOTH guard-failure and secrets-detected language in
+            # either order, so a bare "secrets detected" (no guard) or a
+            # bare "guard failed" (no secrets) never fires it here.
+            r"guard\s+(?:failed|failure)\s*:?\s*.{0,20}secrets?\s+detected",
+            r"secrets?\s+detected.{0,60}guard\s+(?:failed|failure)",
         ),
         keywords=(
             "gateway guard",

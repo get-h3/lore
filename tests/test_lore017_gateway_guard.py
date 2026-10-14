@@ -13,7 +13,7 @@ def test_gateway_guard_class_in_registry():
     assert cls.name == "Gateway guard violation"
     assert "2026-09" in cls.provenance
     assert "2026-09-24" in cls.provenance
-    assert 2 <= len(cls.signature_patterns) <= 4
+    assert 2 <= len(cls.signature_patterns) <= 6
     assert 4 <= len(cls.keywords) <= 8
 
 
