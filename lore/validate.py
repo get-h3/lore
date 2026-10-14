@@ -153,6 +153,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import re
+import shutil
 import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -242,22 +243,54 @@ def _clip(text: object) -> str:
     return str(text or "")[:_CLIP]
 
 
+_BASH_CANDIDATES = ("/bin/bash", "/usr/bin/bash")
+
+
+def _bash_path() -> str | None:
+    """First bash binary found, else None (module docstring: any POSIX sh)."""
+    for candidate in _BASH_CANDIDATES:
+        try:
+            if Path(candidate).is_file():
+                return candidate
+        except OSError:  # pragma: no cover — unreadable path, not a bash
+            continue
+    resolved = shutil.which("bash")
+    return resolved or None
+
+
 def _default_runner(command: str) -> CommandResult:
     """Default runner: bounded, non-interactive, captures output.
 
     NEVER inherits an interactive terminal (stdin=DEVNULL) and never runs
     without a timeout. Used only when the caller passes no runner.
+
+    LORE-052: prefers bash when available (curated runbooks carry bash-only
+    syntax such as ``diff <(grep …) <(grep …)`` process substitution, which
+    POSIX ``/bin/sh`` rejects with a syntax error that reads as drift);
+    falls back to plain ``shell=True`` (POSIX sh) when bash is missing.
+    Timeout / stdin / capture semantics are identical either way.
     """
     try:
-        proc = subprocess.run(
-            command,
-            shell=True,
-            capture_output=True,
-            text=True,
-            timeout=COMMAND_TIMEOUT_SECONDS,
-            stdin=subprocess.DEVNULL,
-            check=False,
-        )
+        bash = _bash_path()
+        if bash is not None:
+            proc = subprocess.run(
+                [bash, "-c", command],
+                capture_output=True,
+                text=True,
+                timeout=COMMAND_TIMEOUT_SECONDS,
+                stdin=subprocess.DEVNULL,
+                check=False,
+            )
+        else:
+            proc = subprocess.run(
+                command,
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=COMMAND_TIMEOUT_SECONDS,
+                stdin=subprocess.DEVNULL,
+                check=False,
+            )
     except subprocess.TimeoutExpired as exc:
         return CommandResult(
             returncode=None,
@@ -736,13 +769,98 @@ def _not_found_detail(result: object) -> str | None:
     return None
 
 
-def _classify(result: object) -> str:
+# Signal fragments in stderr that say "a file the command references is
+# missing" (shell + coreutils + grep spellings). Used ONLY together with
+# a genuinely absent referenced path — never alone.
+_MISSING_FILE_SIGNALS = (
+    "no such file or directory",
+    "cannot open",
+    "no such file",
+)
+
+
+_PATH_TOKEN_RE = re.compile(
+    r"(?:~|\$HOME)(?:/[A-Za-z0-9_.\-]+)*|/[A-Za-z0-9_.\-]+(?:/[A-Za-z0-9_.\-]+)*"
+)
+
+
+def _referenced_paths(command: str) -> list[str]:
+    """Absolute / ~/ paths a command text references (quote-aware).
+
+    A quoted path is still a referenced path — ``grep ... '/x/y'`` refers to
+    ``/x/y`` just the same, so this scans the raw command, not ``_unquoted``.
+    Bare relative paths are deliberately ignored (too ambiguous to stat).
+    """
+    return _PATH_TOKEN_RE.findall(command)
+
+
+def _stderr_missing_names(stderr: str) -> list[str]:
+    """Filenames the executing tools THEMSELVES said are missing.
+
+    Matches ``grep: fleet.toml: No such file or directory`` and the
+    ``cannot open`` spelling (awk/vi family). Relative names are returned
+    as-is; absolute ones keep their form.
+    """
+    names: list[str] = []
+    for match in re.finditer(
+        r"([^\s:]+):\s*(?:no such file or directory|cannot open)", stderr, re.IGNORECASE
+    ):
+        name = match.group(1).strip("'\"")
+        if name and name not in names:
+            names.append(name)
+    return names
+
+
+def _missing_target_file(result: object, command: str) -> str | None:
+    """LORE-052: did this failing result mean a referenced FILE is absent?
+
+    Conjunction, kept conservative on purpose — every arm must hold:
+    (1) rc != 0 and not a timeout, (2) stderr shows a file-not-found
+    signal, (3) the command genuinely references the missing thing:
+
+    - arm A: the executing tool itself named the missing file in its
+      stderr AND that name appears in the command text (handles relative
+      names like ``fleet.toml`` whose resolution depends on the runner's
+      CWD — the stderr of the actual execution is ground truth there);
+    - arm B: an absolute/~ path the command references does not exist on
+      this box (stat, per the honest-and-conservative rule).
+
+    A real failure with the file present (bad grep pattern, parse error,
+    genuine drift) fails every arm and stays ``error``.
+    """
+    rc = getattr(result, "returncode", None)
+    if getattr(result, "timed_out", False):
+        return None
+    if not isinstance(rc, int) or rc == 0:
+        return None
+    stderr = str(getattr(result, "stderr", "") or "")
+    lowered = stderr.lower()
+    if not any(sig in lowered for sig in _MISSING_FILE_SIGNALS):
+        return None
+    # arm A: the tool named the missing file; the command references it.
+    for name in _stderr_missing_names(stderr):
+        if name in command:
+            return f"referenced file absent on this box: {name} ({stderr.strip()})"
+    # arm B: a referenced absolute/~ path is genuinely absent.
+    for token in _referenced_paths(command):
+        path = Path(token).expanduser()
+        try:
+            if not path.exists():
+                return f"referenced path absent on this box: {token} ({stderr.strip()})"
+        except OSError:  # pragma: no cover — unreachable on plain exists()
+            return f"referenced path absent on this box: {token} ({stderr.strip()})"
+    return None
+
+
+def _classify(result: object, command: str = "") -> str:
     """Map a runner result onto the closed outcome vocabulary."""
     if result is None:
         return "unknown"
     if getattr(result, "timed_out", False):
         return "timeout"
     if _not_found_detail(result) is not None:
+        return OUTCOME_ENV_ABSENT
+    if _missing_target_file(result, command) is not None:
         return OUTCOME_ENV_ABSENT
     rc = getattr(result, "returncode", None)
     if isinstance(rc, bool) or not isinstance(rc, int):
@@ -893,7 +1011,7 @@ def lint_runbook(
                 result = run(check.command)
             except Exception as exc:  # noqa: BLE001 — drift, never a crash
                 result = CommandResult(returncode=None, stderr=f"runner failure: {exc}")
-            outcome = _classify(result)
+            outcome = _classify(result, check.command)
             exit_code = getattr(result, "returncode", None)
             stdout = _clip(getattr(result, "stdout", ""))
             stderr = _clip(getattr(result, "stderr", ""))
