@@ -1,0 +1,15 @@
+{
+  "tick_id": "lore-foreman-2026-10-13-23-57-31",
+  "wave_budget": 8,
+  "workers": [
+    {
+      "task_id": "LORE-052",
+      "worktree": "/home/kara/worktrees/lore-LORE-052",
+      "branch": "wt/LORE-052",
+      "base": "origin/main",
+      "base_sha": "e3fc3c0",
+      "priority": "P1"
+    }
+  ],
+  "created": "2026-10-13T23:57:31Z"
+}
