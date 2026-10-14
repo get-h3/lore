@@ -11,5 +11,9 @@
       "priority": "P1"
     }
   ],
-  "created": "2026-10-13T23:57:31Z"
+  "created": "2026-10-13T23:57:31Z",
+  "finished_at": "2026-10-14T10:25:00Z",
+  "recovery": {
+    "status": "LORE-052 already merged (0923235) and closed pre-tick; stray merged worktrees LORE-041/044 removed"
+  }
 }
