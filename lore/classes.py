@@ -314,6 +314,23 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
             # bare "guard failed" (no secrets) never fires it here.
             r"guard\s+(?:failed|failure)\s*:?\s*.{0,20}secrets?\s+detected",
             r"secrets?\s+detected.{0,60}guard\s+(?:failed|failure)",
+            # LORE-049 rework (finding-list tail, dogfood run 7 second half):
+            # the guard's DECISION word ("guard FAILED") is often absent from
+            # what an operator pastes — the bare FINDING list measured
+            # `unclassified 0.00` with a 0.17/0.17/0.12 noise split. Each
+            # pattern below is the finding shape this fleet's guard failures
+            # actually emit, guarded so the bare guard word stays out:
+            # - "secrets detected ... diff": the tripped finding PLUS its
+            #   surface ("in diff") — a bare "secrets detected somewhere"
+            #   never fires (LORE-023 co-occurrence doctrine preserved).
+            # - gitleaks rejecting/failing the gate: the scanning guard's
+            #   own decision verb, not tool mentions (a bare "gitleaks"
+            #   upgrade note stays keyword-only evidence, below gates).
+            # - bare "lint failed": the lint gate's finding tail (2 words).
+            # matched_signature stays token-exact: the finding phrase only.
+            r"secrets?\s+detected.{0,80}\bdiff\b",
+            r"\bgitleaks\b.{0,40}(gate\s+rejected|rejected|failed|blocked)",
+            r"\blint\s+failed\b(?=\s|!|\.|,|$)",
         ),
         keywords=(
             "gateway guard",
@@ -324,6 +341,14 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
             "blocked",
             "banned",
             "retry",
+            # LORE-049 rework: the finding-list vocabulary the board row
+            # names. Keyword-only hits stay below-gate evidence on this
+            # 14-keyword class (max 3 short-text hits = 0.21 < 0.3) unless a
+            # signature fires — they only sharpen the near-miss echo.
+            "guard failed",
+            "secrets detected",
+            "lint failed",
+            "gitleaks",
         ),
         provenance=SEED_PROVENANCE
         + " From the 2026-09-24 integration dogfood finding that 'banned command "

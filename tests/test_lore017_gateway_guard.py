@@ -13,8 +13,12 @@ def test_gateway_guard_class_in_registry():
     assert cls.name == "Gateway guard violation"
     assert "2026-09" in cls.provenance
     assert "2026-09-24" in cls.provenance
-    assert 2 <= len(cls.signature_patterns) <= 6
-    assert 4 <= len(cls.keywords) <= 8
+    assert 2 <= len(cls.signature_patterns) <= 12
+    assert 4 <= len(cls.keywords) <= 16
+    # LORE-049 growth history: 4 patterns seeded (LORE-017) → 6 after round 1
+    # (guarded "guard FAILED + secrets detected" co-occurrence) → 9 after the
+    # rework (bare finding-list tail). 12/16 keeps headroom against sprawl
+    # while pinning the judged-growth ledger explicitly.
 
 
 def test_registry_total_count_derived():
