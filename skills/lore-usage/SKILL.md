@@ -119,7 +119,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
 ## Dev loop
 
 ```sh
-uv run pytest -q    # expect: 415 passed (count synced to scripts/test-count.txt, LORE-029)
+uv run pytest -q    # expect: 453 passed (count synced to scripts/test-count.txt, LORE-029)
 uv run ruff check . # expect: All checks passed!
 ```
 
@@ -139,7 +139,10 @@ Tier-1 guard runs pre-commit; never commit `.gitreins/` runtime artifacts.
   but it appends `./.lore/validate-history.jsonl` **per CWD**, and `consult`
   reads that local history: after a green lint, consult shows
   "last lint-validated <ts> on this box (local history, not operator
-  attestation)" while show/audit keep `no data`. Verify a "stale" claim by
+  attestation); executed X/Y checks" while show/audit keep `no data`.
+  The executed ratio (LORE-050) is the honesty scope of the drift verdict:
+  `drifted_orders: []` over `executed 0/7` means the lint EXERCISED NOTHING,
+  not that the runbook is healthy. Verify a "stale" claim by
   checking WHICH command you asked — the two honesty fields diverge by design.
 - Fixture pitfall: validate's checks run in the CURRENT directory — run
   `--execute` from a real checkout or git-based checks exit 128 and the

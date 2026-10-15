@@ -45,9 +45,11 @@ from lore.evidence import (
     attach_evidence,
     parse_logsey_export,
 )
+from lore.placeholders import placeholder_hints
 from lore.runbook import STATUS_PROPOSAL, STATUS_STALE, STATUS_VALIDATED, Runbook
 from lore.validate import (
     HISTORY_FILE,
+    OUTCOME_TEMPLATE,
     is_read_only_command,
     last_local_validation,
     lint_runbook,
@@ -72,6 +74,17 @@ def _local_validation_line(class_id: str) -> str | None:
     if rec is None:
         return None
     return local_validation_note(rec)
+
+
+def _print_fill_in_hints(command: str, indent: str) -> None:
+    """LORE-050 (GAP A): one fill-in line per unfilled <placeholder> slot.
+
+    Rendered next to every printed check command (plan + execute text
+    surfaces, consult --failure): tells the operator WHERE the value
+    comes from (the kind of artifact), never this host's value.
+    """
+    for token, hint in placeholder_hints(command):
+        print(f"{indent}fill-in: {token} = {hint}")
 
 
 def _cmd_match(args: argparse.Namespace) -> int:
@@ -202,6 +215,7 @@ def _cmd_consult(args: argparse.Namespace) -> int:
                     print(f"  {line}")
             for c in s["checks"]:
                 print(f"  check {c['order']}: {c['command']}")
+                _print_fill_in_hints(c["command"], "    ")
         return 0
     result: ConsultResult = consult(
         f"{args.title}\n{args.detail}" if args.detail else args.title
@@ -291,6 +305,7 @@ def _cmd_validate(args: argparse.Namespace) -> int:
                         print(f"  check {c.order}: would run: {c.command}")
                     else:
                         print(f"  check {c.order}: would REFUSE: {c.command}")
+                    _print_fill_in_hints(c.command, "    ")
                 print()
         return 0
 
@@ -310,6 +325,17 @@ def _cmd_validate(args: argparse.Namespace) -> int:
             for r in report.results:
                 suffix = f" (exit {r.exit_code})" if r.exit_code is not None else ""
                 print(f"  check {r.order}: {r.outcome}{suffix}: {r.command}")
+                if r.outcome == OUTCOME_TEMPLATE:
+                    # LORE-050 (GAP A): a template-skipped check explains
+                    # WHAT fills each slot instead of a bare "fill me".
+                    _print_fill_in_hints(r.command, "    ")
+            # LORE-050 (GAP B): the honest execution ratio next to every
+            # verdict — drifted_orders=[] over a 1/7-executed runbook must
+            # never read as "lint ran clean".
+            print(
+                f"  executed: {len(report.executed_orders)}/"
+                f"{len(report.results)} checks"
+            )
             reason = report.stale_reason
             print(f"  stale_reason: {reason if reason else 'none'}")
             print(f"  honesty: {report.honesty_label}")

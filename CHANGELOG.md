@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **LORE-050** — two honesty gaps from dogfood run 7's scratch-dir
+  `validate --execute` (1/7 checks executed, 6/7 template-skipped, the
+  history record grading the class `drifted_orders: []`). GAP A: every
+  surface that renders a check command (runbook markdown, `validate`
+  plan/`--execute`, `consult --failure`) now prints a `fill-in:` hint per
+  unfilled `<placeholder>` slot from a per-slot-name table
+  (`lore/placeholders.py`) describing WHERE the value comes from —
+  deployment-neutral, never a host path or a secret's value. GAP B: the
+  history record carries derived `executed_count`/`total_checks` and
+  consult's lint line appends `; executed X/Y checks`, so "not drifted" can
+  never again silently mean "almost nothing was exercised". Counts derived
+  from the seeded outcomes everywhere, including tests.
+
 - **LORE-043** — the tick-start consult (LORE-007) no longer goes silent on
   short board-row TITLES. Keyword acceptance is now length-scoped: a text of
   at most 8 words (the board census' title 25th percentile; the 10-word

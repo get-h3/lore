@@ -12,6 +12,8 @@ from __future__ import annotations
 import dataclasses
 from dataclasses import dataclass, field
 
+from lore.placeholders import placeholder_hints
+
 # Status vocabulary. A freshly compiled runbook is ALWAYS a proposal until an
 # operator publishes it (propose-not-write); "validated" is set only when a
 # caller explicitly passes a last_validated timestamp (operator attestation),
@@ -126,6 +128,11 @@ class Runbook:
                 lines.append("```sh")
                 lines.append(c.command)
                 lines.append("```")
+                # LORE-050 (GAP A): every unfilled <placeholder> slot gets a
+                # fill-in hint AT the point of use — where the value comes
+                # from, not this host's value. Never executed with slots.
+                for token, hint in placeholder_hints(c.command):
+                    lines.append(f"- Fill-in: `{token}` — {hint}")
                 lines.append(f"- Healthy: {c.expected_healthy}")
                 lines.append(f"- Incident: {c.expected_incident}")
                 lines.append(f"- Decision: {c.decision}")

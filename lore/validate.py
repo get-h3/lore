@@ -111,7 +111,8 @@ reports are produced, ONE JSONL record PER CLASS is appended to
 
     {"class_id", "timestamp" (ISO-8601 FROM THE REPORT — never re-stamped),
      "honesty_label" (verbatim), "outcomes" (check outcomes in order),
-     "drifted_orders"}
+     "drifted_orders", "executed_count"/"total_checks" (LORE-050 GAP B:
+     derived, how much of the runbook the lint actually exercised)}
 
 Plan-only runs write NOTHING. Drifted runs are persisted too (drift is
 data — the record's ``drifted_orders`` says it drifted). ``consult`` /
@@ -166,6 +167,7 @@ from lore.runbook import STATUS_STALE, Runbook
 __all__ = [
     "COMMAND_TIMEOUT_SECONDS",
     "DRIFT_OUTCOMES",
+    "EXECUTED_OUTCOMES",
     "HISTORY_FILE",
     "HONESTY_LABEL",
     "LOCAL_VALIDATION_NOTE",
@@ -206,6 +208,16 @@ OUTCOME_VOCABULARY = (
 
 # Outcomes that constitute drift and flip a runbook to ``stale``.
 DRIFT_OUTCOMES = ("error", "timeout", "refused", "unknown")
+
+# LORE-050 (GAP B): outcomes that mean the check's command WAS ACTUALLY
+# RUN — the runner was invoked for it and the command executed, whatever
+# it then answered. ``env-absent`` is an execution too (exit 127 IS an
+# answer — about the machine, not the runbook); ``refused``/``absent``/
+# ``template`` never reach the runner. Dogfood run 7: every check of a
+# class can be template-skipped, so ``drifted_orders=[]`` grades a runbook
+# "not drifted" that a lint NEVER actually exercised — these counts keep
+# the honest ratio (``executed X/Y``) visible next to every drift verdict.
+EXECUTED_OUTCOMES = ("ok", "error", "timeout", "unknown", "env-absent")
 
 # Outcome for "no sourced command" (the honest-absence sentinel).
 OUTCOME_ABSENT = "absent"
@@ -928,6 +940,28 @@ class LintReport:
         return [r.order for r in self.results if r.outcome == OUTCOME_ENV_ABSENT]
 
     @property
+    def executed_orders(self) -> list[int]:
+        """LORE-050 (GAP B): checks whose command the lint ACTUALLY ran.
+
+        Derived from the outcome vocabulary, never stored: an outcome in
+        :data:`EXECUTED_OUTCOMES` means the runner was invoked and the
+        command executed (whatever it answered — ``env-absent`` included,
+        exit 127 IS an answer). ``refused``/``absent``/``template``
+        results are NOT executions. Together with
+        :attr:`not_executed_orders` this is the honest ratio a
+        ``drifted_orders=[]`` verdict is computed over.
+        """
+        return [r.order for r in self.results if r.outcome in EXECUTED_OUTCOMES]
+
+    @property
+    def not_executed_orders(self) -> list[int]:
+        """LORE-050 (GAP B): checks the lint never executed, in outcome
+        terms (``refused``/``absent``/``template`` — the closed
+        not-executed complement of :attr:`executed_orders`)."""
+        unexecuted = set(EXECUTED_OUTCOMES) ^ set(OUTCOME_VOCABULARY)
+        return [r.order for r in self.results if r.outcome in unexecuted]
+
+    @property
     def stale_reason(self) -> str | None:
         """Why this runbook went stale — DRIFTED checks only.
 
@@ -953,6 +987,8 @@ class LintReport:
             "created_at": self.created_at,
             "drifted_orders": self.drifted_orders,
             "env_absent_orders": self.env_absent_orders,
+            "executed_orders": self.executed_orders,
+            "not_executed_orders": self.not_executed_orders,
             "stale_reason": self.stale_reason,
         }
 
@@ -1128,6 +1164,13 @@ def persist_validate_history(
         drifted_orders  the report's drifted check orders (drift is DATA —
                         a drifted lint run is persisted too, the record
                         says it drifted)
+        executed_count  how many checks the lint ACTUALLY ran (LORE-050
+                        GAP B: derived from the outcomes — ``ok``/``error``/
+                        ``timeout``/``unknown``/``env-absent`` executed;
+                        ``refused``/``absent``/``template`` never reached
+                        the runner — so ``drifted_orders: []`` can never
+                        silently mean "nothing was exercised")
+        total_checks    the report's check count (the Y of executed X/Y)
 
     Returns the records appended. Plan-only validate calls never reach
     this; consult/compile read the file read-only (see
@@ -1141,6 +1184,8 @@ def persist_validate_history(
             "honesty_label": report.honesty_label,
             "outcomes": [r.outcome for r in report.results],
             "drifted_orders": list(report.drifted_orders),
+            "executed_count": len(report.executed_orders),
+            "total_checks": len(report.results),
         }
         records.append(rec)
     return append_history_records(records, path=path)
@@ -1187,6 +1232,22 @@ def last_local_validation(
 LOCAL_VALIDATION_NOTE = "local history, not operator attestation"
 
 
+def _executed_ratio(rec: dict) -> str | None:
+    """LORE-050 (GAP B): the 'executed X/Y checks' clause for a record.
+
+    Derived from the record's OWN counts (nothing re-counted or
+    invented); None when the record predates the field — the line then
+    stays exactly as LORE-045 shipped it (no fabricated denominator).
+    """
+    executed = rec.get("executed_count")
+    total = rec.get("total_checks")
+    if not isinstance(executed, int) or not isinstance(total, int):
+        return None
+    if total < 0 or executed < 0 or executed > total:
+        return None  # a malformed record renders honestly, never lies
+    return f"executed {executed}/{total} checks"
+
+
 def local_validation_note(
     rec: dict,
     *,
@@ -1196,10 +1257,17 @@ def local_validation_note(
 
     Format (grep-stable)::
 
-        last lint-validated <timestamp> on this box (local history, not operator attestation)
+        last lint-validated <timestamp> on this box (local history, not operator attestation); executed 1/7 checks
 
     ``rec["timestamp"]`` is the record's verbatim ISO-8601 stamp — never
-    re-formatted and never a fabricated date.
+    re-formatted and never a fabricated date. The LORE-050 executed-ratio
+    clause is appended when the record carries the derived counts; on a
+    pre-LORE-050 record (or a malformed one) the clause is omitted and
+    the line stays byte-identical to the earlier shape.
     """
     ts = str(rec.get("timestamp") or "")
-    return f"last lint-validated {ts} {prefix} ({LOCAL_VALIDATION_NOTE})"
+    line = f"last lint-validated {ts} {prefix} ({LOCAL_VALIDATION_NOTE})"
+    ratio = _executed_ratio(rec)
+    if ratio is not None:
+        line = f"{line}; {ratio}"
+    return line

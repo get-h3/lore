@@ -78,16 +78,16 @@ Real output on the current tree:
 ```
 ........................................................................ [ 27%]
 ........................................................................ [ 55%]
-........................................................................ [ 86%]
-...........................................                              [100%]
-435 passed
+........................................................................ [ 83%]
+........................................................................ [100%]
+453 passed
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **435 tests** (28 test files: taxonomy, classifier,
+The count to expect is **453 tests** (32 test files: taxonomy, classifier,
 compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
 your run says something else, you are on a different revision — check
 `git log` before trusting this document.
@@ -167,6 +167,13 @@ Reading the outcome classes when diagnosing:
 - exit 128 — not a git repository, or another git-level environment error
 - shell syntax errors naming a `<token>` — template placeholders not yet filled
 - everything else — genuine output drift worth investigating
+
+Every rendered check line also prints a `fill-in:` hint per unfilled
+`<token>` slot — where the value comes from (a log path, a health URL, an
+env key), never a deployment's actual value. Fill the slots before `--execute`
+or those checks report `template` and are never run; the `executed: X/Y
+checks` line under each report says exactly how much of the runbook was
+exercised (LORE-050).
 
 ### `match` — classify a symptom
 

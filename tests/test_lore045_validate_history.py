@@ -242,13 +242,22 @@ def test_cli_validate_execute_appends_history_in_cwd(
     assert calls == [r["command"] for r in executed], (
         "every executed check reached the injected runner; nothing ran for real"
     )
+    # LORE-050 (GAP B): the record carries the honest execution ratio,
+    # DERIVED from the report's outcomes (never hardcoded).
     assert set(rec) == {
         "class_id",
         "timestamp",
         "honesty_label",
         "outcomes",
         "drifted_orders",
+        "executed_count",
+        "total_checks",
     }
+    assert rec["executed_count"] == len(calls), (
+        "executed_count counts the checks the runner genuinely ran"
+    )
+    assert rec["total_checks"] == len(payload[0]["results"])
+    assert rec["executed_count"] <= rec["total_checks"]
 
 
 def test_cli_validate_execute_full_registry_one_record_per_class(

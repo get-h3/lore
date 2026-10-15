@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 435 passed
+uv run pytest -q        # 453 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -349,7 +349,7 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **435 tests passing** and a clean `ruff check`.
+  with **453 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published
@@ -370,9 +370,17 @@ and what does not:
   `.lore/validate-history.jsonl` in the current working directory (git-ignored,
   per-box), and `lore consult` (both modes) plus `lore compile --format md`
   surface it for a never-attested runbook as `last lint-validated <ts> on this
-  box (local history, not operator attestation)` — the lint result no longer
-  evaporates, and the honesty law holds: the runbook's own `last_validated`
-  stays untouched (LORE-045).
+  box (local history, not operator attestation); executed X/Y checks` — the
+  lint result no longer evaporates, and the honesty law holds: the runbook's
+  own `last_validated` stays untouched (LORE-045). The record's drift verdict
+  is honestly scoped: `executed_count`/`total_checks` (derived from the
+  outcomes) say how much of the runbook the lint actually exercised, so a
+  `drifted_orders: []` over a mostly-template runbook can never read as "lint
+  ran clean" (LORE-050). Every rendered check command — runbooks, `validate`
+  plan/`--execute` output, `consult --failure` — also prints a fill-in hint
+  per `<placeholder>` slot telling the operator where the value comes from
+  (a log path, a health URL, an env key), never a deployment's actual value
+  (LORE-050).
 - `lore show <class> [--evidence] [--format json|md]` — prints the compiled
   runbook for one class (human-markdown default); `--evidence` adds the class's
   provenance line plus its evidence trail. Unknown class exits 2 (the registry
