@@ -1,0 +1,186 @@
+commit 110e436447affbc731f248dc0d336a3ee6699562
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Oct 14 11:50:33 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Oct 14 11:50:33 2026 -0500
+
+    fix: match guard-failure secrets-detected phrasing to a curated class. Addresses LORE-049.
+    
+    "guard FAILED: secrets detected in diff" consulted to unclassified 0.00.
+    The curated class that owns a guard TRIPPING is gateway-guard-violation
+    (secret-env-clobber owns .env twin clobbering, not guard trips; its bare
+    "secrets" keyword was the source of the 0.17 near-miss echo).
+    
+    Added two token-exact co-occurrence signatures to gateway-guard-violation
+    in the seed table (LORE-016/023 comment precedent): guard-failure +
+    secrets-detected language in either order, so bare halves never fire.
+    
+    Count-sync sweep (fleet convention: every test-count change syncs in the
+    same commit): scripts/test-count.txt 426->431, README/CONTRIBUTING/INSTALL
+    count literals resynced; test_lore017 pattern-count bound 4->6.
+    
+    Tests: tests/test_lore049_guard_secrets_detected.py (5 tests, incl. one
+    variant phrasing + token-exactness). uv run pytest -q = 431 passed;
+    uv run ruff check . clean. Branch wt/LORE-049, not pushed (foreman merges).
+---
+ CONTRIBUTING.md                              |  2 +-
+ README.md                                    |  4 +--
+ docs/INSTALL.md                              |  4 +--
+ lore/classes.py                              | 11 +++++++
+ scripts/test-count.txt                       |  2 +-
+ tests/test_lore017_gateway_guard.py          |  2 +-
+ tests/test_lore049_guard_secrets_detected.py | 48 ++++++++++++++++++++++++++++
+ 7 files changed, 66 insertions(+), 7 deletions(-)
+
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index 378b7fa..aa363ed 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
+ Once `.venv` exists, run the full gate from the repository root:
+ 
+ ```sh
+-uv run pytest -q                    # tests (green at 426 passed)
++uv run pytest -q                    # tests (green at 431 passed)
+ uv run ruff check .                 # lint — "All checks passed!"
+ uv run ruff format --check .        # formatting — "N files already formatted"
+ uv run scripts/check-test-count.sh  # test-count sync guard
+diff --git a/README.md b/README.md
+index c2beec7..340c8ac 100644
+--- a/README.md
++++ b/README.md
+@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
+ [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
+ 
+ ```sh
+-uv run pytest -q        # 426 passed
++uv run pytest -q        # 431 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -349,7 +349,7 @@ and what does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
+-  with **426 tests passing** and a clean `ruff check`.
++  with **431 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 7cb5d31..62732fc 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -80,14 +80,14 @@ Real output on the current tree:
+ ........................................................................ [ 55%]
+ ........................................................................ [ 86%]
+ ...........................................                              [100%]
+-426 passed
++431 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **426 tests** (28 test files: taxonomy, classifier,
++The count to expect is **431 tests** (28 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+diff --git a/lore/classes.py b/lore/classes.py
+index bd903be..32d7968 100644
+--- a/lore/classes.py
++++ b/lore/classes.py
+@@ -303,6 +303,17 @@ SEED_CLASSES: tuple[FailureClass, ...] = (
+             r"(banned|denied)\s+command",
+             r"hardline\s+block",
+             r"guard\s+(failure|block).{0,60}repeat(s|ed)?\s+across\s+ticks",
++            # LORE-049 (dogfood 2026-10-13): gitleaks-style secret detection
++            # tripping a verification guard ("guard FAILED: secrets detected
++            # in diff") measured `unclassified 0.00` — the guard-failure
++            # family owns the *guard tripping*, the secret-env class owns
++            # *env clobbering* (its "secrets" keyword alone is why this text
++            # echoed it at 0.17, below the gate). Token-exact co-occurrence:
++            # requires BOTH guard-failure and secrets-detected language in
++            # either order, so a bare "secrets detected" (no guard) or a
++            # bare "guard failed" (no secrets) never fires it here.
++            r"guard\s+(?:failed|failure)\s*:?\s*.{0,20}secrets?\s+detected",
++            r"secrets?\s+detected.{0,60}guard\s+(?:failed|failure)",
+         ),
+         keywords=(
+             "gateway guard",
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index 9f51d08..ed4f162 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-426
++431
+diff --git a/tests/test_lore017_gateway_guard.py b/tests/test_lore017_gateway_guard.py
+index 3b4062d..a2c2a85 100644
+--- a/tests/test_lore017_gateway_guard.py
++++ b/tests/test_lore017_gateway_guard.py
+@@ -13,7 +13,7 @@ def test_gateway_guard_class_in_registry():
+     assert cls.name == "Gateway guard violation"
+     assert "2026-09" in cls.provenance
+     assert "2026-09-24" in cls.provenance
+-    assert 2 <= len(cls.signature_patterns) <= 4
++    assert 2 <= len(cls.signature_patterns) <= 6
+     assert 4 <= len(cls.keywords) <= 8
+ 
+ 
+diff --git a/tests/test_lore049_guard_secrets_detected.py b/tests/test_lore049_guard_secrets_detected.py
+new file mode 100644
+index 0000000..bfaaa87
+--- /dev/null
++++ b/tests/test_lore049_guard_secrets_detected.py
+@@ -0,0 +1,48 @@
++"""LORE-049: guard-failure secrets-detected phrasing must reach a curated class."""
++
++from lore.classes import get_registry
++from lore.classifier import classify
++
++CLASS_ID = "gateway-guard-violation"
++
++# The canonical guard-failure text measured `unclassified 0.00` before the
++# seed-table fix (LORE-049).
++GUARD_SECRETS_TEXTS = (
++    "guard FAILED: secrets detected in diff",
++    "guard failure: secrets detected in the diff",
++    "secrets detected in diff — guard FAILED, fix and re-run",
++)
++
++
++def test_canonical_guard_secrets_text_classifies():
++    result = classify("guard FAILED: secrets detected in diff")
++    assert result.class_id == CLASS_ID
++    assert result.confidence >= 0.9
++
++
++def test_variant_phrasings_classify():
++    for text in GUARD_SECRETS_TEXTS[1:]:
++        result = classify(text)
++        assert result.class_id == CLASS_ID, text
++        assert result.confidence >= 0.9, text
++
++
++def test_matched_signature_is_token_exact():
++    result = classify("guard FAILED: secrets detected in diff")
++    # matched_signature is the full regex match ("guard FAILED: secrets
++    # detected"); the load-bearing part is the token-exact secrets-detected
++    # phrase inside it.
++    assert "secrets detected" in result.matched_signature
++
++
++def test_bare_half_phrasings_stay_unguarded_class():
++    # Co-occurrence rule: a bare "secrets detected" with no guard language
++    # must not fire the guard class; a bare guard failure with no secrets
++    # neither (existing LORE-017 coverage keeps those on banned/denied).
++    result = classify("secrets detected somewhere in the repo")
++    assert result.class_id != CLASS_ID
++
++
++def test_patterns_registered_on_curated_class():
++    cls = get_registry().get(CLASS_ID)
++    assert any("secrets?\\s+detected" in p for p in cls.signature_patterns)

@@ -75,10 +75,27 @@ def _local_validation_line(class_id: str) -> str | None:
 
 
 def _cmd_match(args: argparse.Namespace) -> int:
+    # LORE-054: --class filter validates the class exists before classifying
+    if args.class_id:
+        from lore.classes import get_registry
+
+        registry = get_registry()
+        if args.class_id not in [c.id for c in registry.all_classes()]:
+            print(f"error: unknown class '{args.class_id}'", file=sys.stderr)
+            return 2
+
     candidates = classify_all(args.text)
     if not candidates:
         print("no candidates")
         return 1
+
+    # LORE-054: filter to requested class if --class specified
+    if args.class_id:
+        candidates = [c for c in candidates if c.class_id == args.class_id]
+        if not candidates:
+            # Class exists but didn't match - return empty result
+            print(f"{args.class_id}\tconfidence=0.00\tevidence: none")
+            return 0
     # LORE-046: classify_all's contract is to ALWAYS carry the unclassified
     # fallback (pinned by tests/test_lore016_qa_audit.py), so a confident
     # match would otherwise print a second, confidence=0.00 row that reads
@@ -602,6 +619,11 @@ def build_parser() -> argparse.ArgumentParser:
             "echo near-misses: classes that almost matched (raw keyword "
             "fraction below threshold) — evidence only, never a label"
         ),
+    )
+    match_p.add_argument(
+        "--class",
+        dest="class_id",
+        help="filter results to only the named class (must be a valid registry class)",
     )
     match_p.set_defaults(func=_cmd_match)
 

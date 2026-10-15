@@ -1,0 +1,16 @@
+commit 09232352b799fea2490a1c1a2956eeae7ef0db60
+Merge: e3fc3c0 a840b21
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Tue Oct 13 19:17:47 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Tue Oct 13 19:17:47 2026 -0500
+
+    merge: LORE-052 bash-capable runner + env-absent classification for missing target files
+
+ CONTRIBUTING.md                              |   2 +-
+ README.md                                    |   4 +-
+ docs/INSTALL.md                              |   4 +-
+ lore/validate.py                             | 140 ++++++++++++--
+ scripts/test-count.txt                       |   2 +-
+ tests/test_lore052_bash_runner_env_absent.py | 266 +++++++++++++++++++++++++++
+ 6 files changed, 401 insertions(+), 17 deletions(-)

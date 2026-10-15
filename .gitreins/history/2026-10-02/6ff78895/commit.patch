@@ -1,0 +1,328 @@
+commit 5557044f3f822fc9560793fd4b231d9ead0f1423
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Fri Oct 2 14:28:59 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Fri Oct 2 14:28:59 2026 -0500
+
+    fix: suppress unclassified row on confident match output. Addresses LORE-046.
+    
+    Real-use dogfood hit: 'python -m lore match "drain 503"' printed a second
+    'unclassified confidence=0.00 evidence: none' line under every confident
+    match — output read like two answers and line-splitting consumers saw two
+    class rows.
+    
+    Display-level only (lore/classifier.py untouched): _cmd_match filters the
+    unclassified fallback from the PRINTED candidates when --explain is unset;
+    a true miss (fallback = only candidate) still prints it honestly, the
+    empty-list 'no candidates' exit-1 branch is unchanged, and --explain keeps
+    the raw list (fallback row + near-misses) for evidence transparency.
+    
+    Docs sync: verbatim match examples in README.md and docs/INSTALL.md no
+    longer show the fallback row (true-miss and --explain examples keep it,
+    verified against live output). Count sync: scripts/test-count.txt and the
+    README/CONTRIBUTING/INSTALL literals now 415 (was 404; +11 LORE-046 tests).
+    
+    Verified: pytest 415 passed; ruff check + format --check clean;
+    check-test-count.sh PASS (class-count=13 derived); live match checks.
+---
+ CONTRIBUTING.md                    |   2 +-
+ README.md                          |   7 +-
+ docs/INSTALL.md                    |  10 +--
+ lore/__main__.py                   |  14 +++-
+ scripts/test-count.txt             |   2 +-
+ tests/test_lore046_match_output.py | 131 +++++++++++++++++++++++++++++++++++++
+ 6 files changed, 151 insertions(+), 15 deletions(-)
+
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index 7a4c75f..a4aa798 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
+ Once `.venv` exists, run the full gate from the repository root:
+ 
+ ```sh
+-uv run pytest -q                    # tests (green at 404 passed)
++uv run pytest -q                    # tests (green at 415 passed)
+ uv run ruff check .                 # lint — "All checks passed!"
+ uv run ruff format --check .        # formatting — "N files already formatted"
+ uv run scripts/check-test-count.sh  # test-count sync guard
+diff --git a/README.md b/README.md
+index 240c4df..065ddbb 100644
+--- a/README.md
++++ b/README.md
+@@ -47,7 +47,6 @@ Real output:
+ 
+ ```
+ gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain
+-unclassified	confidence=0.00	evidence: none
+ ```
+ 
+ Another real symptom, a different class:
+@@ -58,7 +57,6 @@ uv run python -m lore match "secret .env clobber"
+ 
+ ```
+ secret-env-clobber	confidence=0.90	evidence: signature:.env clobber; keyword:.env; keyword:clobber
+-unclassified	confidence=0.00	evidence: none
+ ```
+ 
+ And a symptom that matches nothing curated:
+@@ -140,7 +138,7 @@ Run the tests and lint that gate every change (see
+ [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
+ 
+ ```sh
+-uv run pytest -q        # 404 passed
++uv run pytest -q        # 415 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -163,7 +161,6 @@ lore match "key rotation expired"
+ 
+ ```
+ key-rotation-expiry	confidence=0.90	evidence: signature:rotation expired; keyword:expired; keyword:rotation
+-unclassified	confidence=0.00	evidence: none
+ ```
+ 
+ ## What the classifier knows today
+@@ -347,7 +344,7 @@ and what does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
+-  with **404 tests passing** and a clean `ruff check`.
++  with **415 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 33d0229..d9d382b 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -78,16 +78,16 @@ Real output on the current tree:
+ ```
+ ........................................................................ [ 27%]
+ ........................................................................ [ 55%]
+-........................................................................ [ 83%]
++........................................................................ [ 86%]
+ ...........................................                              [100%]
+-404 passed
++415 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **404 tests** (27 test files: taxonomy, classifier,
++The count to expect is **415 tests** (28 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+@@ -176,7 +176,6 @@ uv run python -m lore match "drain 503"
+ 
+ ```
+ gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain
+-unclassified	confidence=0.00	evidence: none
+ ```
+ 
+ More real symptoms:
+@@ -187,7 +186,6 @@ uv run python -m lore match "secret .env clobber"
+ 
+ ```
+ secret-env-clobber	confidence=0.90	evidence: signature:.env clobber; keyword:.env; keyword:clobber
+-unclassified	confidence=0.00	evidence: none
+ ```
+ 
+ ```sh
+@@ -196,7 +194,6 @@ uv run python -m lore match "key rotation expired"
+ 
+ ```
+ key-rotation-expiry	confidence=0.90	evidence: signature:rotation expired; keyword:expired; keyword:rotation
+-unclassified	confidence=0.00	evidence: none
+ ```
+ 
+ A symptom that matches nothing curated:
+@@ -362,7 +359,6 @@ lore match "key rotation expired"
+ 
+ ```
+ key-rotation-expiry	confidence=0.90	evidence: signature:rotation expired; keyword:expired; keyword:rotation
+-unclassified	confidence=0.00	evidence: none
+ ```
+ 
+ ### The `absorb` trail contract
+diff --git a/lore/__main__.py b/lore/__main__.py
+index 9fd7e0f..e7d22fe 100644
+--- a/lore/__main__.py
++++ b/lore/__main__.py
+@@ -35,6 +35,7 @@ from lore.absorb import (
+     parse_duration,
+     verdict_record,
+ )
++from lore.classes import UNCLASSIFIED_ID
+ from lore.classifier import classify_all, near_misses
+ from lore.compiler import NO_VALID_EVIDENCE, compile_all, compile_class
+ from lore.consult import ConsultResult, consult, consult_failure
+@@ -78,7 +79,18 @@ def _cmd_match(args: argparse.Namespace) -> int:
+     if not candidates:
+         print("no candidates")
+         return 1
+-    for c in candidates:
++    # LORE-046: classify_all's contract is to ALWAYS carry the unclassified
++    # fallback (pinned by tests/test_lore016_qa_audit.py), so a confident
++    # match would otherwise print a second, confidence=0.00 row that reads
++    # like a second answer. Display-level fix only: without --explain the
++    # fallback row is suppressed from the printed candidates, while a TRUE
++    # miss (only the fallback in the list) still prints it — absence stays
++    # a first-class answer. With --explain the raw candidate list is shown
++    # untouched (evidence transparency).
++    printed = candidates
++    if not getattr(args, "explain", False):
++        printed = [c for c in candidates if c.class_id != UNCLASSIFIED_ID] or candidates
++    for c in printed:
+         evidence = "; ".join(f"{e['kind']}:{e['detail']}" for e in c.evidence) or "none"
+         print(f"{c.class_id}\tconfidence={c.confidence:.2f}\tevidence: {evidence}")
+     if getattr(args, "explain", False):
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index 57db2e9..be6652a 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-404
+\ No newline at end of file
++415
+\ No newline at end of file
+diff --git a/tests/test_lore046_match_output.py b/tests/test_lore046_match_output.py
+new file mode 100644
+index 0000000..659af1c
+--- /dev/null
++++ b/tests/test_lore046_match_output.py
+@@ -0,0 +1,131 @@
++"""LORE-046: suppress the unclassified fallback row on confident match output.
++
++Real-use dogfood hit: ``python -m lore match "drain 503"`` printed a second
++``unclassified  confidence=0.00  evidence: none`` line under every confident
++match — output read like two answers, and a scripting consumer splitting on
++lines saw two class rows. Display-level fix in
++:func:`lore.__main__._cmd_match` (classifier.py is NOT touched:
++``classify_all`` keeps its always-carry-the-fallback contract, pinned by
++``tests/test_lore016_qa_audit.py``).
++
++- No ``--explain``: the fallback row is suppressed from the printed
++  candidates when a curated class matched; a TRUE miss (the fallback is the
++  only candidate) still prints ``unclassified confidence=0.00 evidence:
++  none`` — absence stays a first-class answer.
++- ``--explain``: the raw candidate list prints untouched, unclassified row
++  included (evidence transparency).
++- The ``no candidates`` empty-list branch and exit codes are unchanged:
++  0 on a match or a true-miss-with-fallback, 1 on an empty list.
++"""
++
++from __future__ import annotations
++
++import pytest
++
++from lore.__main__ import main
++
++GATEWAY_TEXT = "drain 503s while requests drain during restart"
++NO_MATCH_TEXT = "xyzzy nothing here"
++CONFIDENT_LINE = (
++    "gateway-drain-window\tconfidence=0.90\t"
++    "evidence: signature:drain 503; keyword:503; keyword:drain; keyword:restart"
++)
++UNCLASSIFIED_LINE = "unclassified\tconfidence=0.00\tevidence: none"
++
++
++def _run(argv, capsys):
++    code = main(argv)
++    captured = capsys.readouterr()
++    return code, captured.out, captured.err
++
++
++# ------------------------------------------------- confident match: one row
++def test_confident_match_prints_exactly_one_class_line(capsys):
++    code, out, _err = _run(["match", GATEWAY_TEXT], capsys)
++    assert code == 0
++    lines = [ln for ln in out.splitlines() if ln.strip()]
++    assert lines == [CONFIDENT_LINE]
++
++
++def test_confident_match_has_no_unclassified_line(capsys):
++    code, out, _err = _run(["match", GATEWAY_TEXT], capsys)
++    assert code == 0
++    assert UNCLASSIFIED_LINE not in out
++    assert "unclassified" not in out
++
++
++def test_confident_match_output_is_script_parseable_single_row(capsys):
++    # A consumer splitting on lines must see exactly one class row.
++    code, out, _err = _run(["match", GATEWAY_TEXT], capsys)
++    assert code == 0
++    class_id, confidence_field, _evidence = out.strip().split("\t")
++    assert class_id == "gateway-drain-window"
++    assert confidence_field == "confidence=0.90"
++
++
++def test_other_confident_match_also_suppresses_fallback(capsys):
++    # Second dogfood symptom: "secret .env clobber" — same single-row shape.
++    code, out, _err = _run(["match", "secret .env clobber"], capsys)
++    assert code == 0
++    lines = [ln for ln in out.splitlines() if ln.strip()]
++    assert len(lines) == 1
++    assert lines[0].startswith("secret-env-clobber\t")
++    assert "unclassified" not in out
++
++
++# ------------------------------------------------------- true miss: honest
++def test_true_miss_still_prints_unclassified_line_exit0(capsys):
++    code, out, _err = _run(["match", NO_MATCH_TEXT], capsys)
++    assert code == 0
++    lines = [ln for ln in out.splitlines() if ln.strip()]
++    assert lines == [UNCLASSIFIED_LINE]
++    assert out.startswith(UNCLASSIFIED_LINE)
++
++
++def test_true_miss_is_the_only_candidate_per_classifier_contract(capsys):
++    # The display fix only suppresses the row when a CURATED class matched.
++    # Pin the underlying classifier contract this relies on: a miss yields
++    # exactly one candidate and it is the fallback.
++    from lore.classifier import classify_all
++
++    cands = classify_all(NO_MATCH_TEXT)
++    assert len(cands) == 1
++    assert cands[0].class_id == "unclassified"
++    assert cands[0].confidence == 0.0
++
++
++# ------------------------------------------------------- --explain: raw list
++def test_explain_on_confident_match_keeps_unclassified_row(capsys):
++    code, out, _err = _run(["match", GATEWAY_TEXT, "--explain"], capsys)
++    assert code == 0
++    assert CONFIDENT_LINE in out
++    assert UNCLASSIFIED_LINE in out
++
++
++def test_explain_on_miss_also_keeps_unclassified_and_near_misses(capsys):
++    code, out, _err = _run(["match", "--explain", NO_MATCH_TEXT], capsys)
++    assert code == 0
++    assert UNCLASSIFIED_LINE in out
++    assert "near-misses" in out
++
++
++# ------------------------------------------------ empty-list branch, exits 1
++def test_no_candidates_branch_unchanged_exit1(capsys, monkeypatch):
++    monkeypatch.setattr("lore.__main__.classify_all", lambda _text: [])
++    code, out, _err = _run(["match", NO_MATCH_TEXT], capsys)
++    assert code == 1
++    assert "no candidates" in out
++
++
++def test_no_candidates_explain_branch_also_exit1(capsys, monkeypatch):
++    monkeypatch.setattr("lore.__main__.classify_all", lambda _text: [])
++    code, out, _err = _run(["match", NO_MATCH_TEXT, "--explain"], capsys)
++    assert code == 1
++    assert "no candidates" in out
++
++
++# ------------------------------------------- argparse error path unchanged
++def test_match_missing_text_is_argparse_exit2():
++    with pytest.raises(SystemExit) as exc:
++        main(["match"])
++    assert exc.value.code == 2
