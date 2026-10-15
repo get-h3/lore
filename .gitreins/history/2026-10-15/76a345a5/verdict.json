@@ -1,0 +1,111 @@
+{
+  "task_id": "LORE-054",
+  "task_title": "Implement match --class filter",
+  "task_criteria": [
+    "lore match <symptoms> --class <id> accepts documented flag, validates class exists, filters results, exits 2 on unknown class, 4 tests pass, guard green"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "cbac24092d211446de76c63bb1832a6681c7a1db",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261015T010858.991189Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\nscanners: nice=nice -n 10\n8:09PM INF scanned ~4628368 bytes (4.63 MB) in 601ms\n8:09PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 122 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261015T010858.991189Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.12.4\ncollected 435 items\n\ntests/test_absorb.py .........................                           [  5%]\ntests/test_bench.py .....                                                [  6%]\ntests/test_classes.py .........                                          [  8%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 16%]\ntests/test_compiler.py .............................                     [ 23%]\ntests/test_consult.py ....................                               [ 28%]\ntests/test_count_guard.py ............                                   [ 30%]\ntests/test_dist_name.py ....                                             [ 31%]\ntests/test_evidence.py ......................                            [ 36%]\ntests/test_lore011_drain_acceptance.py .......                           [ 38%]\ntests/test_lore016_qa_audit.py .....................                     [ 43%]\ntests/test_lore017_gateway_guard.py ........                             [ 45%]\ntests/test_lore020_absorb_window.py ...                                  [ 45%]\ntests/test_lore021_naming_docs.py .......                                [ 47%]\ntests/test_lore022_freshness_docs.py .....                               [ 48%]\ntests/test_lore030_ux_guard.py ....                                      [ 49%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 52%]\ntests/test_lore041_collision_canonical.py ...........                    [ 54%]\ntests/test_lore043_short_text_threshold.py ....................          [ 59%]\ntests/test_lore045_validate_history.py ....................              [ 63%]\ntests/test_lore046_match_output.py ...........                           [ 66%]\ntests/test_lore049_guard_secrets_detected.py .....                       [ 67%]\ntests/test_lore052_bash_runner_env_absent.py ...........                 [ 70%]\ntests/test_lore054_match_class_filter.py ....                            [ 71%]\ntests/test_near_miss.py ..............                                   [ 74%]\ntests/test_readme_links.py .                                             [ 74%]\ntests/test_review001_gate_record.py ........                             [ 76%]\ntests/test_review002_recall.py ........                                  [ 78%]\ntests/test_review003_env_absent.py .......                               [ 79%]\ntests/test_validate.py ................................................. [ 91%]\n.......................................                                  [100%]\n\n============================= 435 passed in 1.75s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261015T010858.991189Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 lore match <symptoms> --class <id> accepts documented flag, validates class exists, filters results, exits 2 on unknown class, 4 tests pass, guard green: Flag documented (README.md:409 `lore match \"<symptoms|log line>\" [--class ...]`; `lore match --help` lists `--class CLASS_ID  filter results to only the named class (must be a valid registry class)`). Parser adds it at lore/__main__.py:623-627 (dest=class_id). Validation at lore/__main__.py:77-84 rejects ids not in get_registry().all_classes(), printing \"error: unknown class '<id>'\" to stderr and returning 2. Filtering at lore/__main__.py:90-96 keeps only c.class_id == args.class_id, emitting \"<id>\\tconfidence=0.00\\tevidence: none\" when the class exists but doesn't match. Live CLI: `match \"drain 503\" --class gateway-drain-window` -> exit 0 with `gateway-drain-window\\tconfidence=0.90\\tevidence: signature:drain 503; keyword:503; keyword:drain`; `--class nonexistent-class` -> exit 2 + stderr \"error: unknown class 'nonexistent-class'\"; `match \"completely unrelated\" --class gateway-drain-window` -> exit 0 with `confidence=0.00`. Tests: `uv run pytest tests/test_lore054_match_class_filter.py -v` -> \"4 passed in 0.20s\" (all four PASSED). Full suite `uv run pytest -q` -> \"435 passed in 2.17s\" (exit 0). Guard: `gitreins guard` with files staged -> \"Tier 1: DEGRADED PASS\", \"\u2713 tests (full)\", guard log shows \"435 passed in 1.85s\", exit 0; lint lane skipped only for \"no staged files\", verified directly: `uv run ruff check .` -> \"All checks passed!\" (exit 0), `ruff format --check .` -> \"167 files already formatted\", `scripts/check-test-count.sh` -> \"PASS: test-count guard: canonical=435 matches live=435\".\nThe --class filter is implemented, documented, validated (exit 2 on unknown class), filters results correctly, all 4 new tests pass, the full 435-test suite is green, and the guard passes.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 lore match <symptoms> --class <id> accepts documented flag, validates class exists, filters results, exits 2 on unknown class, 4 tests pass, guard green: Flag documented (README.md:409 `lore match \"<symptoms|log line>\" [--class ...]`; `lore match --help` lists `--class CLASS_ID  filter results to only the named class (must be a valid registry class)`). Parser adds it at lore/__main__.py:623-627 (dest=class_id). Validation at lore/__main__.py:77-84 rejects ids not in get_registry().all_classes(), printing \"error: unknown class '<id>'\" to stderr and returning 2. Filtering at lore/__main__.py:90-96 keeps only c.class_id == args.class_id, emitting \"<id>\\tconfidence=0.00\\tevidence: none\" when the class exists but doesn't match. Live CLI: `match \"drain 503\" --class gateway-drain-window` -> exit 0 with `gateway-drain-window\\tconfidence=0.90\\tevidence: signature:drain 503; keyword:503; keyword:drain`; `--class nonexistent-class` -> exit 2 + stderr \"error: unknown class 'nonexistent-class'\"; `match \"completely unrelated\" --class gateway-drain-window` -> exit 0 with `confidence=0.00`. Tests: `uv run pytest tests/test_lore054_match_class_filter.py -v` -> \"4 passed in 0.20s\" (all four PASSED). Full suite `uv run pytest -q` -> \"435 passed in 2.17s\" (exit 0). Guard: `gitreins guard` with files staged -> \"Tier 1: DEGRADED PASS\", \"\u2713 tests (full)\", guard log shows \"435 passed in 1.85s\", exit 0; lint lane skipped only for \"no staged files\", verified directly: `uv run ruff check .` -> \"All checks passed!\" (exit 0), `ruff format --check .` -> \"167 files already formatted\", `scripts/check-test-count.sh` -> \"PASS: test-count guard: canonical=435 matches live=435\".\nThe --class filter is implemented, documented, validated (exit 2 on unknown class), filters results correctly, all 4 new tests pass, the full 435-test suite is green, and the guard passes.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "lore match <symptoms> --class <id> accepts documented flag, validates class exists, filters results, exits 2 on unknown class, 4 tests pass, guard green",
+                "status": "PASS",
+                "detail": "Flag documented (README.md:409 `lore match \"<symptoms|log line>\" [--class ...]`; `lore match --help` lists `--class CLASS_ID  filter results to only the named class (must be a valid registry class)`). Parser adds it at lore/__main__.py:623-627 (dest=class_id). Validation at lore/__main__.py:77-84 rejects ids not in get_registry().all_classes(), printing \"error: unknown class '<id>'\" to stderr and returning 2. Filtering at lore/__main__.py:90-96 keeps only c.class_id == args.class_id, emitting \"<id>\\tconfidence=0.00\\tevidence: none\" when the class exists but doesn't match. Live CLI: `match \"drain 503\" --class gateway-drain-window` -> exit 0 with `gateway-drain-window\\tconfidence=0.90\\tevidence: signature:drain 503; keyword:503; keyword:drain`; `--class nonexistent-class` -> exit 2 + stderr \"error: unknown class 'nonexistent-class'\"; `match \"completely unrelated\" --class gateway-drain-window` -> exit 0 with `confidence=0.00`. Tests: `uv run pytest tests/test_lore054_match_class_filter.py -v` -> \"4 passed in 0.20s\" (all four PASSED). Full suite `uv run pytest -q` -> \"435 passed in 2.17s\" (exit 0). Guard: `gitreins guard` with files staged -> \"Tier 1: DEGRADED PASS\", \"\u2713 tests (full)\", guard log shows \"435 passed in 1.85s\", exit 0; lint lane skipped only for \"no staged files\", verified directly: `uv run ruff check .` -> \"All checks passed!\" (exit 0), `ruff format --check .` -> \"167 files already formatted\", `scripts/check-test-count.sh` -> \"PASS: test-count guard: canonical=435 matches live=435\"."
+              }
+            ],
+            "summary": "The --class filter is implemented, documented, validated (exit 2 on unknown class), filters results correctly, all 4 new tests pass, the full 435-test suite is green, and the guard passes."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: LORE-054\n\nStage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 lore match <symptoms> --class <id> accepts documented flag, validates class exists, filters results, exits 2 on unknown class, 4 tests pass, guard green: Flag documented (README.md:409 `lore match \"<symptoms|log line>\" [--class ...]`; `lore match --help` lists `--class CLASS_ID  filter results to only the named class (must be a valid registry class)`). Parser adds it at lore/__main__.py:623-627 (dest=class_id). Validation at lore/__main__.py:77-84 rejects ids not in get_registry().all_classes(), printing \"error: unknown class '<id>'\" to stderr and returning 2. Filtering at lore/__main__.py:90-96 keeps only c.class_id == args.class_id, emitting \"<id>\\tconfidence=0.00\\tevidence: none\" when the class exists but doesn't match. Live CLI: `match \"drain 503\" --class gateway-drain-window` -> exit 0 with `gateway-drain-window\\tconfidence=0.90\\tevidence: signature:drain 503; keyword:503; keyword:drain`; `--class nonexistent-class` -> exit 2 + stderr \"error: unknown class 'nonexistent-class'\"; `match \"completely unrelated\" --class gateway-drain-window` -> exit 0 with `confidence=0.00`. Tests: `uv run pytest tests/test_lore054_match_class_filter.py -v` -> \"4 passed in 0.20s\" (all four PASSED). Full suite `uv run pytest -q` -> \"435 passed in 2.17s\" (exit 0). Guard: `gitreins guard` with files staged -> \"Tier 1: DEGRADED PASS\", \"\u2713 tests (full)\", guard log shows \"435 passed in 1.85s\", exit 0; lint lane skipped only for \"no staged files\", verified directly: `uv run ruff check .` -> \"All checks passed!\" (exit 0), `ruff format --check .` -> \"167 files already formatted\", `scripts/check-test-count.sh` -> \"PASS: test-count guard: canonical=435 matches live=435\".\nThe --class filter is implemented, documented, validated (exit 2 on unknown class), filters results correctly, all 4 new tests pass, the full 435-test suite is green, and the guard passes.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-10-15T01:10:54.398414",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-10-15T01:10:54.410293+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 1812,
+        "truncated": false,
+        "source": "git show cbac24092d21"
+      }
+    ],
+    "task_id": "LORE-054"
+  }
+}

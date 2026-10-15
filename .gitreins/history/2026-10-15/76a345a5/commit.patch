@@ -1,0 +1,50 @@
+commit cbac24092d211446de76c63bb1832a6681c7a1db
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Oct 14 20:08:56 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Oct 14 20:08:56 2026 -0500
+
+    fix: add check=False to subprocess.run calls in LORE-054 tests
+    
+    CI lint (ruff 0.16.10) flagged PLW1510 — subprocess.run without explicit
+    check argument. Added check=False to all 4 test subprocess calls.
+---
+ tests/test_lore054_match_class_filter.py | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/tests/test_lore054_match_class_filter.py b/tests/test_lore054_match_class_filter.py
+index 5d9c175..9ed35a9 100644
+--- a/tests/test_lore054_match_class_filter.py
++++ b/tests/test_lore054_match_class_filter.py
+@@ -18,6 +18,7 @@ def test_match_class_filter_valid_class():
+         ],
+         capture_output=True,
+         text=True,
++        check=False,
+     )
+     assert result.returncode == 0
+     assert "gateway-drain-window" in result.stdout
+@@ -38,6 +39,7 @@ def test_match_class_filter_unknown_class():
+         ],
+         capture_output=True,
+         text=True,
++        check=False,
+     )
+     assert result.returncode == 2
+     assert "unknown class" in result.stderr
+@@ -57,6 +59,7 @@ def test_match_class_filter_no_match():
+         ],
+         capture_output=True,
+         text=True,
++        check=False,
+     )
+     assert result.returncode == 0
+     assert "gateway-drain-window" in result.stdout
+@@ -69,6 +72,7 @@ def test_match_without_class_unchanged():
+         [sys.executable, "-m", "lore", "match", "drain 503"],
+         capture_output=True,
+         text=True,
++        check=False,
+     )
+     assert result.returncode == 0
+     assert "gateway-drain-window" in result.stdout

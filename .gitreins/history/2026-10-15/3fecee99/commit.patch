@@ -1,0 +1,1028 @@
+commit 4a8ed83f7a5e1040b7aa6490c5e8cc1852ad6987
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Thu Oct 15 05:31:37 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Thu Oct 15 05:31:37 2026 -0500
+
+    fix: fill-in hints per placeholder slot + executed-ratio honesty in validate/history. Addresses LORE-050.
+    
+    Dogfood run 7 (scratch-dir validate --execute on gateway-drain-window
+    from HEAD fdfcea5) measured 1/7 checks executed, 6/7 template-skipped,
+    and the history record grading the class drifted_orders: [] — "not
+    drifted" with no field saying 6/7 checks never ran.
+    
+    GAP A (placeholder fill-in guidance): new lore/placeholders.py — a
+    per-slot-name hint table describing WHERE the value comes from (log
+    path, health URL, env/config key name, board dir...), deployment-
+    neutral by construction (no host paths, no URLs, no values, no secret
+    material). Every surface that renders a check command now prints one
+    `fill-in: <token> = <where-it-comes-from>` line per unfilled slot:
+    runbook markdown (to_markdown), validate plan + --execute text output,
+    consult --failure check lists. JSON contracts unchanged (to_dict pins
+    hold, round-trip intact). Hint extraction scans the raw command
+    (deliberately NOT quote-aware — a quoted '<key>' is still a slot the
+    operator must fill; only the execution-side gate stays quote-aware).
+    
+    GAP B (executed-count honesty): LintReport gains derived
+    executed_orders/not_executed_orders (from the closed outcome vocabulary:
+    ok/error/timeout/unknown/env-absent executed; refused/absent/template
+    never reached the runner — env-absent IS an execution, exit 127 is an
+    answer about the machine). persist_validate_history records carry
+    derived executed_count/total_checks; local_validation_note appends
+    `; executed X/Y checks` to the consult/compile lint line when the
+    record has the counts (pre-LORE-050 records render the old line
+    byte-identically — no fabricated denominator). validate --execute text
+    output prints `executed: X/Y checks` next to every verdict.
+    
+    Counts derived from SEED_CLASSES/outcomes everywhere, including tests
+    (18 new tests in tests/test_lore050_placeholder_fill_in_and_executed_ratio.py;
+    the LORE-045 record-shape pin widened to the new derived fields).
+    
+    Count-sync (LORE-029 convention, same commit): scripts/test-count.txt
+    435->453; README/CONTRIBUTING/INSTALL/SKILL count literals resynced.
+    
+    Verified live end to end (scratch dir, gateway-drain-window):
+    - validate --execute: executed: 2/7 checks; fill-in hints under each
+      template check; record {executed_count: 2, total_checks: 7}.
+    - consult: "...(local history, not operator attestation); executed 2/7
+      checks"; consult --failure prints fill-in hints under each check.
+    - Pre-050 record appended by hand: line shape unchanged, no ratio.
+    
+    uv run pytest -q = 453 passed; uv run ruff check . + ruff format
+    --check clean; scripts/check-test-count.sh PASS.
+---
+ CHANGELOG.md                                       |  13 +
+ CONTRIBUTING.md                                    |   2 +-
+ README.md                                          |  18 +-
+ docs/INSTALL.md                                    |  15 +-
+ lore/__main__.py                                   |  26 ++
+ lore/placeholders.py                               | 150 ++++++++
+ lore/runbook.py                                    |   7 +
+ lore/validate.py                                   |  76 +++-
+ scripts/test-count.txt                             |   2 +-
+ skills/lore-usage/SKILL.md                         |   7 +-
+ tests/test_lore045_validate_history.py             |   9 +
+ ...re050_placeholder_fill_in_and_executed_ratio.py | 384 +++++++++++++++++++++
+ 12 files changed, 692 insertions(+), 17 deletions(-)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index f3cdca3..3bc0596 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
+ 
+ ### Fixed
+ 
++- **LORE-050** — two honesty gaps from dogfood run 7's scratch-dir
++  `validate --execute` (1/7 checks executed, 6/7 template-skipped, the
++  history record grading the class `drifted_orders: []`). GAP A: every
++  surface that renders a check command (runbook markdown, `validate`
++  plan/`--execute`, `consult --failure`) now prints a `fill-in:` hint per
++  unfilled `<placeholder>` slot from a per-slot-name table
++  (`lore/placeholders.py`) describing WHERE the value comes from —
++  deployment-neutral, never a host path or a secret's value. GAP B: the
++  history record carries derived `executed_count`/`total_checks` and
++  consult's lint line appends `; executed X/Y checks`, so "not drifted" can
++  never again silently mean "almost nothing was exercised". Counts derived
++  from the seeded outcomes everywhere, including tests.
++
+ - **LORE-043** — the tick-start consult (LORE-007) no longer goes silent on
+   short board-row TITLES. Keyword acceptance is now length-scoped: a text of
+   at most 8 words (the board census' title 25th percentile; the 10-word
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index 40dd6c6..bf194cf 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
+ Once `.venv` exists, run the full gate from the repository root:
+ 
+ ```sh
+-uv run pytest -q                    # tests (green at 435 passed)
++uv run pytest -q                    # tests (green at 453 passed)
+ uv run ruff check .                 # lint — "All checks passed!"
+ uv run ruff format --check .        # formatting — "N files already formatted"
+ uv run scripts/check-test-count.sh  # test-count sync guard
+diff --git a/README.md b/README.md
+index 0d43ac7..d5879ef 100644
+--- a/README.md
++++ b/README.md
+@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
+ [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
+ 
+ ```sh
+-uv run pytest -q        # 435 passed
++uv run pytest -q        # 453 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -349,7 +349,7 @@ and what does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
+-  with **435 tests passing** and a clean `ruff check`.
++  with **453 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+@@ -370,9 +370,17 @@ and what does not:
+   `.lore/validate-history.jsonl` in the current working directory (git-ignored,
+   per-box), and `lore consult` (both modes) plus `lore compile --format md`
+   surface it for a never-attested runbook as `last lint-validated <ts> on this
+-  box (local history, not operator attestation)` — the lint result no longer
+-  evaporates, and the honesty law holds: the runbook's own `last_validated`
+-  stays untouched (LORE-045).
++  box (local history, not operator attestation); executed X/Y checks` — the
++  lint result no longer evaporates, and the honesty law holds: the runbook's
++  own `last_validated` stays untouched (LORE-045). The record's drift verdict
++  is honestly scoped: `executed_count`/`total_checks` (derived from the
++  outcomes) say how much of the runbook the lint actually exercised, so a
++  `drifted_orders: []` over a mostly-template runbook can never read as "lint
++  ran clean" (LORE-050). Every rendered check command — runbooks, `validate`
++  plan/`--execute` output, `consult --failure` — also prints a fill-in hint
++  per `<placeholder>` slot telling the operator where the value comes from
++  (a log path, a health URL, an env key), never a deployment's actual value
++  (LORE-050).
+ - `lore show <class> [--evidence] [--format json|md]` — prints the compiled
+   runbook for one class (human-markdown default); `--evidence` adds the class's
+   provenance line plus its evidence trail. Unknown class exits 2 (the registry
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index c7c793f..0c5fa34 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -78,16 +78,16 @@ Real output on the current tree:
+ ```
+ ........................................................................ [ 27%]
+ ........................................................................ [ 55%]
+-........................................................................ [ 86%]
+-...........................................                              [100%]
+-435 passed
++........................................................................ [ 83%]
++........................................................................ [100%]
++453 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **435 tests** (28 test files: taxonomy, classifier,
++The count to expect is **453 tests** (32 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+@@ -168,6 +168,13 @@ Reading the outcome classes when diagnosing:
+ - shell syntax errors naming a `<token>` — template placeholders not yet filled
+ - everything else — genuine output drift worth investigating
+ 
++Every rendered check line also prints a `fill-in:` hint per unfilled
++`<token>` slot — where the value comes from (a log path, a health URL, an
++env key), never a deployment's actual value. Fill the slots before `--execute`
++or those checks report `template` and are never run; the `executed: X/Y
++checks` line under each report says exactly how much of the runbook was
++exercised (LORE-050).
++
+ ### `match` — classify a symptom
+ 
+ ```sh
+diff --git a/lore/__main__.py b/lore/__main__.py
+index ae01d2f..c9323c2 100644
+--- a/lore/__main__.py
++++ b/lore/__main__.py
+@@ -45,9 +45,11 @@ from lore.evidence import (
+     attach_evidence,
+     parse_logsey_export,
+ )
++from lore.placeholders import placeholder_hints
+ from lore.runbook import STATUS_PROPOSAL, STATUS_STALE, STATUS_VALIDATED, Runbook
+ from lore.validate import (
+     HISTORY_FILE,
++    OUTCOME_TEMPLATE,
+     is_read_only_command,
+     last_local_validation,
+     lint_runbook,
+@@ -74,6 +76,17 @@ def _local_validation_line(class_id: str) -> str | None:
+     return local_validation_note(rec)
+ 
+ 
++def _print_fill_in_hints(command: str, indent: str) -> None:
++    """LORE-050 (GAP A): one fill-in line per unfilled <placeholder> slot.
++
++    Rendered next to every printed check command (plan + execute text
++    surfaces, consult --failure): tells the operator WHERE the value
++    comes from (the kind of artifact), never this host's value.
++    """
++    for token, hint in placeholder_hints(command):
++        print(f"{indent}fill-in: {token} = {hint}")
++
++
+ def _cmd_match(args: argparse.Namespace) -> int:
+     # LORE-054: --class filter validates the class exists before classifying
+     if args.class_id:
+@@ -202,6 +215,7 @@ def _cmd_consult(args: argparse.Namespace) -> int:
+                     print(f"  {line}")
+             for c in s["checks"]:
+                 print(f"  check {c['order']}: {c['command']}")
++                _print_fill_in_hints(c["command"], "    ")
+         return 0
+     result: ConsultResult = consult(
+         f"{args.title}\n{args.detail}" if args.detail else args.title
+@@ -291,6 +305,7 @@ def _cmd_validate(args: argparse.Namespace) -> int:
+                         print(f"  check {c.order}: would run: {c.command}")
+                     else:
+                         print(f"  check {c.order}: would REFUSE: {c.command}")
++                    _print_fill_in_hints(c.command, "    ")
+                 print()
+         return 0
+ 
+@@ -310,6 +325,17 @@ def _cmd_validate(args: argparse.Namespace) -> int:
+             for r in report.results:
+                 suffix = f" (exit {r.exit_code})" if r.exit_code is not None else ""
+                 print(f"  check {r.order}: {r.outcome}{suffix}: {r.command}")
++                if r.outcome == OUTCOME_TEMPLATE:
++                    # LORE-050 (GAP A): a template-skipped check explains
++                    # WHAT fills each slot instead of a bare "fill me".
++                    _print_fill_in_hints(r.command, "    ")
++            # LORE-050 (GAP B): the honest execution ratio next to every
++            # verdict — drifted_orders=[] over a 1/7-executed runbook must
++            # never read as "lint ran clean".
++            print(
++                f"  executed: {len(report.executed_orders)}/"
++                f"{len(report.results)} checks"
++            )
+             reason = report.stale_reason
+             print(f"  stale_reason: {reason if reason else 'none'}")
+             print(f"  honesty: {report.honesty_label}")
+diff --git a/lore/placeholders.py b/lore/placeholders.py
+new file mode 100644
+index 0000000..9fa6659
+--- /dev/null
++++ b/lore/placeholders.py
+@@ -0,0 +1,150 @@
++"""Placeholder fill-in hints (LORE-050, GAP A).
++
++Runbook checks carry ``<placeholder>`` template slots (e.g.
++``grep -c 'drain 503' <gateway-log-path>``). Dogfood run 7 measured the
++operator-facing surfaces rendering those slots with NO instruction about
++what fills them — the operator knowledge existed only in the class's
++provenance, never at the point of use. This module is the fix's data:
++
++- :data:`PLACEHOLDER_HINTS` — per-slot-name hints describing WHERE the
++  value comes from (the kind of artifact the operator needs: a log path,
++  a health URL, an env/config key name, a board directory). They name
++  SOURCES, never a specific host's paths, URLs, ids or secrets — the
++  table is deployment-neutral by construction.
++- :func:`placeholder_hints` — token+hint pairs for one command, in
++  first-appearance order, deduped; unknown slot names get
++  :data:`DEFAULT_HINT` (an honest generic, never an invented value).
++
++Rendering rule: every surface that prints a check command (the compiled
++runbook markdown, ``lore validate`` plan/execute output, ``lore consult
++--failure`` check lists) prints one fill-in line per slot, next to the
++command. JSON surfaces stay byte-identical (the existing to_dict pins
++hold) — hints are an operator-facing rendering affordance.
++
++Scope note (deliberate divergence from the lint's execution-side rule):
++``lore.validate._unfilled_placeholder_token`` is quote-AWARE because it
++decides whether a command is safe to EXECUTE — a quoted ``<...>`` there
++is literal text, never a slot. Hint extraction scans the RAW command: in
++the seeded runbooks a quoted slot (``grep '<key-name>'``,
++``jq 'select(.id=="<project-row>")'``) IS a template slot the operator
++must fill — the fix targets the runbook's readability, not execution.
++"""
++
++from __future__ import annotations
++
++import re
++
++__all__ = [
++    "DEFAULT_HINT",
++    "PLACEHOLDER_HINTS",
++    "placeholder_hints",
++    "placeholder_tokens",
++]
++
++_PLACEHOLDER_RE = re.compile(r"<[A-Za-z0-9_.\-]+>")
++
++# Per-slot-name fill-in hints: WHERE the value comes from, described as
++# the KIND of artifact (deployment-neutral — no host paths, no URLs, no
++# ids, no secrets). Slots used by the curated seed checks are all named
++# here; unknown names fall back to :data:`DEFAULT_HINT` (a pinned test
++# asserts the seed table stays covered by the named entries).
++DEFAULT_HINT = (
++    "the deployment-specific value for this slot on the box the check runs "
++    "on (a path, URL, name, or id); the class provenance and evidence "
++    "trail show where the value was observed"
++)
++
++PLACEHOLDER_HINTS: dict[str, str] = {
++    "gateway-log-path": (
++        "the gateway/proxy log file path on the box running the gateway "
++        "(where the drain-503 lines are written)"
++    ),
++    "gateway-health-url": (
++        "the gateway's HTTP health endpoint URL (the one status checks poll)"
++    ),
++    "gateway-metrics-url": (
++        "the gateway's metrics endpoint URL (the source of the in-flight counter)"
++    ),
++    "gateway-queue-path": (
++        "the gateway's durable queue file path (the state a restart flushes)"
++    ),
++    "scheduler-fleet-config": (
++        "the scheduler's fleet configuration file path (the one defining project pins)"
++    ),
++    "scheduler-cli": "the scheduler's CLI command on PATH on this box",
++    "scheduler-log": "the scheduler's log file path",
++    "scheduler-log-path": "the scheduler's log file path",
++    "container": (
++        "the affected container's name or ID (docker ps on the host running "
++        "the service)"
++    ),
++    "affected-volume": (
++        "the mount path of the pressured volume (the Filesystem column of df -h)"
++    ),
++    "db": "the path of the affected SQLite database file",
++    "truncated.jsonl": "the path of the JSONL file with the torn final line",
++    "destination.jsonl": (
++        "the capture destination's JSONL file path (the sink the pipeline writes)"
++    ),
++    "project-row": (
++        "the affected project/lane id (the same id the scheduler and board use)"
++    ),
++    "project": "the affected project/lane id",
++    "board": "the affected project's board directory (its .coding-hermes path)",
++    "provider-url": (
++        "the API provider's base URL whose key is suspected (the provider's API host)"
++    ),
++    "key": (
++        "the provider API key credential for THIS provider — taken from the "
++        "operator's secret store / environment config on the box, never "
++        "pasted into the runbook or its output"
++    ),
++    "key-name": (
++        "the env/config key NAME suspected dead (grep the name; never print the value)"
++    ),
++    "service-config-path": (
++        "the consuming service's config file path (the file the service actually reads)"
++    ),
++    "main-tree": "the main checkout's root path (the tree the gate runs in)",
++    "worktree": "the agent worktree's root path (git worktree list)",
++    "control-wt": "a fresh control worktree path created at the same commit",
++    "same-commit": "the commit SHA pinned by the check above it (git rev-parse HEAD)",
++    "worker-log": (
++        "the spinning worker's output log path (where the -Q redirect writes)"
++    ),
++    "worker-pid": "the worker process's PID (ps/pgrep on this box)",
++    "window-start-ts": (
++        "the gap window's start timestamp (ISO-8601), from the named-gap annotation"
++    ),
++    "guard-log-tail": "the guard's log file path (the log the failures appear in)",
++    "gateway-log-dir": "the directory the gateway writes its logs into",
++}
++
++
++def placeholder_tokens(command: str) -> list[str]:
++    """Every ``<token>`` template slot in the command, raw scan.
++
++    In first-appearance order, deduplicated. Raw (NOT quote-aware) on
++    purpose: a quoted slot is still a slot the operator must fill — see
++    the module docstring for the deliberate divergence from the
++    execution-side rule.
++    """
++    tokens: list[str] = []
++    for match in _PLACEHOLDER_RE.finditer(command or ""):
++        token = match.group(0)
++        if token not in tokens:
++            tokens.append(token)
++    return tokens
++
++
++def placeholder_hints(command: str) -> list[tuple[str, str]]:
++    """(token, hint) pairs for one command; unknown names get the default.
++
++    The pairs arrive in first-appearance order (deduplicated), ready for
++    each rendering surface to prefix and indent.
++    """
++    hints: list[tuple[str, str]] = []
++    for token in placeholder_tokens(command):
++        name = token[1:-1]  # strip the angle brackets for the table lookup
++        hints.append((token, PLACEHOLDER_HINTS.get(name, DEFAULT_HINT)))
++    return hints
+diff --git a/lore/runbook.py b/lore/runbook.py
+index 030a537..96119d3 100644
+--- a/lore/runbook.py
++++ b/lore/runbook.py
+@@ -12,6 +12,8 @@ from __future__ import annotations
+ import dataclasses
+ from dataclasses import dataclass, field
+ 
++from lore.placeholders import placeholder_hints
++
+ # Status vocabulary. A freshly compiled runbook is ALWAYS a proposal until an
+ # operator publishes it (propose-not-write); "validated" is set only when a
+ # caller explicitly passes a last_validated timestamp (operator attestation),
+@@ -126,6 +128,11 @@ class Runbook:
+                 lines.append("```sh")
+                 lines.append(c.command)
+                 lines.append("```")
++                # LORE-050 (GAP A): every unfilled <placeholder> slot gets a
++                # fill-in hint AT the point of use — where the value comes
++                # from, not this host's value. Never executed with slots.
++                for token, hint in placeholder_hints(c.command):
++                    lines.append(f"- Fill-in: `{token}` — {hint}")
+                 lines.append(f"- Healthy: {c.expected_healthy}")
+                 lines.append(f"- Incident: {c.expected_incident}")
+                 lines.append(f"- Decision: {c.decision}")
+diff --git a/lore/validate.py b/lore/validate.py
+index 5d7d6a1..9ac7604 100644
+--- a/lore/validate.py
++++ b/lore/validate.py
+@@ -111,7 +111,8 @@ reports are produced, ONE JSONL record PER CLASS is appended to
+ 
+     {"class_id", "timestamp" (ISO-8601 FROM THE REPORT — never re-stamped),
+      "honesty_label" (verbatim), "outcomes" (check outcomes in order),
+-     "drifted_orders"}
++     "drifted_orders", "executed_count"/"total_checks" (LORE-050 GAP B:
++     derived, how much of the runbook the lint actually exercised)}
+ 
+ Plan-only runs write NOTHING. Drifted runs are persisted too (drift is
+ data — the record's ``drifted_orders`` says it drifted). ``consult`` /
+@@ -166,6 +167,7 @@ from lore.runbook import STATUS_STALE, Runbook
+ __all__ = [
+     "COMMAND_TIMEOUT_SECONDS",
+     "DRIFT_OUTCOMES",
++    "EXECUTED_OUTCOMES",
+     "HISTORY_FILE",
+     "HONESTY_LABEL",
+     "LOCAL_VALIDATION_NOTE",
+@@ -207,6 +209,16 @@ OUTCOME_VOCABULARY = (
+ # Outcomes that constitute drift and flip a runbook to ``stale``.
+ DRIFT_OUTCOMES = ("error", "timeout", "refused", "unknown")
+ 
++# LORE-050 (GAP B): outcomes that mean the check's command WAS ACTUALLY
++# RUN — the runner was invoked for it and the command executed, whatever
++# it then answered. ``env-absent`` is an execution too (exit 127 IS an
++# answer — about the machine, not the runbook); ``refused``/``absent``/
++# ``template`` never reach the runner. Dogfood run 7: every check of a
++# class can be template-skipped, so ``drifted_orders=[]`` grades a runbook
++# "not drifted" that a lint NEVER actually exercised — these counts keep
++# the honest ratio (``executed X/Y``) visible next to every drift verdict.
++EXECUTED_OUTCOMES = ("ok", "error", "timeout", "unknown", "env-absent")
++
+ # Outcome for "no sourced command" (the honest-absence sentinel).
+ OUTCOME_ABSENT = "absent"
+ 
+@@ -927,6 +939,28 @@ class LintReport:
+         """
+         return [r.order for r in self.results if r.outcome == OUTCOME_ENV_ABSENT]
+ 
++    @property
++    def executed_orders(self) -> list[int]:
++        """LORE-050 (GAP B): checks whose command the lint ACTUALLY ran.
++
++        Derived from the outcome vocabulary, never stored: an outcome in
++        :data:`EXECUTED_OUTCOMES` means the runner was invoked and the
++        command executed (whatever it answered — ``env-absent`` included,
++        exit 127 IS an answer). ``refused``/``absent``/``template``
++        results are NOT executions. Together with
++        :attr:`not_executed_orders` this is the honest ratio a
++        ``drifted_orders=[]`` verdict is computed over.
++        """
++        return [r.order for r in self.results if r.outcome in EXECUTED_OUTCOMES]
++
++    @property
++    def not_executed_orders(self) -> list[int]:
++        """LORE-050 (GAP B): checks the lint never executed, in outcome
++        terms (``refused``/``absent``/``template`` — the closed
++        not-executed complement of :attr:`executed_orders`)."""
++        unexecuted = set(EXECUTED_OUTCOMES) ^ set(OUTCOME_VOCABULARY)
++        return [r.order for r in self.results if r.outcome in unexecuted]
++
+     @property
+     def stale_reason(self) -> str | None:
+         """Why this runbook went stale — DRIFTED checks only.
+@@ -953,6 +987,8 @@ class LintReport:
+             "created_at": self.created_at,
+             "drifted_orders": self.drifted_orders,
+             "env_absent_orders": self.env_absent_orders,
++            "executed_orders": self.executed_orders,
++            "not_executed_orders": self.not_executed_orders,
+             "stale_reason": self.stale_reason,
+         }
+ 
+@@ -1128,6 +1164,13 @@ def persist_validate_history(
+         drifted_orders  the report's drifted check orders (drift is DATA —
+                         a drifted lint run is persisted too, the record
+                         says it drifted)
++        executed_count  how many checks the lint ACTUALLY ran (LORE-050
++                        GAP B: derived from the outcomes — ``ok``/``error``/
++                        ``timeout``/``unknown``/``env-absent`` executed;
++                        ``refused``/``absent``/``template`` never reached
++                        the runner — so ``drifted_orders: []`` can never
++                        silently mean "nothing was exercised")
++        total_checks    the report's check count (the Y of executed X/Y)
+ 
+     Returns the records appended. Plan-only validate calls never reach
+     this; consult/compile read the file read-only (see
+@@ -1141,6 +1184,8 @@ def persist_validate_history(
+             "honesty_label": report.honesty_label,
+             "outcomes": [r.outcome for r in report.results],
+             "drifted_orders": list(report.drifted_orders),
++            "executed_count": len(report.executed_orders),
++            "total_checks": len(report.results),
+         }
+         records.append(rec)
+     return append_history_records(records, path=path)
+@@ -1187,6 +1232,22 @@ def last_local_validation(
+ LOCAL_VALIDATION_NOTE = "local history, not operator attestation"
+ 
+ 
++def _executed_ratio(rec: dict) -> str | None:
++    """LORE-050 (GAP B): the 'executed X/Y checks' clause for a record.
++
++    Derived from the record's OWN counts (nothing re-counted or
++    invented); None when the record predates the field — the line then
++    stays exactly as LORE-045 shipped it (no fabricated denominator).
++    """
++    executed = rec.get("executed_count")
++    total = rec.get("total_checks")
++    if not isinstance(executed, int) or not isinstance(total, int):
++        return None
++    if total < 0 or executed < 0 or executed > total:
++        return None  # a malformed record renders honestly, never lies
++    return f"executed {executed}/{total} checks"
++
++
+ def local_validation_note(
+     rec: dict,
+     *,
+@@ -1196,10 +1257,17 @@ def local_validation_note(
+ 
+     Format (grep-stable)::
+ 
+-        last lint-validated <timestamp> on this box (local history, not operator attestation)
++        last lint-validated <timestamp> on this box (local history, not operator attestation); executed 1/7 checks
+ 
+     ``rec["timestamp"]`` is the record's verbatim ISO-8601 stamp — never
+-    re-formatted and never a fabricated date.
++    re-formatted and never a fabricated date. The LORE-050 executed-ratio
++    clause is appended when the record carries the derived counts; on a
++    pre-LORE-050 record (or a malformed one) the clause is omitted and
++    the line stays byte-identical to the earlier shape.
+     """
+     ts = str(rec.get("timestamp") or "")
+-    return f"last lint-validated {ts} {prefix} ({LOCAL_VALIDATION_NOTE})"
++    line = f"last lint-validated {ts} {prefix} ({LOCAL_VALIDATION_NOTE})"
++    ratio = _executed_ratio(rec)
++    if ratio is not None:
++        line = f"{line}; {ratio}"
++    return line
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index 5910394..534b992 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-435
++453
+diff --git a/skills/lore-usage/SKILL.md b/skills/lore-usage/SKILL.md
+index 34a3e42..d5e174f 100644
+--- a/skills/lore-usage/SKILL.md
++++ b/skills/lore-usage/SKILL.md
+@@ -119,7 +119,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
+ ## Dev loop
+ 
+ ```sh
+-uv run pytest -q    # expect: 415 passed (count synced to scripts/test-count.txt, LORE-029)
++uv run pytest -q    # expect: 453 passed (count synced to scripts/test-count.txt, LORE-029)
+ uv run ruff check . # expect: All checks passed!
+ ```
+ 
+@@ -139,7 +139,10 @@ Tier-1 guard runs pre-commit; never commit `.gitreins/` runtime artifacts.
+   but it appends `./.lore/validate-history.jsonl` **per CWD**, and `consult`
+   reads that local history: after a green lint, consult shows
+   "last lint-validated <ts> on this box (local history, not operator
+-  attestation)" while show/audit keep `no data`. Verify a "stale" claim by
++  attestation); executed X/Y checks" while show/audit keep `no data`.
++  The executed ratio (LORE-050) is the honesty scope of the drift verdict:
++  `drifted_orders: []` over `executed 0/7` means the lint EXERCISED NOTHING,
++  not that the runbook is healthy. Verify a "stale" claim by
+   checking WHICH command you asked — the two honesty fields diverge by design.
+ - Fixture pitfall: validate's checks run in the CURRENT directory — run
+   `--execute` from a real checkout or git-based checks exit 128 and the
+diff --git a/tests/test_lore045_validate_history.py b/tests/test_lore045_validate_history.py
+index c60c62c..6a4da05 100644
+--- a/tests/test_lore045_validate_history.py
++++ b/tests/test_lore045_validate_history.py
+@@ -242,13 +242,22 @@ def test_cli_validate_execute_appends_history_in_cwd(
+     assert calls == [r["command"] for r in executed], (
+         "every executed check reached the injected runner; nothing ran for real"
+     )
++    # LORE-050 (GAP B): the record carries the honest execution ratio,
++    # DERIVED from the report's outcomes (never hardcoded).
+     assert set(rec) == {
+         "class_id",
+         "timestamp",
+         "honesty_label",
+         "outcomes",
+         "drifted_orders",
++        "executed_count",
++        "total_checks",
+     }
++    assert rec["executed_count"] == len(calls), (
++        "executed_count counts the checks the runner genuinely ran"
++    )
++    assert rec["total_checks"] == len(payload[0]["results"])
++    assert rec["executed_count"] <= rec["total_checks"]
+ 
+ 
+ def test_cli_validate_execute_full_registry_one_record_per_class(
+diff --git a/tests/test_lore050_placeholder_fill_in_and_executed_ratio.py b/tests/test_lore050_placeholder_fill_in_and_executed_ratio.py
+new file mode 100644
+index 0000000..40445b9
+--- /dev/null
++++ b/tests/test_lore050_placeholder_fill_in_and_executed_ratio.py
+@@ -0,0 +1,384 @@
++"""LORE-050: placeholder fill-in hints + executed-ratio honesty.
++
++Dogfood run 7 measured two honesty gaps on `validate --execute` from a
++scratch dir (1/7 checks executed, 6/7 template-skipped, drift verdict
++`drifted_orders: []`):
++
++GAP A — the operator-facing surfaces print `<placeholder>` slots with no
++instruction about what fills them. Fix: every surface that renders a
++check command (runbook markdown, validate plan/execute text, consult
++--failure) ALSO prints one fill-in hint per slot, describing WHERE the
++value comes from (a log path, a URL, an env key) — deployment-neutral,
++never this host's paths, never secrets' values.
++
++GAP B — `drifted_orders: []` is computed over EXECUTED commands only, so
++a class whose checks never ran grades "not drifted" and no field says
++how many were exercised. Fix: the history record carries derived
++`executed_count`/`total_checks`, and consult's lint line shows the ratio
++(`executed 1/7`). All counts DERIVED — in tests too (from SEED_CLASSES /
++compile_all / the injected runner's call log), never literals.
++"""
++
++from __future__ import annotations
++
++from pathlib import Path
++
++import pytest
++
++from lore.__main__ import main
++from lore.compiler import compile_all, compile_class
++from lore.placeholders import (
++    DEFAULT_HINT,
++    PLACEHOLDER_HINTS,
++    placeholder_hints,
++    placeholder_tokens,
++)
++from lore.runbook import Runbook
++from lore.validate import (
++    EXECUTED_OUTCOMES,
++    OUTCOME_TEMPLATE,
++    lint_runbook,
++    local_validation_note,
++    persist_validate_history,
++)
++
++HISTORY_REL = ".lore/validate-history.jsonl"
++
++
++def _all_ok_runner():
++    """Injectable runner: every command answers exit 0 (records calls)."""
++    calls: list[str] = []
++
++    def _run(command: str):
++        calls.append(command)
++
++        class _R:
++            returncode = 0
++            stdout = "out"
++            stderr = ""
++            timed_out = False
++
++        return _R()
++
++    return _run, calls
++
++
++def _cli(argv, capsys):
++    code = main(argv)
++    captured = capsys.readouterr()
++    return code, captured.out, captured.err
++
++
++# ================================================================ GAP A
++# ------------------------------------------------------- the hint table
++def test_hint_table_covers_every_seed_placeholder_name() -> None:
++    """Every <placeholder> the seed checks use resolves to a NAMED hint.
++
++    The seed set is the source of truth (derived from compile_all); a
++    check gaining a new slot must add its hint here or this goes red —
++    unknown names would otherwise render the honest generic, which is
++    the fallback's job, not the seed's.
++    """
++    names: set[str] = set()
++    for rb in compile_all():
++        for c in rb.checks:
++            names.update(t[1:-1] for t in placeholder_tokens(c.command))
++    uncovered = sorted(n for n in names if n not in PLACEHOLDER_HINTS)
++    assert uncovered == [], (
++        f"seed placeholders missing a named fill-in hint: {uncovered}"
++    )
++
++
++def test_hints_describe_sources_never_deployment_values() -> None:
++    """Deployment-neutral by construction: no host paths, URLs, or values.
++
++    A hint must describe WHERE a value comes from; anything beginning a
++    POSIX path, a URL scheme, or carrying a placeholder/slot inside it
++    would be hardcoding a deployment — refused here.
++    """
++    for name, hint in PLACEHOLDER_HINTS.items():
++        assert "://" not in hint, f"hint for {name} embeds a URL: {hint}"
++        assert not hint.lstrip().startswith("/"), (
++            f"hint for {name} embeds an absolute path: {hint}"
++        )
++        assert "<" not in hint, f"hint for {name} nests a slot: {hint}"
++
++
++def test_placeholder_hints_order_dedup_and_default_fallback() -> None:
++    """Pairs arrive in first-appearance order, deduped; unknown → default."""
++    cmd = "ls <dir> <dir> && cat <other>"
++    pairs = placeholder_hints(cmd)
++    assert [t for t, _h in pairs] == ["<dir>", "<other>"]
++    assert pairs[1][1] == DEFAULT_HINT, "an unnamed slot gets the generic"
++    assert placeholder_hints("git status --short") == [], (
++        "a filled command carries no fill-in lines"
++    )
++
++
++def test_markdown_render_carries_fill_in_hints_at_point_of_use() -> None:
++    """compile --format md: each placeholder slot gets its hint line under
++    the check block; a check without slots gets none."""
++    rb = compile_class("gateway-drain-window")
++    md = rb.to_markdown()
++    for c in rb.checks:
++        tokens = placeholder_tokens(c.command)
++        if not tokens:
++            continue
++        # the hint line sits inside the check's own block
++        check_start = md.find(f"### Check {c.order}")
++        nxt = md.find("### Check", check_start + 1)
++        if nxt == -1:
++            nxt = md.find("## Recovery ladder")
++        block = md[check_start:nxt]
++        for token, hint in placeholder_hints(c.command):
++            line = f"- Fill-in: `{token}` — {hint}"
++            assert line in block, f"check {c.order} missing its fill-in line"
++    filled = compile_class("shared-checkout-collision")
++    filled_md = filled.to_markdown()
++    cmd_nohint = "### Check 1"
++    block = filled_md[filled_md.find(cmd_nohint) : filled_md.find("### Check 2")]
++    assert "Fill-in:" not in block, (
++        "a check whose command has no slots renders no fill-in lines"
++    )
++
++
++def test_markdown_json_contract_unchanged_by_hints() -> None:
++    """to_dict round-trips unchanged (hints are a RENDERING affordance)."""
++    rb = compile_class("gateway-drain-window")
++    data = rb.to_dict()
++    assert Runbook.from_dict(data).to_dict() == data
++
++
++def test_cli_validate_plan_prints_fill_in_hints(
++    capsys: pytest.CaptureFixture[str],
++) -> None:
++    """Plan mode: every would-run check with a slot prints its hints."""
++    code, out, _err = _cli(
++        ["validate", "--class", "gateway-drain-window", "--format", "md"], capsys
++    )
++    assert code == 0
++    assert "would run:" in out
++    assert "fill-in:" in out
++    rb = compile_class("gateway-drain-window")
++    hinted = rb.checks[1].command  # carries <gateway-log-path>
++    token = placeholder_tokens(hinted)[0]
++    assert token in out
++
++
++def test_cli_validate_execute_prints_fill_in_hints_under_template_checks(
++    monkeypatch: pytest.MonkeyPatch,
++    tmp_path: Path,
++    capsys: pytest.CaptureFixture[str],
++) -> None:
++    """--execute text: template-skipped checks explain WHAT fills each slot."""
++    _run, _calls = _all_ok_runner()
++    monkeypatch.setattr("lore.validate._default_runner", _run)
++    monkeypatch.chdir(tmp_path)
++    code, out, _err = _cli(
++        ["validate", "--class", "gateway-drain-window", "--format", "md", "--execute"],
++        capsys,
++    )
++    assert code == 0
++    rb = compile_class("gateway-drain-window")
++    template_checks = [c for c in rb.checks if placeholder_tokens(c.command)]
++    assert template_checks, "premise: the seed has placeholder checks"
++    for c in template_checks:
++        assert f"check {c.order}: {OUTCOME_TEMPLATE}" in out
++    for token, hint in placeholder_hints(template_checks[0].command):
++        assert f"fill-in: {token} = {hint}" in out, out
++
++
++def test_cli_consult_failure_prints_fill_in_hints(
++    monkeypatch: pytest.MonkeyPatch,
++    tmp_path: Path,
++    capsys: pytest.CaptureFixture[str],
++) -> None:
++    """consult --failure: the ordered check list carries hints too."""
++    monkeypatch.chdir(tmp_path)
++    code, out, _err = _cli(
++        ["consult", "--failure", "drain 503s while requests drain"], capsys
++    )
++    assert code == 0
++    assert "this class has a runbook" in out
++    assert "fill-in:" in out
++    # a hinted slot the gateway runbook carries, next to its check line
++    rb = compile_class("gateway-drain-window")
++    for token, _hint in placeholder_hints(rb.checks[1].command):
++        assert token in out
++
++
++# ================================================================ GAP B
++# ------------------------------------------------- derived report counts
++def test_executed_and_not_executed_orders_partition_the_results() -> None:
++    """executed+not_executed == every result exactly once; orders derived."""
++    rb = compile_class("gateway-drain-window")
++    _run, calls = _all_ok_runner()
++    report = lint_runbook(rb, runner=_run)
++    execd = report.executed_orders
++    not_execd = report.not_executed_orders
++    all_orders = [r.order for r in report.results]
++    assert sorted(execd + not_execd) == sorted(all_orders)
++    assert not (set(execd) & set(not_execd))
++    assert len(execd) == len(calls), (
++        "executed_orders matches the runner's real invocations"
++    )
++    assert report.to_dict()["executed_orders"] == execd
++
++
++def test_env_absent_is_an_execution_not_a_skip() -> None:
++    """exit 127 IS an answer: env-absent counts as executed (GAP B).
++
++    Run-7's real shape: the two logsey checks executed (127: env-absent),
++    the placeholder checks in between never ran. The env-absent checks
++    COUNT toward executed — the ratio separates them from the skips.
++    """
++
++    def _not_found(_cmd: str):
++        class _R:
++            returncode = 127
++            stdout = ""
++            stderr = "command not found"
++            timed_out = False
++
++        return _R()
++
++    rb = compile_class("gateway-drain-window")
++    report = lint_runbook(rb, runner=_not_found)
++    env_absent = report.env_absent_orders
++    assert env_absent, "premise: some checks classify env-absent here"
++    placeholders = report.not_executed_orders  # template checks skipped
++    assert placeholders, "premise: placeholder checks never ran"
++    assert report.drifted_orders == []  # env-absent is not drift
++    assert set(env_absent) <= set(report.executed_orders), (
++        "env-absent checks count as executed: exit 127 IS an answer"
++    )
++    assert set(env_absent).isdisjoint(set(placeholders))
++
++
++def test_history_record_carries_derived_executed_ratio(
++    monkeypatch: pytest.MonkeyPatch,
++    tmp_path: Path,
++) -> None:
++    """The run-7 record now says 0/7: drifted_orders=[] can never again
++    read as 'lint ran clean over the whole runbook'."""
++    _run, calls = _all_ok_runner()
++    monkeypatch.setattr("lore.validate._default_runner", _run)
++    rb = compile_class("gateway-drain-window")
++    report = lint_runbook(rb, runner=_run)
++    target = tmp_path / HISTORY_REL
++    (rec,) = persist_validate_history([report], path=target)
++    assert rec["drifted_orders"] == []  # all green
++    assert rec["executed_count"] == len(calls)
++    assert rec["total_checks"] == len(report.results)
++    # honest derived shape: the logsey checks run (no slots), the five
++    # placeholder checks never do — exactly the run-7 asymmetry, now
++    # VISIBLE in the record instead of hidden behind drifted_orders: []
++    template_slots = len([c for c in rb.checks if placeholder_tokens(c.command)])
++    assert rec["total_checks"] - rec["executed_count"] == template_slots
++    # derived, never a literal: the check count comes from the seed
++    assert rec["total_checks"] == len(rb.checks)
++
++
++def test_history_record_of_never_executed_class_says_zero(
++    monkeypatch: pytest.MonkeyPatch,
++    tmp_path: Path,
++) -> None:
++    """A class whose checks all template-skip records executed_count 0.
++
++    The run-7 shape: logsey env-absent (executed) + placeholders — the
++    all-template guard-degradation variant proves the 0 side; the ratio
++    is what separates 'lint ran clean' from 'lint never ran anything'.
++    """
++    _run, calls = _all_ok_runner()
++    monkeypatch.setattr("lore.validate._default_runner", _run)
++    rb = compile_class("guard-degradation")
++    report = lint_runbook(rb, runner=_run)
++    assert calls == [], "premise: this class's checks all template-skip"
++    assert report.results, "premise: it still has checks to count"
++    target = tmp_path / HISTORY_REL
++    (rec,) = persist_validate_history([report], path=target)
++    assert rec["executed_count"] == 0
++    assert rec["total_checks"] == len(report.results)
++    assert rec["drifted_orders"] == [], (
++        "template skips are not drift — but the ratio below now says so"
++    )
++
++
++def test_local_validation_note_carries_executed_ratio() -> None:
++    """The consult lint line shows the ratio when the record has counts."""
++    rec = {
++        "class_id": "gateway-drain-window",
++        "timestamp": "2026-10-01T19:15:06+00:00",
++        "executed_count": 1,
++        "total_checks": 7,
++    }
++    line = local_validation_note(rec)
++    assert line == (
++        "last lint-validated 2026-10-01T19:15:06+00:00 on this box "
++        "(local history, not operator attestation); executed 1/7 checks"
++    )
++
++
++def test_local_validation_note_pre050_record_stays_byte_identical() -> None:
++    """A record predating the fields renders the OLD line exactly."""
++    rec = {"timestamp": "2026-10-01T19:15:06+00:00"}
++    line = local_validation_note(rec)
++    assert line == (
++        "last lint-validated 2026-10-01T19:15:06+00:00 on this box "
++        "(local history, not operator attestation)"
++    )
++    assert "executed" not in line
++
++
++def test_local_validation_note_malformed_counts_render_no_ratio() -> None:
++    """A malformed/absurd ratio renders honestly, never lies about it."""
++    for bad in (
++        {"executed_count": 8, "total_checks": 7},  # executed > total
++        {"executed_count": -1, "total_checks": 7},
++        {"executed_count": "1", "total_checks": 7},  # wrong types
++    ):
++        line = local_validation_note({"timestamp": "t", **bad})
++        assert "executed" not in line, bad
++
++
++# --------------------------------------------------- Consult lint line (ratio)
++def test_consult_lint_line_shows_executed_ratio_end_to_end(
++    monkeypatch: pytest.MonkeyPatch,
++    tmp_path: Path,
++    capsys: pytest.CaptureFixture[str],
++) -> None:
++    """validate --execute, then consult: the surfaced lint line names the
++    honest ratio derived from the run that persisted the record."""
++    _run, calls = _all_ok_runner()
++    monkeypatch.setattr("lore.validate._default_runner", _run)
++    monkeypatch.chdir(tmp_path)
++    main(["validate", "--class", "gateway-drain-window", "--execute"])
++    capsys.readouterr()
++    code, out, _err = _cli(
++        ["consult", "gateway drain window: 503s killing ticks"], capsys
++    )
++    assert code == 0
++    expected = f"executed {len(calls)}/{len(compile_class('gateway-drain-window').checks)} checks"
++    assert expected in out, f"missing ratio line {expected!r} in:\n{out}"
++
++
++# ------------------------------------------- LORE-054-era pins re-checked
++def test_full_registry_every_drift_verdict_sits_on_an_executed_base() -> None:
++    """Every class's record ratio is internally consistent across the
++    whole registry: executed+not_executed == total, for an all-ok run."""
++    _run, _calls = _all_ok_runner()
++    for rb in compile_all():
++        report = lint_runbook(rb, runner=_run)
++        assert len(report.executed_orders) + len(report.not_executed_orders) == len(
++            report.results
++        ), rb.class_id
++
++
++def test_executed_outcomes_vocabulary_documents_itself() -> None:
++    """The executed set is exactly the vocabulary minus the never-ran
++    outcomes (closed-set cross-check, derived from the two constants)."""
++    never_ran = {"refused", "absent", "template"}
++    assert never_ran.isdisjoint(set(EXECUTED_OUTCOMES))
++    from lore.validate import OUTCOME_VOCABULARY
++
++    assert set(EXECUTED_OUTCOMES) | never_ran == set(OUTCOME_VOCABULARY)
