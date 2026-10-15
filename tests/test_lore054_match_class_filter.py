@@ -18,6 +18,7 @@ def test_match_class_filter_valid_class():
         ],
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0
     assert "gateway-drain-window" in result.stdout
@@ -38,6 +39,7 @@ def test_match_class_filter_unknown_class():
         ],
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 2
     assert "unknown class" in result.stderr
@@ -57,6 +59,7 @@ def test_match_class_filter_no_match():
         ],
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0
     assert "gateway-drain-window" in result.stdout
@@ -69,6 +72,7 @@ def test_match_without_class_unchanged():
         [sys.executable, "-m", "lore", "match", "drain 503"],
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0
     assert "gateway-drain-window" in result.stdout
