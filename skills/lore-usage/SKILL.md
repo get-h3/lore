@@ -100,14 +100,15 @@ exist", run `uv tool upgrade lore` before filing a bug.
   `shared-checkout-collision` at keyword strength.
   Long-text behavior is unchanged: a 10-word paraphrase that scored 0.5
   still refuses and only echoes as a near-miss.
-- Guard-failure consults: paste the guard's DECISION vocabulary, not its
-  finding list. Run 7 (2026-10-13, LORE-049): the fleet's most common guard
-  text — "guard FAILED: secrets detected sk-… in diff" — consults to
-  `no matching runbook` (fail-open exit 0); only gate-equivalence phrasing
-  ("guard … not gate-equivalent … main tree") labels `guard-degradation`.
-  No class yet owns plain "guard failed / secrets detected / lint failed"
-  tails. Until LORE-049 lands, append the runbook manually when the consult
-  comes back empty on a real failure — fail-open means empty ≠ healthy.
+- Guard-failure consults: paste the guard's text verbatim — the DECISION
+  vocabulary AND the finding list both classify now (LORE-049 + rework).
+  "guard FAILED: secrets detected sk-… in diff; gitleaks gate rejected
+  commit" consults to `gateway-guard-violation`; so do the bare finding
+  tails ("secrets detected in diff: a sk-prefixed token leaked",
+  "gitleaks gate rejected commit", "lint failed") and the run-4-era
+  gate-equivalence phrasing ("guard … not gate-equivalent … main tree" →
+  `guard-degradation`). Gate-equivalence and plain guard-tripping are
+  different classes: same failure family, different recovery ladder.
 - Fresh-box install (run 4, all three paths pass): anonymous clone works;
   `uv sync --extra dev` ≈9 s incl. a 4 s uv bootstrap from the astral-sh/uv
   GitHub release tarball; pip fallback (`venv` + `pip install -e ".[dev]"`)
@@ -119,7 +120,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
 ## Dev loop
 
 ```sh
-uv run pytest -q    # expect: 453 passed (count synced to scripts/test-count.txt, LORE-029)
+uv run pytest -q    # expect: 463 passed (count synced to scripts/test-count.txt, LORE-029)
 uv run ruff check . # expect: All checks passed!
 ```
 

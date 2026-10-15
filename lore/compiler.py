@@ -840,6 +840,10 @@ _EVIDENCE_TRAILS: dict[str, list[dict]] = {
             "kind": "board",
             "detail": "LORE-017 seed class 'gateway guard violation' (closed-registry seed edit)",
         },
+        {
+            "kind": "board",
+            "detail": "LORE-049 rework: finding-list guard-failure tail ('secrets detected in diff', 'gitleaks gate rejected', 'lint failed') — the guard's decision word is often absent from pasted text",
+        },
     ],
     "docs-count-drift": [
         {
