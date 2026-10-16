@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 
 from lore.absorb import (
     DECISION_ABSORB,
@@ -404,6 +405,10 @@ def _cmd_gate(args: argparse.Namespace) -> int:
     record_path = getattr(args, "record", None)
     if record_path and verdict.allowed:
         rec = verdict_record(verdict, decided_at=args.decided_at)
+        # Ensure parent directory exists before opening file
+        parent_dir = Path(record_path).parent
+        if parent_dir and not parent_dir.exists():
+            parent_dir.mkdir(parents=True, exist_ok=True)
         with open(record_path, "a", encoding="utf-8") as f:
             f.write(json.dumps(rec, sort_keys=True) + "\n")
     return 0 if verdict.allowed else 1

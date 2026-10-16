@@ -1,0 +1,278 @@
+commit 8f0b996bc0e084d26591c82f838f8ceb5b849a82
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Thu Oct 15 23:14:27 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Thu Oct 15 23:14:27 2026 -0500
+
+    fix: reject consult with no title and no --failure as exit 2 usage error. Addresses LORE-055.
+    
+    lore consult with neither a title nor --failure slipped past the classify
+    step with title=None, classified empty input as a no-match, and exited 0
+    with "no matching runbook" — a scripting caller with a typo'd/missing flag
+    silently read that as "no runbook matched". The help contract (LORE-007/009)
+    requires a title unless --failure is given, so missing BOTH is a usage
+    error, not a fail-open no-match: exit 2 with a concise stderr message
+    naming both inputs. A VALID no-match (real text, no curated class) keeps
+    the fail-open exit-0 contract unchanged, in both title and --failure modes.
+    
+    - lore/__main__.py: input guard at the top of _cmd_consult (failure/title
+      falsy check); failure-mode rendering restored verbatim after the guard.
+    - tests/test_lore055_consult_missing_input.py (new): pins both contracts
+      via subprocess.run, with a RED proof (3/6 tests fail on pre-fix code).
+    - tests/test_lore016_qa_audit.py: the LORE-016 test
+      test_cli_consult_without_title_fail_open_exit0 pinned the OLD contract
+      (missing input = fail-open exit 0) — revised to the LORE-055 contract
+      (exit 2, error message), with the fail-open exit-0 contract unchanged
+      for valid no-match input.
+    - docs/INSTALL.md + README.md: consult section documents the required-title
+      rule. CONTRIBUTING/README/INSTALL count literals synced 463 -> 469
+      (scripts/test-count.txt updated; check-test-count.sh passes).
+---
+ CONTRIBUTING.md                             |  2 +-
+ README.md                                   |  8 ++-
+ docs/INSTALL.md                             |  9 ++-
+ lore/__main__.py                            | 19 ++++++-
+ scripts/test-count.txt                      |  2 +-
+ tests/test_lore016_qa_audit.py              | 17 ++++--
+ tests/test_lore055_consult_missing_input.py | 86 +++++++++++++++++++++++++++++
+ 7 files changed, 128 insertions(+), 15 deletions(-)
+
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index 6087d8f..d3ef1b2 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
+ Once `.venv` exists, run the full gate from the repository root:
+ 
+ ```sh
+-uv run pytest -q                    # tests (green at 463 passed)
++uv run pytest -q                    # tests (green at 469 passed)
+ uv run ruff check .                 # lint — "All checks passed!"
+ uv run ruff format --check .        # formatting — "N files already formatted"
+ uv run scripts/check-test-count.sh  # test-count sync guard
+diff --git a/README.md b/README.md
+index 6339346..62ee59c 100644
+--- a/README.md
++++ b/README.md
+@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
+ [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
+ 
+ ```sh
+-uv run pytest -q        # 463 passed
++uv run pytest -q        # 469 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -255,7 +255,9 @@ a provenance marker instead of a separate flow:
+ Besides the guard-failure mode above, `lore consult` takes a task title (and
+ optionally a `--detail`) and returns the matching runbook refs for tick-start
+ context — the same pattern the fleet's dispatch flow uses. Fail-open: no match
+-is an empty result and **exit 0**, never an error.
++is an empty result and **exit 0**, never an error. LORE-055: the title is
++required — no title and no `--failure` exits 2 with a concise usage error
++instead of silently printing "no matching runbook".
+ 
+ ```sh
+ uv run python -m lore consult "gateway drain 503" --json
+@@ -349,7 +351,7 @@ and what does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
+-  with **463 tests passing** and a clean `ruff check`.
++  with **469 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 425d762..6eabec6 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -80,14 +80,14 @@ Real output on the current tree:
+ ........................................................................ [ 55%]
+ ........................................................................ [ 83%]
+ ........................................................................ [100%]
+-463 passed
++469 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **463 tests** (32 test files: taxonomy, classifier,
++The count to expect is **469 tests** (33 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+@@ -243,7 +243,10 @@ phrase the symptom the registry's way.
+ `lore consult` classifies a task title (positional; `--detail` is classified
+ together with the title) and prints the matching runbook **refs** — class id,
+ status, check count — never the payload. Exit 0 even on no match (fail-open),
+-so a tick-start pipeline can call it unconditionally:
++so a tick-start pipeline can call it unconditionally. LORE-055: the title is
++REQUIRED — calling `consult` with neither a title nor `--failure` exits 2
++with a usage error (a missing/typo'd flag must not silently read as
++"no runbook matched"); a valid no-match keeps exit 0.
+ 
+ ```sh
+ uv run python -m lore consult "gateway drain 503" --json
+diff --git a/lore/__main__.py b/lore/__main__.py
+index c9323c2..3ec6998 100644
+--- a/lore/__main__.py
++++ b/lore/__main__.py
+@@ -191,9 +191,24 @@ def _cmd_consult(args: argparse.Namespace) -> int:
+     a class match, print the matching runbook's ORDERED checks under the
+     "this class has a runbook" heading so the failure output can carry them.
+     Still fail-open: no match = exit 0, never an error.
++
++    LORE-055: the help contract requires INPUT — a ``title`` unless
++    ``--failure <text>`` is given. Missing both is a usage error, not a
++    fail-open no-match: exit 2 with a concise message (a scripting caller
++    passing a flag typo must not silently read as "no runbook matched").
++    A valid no-match (real text, no curated class) keeps exit 0.
+     """
+-    if getattr(args, "failure", None):
+-        result = consult_failure(args.failure)
++    failure = getattr(args, "failure", None)
++    if not failure and not args.title:
++        print(
++            "error: consult requires a title argument unless --failure is given "
++            "(usage: lore consult <title> [--detail ...] | consult --failure <text>)",
++            file=sys.stderr,
++        )
++        return 2
++
++    if failure:
++        result = consult_failure(failure)
+         if args.json:
+             print(json.dumps(result.to_dict(), indent=2))
+             return 0
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index 2b808f3..281cd66 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-463
+\ No newline at end of file
++469
+\ No newline at end of file
+diff --git a/tests/test_lore016_qa_audit.py b/tests/test_lore016_qa_audit.py
+index 31e92d3..d98df5c 100644
+--- a/tests/test_lore016_qa_audit.py
++++ b/tests/test_lore016_qa_audit.py
+@@ -63,11 +63,18 @@ def test_cli_match_explain_without_near_misses_prints_none(capsys):
+ 
+ 
+ # ----------------------------------------------------- consult error paths
+-def test_cli_consult_without_title_fail_open_exit0(capsys):
+-    # Fail-open contract: no title and no --failure is NOT an error.
+-    code, out, _err = _run(["consult"], capsys)
+-    assert code == 0
+-    assert "no matching runbook" in out
++def test_cli_consult_without_title_exit2(capsys):
++    # LORE-055 REVISED contract (was fail-open exit 0 in LORE-016): the help
++    # requires a title unless --failure is given, so missing BOTH is a usage
++    # error (exit 2, concise message), not a silent no-match. The fail-open
++    # exit-0 contract only applies to a VALID no-match (real input text) —
++    # pinned by tests/test_lore055_consult_missing_input.py at the
++    # subprocess level.
++    code, out, err = _run(["consult"], capsys)
++    assert code == 2
++    assert "error:" in err
++    assert "--failure" in err
++    assert "no matching runbook" not in out
+ 
+ 
+ def test_cli_consult_json_no_match_exit0(capsys):
+diff --git a/tests/test_lore055_consult_missing_input.py b/tests/test_lore055_consult_missing_input.py
+new file mode 100644
+index 0000000..ba368a6
+--- /dev/null
++++ b/tests/test_lore055_consult_missing_input.py
+@@ -0,0 +1,86 @@
++"""LORE-055 — consult with no title and no --failure must be a usage error.
++
++Real-use hit: ``python -m lore consult`` (no arguments at all) slipped past
++the classify step with ``title=None``, classified the empty input as a
++no-match, and exited 0 with ``no matching runbook`` — silently reading (to a
++scripting consumer) as "no runbook matched" when the real problem was a
++missing/typo'd flag upstream. The help contract (LORE-007/009) requires a
++title unless ``--failure <text>`` is supplied.
++
++Contract pinned here (subprocess-level, per acceptance):
++
++- ``consult`` with neither input → **exit 2**, concise ``error:`` message on
++  stderr naming both required inputs (title / --failure).
++- ``consult 'unrelated symptom'`` (a real, non-matching title) → exit 0 and
++  ``no matching runbook`` — the intentional no-match is UNCHANGED fail-open.
++- Same no-match shape holds for ``consult --failure`` (never an error once
++  real input reaches the classifier; only the MISSING input is the error).
++"""
++
++# ch:trace row=LORE-055
++
++from __future__ import annotations
++
++import subprocess
++import sys
++
++# Text that classifies against no curated class (intentional no-match).
++NO_MATCH_TEXT = "unrelated symptom"
++
++
++def _run_consult(*argv: str) -> subprocess.CompletedProcess[str]:
++    return subprocess.run(
++        [sys.executable, "-m", "lore", "consult", *argv],
++        capture_output=True,
++        text=True,
++        check=False,
++    )
++
++
++# --------------------------------------- missing input: usage error, exit 2
++def test_consult_no_input_exit2():
++    """`lore consult` with no title and no --failure exits 2."""
++    result = _run_consult()
++    assert result.returncode == 2
++
++
++def test_consult_no_input_error_message_names_both_inputs():
++    result = _run_consult()
++    assert result.returncode == 2
++    # Concise required-input error on stderr, not on stdout.
++    stderr = result.stderr
++    assert "error:" in stderr
++    assert "--failure" in stderr
++    assert "title" in stderr
++    # No fail-open output on the error path.
++    assert "no matching runbook" not in result.stdout
++
++
++def test_consult_no_input_only_empty_stderr_is_capped():
++    """--failure '' (empty string) is missing input too, matching the
++    getattr(..., None) falsy check the handler uses."""
++    result = _run_consult("--failure", "")
++    assert result.returncode == 2
++    assert "error:" in result.stderr
++
++
++# ------------------------------- valid no-match: still fail-open, exit 0
++def test_consult_unrelated_symptom_exit0_no_match():
++    result = _run_consult(NO_MATCH_TEXT)
++    assert result.returncode == 0
++    assert "no matching runbook" in result.stdout
++    assert "error:" not in result.stderr
++
++
++def test_consult_failure_no_match_still_exit0():
++    result = _run_consult("--failure", NO_MATCH_TEXT)
++    assert result.returncode == 0
++    assert "no matching runbook" in result.stdout
++
++
++# ------------------------- real input still works unchanged (wiring intact)
++def test_consult_with_title_and_match_unchanged():
++    """A matching title keeps the pre-LORE-055 success path."""
++    result = _run_consult("gateway drain window: 503s while restarts drain")
++    assert result.returncode == 0
++    assert "runbook: gateway-drain-window" in result.stdout

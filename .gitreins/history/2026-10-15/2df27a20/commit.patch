@@ -1,0 +1,19 @@
+commit 66b301fb736c2b13ea8135cbecdf92e07aca7e60
+Merge: ecdbdf3 bdbd9ab
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Thu Oct 15 14:55:49 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Thu Oct 15 14:55:49 2026 -0500
+
+    merge: LORE-049 guard-failure finding-list signatures (worker bdbd9ab)
+
+ CONTRIBUTING.md                                  |   2 +-
+ README.md                                        |   4 +-
+ docs/INSTALL.md                                  |   4 +-
+ lore/classes.py                                  |  25 ++++++
+ lore/compiler.py                                 |   4 +
+ scripts/test-count.txt                           |   2 +-
+ skills/lore-usage/SKILL.md                       |  19 ++--
+ tests/test_lore017_gateway_guard.py              |   8 +-
+ tests/test_lore049_finding_list_guard_failure.py | 109 +++++++++++++++++++++++
+ 9 files changed, 160 insertions(+), 17 deletions(-)
