@@ -31,6 +31,8 @@ Evidence / honesty rules (README "Design laws this repo inherits"):
 
 from __future__ import annotations
 
+import dataclasses
+
 from lore.classes import UNCLASSIFIED_ID, FailureClass, get_registry
 from lore.runbook import (
     STATUS_PROPOSAL,
@@ -940,7 +942,10 @@ def compile_class(
     else:
         ladder = list(_RECOVERY_LADDERS.get(cls.id, []))
         guardrails = list(_GUARDRAILS.get(cls.id, []))
-        checks = [Check.from_dict(c.to_dict()) for c in _CHECKS.get(cls.id, [])]
+        checks = [
+            dataclasses.replace(c, evidence=[dict(e) for e in c.evidence])
+            for c in _CHECKS.get(cls.id, [])
+        ]
 
     trail = (
         list(evidence)
