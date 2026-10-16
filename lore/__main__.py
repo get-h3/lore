@@ -191,9 +191,24 @@ def _cmd_consult(args: argparse.Namespace) -> int:
     a class match, print the matching runbook's ORDERED checks under the
     "this class has a runbook" heading so the failure output can carry them.
     Still fail-open: no match = exit 0, never an error.
+
+    LORE-055: the help contract requires INPUT — a ``title`` unless
+    ``--failure <text>`` is given. Missing both is a usage error, not a
+    fail-open no-match: exit 2 with a concise message (a scripting caller
+    passing a flag typo must not silently read as "no runbook matched").
+    A valid no-match (real text, no curated class) keeps exit 0.
     """
-    if getattr(args, "failure", None):
-        result = consult_failure(args.failure)
+    failure = getattr(args, "failure", None)
+    if not failure and not args.title:
+        print(
+            "error: consult requires a title argument unless --failure is given "
+            "(usage: lore consult <title> [--detail ...] | consult --failure <text>)",
+            file=sys.stderr,
+        )
+        return 2
+
+    if failure:
+        result = consult_failure(failure)
         if args.json:
             print(json.dumps(result.to_dict(), indent=2))
             return 0

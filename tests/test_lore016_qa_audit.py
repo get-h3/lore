@@ -63,11 +63,18 @@ def test_cli_match_explain_without_near_misses_prints_none(capsys):
 
 
 # ----------------------------------------------------- consult error paths
-def test_cli_consult_without_title_fail_open_exit0(capsys):
-    # Fail-open contract: no title and no --failure is NOT an error.
-    code, out, _err = _run(["consult"], capsys)
-    assert code == 0
-    assert "no matching runbook" in out
+def test_cli_consult_without_title_exit2(capsys):
+    # LORE-055 REVISED contract (was fail-open exit 0 in LORE-016): the help
+    # requires a title unless --failure is given, so missing BOTH is a usage
+    # error (exit 2, concise message), not a silent no-match. The fail-open
+    # exit-0 contract only applies to a VALID no-match (real input text) —
+    # pinned by tests/test_lore055_consult_missing_input.py at the
+    # subprocess level.
+    code, out, err = _run(["consult"], capsys)
+    assert code == 2
+    assert "error:" in err
+    assert "--failure" in err
+    assert "no matching runbook" not in out
 
 
 def test_cli_consult_json_no_match_exit0(capsys):

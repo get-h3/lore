@@ -80,14 +80,14 @@ Real output on the current tree:
 ........................................................................ [ 55%]
 ........................................................................ [ 83%]
 ........................................................................ [100%]
-463 passed
+469 passed
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **463 tests** (32 test files: taxonomy, classifier,
+The count to expect is **469 tests** (33 test files: taxonomy, classifier,
 compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
 your run says something else, you are on a different revision — check
 `git log` before trusting this document.
@@ -243,7 +243,10 @@ phrase the symptom the registry's way.
 `lore consult` classifies a task title (positional; `--detail` is classified
 together with the title) and prints the matching runbook **refs** — class id,
 status, check count — never the payload. Exit 0 even on no match (fail-open),
-so a tick-start pipeline can call it unconditionally:
+so a tick-start pipeline can call it unconditionally. LORE-055: the title is
+REQUIRED — calling `consult` with neither a title nor `--failure` exits 2
+with a usage error (a missing/typo'd flag must not silently read as
+"no runbook matched"); a valid no-match keeps exit 0.
 
 ```sh
 uv run python -m lore consult "gateway drain 503" --json
