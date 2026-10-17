@@ -49,6 +49,7 @@ from lore.evidence import (
 from lore.placeholders import placeholder_hints
 from lore.runbook import STATUS_PROPOSAL, STATUS_STALE, STATUS_VALIDATED, Runbook
 from lore.validate import (
+    DRIFT_OUTCOMES,
     HISTORY_FILE,
     OUTCOME_TEMPLATE,
     is_read_only_command,
@@ -524,15 +525,60 @@ def _cmd_show(args: argparse.Namespace) -> int:
     return 0
 
 
-def _audit_rows() -> list[dict]:
+def _history_drift_reason(rec: dict) -> str | None:
+    """LORE-064: the audit-row stale reason from one history record.
+
+    Mirrors ``apply_lint``'s flip rule, keyed on the PERSISTED drift data:
+    a record whose ``drifted_orders`` is non-empty means the newest
+    ``validate --execute`` run for this class on this box saw drift (the
+    record shape pins ``drifted_orders`` to the report's drift verdict —
+    ``env-absent``/``absent``/``template`` outcomes never enter it, so a
+    not-found tool is honest absence, never rot). The reason names each
+    drifted check with its outcome in the exact wording ``apply_lint``
+    writes into check evidence (``"lint drift: check N (outcome)"``);
+    when the record carries no outcome list (or one that cannot be paired
+    with the drifted orders) the reason still names the orders — drift is
+    never silently dropped. Returns None when the record shows no drift.
+    """
+    drifted = rec.get("drifted_orders")
+    if not isinstance(drifted, list) or not drifted:
+        return None
+    outcomes = rec.get("outcomes")
+    drift_outcomes = (
+        [o for o in outcomes if o in DRIFT_OUTCOMES]
+        if isinstance(outcomes, list)
+        else []
+    )
+    if len(drift_outcomes) == len(drifted):
+        detail = ", ".join(
+            f"check {o} ({out})" for o, out in zip(drifted, drift_outcomes)
+        )
+    else:
+        detail = ", ".join(f"check {o}" for o in drifted)
+    return f"lint drift: {detail}"
+
+
+def _audit_rows(history_path: Path | None = None) -> list[dict]:
     """Coverage + freshness matrix rows, one per registry class (PRD US-3).
 
-    HONESTY LAW: ``last_validated`` is never auto-populated in v0.1 — no
-    code path writes it (``apply_lint`` deliberately never stamps it: a lint
-    run is not operator attestation; operator attestation is planned, not
-    implemented). Today's freshness signal is the lint itself — the stale
-    flag with its drift reason. Until a human attests, the field honestly
-    reports ``no data``: never a fabricated date, never an invented status.
+    LORE-064 (PRD SC-3): the freshness signal is now WIRED. After building
+    the baseline row from the static registry, each class's newest local
+    lint record is read from ``.lore/validate-history.jsonl`` (the file
+    ``validate --execute`` writes, LORE-045) and, when that record shows
+    drift, the ROW flips to ``status=stale`` with ``stale_reason`` carrying
+    the drift reason — the same transition ``apply_lint`` makes, driven by
+    persisted evidence instead of a live in-process report. The registry
+    runbook is never mutated (the row dict is a copy that gains keys).
+
+    HONESTY LAW: ``last_validated`` is still never auto-populated — no
+    code path writes it (``apply_lint`` deliberately never stamps it: a
+    lint run is not operator attestation; operator attestation is planned,
+    not implemented). The local history is EVIDENCE a lint ran on this
+    box, never attestation, so the field honestly reports ``no data``:
+    never a fabricated date, never an invented status. ``history_path``
+    is a test seam; production resolves ``HISTORY_FILE`` against the
+    current working directory. No history (missing/empty file, no record
+    for the class) → the rows are exactly what they were before.
     """
     rows: list[dict] = []
     for rb in compile_all():
@@ -541,17 +587,23 @@ def _audit_rows() -> list[dict]:
             for c in rb.checks
             if c.command.strip() and c.command.strip() != NO_VALID_EVIDENCE
         ]
-        rows.append(
-            {
-                "class_id": rb.class_id,
-                "name": rb.name,
-                "runbook_compiled": True,
-                "check_count": len(rb.checks),
-                "command_count": len(real_commands),
-                "last_validated": rb.last_validated or NO_VALID_EVIDENCE,
-                "status": rb.status,
-            }
-        )
+        row: dict = {
+            "class_id": rb.class_id,
+            "name": rb.name,
+            "runbook_compiled": True,
+            "check_count": len(rb.checks),
+            "command_count": len(real_commands),
+            "last_validated": rb.last_validated or NO_VALID_EVIDENCE,
+            "status": rb.status,
+        }
+        rec = last_local_validation(rb.class_id, path=history_path)
+        if rec is not None:
+            reason = _history_drift_reason(rec)
+            if reason is not None:
+                row = dict(row)  # never mutate the baseline row in place
+                row["status"] = STATUS_STALE
+                row["stale_reason"] = reason
+        rows.append(row)
     return rows
 
 
@@ -564,12 +616,20 @@ def _cmd_audit(args: argparse.Namespace) -> int:
     """
     rows = _audit_rows()
     zero_command = sum(1 for r in rows if r["command_count"] == 0)
+    stale_rows = [r for r in rows if r.get("stale_reason") is not None]
+    stale_count = len(stale_rows)
+    stale_clause = (
+        f"; {stale_count} stale (lint drift via local validate history)"
+        if stale_count
+        else ""
+    )
     summary_note = (
         "last_validated is never auto-populated in v0.1 (operator attestation "
         "is planned, not implemented — a lint run is not attestation); "
         "today's freshness signal is the lint itself — the stale flag and "
         "its drift reason — and the field honestly reports 'no data' until "
-        "a human attests"
+        "a human attests. Stale comes from the local validate history "
+        "(not attestation)."
     )
 
     if args.format == "json":
@@ -580,6 +640,7 @@ def _cmd_audit(args: argparse.Namespace) -> int:
                     "summary": {
                         "total_classes": len(rows),
                         "classes_with_zero_real_commands": zero_command,
+                        "stale_classes": stale_count,
                         "note": summary_note,
                     },
                 },
@@ -590,20 +651,20 @@ def _cmd_audit(args: argparse.Namespace) -> int:
 
     if args.format == "md":
         lines = [
-            "| class_id | name | runbook-compiled | checks | real commands | last_validated | status |",
-            "|---|---|---|---|---|---|---|",
+            "| class_id | name | runbook-compiled | checks | real commands | last_validated | status | stale_reason |",
+            "|---|---|---|---|---|---|---|---|",
         ]
         lines.extend(
             f"| {r['class_id']} | {r['name']} | {r['runbook_compiled']} | "
             f"{r['check_count']} | {r['command_count']} | "
-            f"{r['last_validated']} | {r['status']} |"
+            f"{r['last_validated']} | {r['status']} | {r.get('stale_reason', '')} |"
             for r in rows
         )
         print("\n".join(lines))
         print()
         print(
             f"**Summary:** {len(rows)} classes; {zero_command} with zero real "
-            f"commands; {summary_note}"
+            f"commands{stale_clause}; {summary_note}"
         )
         return 0
 
@@ -616,6 +677,7 @@ def _cmd_audit(args: argparse.Namespace) -> int:
         "real-cmds",
         "last_validated",
         "status",
+        "stale_reason",
     )
     table_rows = [
         (
@@ -626,6 +688,7 @@ def _cmd_audit(args: argparse.Namespace) -> int:
             str(r["command_count"]),
             r["last_validated"],
             r["status"],
+            r.get("stale_reason", ""),
         )
         for r in rows
     ]
@@ -643,8 +706,8 @@ def _cmd_audit(args: argparse.Namespace) -> int:
         print(_fmt(row))
     print()
     print(
-        f"summary: {len(rows)} classes; {zero_command} with zero real commands; "
-        f"{summary_note}"
+        f"summary: {len(rows)} classes; {zero_command} with zero real "
+        f"commands{stale_clause}; {summary_note}"
     )
     return 0
 

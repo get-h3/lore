@@ -1,0 +1,21 @@
+commit c43994712ee28f8cacb284bc2af2c65a42235129
+Merge: 0b71ed7 728afa4
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Sat Oct 17 00:33:34 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Sat Oct 17 00:33:34 2026 -0500
+
+    Merge wt/LORE-060: rewrite gateway-drain-window logsey checks to actual SQL-string CLI. Addresses LORE-060.
+    
+    Co-authored-by: Alexis Okuwa <wojonstech@gmail.com>
+
+ CHANGELOG.md                              |  12 +++
+ CONTRIBUTING.md                           |   2 +-
+ README.md                                 |   6 +-
+ docs/INSTALL.md                           |   6 +-
+ lore/compiler.py                          |  11 ++-
+ scripts/test-count.txt                    |   2 +-
+ tests/test_lore060_logsey_sql_contract.py | 122 ++++++++++++++++++++++++++++++
+ tests/test_review003_env_absent.py        |   5 +-
+ tests/test_validate.py                    |   7 +-
+ 9 files changed, 160 insertions(+), 13 deletions(-)
