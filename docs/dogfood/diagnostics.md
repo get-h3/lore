@@ -443,3 +443,62 @@ one-P3 flat (count-guard PATH, chaos-disconnect vacuity, P4 ruff-pin note) and t
 fourth was a confirm (LORE-051 still open, standing). The product's core promise —
 paste a symptom line, get an honest class, compile the runbook, gate the lesson,
 show the work — held at every surface, on both machines, with every number quoted.
+# Run 10 (2026-10-17) — the runbook text meets a sibling tool's real flag contract, on a box that didn't build any of it
+
+**What changed under it.** Runs 1-9 covered lore's own verbs and the QA harness. Run 10's
+angle was the thin one the battery can't see: lore's runbook EXPRESSIONS are shell
+strings aimed at OTHER tools (logsey, git, curl, grep) — and a runbook is only as valid
+as the real tool's contract on the day it runs. That premise held until the
+gateway-drain-window class was driven on the live CLI.
+
+**The mechanism that bit (LORE-060) is a drift between two siblings in the same fleet.**
+The runbook says `logsey query --pattern 'drain 503' --since 30m` (twice: orders 1 and
+7). The real logsey binary (on the same box, same PATH) says `logsey query "<sql>"` —
+one positional SQL string, no `--pattern`, no `--since`. The result is that lore's
+validate --execute grades the acceptance class `gateway-drain-window` "stale" because
+THE RUNBOOK is wrong about its own fleet's tooling, not because the tool is missing.
+The gate-colored check still runs — it just exits 2 and the freshness story reads
+"stale check ↑ self-invalidated" where the underlying story is "runbook drafted from
+an older/experimental logsey contract".
+
+**Why the OTHER classes pass: the aggregate-mechanism question.** The bisect for
+"the logsey runbook class failed" had to answer: is this a lore-side classifier bug, a
+lore-side staleness mislabel, or a genuine drift in one runbook's text? A clean
+committed clone gives you a CWD-keyed, fresh, no-.lore environment. From that shape:
+
+- `shared-checkout-collision` → stale:no, env_absent empty. (No mobile runbook, no
+  external tool in its orders.)
+- `fast-forward-push-reject` / `docs-count-drift` / `worktree-reap-data-loss` →
+  all stale:no, env_absent empty. (Also git/grep/curl-wc-shaped.)
+
+None of these grue anything; lore's classification engine is fine. Only the
+logsey-angled runbook text is stale. The "stalebynvironment vs stale-bydrift" framing
+(LORE-061) came from the same bisect on the OTHER side — a bare bunker box, where every
+tool is legitimately absent, produces the SAME "stale" name on the same class for a
+legitimately DIFFERENT reason, and nothing in the plain-text runbook or the table says so
+(the data layer names `env-absent` correctly; the render layer doesn't).
+
+**The other mechanism run 10 added to this file is more boring and more permanent: a
+documented install path, measured as a system.** The battery's fresh-install cell proves
+the WHEEL is installable. It doesn't prove a user following docs/INSTALL.md gets a
+working tool in a bounded time. Run 10's hand leg (clone from GitHub with anonymous
+https, bootstrap uv from the astral-sh release tarball, `uv venv` + `uv pip install`,
+first match) completed in box-seconds — the uv tarball download (~2m) dominates a
+first-touch run; after that the whole path is seconds. Everything graded green, which
+means the documented path is honestly documented as of HEAD 9b97fa2, on this date, on a
+3.12.3/uv-0.36.0/Debian box.
+
+**Preceding runs' lessons that run 10 hit again.** Run 9's skill updates (argument-form
+map, fresh-box truth) were load-bearing mid-run: `--class` vs positional class, `--help`
+before scripting a battery, the PATH assumption for pytest. Run 10 also hit, and tested
+live, LORE-052's shape (5/13 classes still stale-by-environment) on the fresh box: 14/14
+classes emitted honesty_label `lint-verified... does NOT prove recovery succeeds` on the
+first .lore history created there.
+
+**What should outlive this run in how future dogfooding of lore works:** a runbook-compilation
+tool's acceptance criteria must drive the runbook's OWN quoted invocations against the real
+siblings, not just parse them. The `validate --execute` signal is honest — it correctly says
+"the runbook is stale" — but "stale" is a TOOL-side verdict that needs a reason rendered
+(LORE-061), and the fleet's runbooks embed contracts that drift with sibling tools
+(LORE-060). Neither is a fixture problem. Both are the product's real subject matter:
+a runbook that doesn't run is worse than no runbook, and lore now proves it twice.

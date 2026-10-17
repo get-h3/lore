@@ -202,3 +202,27 @@ miss. Before scripting, check the shape per verb (or just `--help` that verb):
 - The audit table still lists `unclassified` as a regular class row
   (run-7 LORE-051, pending): filter `.class_id != "unclassified"` before
   counting classes.
+
+## The runbook-text-vs-sibling-tool contract (run 10, 2026-10-17)
+
+A lore runbook is shell strings aimed at OTHER tools; its validity drifts with the
+sibling tool's real CLI, not with lore's own code. Two live truths at HEAD 9b97fa2:
+
+- **gateway-drain-window's logsey checks (orders 1 and 7) do not run on the real logsey
+  CLI** — `logsey query --pattern X --since <wd>` exits 2 ("unexpected second argument");
+  logsey takes ONE quoted SQL string (`logsey query "<sql>"`). The class grades `stale`
+  from its own runbook text (board row LORE-060), not because logsey is missing. Do not
+  "fix" this by removing logsey from PATH in a test — the runbook TEXT is the defect.
+- **`stale` conflates env-absent and drifted at the render layer** — the data layer
+  separates them (`env_absent_orders` vs `drifted_orders`), but the plain-text runbook
+  and the audit table print one word. On a box without logsey, gateway-drain-window
+  reads "stale" for a healthy reason (board row LORE-061). Before treating a stale
+  class as a regression, run `validate --execute` and read `env_absent_orders` vs
+  `drifted_orders` in the JSON, not the table.
+
+Fresh-machine install envelope (hand leg, bunker-mvp agent 26678b35, destroyed):
+clone -> uv tarball bootstrap -> `uv venv`+`uv pip install -e ".[dev]"` -> first match:
+all rc=0; in-box seconds after uv lands (uv tarball download ~2m dominates first touch).
+Bare fresh box + first `validate --execute` creates `.lore/validate-history.jsonl`
+14/14 rows honestly (env-absent on a tool-less box, honesty_label preserved) — the
+per-CWD history is correct on a machine that never ran lore before (LORE-045 hold).
