@@ -378,3 +378,68 @@ pipe (PIPESTATUS trap).
 **Why run 8 exists.** Runs 1-7 proved humans can use lore; run 8 proved
 machines can. The remaining friction is not correctness — it is that two
 error paths teach the internal state of the tool instead of the contract.
+
+## Run 9 (2026-10-17) — the fresh-machine delta: where the four fixes meet a box that isn't the dev box
+
+**What changed under it.** Runs 1-8 rode the control checkout. Run 9's premise was the
+opposite: HEAD had moved 69 files since run 8, including four user-visible fixes and one
+compiler optimization — the interesting question was what those surfaces do on a box
+that didn't build them. The leg used the fleet QA battery (fresh-install wheel, act CI,
+upgrade, chaos cells) on bunker-mvp, then a hand-driven smoke of exactly the four fix
+verbs on the SAME fresh agent, and a `bench.py` A/B across a worktree split at the
+PERF-1 boundary.
+
+**The mechanism that bit (LORE-057) is one line of Python, and it teaches a general
+lesson about "green on my box".** `scripts/check-test-count.sh:33` collects the live
+test count via `python3 -m pytest --collect-only`. The test that wraps the guard
+(`tests/test_count_guard.py::test_shell_guard_flags_and_clears_stale_class_count`)
+spawns the guard and asserts rc=1 on stale class-count prose. On the dev box,
+`python3` on PATH *is* the project venv (uv front-loads it), so the child collect
+succeeds and the assertion about drift is reached. On the bunker agent, the QA battery
+calls pytest by its absolute venv path and never touches PATH — so the guard's child
+`python3` is the system interpreter with no pytest, the count line comes back empty,
+and the guard exits 2 with the most honest message in the repo: "could not determine
+live test count (... guard misconfigured, not drift)". The test then fails on
+`2 == 1`. The A/B (evidence run9/diag4.log) proves the guard is right and the test's
+environ is under-specified: same scratch copy, `PATH` sans venv → rc=2; `PATH` with
+venv → rc=0, "PASS: canonical=473 matches live=473". Fix direction: NOT more venv
+assumptions in the docs — make the test inject the interpreter it's already running
+under (sys.executable via env PATH prepend) so the box that proves the drill doesn't
+need the dev box's lucky PATH.
+
+**The fresh box also taught what "install" means now.** The fresh-install cell
+installs the WHEEL (`get-h3-lore-0.1.2`), which carries no test suite — and the
+battery's chaos-disconnect cell therefore had nothing to cut: disc.log empty,
+cell graded UNVERIFIED with an explicit vacuity marker (LORE-058). On 10-04 the same
+cell graded INFO "passes with network cut (no network dep)" because the install then
+still put pytest in reach. Nothing failed; the *coverage* silently moved. The row
+packages both fix directions: grade the shape N/A honestly, or make fresh-install
+keep the dev extra so the disconnect cell cuts a real suite again.
+
+**What real use re-proved without new rows.** Every fix contract held on BOTH boxes
+(--class tri-state; consult exit-2 missing-input with fail-open intact; round-2
+finding-list signatures incl. bare 'secrets detected in diff' and git-canonical
+collision phrases; gate --record parent creation with DENY arms writing nothing).
+PERF-1's dataclasses.replace clone held under equal-load A/B: compile_all_registry
+158.63 → 81.94 µs/op (1.94×, bench.py --number 200 --repeats 3, pre-worktree
+0bf0220 vs HEAD 9b97fa2). LORE-051's audit-bucket premise re-confirmed at the byte
+level (unclassified still appears as a 14th class row; `total_classes: 14`). The
+exit ladder re-swept honest on the two verbs the delta touched (match --class,
+consult early-guard).
+
+**Operator errors worth their ink (each one a real-user shape):**
+- `show --class X` exits 2: show's class is POSITIONAL while match/consult take
+  FLAGS. A user fluent in one verb's form gets the other wrong; --help answers it
+  in one read.
+- `consult --failure` takes the failure TEXT, not a path. The battle rhythm is
+  "point at the log"; the contract is "inline text". For a one-class CLI that
+  fail-opens rather than crashes, a PATH in --failure = silent no-match where a
+  fresh user expects their file to be read. Worth a UX row some day, not a defect.
+- `gate absorb` needs no --reason — class+lesson is the veto pair; no-new-lesson is
+  the ack pair. Enforced in lore/absorb.py, not in --help prose.
+
+**Why the verdict is SHIPPABLE anyway.** Three of the run's four defects found were
+one-P3 flat (count-guard PATH, chaos-disconnect vacuity, P4 ruff-pin note) and the
+fourth was a confirm (LORE-051 still open, standing). The product's core promise —
+paste a symptom line, get an honest class, compile the runbook, gate the lesson,
+show the work — held at every surface, on both machines, with every number quoted.

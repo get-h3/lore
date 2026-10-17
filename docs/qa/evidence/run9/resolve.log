@@ -1,0 +1,12 @@
+=== gitweb record for the commit
+422
+"message": "No commit found for SHA: 4156dc4b6883e7d0fea57736e2eb5aacb6584136
+=== manual count-guard repro (scratch copy, same shape as the test)
+tests/test_validate.py::test_gate_accepts_grep_since_marker_shapes
+
+473 tests collected in 0.86s
+collect tail above; guard run follows
+Python 3.12.3
+473
+ERROR: could not determine live test count (pytest --collect-only produced no count; guard misconfigured, not drift)
+guard_rc=2

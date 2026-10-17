@@ -1,0 +1,26 @@
+=== fresh box identity
+qa-lore-present
+4156dc4
+=== S1 match --class unknown class (LORE-054 contract on fresh box)
+error: unknown class 'does-not-exist'
+rc=2
+=== S0 match --class valid control
+gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain
+rc=0
+=== S2 consult no args (LORE-055 contract on fresh box)
+error: consult requires a title argument unless --failure is given (usage: lore consult <title> [--detail ...] | consult --failure <text>)
+rc=2
+=== S3 match bare finding-list text (LORE-049 round-2 on fresh box)
+gateway-guard-violation	confidence=0.90	evidence: signature:secrets detected in diff; keyword:secrets detected
+rc=0
+=== S4 gate --record missing parent (LORE-056 on fresh box)
+GATE: ALLOW (no-new-lesson)
+rc=0
+record.jsonl
+{"ack_ref": null, "allowed": true, "class_id": null, "decided_at": "2026-10-17T04:19:44Z", "decision": "no-new-lesson", "errors": [], "lesson": "", "reason": "covered", "source": null, "tool_version": "0.1.2"}
+=== S5 pytest suite on fresh box (fresh smoke check: tests present in clone)
+uv-absent
+FAILED tests/test_count_guard.py::test_shell_guard_flags_and_clears_stale_class_count
+1 failed, 471 passed, 1 skipped in 3.14s
+pytest_rc=0
+FRESH-SMOKE-DONE

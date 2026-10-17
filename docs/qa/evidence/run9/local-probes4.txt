@@ -1,0 +1,56 @@
+=== G1 consult --failure inline guard-failure text (want gateway-guard-violation runbook suggestion)
+this class has a runbook: gateway-guard-violation (Gateway guard violation) status=proposal last_validated=never checks=2
+  last lint-validated 2026-10-16T19:10:50+00:00 on this box (local history, not operator attestation); executed 0/2 checks
+  check 1: grep -n 'gateway\|guard\|denied' <guard-log-tail> | tail -20
+    fill-in: <guard-log-tail> = the guard's log file path (the log the failures appear in)
+  check 2: grep -c 'DENIED\|banned' <guard-log-tail>
+    fill-in: <guard-log-tail> = the guard's log file path (the log the failures appear in)
+rc=0
+
+=== G2 consult --failure bare finding-list text (LORE-049 round-2 shape)
+this class has a runbook: gateway-guard-violation (Gateway guard violation) status=proposal last_validated=never checks=2
+  last lint-validated 2026-10-16T19:10:50+00:00 on this box (local history, not operator attestation); executed 0/2 checks
+  check 1: grep -n 'gateway\|guard\|denied' <guard-log-tail> | tail -20
+    fill-in: <guard-log-tail> = the guard's log file path (the log the failures appear in)
+  check 2: grep -c 'DENIED\|banned' <guard-log-tail>
+    fill-in: <guard-log-tail> = the guard's log file path (the log the failures appear in)
+rc=0
+
+=== G3 consult --failure --json same bare finding text
+{
+  "matched": true,
+  "matched_classes": [
+    "gateway-guard-violation"
+  ],
+  "suggestions": [
+    {
+      "class_id": "gateway-guard-violation",
+      "name": "Gateway guard violation",
+      "status": "proposal",
+      "last_validated": null,
+      "check_count": 2,
+      "checks": [
+        {
+          "order": 1,
+          "command": "grep -n 'gateway\\|guard\\|denied' <guard-log-tail> | tail -20"
+        },
+        {
+          "order": 2,
+          "command": "grep -c 'DENIED\\|banned' <guard-log-tail>"
+        }
+      ]
+    }
+  ],
+  "elapsed_ms": 3.2085010316222906
+}
+rc=0
+
+=== G4 consult --failure gitleaks gate-rejected text
+this class has a runbook: gateway-guard-violation (Gateway guard violation) status=proposal last_validated=never checks=2
+  last lint-validated 2026-10-16T19:10:50+00:00 on this box (local history, not operator attestation); executed 0/2 checks
+  check 1: grep -n 'gateway\|guard\|denied' <guard-log-tail> | tail -20
+    fill-in: <guard-log-tail> = the guard's log file path (the log the failures appear in)
+  check 2: grep -c 'DENIED\|banned' <guard-log-tail>
+    fill-in: <guard-log-tail> = the guard's log file path (the log the failures appear in)
+rc=0
+PROBES4-DONE

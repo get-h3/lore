@@ -1,0 +1,17 @@
+lore benchmarks (stdlib timeit; deterministic inputs; per-call = min of <repeats> batches x <number> calls; measured wall-clock, not thresholds)
+operation                         us/op      ops/sec   number  repeats
+classify_signature_hit             3.24       308938      200        3
+    # classify() one text matched by a registry signature regex
+classify_keyword_hit              55.99        17861      200        3
+    # classify() one text matched only by keywords (threshold path)
+classify_full_miss_scan           19.30        51822      200        3
+    # classify() worst case: no match, scans the entire registry
+classify_all_rank                 58.63        17057      200        3
+    # classify_all(): score + rank candidates across all classes
+compile_class_gateway             13.01        76854      200        3
+    # compile_class() for the doctrine class (checks + ladder)
+compile_all_registry              81.94        12204      200        3
+    # compile_all(): one runbook per registry class
+validate_read_only_gate           28.49        35104      200        3
+    # is_read_only_command(): default-deny gate on a chained command
+PASS: 7 operations measured

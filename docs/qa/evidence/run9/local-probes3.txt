@@ -1,0 +1,35 @@
+=== F1 consult --failure real guard text (want match gateway-guard-violation)
+--- cmd: uv run python -m lore consult --failure /tmp/lore-df/scratch/guard.txt
+no matching runbook
+--- rc: 0
+=== F2 consult --failure --json same guard text
+--- cmd: uv run python -m lore consult --failure /tmp/lore-df/scratch/guard.txt --json
+{
+  "matched": false,
+  "matched_classes": [],
+  "suggestions": [],
+  "elapsed_ms": 3.67883313447237
+}
+--- rc: 0
+=== F3 gate DENY absorb missing class (want rc=1 DENY, no record)
+--- cmd: 
+--- rc: 0
+GATE: DENY (1 errors)
+error: absorb requires a class_id
+--- rc: 1
+ls: cannot access '/tmp/lore-df/scratch/gate-deny3/': No such file or directory
+=== F4 gate DENY absorb unknown class (want rc=1 DENY, no record)
+--- cmd: 
+--- rc: 0
+GATE: DENY (1 errors)
+error: unknown class 'does-not-exist' — registry is closed; carry the proposed lesson text for operator review instead
+--- rc: 1
+ls: cannot access '/tmp/lore-df/scratch/gate-deny4/': No such file or directory
+=== F5 gate DENY no-new-lesson empty reason (want rc=1 DENY, no record)
+--- cmd: 
+--- rc: 0
+GATE: DENY (1 errors)
+error: no-new-lesson requires a reason
+--- rc: 1
+ls: cannot access '/tmp/lore-df/scratch/gate-deny5/': No such file or directory
+PROBES3-DONE

@@ -1,0 +1,32 @@
+=== clone state
+4156dc4 qa-sync
+=== the mystery commit
+4156dc4 qa-sync
+4156dc4b6883e7d0fea57736e2eb5aacb6584136
+=== failed test rerun with verbose tail
+        )
+    
+        stale = subprocess.run(
+            ["sh", str(guard_path)],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=180,
+            check=False,
+        )
+>       assert stale.returncode == 1, (
+            f"expected drift rc=1 on stale class-count prose, got rc={stale.returncode}"
+            f"\nstdout: {stale.stdout}\nstderr: {stale.stderr}"
+        )
+E       AssertionError: expected drift rc=1 on stale class-count prose, got rc=2
+E         stdout: 
+E         stderr: ERROR: could not determine live test count (pytest --collect-only produced no count; guard misconfigured, not drift)
+E         
+E       assert 2 == 1
+E        +  where 2 = CompletedProcess(args=['sh', '/tmp/pytest-of-bunker-e864c056/pytest-1/test_shell_guard_flags_and_cle0/scratch/scripts/...RROR: could not determine live test count (pytest --collect-only produced no count; guard misconfigured, not drift)\n').returncode
+
+tests/test_count_guard.py:318: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_count_guard.py::test_shell_guard_flags_and_clears_stale_class_count
+1 failed, 10 passed, 1 skipped in 0.21s
+RERUN-DONE rc=0

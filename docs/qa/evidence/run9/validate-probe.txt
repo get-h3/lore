@@ -1,0 +1,127 @@
+=== validate plan (dry-run default) — does plan now carry fill-in hints?
+[
+  {
+    "class_id": "gateway-drain-window",
+    "mode": "plan",
+    "note": "plan only \u2014 no command was executed; pass --execute to run the gate-approved read-only commands",
+    "would_run": [
+      {
+        "order": 1,
+        "command": "logsey query --pattern 'drain 503' --since 30m"
+      },
+      {
+        "order": 2,
+        "command": "grep -c 'drain 503' <gateway-log-path>"
+      },
+      {
+        "order": 3,
+        "command": "curl -s -o /dev/null -w '%{http_code}' <gateway-health-url>"
+      },
+      {
+        "order": 4,
+        "command": "grep -c 'enabled.*false' <scheduler-fleet-config>"
+      },
+      {
+        "order": 5,
+        "command": "curl -s <gateway-metrics-url> | grep -c 'in_flight'"
+      },
+      {
+        "order": 6,
+        "command": "wc -l <gateway-queue-path>"
+      },
+rc=0
+
+=== validate --class gateway-drain-window plan (single class detail)
+[
+  {
+    "class_id": "gateway-drain-window",
+    "mode": "plan",
+    "note": "plan only \u2014 no command was executed; pass --execute to run the gate-approved read-only commands",
+    "would_run": [
+      {
+        "order": 1,
+        "command": "logsey query --pattern 'drain 503' --since 30m"
+      },
+      {
+        "order": 2,
+        "command": "grep -c 'drain 503' <gateway-log-path>"
+      },
+      {
+        "order": 3,
+        "command": "curl -s -o /dev/null -w '%{http_code}' <gateway-health-url>"
+      },
+      {
+        "order": 4,
+        "command": "grep -c 'enabled.*false' <scheduler-fleet-config>"
+      },
+      {
+        "order": 5,
+        "command": "curl -s <gateway-metrics-url> | grep -c 'in_flight'"
+rc=0
+
+=== validate --execute (full live lint — post LORE-052 bash runner)
+      {
+        "class_id": "fast-forward-push-reject",
+        "order": 2,
+        "command": "git log --oneline -5",
+        "outcome": "ok",
+        "exit_code": 0,
+        "stdout": "9b97fa2 board: close PERF-1 \u2014 dataclasses.replace compiler optimization, judge PASS (4deb1a3f). 473 tests green.\nb52efca compiler: replace to_dict/from_dict clone with dataclasses.replace. Addresses PERF-1.\n0bf0220 board: close LORE-055 \u2014 consult missing-input exit 2, judge PASS (verdict 0fe290e2), 469 tests green\n8f0b996 fix: reject consult with no title and no --failure as exit 2 usage error. Addresses LORE-055.\nb1bf52c board: close LORE-049 \u2014 guard-failure finding-list signatures, judge PASS (verdict 1f48cfb4), 463 tests green\n",
+        "stderr": "",
+        "timed_out": false,
+        "timestamp": "2026-10-17T04:17:31+00:00"
+      }
+    ],
+    "honesty_label": "lint-verified: commands parse and answer on the live system; this does NOT prove recovery succeeds",
+    "created_at": "2026-10-17T04:17:31+00:00",
+    "drifted_orders": [],
+    "env_absent_orders": [],
+    "executed_orders": [
+      1,
+      2
+    ],
+    "not_executed_orders": [],
+    "stale_reason": null
+  },
+  {
+    "class_id": "unclassified",
+    "results": [],
+    "honesty_label": "lint-verified: commands parse and answer on the live system; this does NOT prove recovery succeeds",
+    "created_at": "2026-10-17T04:17:33+00:00",
+    "drifted_orders": [],
+    "env_absent_orders": [],
+    "executed_orders": [],
+    "not_executed_orders": [],
+    "stale_reason": null
+  }
+]
+rc=0
+
+=== validate --execute --class gateway-drain-window (the executed-ratio honesty: 7 checks, how many executed?)
+        "timed_out": false,
+        "timestamp": "2026-10-17T04:17:33+00:00"
+      }
+    ],
+    "honesty_label": "lint-verified: commands parse and answer on the live system; this does NOT prove recovery succeeds",
+    "created_at": "2026-10-17T04:17:33+00:00",
+    "drifted_orders": [
+      1,
+      7
+    ],
+    "env_absent_orders": [],
+    "executed_orders": [
+      1,
+      7
+    ],
+    "not_executed_orders": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "stale_reason": "lint drift: check 1 (error), check 7 (error)"
+  }
+]
+rc=0
+VALIDATE-DONE

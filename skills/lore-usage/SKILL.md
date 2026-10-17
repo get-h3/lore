@@ -172,3 +172,33 @@ Tier-1 guard runs pre-commit; never commit `.gitreins/` runtime artifacts.
   paths) exit 1 → class flips 'stale'. On a box without the fleet layout,
   expect 5/13 classes stale-by-environment; shared-checkout-collision is
   the reliably-green class (LORE-052).
+
+## The argument-form map (run 9, 2026-10-17)
+
+Three argument shapes live in the six verbs; every run-9 operator miss was a form
+miss. Before scripting, check the shape per verb (or just `--help` that verb):
+
+- `match "text" [--class <id>] [--explain]` — text POSITIONAL, --class FLAG.
+- `consult <title>…` or `consult --failure "<text>"` — --failure takes the
+  failure TEXT INLINE, not a file path (a path string classifies as its own
+  text and fails open to a silent no-match, exit 0).
+- `show <class_id> [options]` — class POSITIONAL (no --class flag; exits 2
+  with a usage error otherwise). `compile [--class X]` takes the FLAG.
+- `validate [--class X] [--execute]`, `gate --class <id>`,
+  `absorb --class <id> --lesson "…"` — flag forms.
+
+## Fresh-box truth (bunker battery, run 9)
+
+- A hand pytest run on a fresh agent without the venv bin on PATH can surface
+  ONE failure: tests/test_count_guard.py exits the CHILD guard with rc=2
+  'could not determine live test count (... guard misconfigured, not drift)'
+  because the guard's `python3 -m pytest` resolves to system python. The guard
+  is honest; the test's env is under-specified — board row LORE-057. On such a
+  box run: `export PATH=~/tools/venv/bin:$PATH` first (battery legs already
+  have this; only hand-run pytest shells don't).
+- `chaos-disconnect` in the fleet battery grades UNVERIFIED (vacuity) since
+  fresh-install moved to the wheel: the wheel carries no test suite, so the
+  disconnect cell has nothing to cut (LORE-058). It is NOT a lore defect.
+- The audit table still lists `unclassified` as a regular class row
+  (run-7 LORE-051, pending): filter `.class_id != "unclassified"` before
+  counting classes.

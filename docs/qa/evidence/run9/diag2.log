@@ -1,0 +1,11 @@
+=== collect via python3 (system):
+/usr/bin/python3: No module named pytest
+=== collect via venv python IN g2:
+
+473 tests collected in 0.84s
+=== now the guard (bash), with both pythons on PATH exactly like the failing test did
+PASS: test-count guard: canonical=473 matches live=473; class-count=13; no stale count literals in living docs
+guard_rc=0
+=== guard via sh (the test's actual spawn):
+PASS: test-count guard: canonical=473 matches live=473; class-count=13; no stale count literals in living docs
+guard_sh_rc=0

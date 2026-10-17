@@ -1,0 +1,6 @@
+=== guard with system python3 only on PATH (no venv):
+ERROR: could not determine live test count (pytest --collect-only produced no count; guard misconfigured, not drift)
+rc=2
+=== guard with venv bin on PATH:
+PASS: test-count guard: canonical=473 matches live=473; class-count=13; no stale count literals in living docs
+rc=0

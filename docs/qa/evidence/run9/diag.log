@@ -1,0 +1,17 @@
+=== the commit object
+tree 187f0a6b7d9b710b4831cb48b30a30cb57a9f5e7
+author qa-bot <qa@bunker> 1792210263 +0000
+committer qa-bot <qa@bunker> 1792210263 +0000
+
+qa-sync
+=== refs pointing at it
+4156dc4b6883e7d0fea57736e2eb5aacb6584136 commit	refs/heads/master
+4156dc4 HEAD@{0}: commit (initial): qa-sync
+=== its tree vs 9b97fa2 (any source diff?)
+=== guard failure diagnosis: the two pytest shapes
+--- python3 -m pytest (system python, no venv):
+/usr/bin/python3: No module named pytest
+--- venv python with cwd elsewhere:
+
+473 tests collected in 0.13s
+probe-line: 473 tests collected in 0.12s
