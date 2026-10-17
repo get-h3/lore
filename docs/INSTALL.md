@@ -80,14 +80,14 @@ Real output on the current tree:
 ........................................................................ [ 55%]
 ........................................................................ [ 83%]
 ........................................................................ [100%]
-473 passed
+481 passed
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **473 tests** (33 test files: taxonomy, classifier,
+The count to expect is **481 tests** (36 test files: taxonomy, classifier,
 compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
 your run says something else, you are on a different revision — check
 `git log` before trusting this document.
@@ -320,7 +320,7 @@ uv run python -m lore compile --class gateway-drain-window --format md
 ### Check 1 (read-only)
 
 ```sh
-logsey query --pattern 'drain 503' --since 30m
+logsey query "SELECT message, ts FROM logs WHERE message LIKE '%drain 503%' AND ts >= now() - INTERVAL 30 MINUTE"
 ```
 - Healthy: no rows
 - Incident: 503s on in-flight requests while the gateway restarts/reloads

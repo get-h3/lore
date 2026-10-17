@@ -74,7 +74,7 @@ def test_env_absent_in_vocabulary_and_not_drift():
 
 
 def test_exit_127_classified_env_absent_runbook_not_stale():
-    rb = _rb_with(_check(1, "logsey query --pattern 'drain 503' --since 30m"))
+    rb = _rb_with(_check(1, 'logsey query "SELECT message FROM logs"'))
     runner = Exit127Runner()
     report = lint_runbook(rb, runner=runner)
     assert report.results[0].outcome == OUTCOME_ENV_ABSENT
@@ -91,6 +91,7 @@ def test_exit_127_classified_env_absent_runbook_not_stale():
 
 def test_runner_filenotfound_error_classified_env_absent():
     rb = _rb_with(_check(1, "logsey query --since 30m"))
+    assert "--since" in rb.checks[0].command  # premise: a non-SQL shape still gates
     report = lint_runbook(rb, runner=FileNotFoundErrorRunner())
     assert report.results[0].outcome == OUTCOME_ENV_ABSENT
     assert report.results[0].exit_code is None
@@ -118,7 +119,7 @@ def test_exit_128_and_other_nonzero_stay_drift():
 
 def test_mixed_report_stale_reason_names_only_drifted_check():
     rb = _rb_with(
-        _check(1, "logsey query --pattern 'drain 503' --since 30m"),
+        _check(1, 'logsey query "SELECT message FROM logs"'),
         _check(2, "grep -c 'drain 503' /var/log/gateway"),
         _check(3, "ls /tmp"),
     )
