@@ -88,7 +88,12 @@ def _kind_runner(kind: str):
 # ---------------------------------------------------------------- gate
 GATE_CASES = [
     # --- accepted: the shapes the fleet's runbooks actually use
-    ("logsey query --pattern 'drain 503' --since 30m", True),
+    # LORE-060: logsey's real contract is ONE quoted SQL string; the gate
+    # accepts the plain-reader invocation.
+    (
+        "logsey query \"SELECT message FROM logs WHERE message LIKE '%drain 503%'\"",
+        True,
+    ),
     ("grep -c 'drain 503' <gateway-log-path>", True),
     ("curl -s -o /dev/null -w '%{http_code}' <gateway-health-url>", True),
     ("git status --short", True),

@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **LORE-060** — gateway-drain-window's logsey checks (orders 1 and 7) now
+  speak logsey's REAL CLI contract: ONE quoted SQL string over the indexed
+  DuckDB engine (`logs` table, `message`/`ts` columns, `now() - INTERVAL <n>
+  MINUTE` windows), not the unshipped `--pattern/--since` flags that exit 2
+  ("unexpected second argument") on the actual binary (dogfood run 10,
+  verified live on HEAD 9b97fa2). `validate --execute` now reports both
+  checks `ok` (exit 0) instead of env-absent-looking exits; the read-only
+  gate, the 127-classification fixtures, the README/INSTALL rendered check,
+  and the test-count literal were all synced. New
+  `tests/test_lore060_logsey_sql_contract.py` pins the single-arg SQL shape
+  so the fiction cannot re-enter the compiled runbook unnoticed.
+
 - **LORE-050** — two honesty gaps from dogfood run 7's scratch-dir
   `validate --execute` (1/7 checks executed, 6/7 template-skipped, the
   history record grading the class `drifted_orders: []`). GAP A: every

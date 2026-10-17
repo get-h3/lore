@@ -77,7 +77,10 @@ _CHECKS: dict[str, list[Check]] = {
     "gateway-drain-window": [
         Check(
             order=1,
-            command="logsey query --pattern 'drain 503' --since 30m",
+            command=(
+                'logsey query "SELECT message, ts FROM logs WHERE message '
+                "LIKE '%drain 503%' AND ts >= now() - INTERVAL 30 MINUTE\""
+            ),
             expected_healthy="no rows",
             expected_incident="503s on in-flight requests while the gateway restarts/reloads",
             decision="confirm the class signature before touching anything",
@@ -169,7 +172,11 @@ _CHECKS: dict[str, list[Check]] = {
         ),
         Check(
             order=7,
-            command="logsey query --pattern 'SIGKILL|503' --since 60m",
+            command=(
+                'logsey query "SELECT message, ts FROM logs WHERE '
+                "(message LIKE '%SIGKILL%' OR message LIKE '%503%') "
+                'AND ts >= now() - INTERVAL 60 MINUTE"'
+            ),
             expected_healthy="no SIGKILL lines; 503 count at baseline (0/hour)",
             expected_incident="SIGKILL during load, or 503 count above the pre/post-restart baseline",
             decision=(
