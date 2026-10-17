@@ -27,7 +27,7 @@ evaluator:
   # No stage pin and no `defaults:` copy exists in this config, so
   # evaluator.max_iterations is the effective cap (proven by importing
   # engine.eval_cap.eval_cap_from_config, not by grepping).
-  max_iterations: 50
+  max_iterations: 100
   # 2026-09-26 LORE-037: wall-clock cap. 9 source files; the audit
   # (check-gitreins-judge.py) requires max_time to be set. 30m matches the
   # schema template's own commented example — no starvation recorded at this
