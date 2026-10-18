@@ -120,7 +120,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
 ## Dev loop
 
 ```sh
-uv run pytest -q    # expect: 463 passed (count synced to scripts/test-count.txt, LORE-029)
+uv run pytest -q    # expect: 510 passed (count synced to scripts/test-count.txt, LORE-029)
 uv run ruff check . # expect: All checks passed!
 ```
 
@@ -167,11 +167,14 @@ Tier-1 guard runs pre-commit; never commit `.gitreins/` runtime artifacts.
   timestamp. Anything claiming to be an export without the fence → rc=2
   (error text does not state this contract — LORE-053). No marker at all →
   rc=0 empty result.
-- `validate --execute` runs commands under /bin/sh: process substitution
-  (`diff <(...)`) hard-fails, and missing files (fleet.toml, ~/.hermes
-  paths) exit 1 → class flips 'stale'. On a box without the fleet layout,
-  expect 5/13 classes stale-by-environment; shared-checkout-collision is
-  the reliably-green class (LORE-052).
+- `validate --execute` runs commands under bash (LORE-052 switched from
+  /bin/sh): process substitution (`diff <(...)`) now works. Missing files
+  (fleet.toml, ~/.hermes paths) exit 1 → class flips 'stale' via the
+  env_absent outcome (not drifted). On a box without the fleet layout,
+  expect 1 drifted class (gateway-drain-window, runbook text wrong per
+  LORE-060) + 1 env-absent class (cooldown-pin-drift, missing fleet.toml)
+  + 12 green classes; shared-checkout-collision is the reliably-green
+  class (LORE-052).
 
 ## The argument-form map (run 9, 2026-10-17)
 
