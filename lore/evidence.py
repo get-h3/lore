@@ -60,6 +60,16 @@ LOGSEY_EXPORT_CONTRACT_STATUS = (
     "(internal/cli/cli.go planned list)"
 )
 
+# Teaching hint for LOGSEY-USER-FACING error messages (LORE-053): names the
+# accepted shape and one concrete example line, quoting NO internal tooling
+# state (that is what LOGSEY_EXPORT_CONTRACT_STATUS is for — docstrings and
+# tests, never a first-time user's screen).
+LOGSEY_EXPORT_SHAPE_HINT = (
+    "accepted shape: a fenced code block (``` or ```jsonl) containing lines "
+    "that start with a bare ISO-8601 timestamp "
+    "(e.g. 2026-10-18T14:30:00Z kind=incident detail='gateway drain 503')"
+)
+
 # Curated, closed evidence-kind vocabulary. The first group is what the
 # compiler's curated tables already use (lore.compiler evidence/trail
 # comments); the second group is what the logsey export contract and this
@@ -221,8 +231,7 @@ def parse_logsey_export(text: str) -> list[EvidenceBlock]:
     if fence_start is None:
         if has_header:
             raise LogseyExportParseError(
-                f"input claims a logsey export ({LOGSEY_EXPORT_CONTRACT_STATUS}) but carries no "
-                "fenced evidence block"
+                f"found export marker but no fenced block; {LOGSEY_EXPORT_SHAPE_HINT}"
             )
         return []  # did not claim to be an export: no blocks found
 
@@ -264,8 +273,8 @@ def parse_logsey_export(text: str) -> list[EvidenceBlock]:
 
     if not blocks and has_header:
         raise LogseyExportParseError(
-            f"input claims a logsey export ({LOGSEY_EXPORT_CONTRACT_STATUS}) but its fenced block "
-            "yielded no parseable evidence lines"
+            "fenced block present but no parseable evidence lines; "
+            f"{LOGSEY_EXPORT_SHAPE_HINT}"
         )
     return blocks
 

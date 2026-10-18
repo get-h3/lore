@@ -460,10 +460,9 @@ def _cmd_absorb(args: argparse.Namespace) -> int:
     try:
         blocks: list[EvidenceBlock] = parse_logsey_export(trail_text)
     except LogseyExportParseError as exc:
-        print(
-            f"error: trail claims to be an export but does not parse: {exc}",
-            file=sys.stderr,
-        )
+        # LORE-053: teach the accepted shape, never quote internal tooling
+        # state (the parser's message already carries the shape hint).
+        print(f"error: {exc}", file=sys.stderr)
         return 2
 
     proposals = absorb_sweep(

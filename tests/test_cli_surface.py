@@ -222,10 +222,17 @@ def test_cli_absorb_window_header_without_block_exit2(capsys, monkeypatch):
     import io
 
     # Claims an export (header) but no fenced block: LogseyExportParseError.
+    # LORE-053: the message now TEACHES the accepted shape instead of quoting
+    # internal tooling state ("does not parse" / contract status are gone).
     monkeypatch.setattr("sys.stdin", io.StringIO(_TRALE_HEADER + "\n"))
     code = _run(["absorb", "--window", "2h"])
     assert code == 2
-    assert "does not parse" in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert "no fenced block" in err
+    assert "fenced code block" in err
+    assert "ISO-8601" in err
+    assert "does not parse" not in err
+    assert "unfrozen" not in err
 
 
 def test_cli_absorb_window_bad_duration_exit2(capsys, monkeypatch):
