@@ -1,0 +1,267 @@
+commit deb398ae1da43ec476fea704b67519b82a881573
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Sun Oct 18 09:46:42 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Sun Oct 18 09:46:42 2026 -0500
+
+    fix: teach absorb --window error the accepted trail shape. Addresses LORE-053.
+    
+    The absorb --window error quoted internal tooling state (the logsey
+    export contract status) and used one identical message for two unrelated
+    failure modes. Now:
+    - no export marker at all -> empty/unclaimed input: exit 0 with the
+      existing 'no classifiable evidence blocks' message (unchanged parse
+      behavior, message now asserted by a subprocess-level test);
+    - marker present but no fenced block -> exit 2 with a teaching error
+      naming the accepted shape plus one example timestamp line;
+    - marker + fenced block but no parseable lines -> exit 2 with the
+      distinguishable teaching error.
+    LOGSEY_EXPORT_SHAPE_HINT is the user-facing constant; the honest
+    contract status stays in docstrings/tests only.
+    510 -> 514 tests (count guard + living docs synced).
+    
+    Co-authored-by: Alexis Okuwa <wojonstech@gmail.com>
+---
+ CONTRIBUTING.md                           |  2 +-
+ README.md                                 |  4 +-
+ docs/INSTALL.md                           |  4 +-
+ lore/__main__.py                          |  7 ++-
+ lore/evidence.py                          | 17 +++++--
+ scripts/test-count.txt                    |  2 +-
+ tests/test_cli_surface.py                 |  9 +++-
+ tests/test_lore053_absorb_window_error.py | 81 +++++++++++++++++++++++++++++++
+ 8 files changed, 111 insertions(+), 15 deletions(-)
+
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index 1beec35..7076910 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
+ Once `.venv` exists, run the full gate from the repository root:
+ 
+ ```sh
+-uv run pytest -q                    # tests (green at 510 passed)
++uv run pytest -q                    # tests (green at 514 passed)
+ uv run ruff check .                 # lint — "All checks passed!"
+ uv run ruff format --check .        # formatting — "N files already formatted"
+ uv run scripts/check-test-count.sh  # test-count sync guard
+diff --git a/README.md b/README.md
+index ea491ec..685f891 100644
+--- a/README.md
++++ b/README.md
+@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
+ [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
+ 
+ ```sh
+-uv run pytest -q        # 510 passed
++uv run pytest -q        # 514 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -351,7 +351,7 @@ and what does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
+-  with **510 tests passing** and a clean `ruff check`.
++  with **514 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 7362bd9..9490058 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -80,14 +80,14 @@ Real output on the current tree:
+ ........................................................................ [ 55%]
+ ........................................................................ [ 83%]
+ ........................................................................ [100%]
+-510 passed
++514 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **510 tests** (37 test files: taxonomy, classifier,
++The count to expect is **514 tests** (37 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+diff --git a/lore/__main__.py b/lore/__main__.py
+index 2ac2888..370304b 100644
+--- a/lore/__main__.py
++++ b/lore/__main__.py
+@@ -460,10 +460,9 @@ def _cmd_absorb(args: argparse.Namespace) -> int:
+     try:
+         blocks: list[EvidenceBlock] = parse_logsey_export(trail_text)
+     except LogseyExportParseError as exc:
+-        print(
+-            f"error: trail claims to be an export but does not parse: {exc}",
+-            file=sys.stderr,
+-        )
++        # LORE-053: teach the accepted shape, never quote internal tooling
++        # state (the parser's message already carries the shape hint).
++        print(f"error: {exc}", file=sys.stderr)
+         return 2
+ 
+     proposals = absorb_sweep(
+diff --git a/lore/evidence.py b/lore/evidence.py
+index 165ffbd..70f1f7e 100644
+--- a/lore/evidence.py
++++ b/lore/evidence.py
+@@ -60,6 +60,16 @@ LOGSEY_EXPORT_CONTRACT_STATUS = (
+     "(internal/cli/cli.go planned list)"
+ )
+ 
++# Teaching hint for LOGSEY-USER-FACING error messages (LORE-053): names the
++# accepted shape and one concrete example line, quoting NO internal tooling
++# state (that is what LOGSEY_EXPORT_CONTRACT_STATUS is for — docstrings and
++# tests, never a first-time user's screen).
++LOGSEY_EXPORT_SHAPE_HINT = (
++    "accepted shape: a fenced code block (``` or ```jsonl) containing lines "
++    "that start with a bare ISO-8601 timestamp "
++    "(e.g. 2026-10-18T14:30:00Z kind=incident detail='gateway drain 503')"
++)
++
+ # Curated, closed evidence-kind vocabulary. The first group is what the
+ # compiler's curated tables already use (lore.compiler evidence/trail
+ # comments); the second group is what the logsey export contract and this
+@@ -221,8 +231,7 @@ def parse_logsey_export(text: str) -> list[EvidenceBlock]:
+     if fence_start is None:
+         if has_header:
+             raise LogseyExportParseError(
+-                f"input claims a logsey export ({LOGSEY_EXPORT_CONTRACT_STATUS}) but carries no "
+-                "fenced evidence block"
++                f"found export marker but no fenced block; {LOGSEY_EXPORT_SHAPE_HINT}"
+             )
+         return []  # did not claim to be an export: no blocks found
+ 
+@@ -264,8 +273,8 @@ def parse_logsey_export(text: str) -> list[EvidenceBlock]:
+ 
+     if not blocks and has_header:
+         raise LogseyExportParseError(
+-            f"input claims a logsey export ({LOGSEY_EXPORT_CONTRACT_STATUS}) but its fenced block "
+-            "yielded no parseable evidence lines"
++            "fenced block present but no parseable evidence lines; "
++            f"{LOGSEY_EXPORT_SHAPE_HINT}"
+         )
+     return blocks
+ 
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index 2bc4cd6..a087962 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-510
++514
+diff --git a/tests/test_cli_surface.py b/tests/test_cli_surface.py
+index 082fcaf..562a91f 100644
+--- a/tests/test_cli_surface.py
++++ b/tests/test_cli_surface.py
+@@ -222,10 +222,17 @@ def test_cli_absorb_window_header_without_block_exit2(capsys, monkeypatch):
+     import io
+ 
+     # Claims an export (header) but no fenced block: LogseyExportParseError.
++    # LORE-053: the message now TEACHES the accepted shape instead of quoting
++    # internal tooling state ("does not parse" / contract status are gone).
+     monkeypatch.setattr("sys.stdin", io.StringIO(_TRALE_HEADER + "\n"))
+     code = _run(["absorb", "--window", "2h"])
+     assert code == 2
+-    assert "does not parse" in capsys.readouterr().err
++    err = capsys.readouterr().err
++    assert "no fenced block" in err
++    assert "fenced code block" in err
++    assert "ISO-8601" in err
++    assert "does not parse" not in err
++    assert "unfrozen" not in err
+ 
+ 
+ def test_cli_absorb_window_bad_duration_exit2(capsys, monkeypatch):
+diff --git a/tests/test_lore053_absorb_window_error.py b/tests/test_lore053_absorb_window_error.py
+new file mode 100644
+index 0000000..baf2bf9
+--- /dev/null
++++ b/tests/test_lore053_absorb_window_error.py
+@@ -0,0 +1,81 @@
++"""LORE-053 — absorb --window error messages TEACH the accepted trail shape.
++
++Two contracts pinned at the real process boundary (subprocess against
++``python -m lore``), matching the exact CLI shapes from the task row:
++
++1. Input with NO export marker at all is empty/unclaimed input: exit 0 with
++   the existing "no classifiable evidence blocks" message — NOT an error.
++2. Input that HAS an export marker but no (valid) fenced block exits 2 with
++   a TEACHING error: names the accepted shape ("fenced code block", bare
++   ISO-8601 timestamp), shows one example line, and quotes NO internal
++   tooling state (no "unfrozen", no LOGSEY_EXPORT_CONTRACT_STATUS text).
++   The two failure modes are distinguishable: "no fenced block" vs "no
++   parseable evidence lines".
++"""
++
++from __future__ import annotations
++
++import subprocess
++import sys
++
++_ACCEPTED = "accepted shape: a fenced code block (``` or ```jsonl)"
++_EXAMPLE = "2026-10-18T14:30:00Z"
++# Internal tooling state that must NEVER reach the user-facing error.
++_UNFROZEN = "unfrozen — logsey export subcommand not yet implemented"
++
++
++def _run_absorb(stdin_text: str) -> subprocess.CompletedProcess:
++    return subprocess.run(
++        [sys.executable, "-m", "lore", "absorb", "--window", "2h"],
++        input=stdin_text,
++        capture_output=True,
++        text=True,
++        check=False,
++    )
++
++
++def test_no_export_marker_is_unclaimed_input_exit0_not_error():
++    """``random noise`` (no marker, no fence): exit 0, empty-trail message."""
++    r = _run_absorb("random noise\n")
++    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
++    assert "no classifiable evidence blocks" in r.stdout
++    assert "nothing written" in r.stdout
++    assert r.stderr.strip() == ""
++
++
++def _assert_teaching_error(msg: str, what_went_wrong: str) -> None:
++    # What went wrong (the two failure modes are distinguishable).
++    assert what_went_wrong in msg
++    # The accepted shape, stated clearly.
++    assert _ACCEPTED in msg
++    assert "ISO-8601 timestamp" in msg
++    # One example line.
++    assert _EXAMPLE in msg
++    # No internal tooling state leaks to the user.
++    assert _UNFROZEN not in msg
++    assert "LOGSEY_EXPORT_CONTRACT_STATUS" not in msg
++
++
++def test_marker_without_fence_exit2_teaching_error():
++    """Marker present, fence missing: exit 2 + teaching error."""
++    r = _run_absorb("logsey export --window 1h\n")
++    assert r.returncode == 2
++    _assert_teaching_error(r.stderr, "no fenced block")
++
++
++def test_marker_with_fence_but_no_valid_lines_exit2_teaching_error():
++    """Marker + fence, fence body has no timestamped lines: exit 2 + teaching."""
++    trail = "logsey export --window 1h\n```\nnot a timestamp\n```\n"
++    r = _run_absorb(trail)
++    assert r.returncode == 2
++    _assert_teaching_error(r.stderr, "no parseable evidence lines")
++
++
++def test_both_teaching_errors_are_distinguishable():
++    """The two failure modes produce DIFFERENT what-went-wrong clauses."""
++    r_no_fence = _run_absorb("logsey export --window 1h\n")
++    r_bad_lines = _run_absorb("logsey export --window 1h\n```\nnot a timestamp\n```\n")
++    assert r_no_fence.returncode == r_bad_lines.returncode == 2
++    assert "no fenced block" in r_no_fence.stderr
++    assert "no parseable evidence lines" in r_bad_lines.stderr
++    assert r_no_fence.stderr != r_bad_lines.stderr

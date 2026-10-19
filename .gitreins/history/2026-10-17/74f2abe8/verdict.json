@@ -1,0 +1,85 @@
+{
+  "task_id": "LORE-064",
+  "task_title": "PRD SC-3: wire audit freshness signal",
+  "task_criteria": [
+    "PRD SC-3's audit wiring gap fixed \u2014 _cmd_audit reads .lore/validate-history.jsonl and applies drift status to each class so the audit shows 'stale' (not 'proposal') when validate --execute detects drift. Tier-2 criterion: inject a breaking change into a runbook command, verify audit --format json shows status=stale with drifted_orders, then verify revert restores status=proposal (not stale)."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "d3abd75035c505239dd9b6afaefc7b207ac77586",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261017T125034.226546Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\nscanners: nice=nice -n 10\n7:50AM INF scanned ~5770827 bytes (5.77 MB) in 1.91s\n7:50AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 151 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261017T125034.226546Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.12.4\ncollected 510 items\n\ntests/test_absorb.py .........................                           [  4%]\ntests/test_bench.py .....                                                [  5%]\ntests/test_classes.py .........                                          [  7%]\ntests/test_classifier.py ............                                    [ 10%]\ntests/test_cli_surface.py ......................                         [ 14%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 23%]\ntests/test_count_guard.py ............                                   [ 26%]\ntests/test_dist_name.py ....                                             [ 27%]\ntests/test_evidence.py ......................                            [ 31%]\ntests/test_lore011_drain_acceptance.py .......                           [ 32%]\ntests/test_lore016_qa_audit.py .....................                     [ 36%]\ntests/test_lore017_gateway_guard.py ........                             [ 38%]\ntests/test_lore020_absorb_window.py ...                                  [ 39%]\ntests/test_lore021_naming_docs.py .......                                [ 40%]\ntests/test_lore022_freshness_docs.py .....                               [ 41%]\ntests/test_lore030_ux_guard.py ....                                      [ 42%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 44%]\ntests/test_lore041_collision_canonical.py ...........                    [ 46%]\ntests/test_lore043_short_text_threshold.py ....................          [ 50%]\ntests/test_lore045_validate_history.py ....................              [ 54%]\ntests/test_lore046_match_output.py ...........                           [ 56%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 58%]\ntests/test_lore049_guard_secrets_detected.py .....                       [ 59%]\ntests/test_lore050_placeholder_fill_in_and_executed_ratio.py ........... [ 61%]\n.......                                                                  [ 63%]\ntests/test_lore052_bash_runner_env_absent.py ...........                 [ 65%]\ntests/test_lore054_match_class_filter.py ....                            [ 66%]\ntests/test_lore055_consult_missing_input.py ......                       [ 67%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 68%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 69%]\ntests/test_lore064_audit_wiring.py .............................         [ 75%]\ntests/test_near_miss.py ..............                                   [ 78%]\ntests/test_readme_links.py .                                             [ 78%]\ntests/test_review001_gate_record.py ........                             [ 79%]\ntests/test_review002_recall.py ........                                  [ 81%]\ntests/test_review003_env_absent.py .......                               [ 82%]\ntests/test_validate.py ................................................. [ 92%]\n.......................................                                  [100%]\n\n============================= 510 passed in 5.37s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261017T125034.226546Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    }
+  },
+  "summary": "Judge Result: LORE-064\n\nStage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: scanners: nice=nice -n 10\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-10-17T12:50:51.292864",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-10-17T12:50:51.339546+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 262176,
+        "truncated": true,
+        "source": "git show d3abd75035c5"
+      }
+    ],
+    "task_id": "LORE-064"
+  }
+}
