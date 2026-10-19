@@ -80,14 +80,14 @@ Real output on the current tree:
 ........................................................................ [ 55%]
 ........................................................................ [ 83%]
 ........................................................................ [100%]
-514 passed
+523 passed
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **514 tests** (37 test files: taxonomy, classifier,
+The count to expect is **523 tests** (38 test files: taxonomy, classifier,
 compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
 your run says something else, you are on a different revision — check
 `git log` before trusting this document.
@@ -139,7 +139,9 @@ positional arguments:
                         human-markdown default, --format json optional
     audit               coverage + freshness matrix over every registry class
                         (LORE-010, PRD US-3); honest 'no data' freshness —
-                        never fabricated dates
+                        never fabricated dates; the `unclassified` catch-all
+                        bucket is marked (`bucket: true` in JSON, `[bucket]`
+                        prefix in table) so it never reads as a 14th class
 
 options:
   -h, --help            show this help message and exit

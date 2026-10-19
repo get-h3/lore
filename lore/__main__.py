@@ -595,6 +595,12 @@ def _audit_rows(history_path: Path | None = None) -> list[dict]:
             "last_validated": rb.last_validated or NO_VALID_EVIDENCE,
             "status": rb.status,
         }
+        # LORE-051: ``unclassified`` is the catch-all BUCKET (13 curated + 1
+        # bucket), not a 14th curated class. Only the bucket entry carries the
+        # marker — curated keys stay untouched so scripted consumers can
+        # separate registry classes from the bucket instead of miscounting 14.
+        if rb.class_id == UNCLASSIFIED_ID:
+            row["bucket"] = True
         rec = last_local_validation(rb.class_id, path=history_path)
         if rec is not None:
             reason = _history_drift_reason(rec)
@@ -668,9 +674,14 @@ def _cmd_audit(args: argparse.Namespace) -> int:
         return 0
 
     # table (default)
+    # LORE-051: the bucket row is visually distinct — its class_id is prefixed
+    # with ``[bucket]`` and it carries ``-`` in the dedicated bucket column, so
+    # a scripted consumer counting rows still sees 14 but immediately sees one
+    # is the catch-all bucket, not a 14th curated class.
     headers = (
         "class_id",
         "name",
+        "bucket",
         "compiled",
         "checks",
         "real-cmds",
@@ -680,8 +691,9 @@ def _cmd_audit(args: argparse.Namespace) -> int:
     )
     table_rows = [
         (
-            r["class_id"],
+            ("[bucket] " + r["class_id"]) if r.get("bucket") else r["class_id"],
             r["name"],
+            "yes" if r.get("bucket") else "-",
             str(r["runbook_compiled"]),
             str(r["check_count"]),
             str(r["command_count"]),

@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 514 passed
+uv run pytest -q        # 523 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -351,7 +351,7 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **514 tests passing** and a clean `ruff check`.
+  with **523 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published
@@ -395,7 +395,12 @@ and what does not:
   not implemented) — so every runbook says `no data` until a human attests.
   Never a fabricated date. Today's freshness signal is the lint itself:
   `lore validate --execute` flips a drifted runbook to `stale` and carries
-  the drift reason.
+  the drift reason. The registry has 13 curated classes PLUS the
+  `unclassified` catch-all bucket (14 rows, never 14 classes): the bucket
+  row is marked so scripted consumers can tell them apart — JSON carries
+  `bucket: true` on the unclassified entry only (curated entries have no
+  `bucket` key), and the table/md render it as `[bucket] unclassified` with
+  `yes` in the dedicated bucket column (curated rows show `-`).
 - The `lore absorb --window <dur> [--ns N] [--board B] [--source S]` sweep —
   parses a prior evidence trail from stdin (or `--trail-file`), classifies each
   block, groups by class, and prints per-class absorb **proposals** on stdout.
