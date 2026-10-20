@@ -1,0 +1,4 @@
+logsey export --window 2h
+```
+2026-09-24T10:00:00 unit=loreforge gateway drain 503 while restart
+```

@@ -1,0 +1,21 @@
+# run 14c — absorb help text vs behaviour, and the measured cost
+
+$ lore absorb --help | sed -n '5,12p'
+options:
+  -h, --help            show this help message and exit
+  --class CLASS_ID      existing registry class to propose an update for
+                        (required without --window)
+  --lesson LESSON       the lesson text (required without --window)
+  --window WINDOW       LORE-010 sweep: sweep a PRIOR EVIDENCE TRAIL (stdin,
+                        or --trail-file) instead of taking --class/--lesson;
+                        parse a duration like 2h/45m/90 and group classifiable
+
+## perf (Step 2b): warm, hyperfine --warmup 3 --runs 12, cwd = scratch with the 6-block trail
+$ python -m lore absorb --window 2h --trail-file trail-real.txt
+  49.7 ms +- 1.9 ms  [User: 40.9 ms, System: 8.7 ms]   (range 46.6-52.5, 12 runs)
+$ python -m lore absorb --class gateway-drain-window --lesson x
+  46.7 ms +- 4.2 ms  [User: 37.6 ms, System: 8.9 ms]   (range 41.8-55.2, 12 runs)
+## cold (sync + drop_caches before each run)
+  real 0.08 / 0.07 s (user 0.05/0.04, sys 0.01)
+## reading: both operations sit at the interpreter-startup floor (~45 ms); the trail work itself is ~4 ms.
+## NOTHING HERE IS SLOW ENOUGH TO FILE A PERF ROW.

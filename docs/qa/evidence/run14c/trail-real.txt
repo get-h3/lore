@@ -1,0 +1,9 @@
+logsey export --window 2h
+```
+2026-10-20T08:01:12Z unit=hermes-gateway severity=error component=gateway pid=41022 gateway drain 503 while restart: 96 503s inside the window, baseline 0/hour outside
+2026-10-20T08:03:44Z unit=hermes-gateway severity=warn component=gateway pid=41022 drain window still open at 25 minutes; dependents not warned in advance
+2026-10-20T08:11:03Z source=gitreins-guard severity=error component=guard guard FAILED: secrets detected in staged diff (gitleaks); commit rejected
+2026-10-20T08:14:20Z source=docs-lane level=warn component=docs README claims 148 tests passing but the suite collects 523 (docs-count-drift)
+2026-10-20T08:17:55Z source=foreman level=info component=board board row closed without an absorb; no lesson filed
+2026-10-20T08:21:09Z source=kernel level=error component=storage disk pressure: filesystem at 100% busy, duckdb reads timing out
+```

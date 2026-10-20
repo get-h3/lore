@@ -294,3 +294,33 @@ reading; that gap is filed as **`LORE-067`**.
 
 Cost: cheap. Warm `lore audit --format json` ≈ 0.11 s on the control box (and ≈ 48 ms with no
 `.lore/validate-history.jsonl`); it grows with that ledger — see the ledger-cost section above and `PERF-2`.
+
+## `lore absorb` never proposes an UPDATE — do not read `action` as truth (run 14c, 2026-10-20, HEAD `29bdbef`)
+
+Before you use an absorb proposal as a review artifact, know what it is.
+
+`lore absorb --window <dur>` and `lore absorb --class <id> --lesson <text>` both return the shape
+`{class_id, action, added, removed, changed, lesson, note, provenance, sweep}`. In the shipped code **`action` is
+always `"new"`, `removed` and `changed` are always `{}`, and `added` is byte-identical to
+`lore show <class> --format json`** — i.e. the proposal is a re-presentation of the runbook the class already has,
+not a delta:
+
+- `lore/absorb.py:175` calls `propose(class_id)` with **no** `existing` argument, and `grep -rn 'existing=' lore/*.py`
+  is empty — `propose()` is the *only* production caller and the diff branch (`lore/compiler.py:1003`,
+  `"action": "new" if existing is None else "update"`) is therefore unreachable from the CLI. The update branch is
+  implemented and unit-tested (`tests/test_compiler.py:182/200/213`), just never wired.
+- `propose()`'s fresh side is `compile_class(class_id)` (`lore/compiler.py:1000`) — registry-derived. The swept
+  trail's blocks do **not** enter the proposed body; they survive only under `sweep.evidence` (all blocks are kept
+  there, one entry each). So "the proposal shows what the incident changed" is false today.
+- `--help` calls this a "runbook-**update** PROPOSAL" and `--class` "existing registry class to propose an update
+  for". Both are aspirational: filed as `LORE-069`.
+
+What IS reliable, and why the surface is still worth using: the trail is parsed and classified honestly (a six-block
+trail landed on the right classes; `unclassified` is reported rather than dropped), the provenance flags
+`--ns/--board/--source` are recorded verbatim, an empty trail is an explicit empty result at rc 0, an unparseable
+one is a teaching error at rc 2, and **propose-not-write holds** — `absorb` writes nothing, ever. Use it to
+*classify a window and get the class's current runbook attached*, not as evidence that the runbook is up to date.
+`dead ends marked dead` (PRD US-2) has no implementation at all — the phrase occurs only in `docs/PRD.md:26`.
+
+Cost if you are gating on it: `absorb` runs at the interpreter floor (49.7 ms ± 1.9 warm with a six-block trail,
+0.08 s cold) — safe to call per incident.

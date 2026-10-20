@@ -645,3 +645,53 @@ pre-existing repair as its own row (`LORE-068`) instead of leaving the next lane
   row for the incident input carries an explicit warning that fixing it must not deepen that loop.
 - Nothing was re-driven that run 14 drove; its staged probe scripts under `docs/qa/evidence/run14/` were left
   staged and uncommitted, and every commit here is path-limited.
+
+## Run 14c (2026-10-20, HEAD `29bdbef`) — the scribe is wired to "new", never to "update"
+
+Third angle of the same tick (run 14: ledger cost + install-as-written; run 14b: the audit matrix has no incident
+input). This one drove **PRD US-2**, the post-incident scribe, as a user story — and found the same *shape* of
+defect as `LORE-064`, on the other half of the product: a mechanism that exists, is tested, and is unreachable from
+the surface the docs describe.
+
+### The mechanism is real, the wiring is absent
+
+`lore/compiler.py:993` implements a genuine runbook **diff** — `action: "new" if existing is None else "update"`,
+plus `changed`/`removed` computed by comparing signature, checks-by-order, ladder, guardrails and evidence trail.
+Its unit tests exercise the update branch (`tests/test_compiler.py:182/200/213` pass an `existing` runbook).
+
+In production, nothing ever passes one. `grep -rn 'propose(' lore/*.py` returns a single call site —
+`lore/absorb.py:175`, `payload = propose(class_id)` — and `grep -rn 'existing=' lore/*.py` returns nothing at all.
+Both user surfaces go through that call: the `--window` sweep via `absorb_sweep` (`lore/absorb.py:214`) →
+`absorb_proposal` (`:162`), and the single `--class/--lesson` path directly. So the answer to "can `lore absorb`
+produce an update?" is no, and the answer is one argument long.
+
+The observed consequences, which is how this was caught rather than inferred: every proposal from a real six-block
+trail carries `action: "new"`, `removed: {}`, `changed: {}`, and an `added` body equal to
+`lore show <class> --format json` (verified with `jq -s`, `true`) — for `gateway-drain-window`, a curated class with
+seven checks. The CLI's own help calls the subcommand a "runbook-**update** PROPOSAL" and `--class` "existing
+registry class to propose an update **for**"; both sentences describe a capability the call graph cannot reach.
+
+### The second half is the trap for the fixer
+
+`propose()` builds its fresh side with `fresh = compile_class(class_id)` (`lore/compiler.py:1000`) — from the curated
+registry only. The swept trail is parsed, classified and preserved (as `sweep.evidence`, one entry per block), but it
+never touches the runbook being compared. So an "obvious" fix — pass `existing=compile_class(class_id)` — would flip
+the label to `update` and ship an **empty diff forever**, which is worse than today's honest `new` because it claims
+an update that contains nothing. The row states both halves and requires the fixer to say which one they did; the
+general lesson is the one worth keeping: *when a mechanism is unwired, check whether its INPUTS reach the comparison
+before endorsing the reconnection.*
+
+### What the run measured, and why it filed no PERF row
+
+`absorb --window` warm 49.7 ms ± 1.9 (hyperfine, 12 runs), with the six-block trail; the single-proposal path
+46.7 ms ± 4.2; cold 0.08 / 0.07 s. Both sit at the interpreter-startup floor (~45 ms), so the trail work is ~4 ms.
+There is no number here a user could feel, and saying so is the correct result — the scaling defect in this product
+is the *audit* path's (`PERF-2`), filed by run 14 in this same tick, and re-filing a perf row for a floor-bound
+command would devalue it.
+
+### Method note for the next scribe-shaped target
+
+The whole finding came from driving the documented example verbatim and then asking one question of the payload: not
+"did it run" (it did, rc=0, three well-classified proposals) but "**does this object contain what its own promise
+says it contains**" — an update for a class that has a runbook, evidence from the window, dead ends marked. Reading
+the payload against the promise is what surfaced a two-line call-graph gap that every green run had been hiding.

@@ -1,0 +1,37 @@
+# run 14c — is an absorb proposal ever an UPDATE? (HEAD 29bdbef)
+
+## 1. every production call site of propose()
+lore/absorb.py:175:        payload = propose(class_id)
+lore/absorb.py:232:    (``propose()`` payload + ``lesson``), plus sweep provenance. It never
+lore/compiler.py:993:def propose(class_id: str, existing: Runbook | None = None) -> dict:
+
+## 2. any production caller passing existing=? (empty = no)
+(no output above)
+
+## 3. tests that DO pass existing (engine implemented + tested)
+tests/test_absorb.py:181:    # propose() semantics: a full new-runbook proposal when no existing runbook.
+tests/test_compiler.py:160:    propose("gateway-drain-window", None)
+tests/test_compiler.py:174:    proposal = propose("gateway-drain-window", None)
+tests/test_compiler.py:182:    proposal = propose("gateway-drain-window", rb)
+tests/test_compiler.py:200:    proposal = propose("gateway-drain-window", mutated)
+tests/test_compiler.py:213:    proposal = propose("shared-checkout-collision", fewer)
+
+## 4. observed: SWEEP path (real 6-block trail, 3 classes)
+{"class_id":"gateway-drain-window","action":"new","removed":{},"changed":{},"added_checks":7}
+{"class_id":"unclassified","action":"new","removed":{},"changed":{},"added_checks":0}
+{"class_id":"gateway-guard-violation","action":"new","removed":{},"changed":{},"added_checks":2}
+
+## 5. observed: SINGLE path (absorb --class gateway-drain-window --lesson ...)
+{"class_id":"gateway-drain-window","action":"new","removed":{},"changed":{},"added_name":"Gateway drain window","keys":"action,added,changed,class_id,lesson,note,removed,source"}
+
+## 6. is the proposal body identical to the EXISTING compiled runbook?
+added == lore show <class> --format json : true
+
+## 7. what the CLI advertises
+usage: lore absorb [-h] [--class CLASS_ID] [--lesson LESSON] [--window WINDOW]
+                   [--trail-file TRAIL_FILE] [--ns NS] [--board BOARD]
+                   [--source SOURCE]
+
+
+## 8. PRD US-2 vs the code: 'dead ends marked dead'
+docs/PRD.md:26:**US-2 (post-incident scribe):** As the agent that just closed an incident, I run `lore absorb --window 2h --ns coding-hermes` and it drafts the runbook update from what actually happened — evidence blocks, working commands, dead ends marked dead — filed as a *proposal* the operator approves.
