@@ -137,7 +137,15 @@ with `git commit --no-verify` and verify the row content at HEAD afterward; neve
 code changes"), both commits were re-run with `--no-verify` and then verified by content at `HEAD`.
 
 **Not done, deliberately:** the three files were not reformatted, unstaged, or committed. They are another lane's
-in-flight work; touching them would publish that lane's unverified edits under this run's message. The consequence
-is worth flagging to the owning lane: **the shared checkout's guard-lint lane is currently red for every lane**, so
-run 14's own commit would fail the same way until those three files are formatted or removed.
+in-flight work; touching them would publish that lane's unverified edits under this run's message.
+
+**Resolution (observed at close-out, same tick):** the sibling run-14 lane itself landed them at **`b1832c1`**
+("docs(lore-dogfood): commit run 14's repro scripts beside their evidence", 03:27:20 local — about a minute after
+this run's commits) and at HEAD they are clean: `ruff format --check` reports `3 files already formatted` and the
+whole tree reports `204 files already formatted`. The guard-lint red condition described above therefore lasted
+only across this run's two commit attempts and was resolved by the owning lane, not by this one. The bypass
+decision stands on its own reasoning (bookkeeping-only diff, foreign files), and both commits are CI-green:
+GitHub Actions `CI` = **success** for `6afa90a` (via `0cd103f`'s run) and `0cd103f`, run ids 39393446080 /
+39393534984.
+
 
