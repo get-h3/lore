@@ -1,0 +1,15 @@
+{
+  "tick_id": "lore-foreman-2026-10-20-20-29-48",
+  "project": "lore",
+  "budget": 8,
+  "mode": "serial-fallback",
+  "tasks": [
+    {
+      "id": "LORE-057",
+      "worktree": "/home/kara/worktrees/lore-LORE-057",
+      "branch": "wt/LORE-057",
+      "base_sha": "3d38f02",
+      "step": 1
+    }
+  ]
+}
