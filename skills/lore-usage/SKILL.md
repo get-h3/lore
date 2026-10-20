@@ -120,7 +120,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
 ## Dev loop
 
 ```sh
-uv run pytest -q    # expect: 510 passed (count synced to scripts/test-count.txt, LORE-029)
+uv run pytest -q    # expect: 523 passed (count synced to scripts/test-count.txt, LORE-029)
 uv run ruff check . # expect: All checks passed!
 ```
 
@@ -227,5 +227,40 @@ Fresh-machine install envelope (hand leg, bunker-mvp agent 26678b35, destroyed):
 clone -> uv tarball bootstrap -> `uv venv`+`uv pip install -e ".[dev]"` -> first match:
 all rc=0; in-box seconds after uv lands (uv tarball download ~2m dominates first touch).
 Bare fresh box + first `validate --execute` creates `.lore/validate-history.jsonl`
-14/14 rows honestly (env-absent on a tool-less box, honesty_label preserved) — the
-per-CWD history is correct on a machine that never ran lore before (LORE-045 hold).
+14/14 rows honestly (env-absent on a tool-less box, honesty_label preserved) —
+the per-CWD history is correct on a machine that never ran lore before (LORE-045 hold).
+
+## The validate-history ledger is a COST, not just a cache (run 14, 2026-10-20, HEAD a6984b4)
+
+`.lore/validate-history.jsonl` is written by every `validate --execute` (one
+record per registry entry, 14 per run) and read by `consult`, `compile` and
+`audit`. Three things to know before touching or trusting it:
+
+- **`audit` reads it once PER CLASS.** `_audit_rows` (`lore/__main__.py:560`)
+  loops the registry and calls `last_local_validation` (`lore/validate.py:1194`)
+  per class; that function `readlines()`s the WHOLE file and `json.loads` every
+  line. So audit's cost is `classes x rows`: measured on this repo's own ledger
+  (3,161 rows / 878 KB / ~176 rows/day) audit is **144 ms**, **1.06 s** at
+  31,610 rows and **9.56 s** at 316,100 — linear, unbounded, no rotation knob
+  exists. `consult`/`compile` call it once and stay ~55 ms. Board row: PERF-2.
+  - Before optimizing it: the semantics are **newest record wins by FILE
+    ORDER** (last matching line), NOT `max(timestamp)`. Probing that is 4
+    commands — clean-then-drifted ⇒ `stale`, drifted-then-clean ⇒ `proposal`.
+- **A ledger record is not attestation.** It never sets `last_validated`
+  (`show`/`audit` still print `no data`); only `consult` surfaces it, labelled
+  "local history, not operator attestation". The ledger is per CWD, so a fresh
+  clone starts empty and every class honestly reads `proposal`.
+- **The `unclassified` bucket gets a record too.** It has zero checks
+  (`audit` marks it `"bucket": true`), so its row is `total_checks: 0` /
+  `outcomes: []` while the label still says "commands parse and answer on the
+  live system" — 225 of this repo's 3,161 rows are that record. Board row:
+  LORE-066.
+
+## The count-sync guard has a self-reference blind spot (run 14)
+
+`scripts/count_sweep.py:102-103` exempts an entire LINE from the test-count
+family as soon as it contains `scripts/test-count.txt`. The dev-loop line above
+both quotes that file AND asserts a number — so it is the one line the guard
+cannot check, and it has now gone stale twice (463 → 510 → 523). Verify by
+hand whenever you touch that line: `pytest -q` vs `cat scripts/test-count.txt`
+vs the literal. Board row: LORE-063-R2 (recurrence of LORE-063).

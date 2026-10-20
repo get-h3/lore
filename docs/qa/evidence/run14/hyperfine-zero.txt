@@ -1,0 +1,11 @@
+Benchmark 1: /home/kara/get-h3/lore/.venv/bin/python -m lore audit
+  Time (mean ± σ):      47.6 ms ±   3.7 ms    [User: 38.0 ms, System: 9.5 ms]
+  Range (min … max):    42.6 ms …  56.4 ms    12 runs
+ 
+Benchmark 2: /home/kara/get-h3/lore/.venv/bin/python -m lore consult "gateway drain 503" >/dev/null
+  Time (mean ± σ):      51.0 ms ±   2.0 ms    [User: 42.5 ms, System: 8.6 ms]
+  Range (min … max):    47.9 ms …  54.5 ms    12 runs
+ 
+Summary
+  /home/kara/get-h3/lore/.venv/bin/python -m lore audit ran
+    1.07 ± 0.09 times faster than /home/kara/get-h3/lore/.venv/bin/python -m lore consult "gateway drain 503" >/dev/null

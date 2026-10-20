@@ -1,0 +1,58 @@
+[08:09:38] === stage 2 (retry): uv via INSTALL.md's documented instruction
+[08:09:38] INSTALL.md:20 says: curl -LsSf https://astral.sh/uv/install.sh | sh
+[08:09:39] uv_curl_installer_rc=0
+To add $HOME/.local/bin to your PATH, either restart your shell or run:
+
+    source $HOME/.local/bin/env (sh, bash, zsh)
+    source $HOME/.local/bin/env.fish (fish)
+[08:09:39] uv resolved on PATH: /home/bunker-lore-df14/.local/bin/uv -> uv 0.13.3 (x86_64-unknown-linux-gnu)
+[08:09:39] === stage 3: the documented install — uv sync --extra dev (from the HOME clone part 1 landed)
+a6984b4 board: close SUP-DEPS-20261013-LORE (dep bumps landed, gates green, judge PASS).
+[08:09:40] sync_rc=0
+ + ruff==0.17.1
+ + sortedcontainers==2.4.0
+ + tomli==2.5.0
+ + tomli-w==1.2.0
+ + typing-extensions==4.16.0
+ + urllib3==2.8.0
+[08:09:41] === stage 4: real use — the README quickstart commands, verbatim
+gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain
+[08:09:41] match_rc=0
+secret-env-clobber	confidence=0.90	evidence: signature:.env clobber; keyword:.env; keyword:clobber
+[08:09:41] match2_rc=0
+unclassified	confidence=0.00	evidence: none
+[08:09:41] match3_rc=0
+runbook: gateway-drain-window (Gateway drain window) status=proposal last_validated=never checks=7
+[08:09:41] consult_rc=0
+[08:09:41] audit_rc=0
+
+summary: 14 classes; 1 with zero real commands; last_validated is never auto-populated in v0.1 (operator attestation is planned, not implemented — a lint run is not attestation); today's freshness signal is the lint itself — the stale flag and its drift reason — and the field honestly reports 'no data' until a human attests. Stale comes from the local validate history (not attestation).
+[08:09:41] === stage 4b: the ledger write path on a fresh box
+[08:09:41] validate_execute_rc=0
+      6
+    ],
+    "stale_reason": null
+  }
+]
+[08:09:41] ledger after first execute: 1 rows
+[08:09:41] === stage 5: delta — the LORE-064 wiring (audit reads the persisted ledger)
+[08:09:41] delta_audit_rc=0
+DELTA gateway-drain-window status=stale bucket=None reason='lint drift: check 2 (error)'
+DELTA shared-checkout-collision status=proposal bucket=None reason=None
+DELTA unclassified status=proposal bucket=True reason=None
+DELTA summary stale_classes= 1
+[08:09:41] delta_summary_rc=0
+[08:09:42] === stage 6: the ledger's own cost on this box
+real 0.09
+user 0.07
+sys 0.01
+[08:09:42] === stamp table
+t0 1792483778
+t1 1792483779
+t2 1792483780
+t3 1792483781
+t4 1792483781
+t5 1792483782
+t6 1792483782
+total_seconds 4
+[08:09:42] LEG2 COMPLETE

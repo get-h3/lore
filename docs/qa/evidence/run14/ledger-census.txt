@@ -1,0 +1,5 @@
+ledger=3161 rows, bytes=878746
+first=2026-10-01T19:24:11+00:00 last=2026-10-20T01:48:39+00:00
+days=18 rows_per_day=175.6
+unclassified_rows=225
+zero_check_rows=1735

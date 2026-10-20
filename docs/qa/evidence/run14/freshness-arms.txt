@@ -1,0 +1,5 @@
+# audit freshness arms (scratch ledgers, LORE-064 wiring, HEAD a6984b4)
+A-no-ledger              rc=0 status=proposal  stale_reason=None
+B-drifted                rc=0 status=stale     stale_reason='lint drift: check 2 (error)'
+C-clean-then-drifted     rc=0 status=stale     stale_reason='lint drift: check 2 (error)'
+D-drifted-then-clean     rc=0 status=proposal  stale_reason=None

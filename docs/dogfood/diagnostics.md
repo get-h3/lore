@@ -502,3 +502,76 @@ siblings, not just parse them. The `validate --execute` signal is honest — it 
 (LORE-061), and the fleet's runbooks embed contracts that drift with sibling tools
 (LORE-060). Neither is a fixture problem. Both are the product's real subject matter:
 a runbook that doesn't run is worse than no runbook, and lore now proves it twice.
+
+---
+
+## Run 14 (2026-10-20, HEAD `a6984b4`) — the ledger stops being free, and what a "fresh box" actually proves
+
+Run 14 is the first perf-shaped dogfood pass since PERF-1, and it found the
+product's first *scaling* cost. Two mechanics are worth keeping.
+
+### The cost is a loop shape, not a slow function
+
+Everything lore ships reads the same local file: `.lore/validate-history.jsonl`,
+one JSONL record per class per `validate --execute` run (written by
+`persist_validate_history`, `lore/validate.py:1147`; read by
+`last_local_validation`, `lore/validate.py:1194`). The reader is written the
+honest, simple way — open the file, `readlines()`, `json.loads` every non-blank
+line, keep the last record for the requested `class_id`. On its own that is
+fine: `consult` and `compile` call it **once**.
+
+`lore audit` calls it **once per registry class** (`lore/__main__.py:604`,
+inside the `_audit_rows` loop at `__main__.py:560`). So audit's cost is
+`classes x ledger_rows`, and the ledger grows by 14 rows per lint run — the
+fleet's own battery writes ~176 rows/day on this box. The profile is
+unambiguous: 14 `readlines()` calls and 44,254 `json.loads` for a 3,161-row
+ledger; 442,540 for 31,610 rows, with `last_local_validation` at 1.974 s
+cumulative of a 1.998 s audit. Measured wall time tracks the row count almost
+exactly: 144 ms → 1.056 s → 9.564 s at 3,161 → 31,610 → 316,100 rows.
+
+The lesson for a future fixer, and the reason the row carries acceptance
+criteria: **the read path's semantics are "newest record wins by FILE ORDER"**,
+not `max(timestamp)` — the scan keeps the last matching line. The 4-arm probe
+(`docs/qa/evidence/run14/freshness-arms.txt`) pins it: clean-then-drifted ⇒
+stale, drifted-then-clean ⇒ proposal. An obvious "optimization" to a
+timestamp comparison (or to `dict`-insertion with `max()`) would silently
+change which record decides freshness.
+
+### A "fresh agent" is fresh in exactly one dimension
+
+The install leg drove the documented quickstart on a deleted-on-teardown
+bunker agent, with three findings about reading such a box honestly:
+
+- **Preserved mtimes are not provenance.** `~/.local/bin/uv` on the agent
+  carried mtime `01:01` while the agent itself was born at `08:07` — the
+  release archive's own timestamp, preserved through extraction. Reading the
+  file mtime alone suggests "uv was pre-installed hours ago"; reading the
+  *directory* mtime (`08:09:39`, my installer run) plus the leg's own census
+  (`command -v uv` ⇒ ABSENT before it) settles it correctly: uv arrived during
+  this leg, from the documented installer.
+- **A hard-coded third-party version in a leg script is a leg artifact, not a
+  product finding.** The first leg failed at `curl` with a 404 because the
+  script pinned a uv release tag that does not exist; every later stage
+  cascaded to rc=127 (`uv: command not found`). The correct framing — kept in
+  the run's evidence rather than buried — is that the *product's* documented
+  path (installer, then `uv sync --extra dev`) was then driven as written and
+  passed, in ~4 s of box time.
+- **A documented installer can be complete and still surprise a
+  non-interactive shell.** `curl -LsSf https://astral.sh/uv/install.sh | sh`
+  exits 0 and appends a PATH line to `~/.bashrc`/`~/.profile`; a login shell
+  finds `uv`, a bare `ssh host 'cmd'` shell does not. Not a lore defect (and
+  INSTALL.md points at the installer, whose own output names the PATH step) —
+  but it is why a leg script must run its own census rather than assume the
+  documented command's preconditions.
+
+### What changed in the delta since run 13 — and what that says about the board
+
+Three of the four commits landed since run 13 (`c1ac048` bucket marker,
+`c63b82d`+`c9a0eb4` freshness wiring, `f50478b`/`deb398a` absorb error text)
+are visible to a user in this run's transcript, and the fourth (`cfc8f9c`, dep
+bump) is visible in the fresh box's `uv sync` output (ruff 0.17.1). The fixes
+that runs 1-13 filed are being worked and are holding their contracts. The
+board's own `boardctl validate` is red (3 errors, 42 warnings) from *older*
+rows — two carry the out-of-vocabulary status `closed`, one events id descends
+— which no lane has owned yet; run 14 left that alone and added nothing to the
+count.

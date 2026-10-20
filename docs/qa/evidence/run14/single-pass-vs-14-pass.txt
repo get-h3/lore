@@ -1,0 +1,11 @@
+Benchmark 1: /home/kara/get-h3/lore/.venv/bin/python passbench.py x1/.lore/validate-history.jsonl 14x
+  Time (mean ± σ):     145.3 ms ±  28.1 ms    [User: 132.1 ms, System: 11.8 ms]
+  Range (min … max):   121.4 ms … 217.7 ms    10 runs
+ 
+Benchmark 2: /home/kara/get-h3/lore/.venv/bin/python passbench.py x1/.lore/validate-history.jsonl 1x
+  Time (mean ± σ):      38.0 ms ±   3.5 ms    [User: 30.2 ms, System: 7.5 ms]
+  Range (min … max):    33.8 ms …  44.7 ms    10 runs
+ 
+Summary
+  /home/kara/get-h3/lore/.venv/bin/python passbench.py x1/.lore/validate-history.jsonl 1x ran
+    3.82 ± 0.82 times faster than /home/kara/get-h3/lore/.venv/bin/python passbench.py x1/.lore/validate-history.jsonl 14x

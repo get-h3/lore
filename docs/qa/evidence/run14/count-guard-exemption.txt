@@ -1,0 +1,11 @@
+# count-sweep exemption, live at HEAD a6984b4 (repro of LORE-063-R2)
+$ .venv/bin/python -m pytest -q | tail -1
+523 passed in 3.28s
+$ cat scripts/test-count.txt
+523$ grep -n 'expect:' skills/lore-usage/SKILL.md
+123:uv run pytest -q    # expect: 510 passed (count synced to scripts/test-count.txt, LORE-029)
+124:uv run ruff check . # expect: All checks passed!
+$ .venv/bin/python scripts/count_sweep.py 523 .   # guard output:
+count_sweep_rc=0
+# SELF_REFERENCE exemption is at scripts/count_sweep.py:102-103; file untouched since:
+3f435ed 2026-09-26 fix: guard class-count literals. Addresses LORE-036.

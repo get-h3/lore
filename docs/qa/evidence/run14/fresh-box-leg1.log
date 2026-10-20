@@ -1,0 +1,83 @@
+[08:08:35] === stage 0: boot census
+tool git      /usr/bin/git
+tool uv       ABSENT
+tool python3  /usr/bin/python3
+tool curl     /usr/bin/curl
+tool tar      /usr/bin/tar
+Python 3.12.3
+x86_64
+[08:08:35] === stage 1: documented quickstart clone (anonymous)
+[08:08:36] clone_rc=0
+a6984b4 board: close SUP-DEPS-20261013-LORE (dep bumps landed, gates green, judge PASS).
+[08:08:36] === stage 2: uv provisioning
+[08:08:36] bootstrapping uv from https://github.com/astral-sh/uv/releases/download/0.36.0/uv-x86_64-unknown-linux-gnu.tar.gz
+curl: (22) The requested URL returned error: 404
+[08:08:36] uv_download_rc=22
+tar (child): /home/bunker-lore-df14/.uv-dl/uv.tar.gz: Cannot open: No such file or directory
+tar (child): Error is not recoverable: exiting now
+tar: Child returned status 2
+tar: Error is not recoverable: exiting now
+[08:08:36] uv_untar_rc=2
+[08:08:36] uv_install_rc=0
+/home/bunker-lore-df14/leg.sh: line 40: uv: command not found
+[08:08:36] uv_version_rc=127
+[08:08:37] === stage 3: documented install (uv sync --extra dev)
+[08:08:37] sync_rc=127
+/home/bunker-lore-df14/leg.sh: line 46: uv: command not found
+[08:08:37] === stage 4: real use — documented commands
+/home/bunker-lore-df14/leg.sh: line 51: /home/bunker-lore-df14/lore/.venv/bin/python: No such file or directory
+[08:08:37] match_rc=127
+/home/bunker-lore-df14/leg.sh: line 52: /home/bunker-lore-df14/lore/.venv/bin/python: No such file or directory
+[08:08:37] match2_rc=127
+/home/bunker-lore-df14/leg.sh: line 53: /home/bunker-lore-df14/lore/.venv/bin/python: No such file or directory
+[08:08:37] match3_rc=127
+/home/bunker-lore-df14/leg.sh: line 54: /home/bunker-lore-df14/lore/.venv/bin/python: No such file or directory
+[08:08:37] consult_rc=0
+/home/bunker-lore-df14/leg.sh: line 55: /home/bunker-lore-df14/lore/.venv/bin/python: No such file or directory
+[08:08:37] audit_rc=127
+/home/bunker-lore-df14/leg.sh: line 56: /home/bunker-lore-df14/lore/.venv/bin/python: No such file or directory
+[08:08:37] === stage 4b: consumes the ledger (validate --execute writes .lore/validate-history.jsonl)
+[08:08:37] validate_execute_rc=127
+/home/bunker-lore-df14/leg.sh: line 60: /home/bunker-lore-df14/lore/.venv/bin/python: No such file or directory
+wc: /home/bunker-lore-df14/lore/.lore/validate-history.jsonl: No such file or directory
+[08:08:37] === stage 5: LORE-064 delta — audit must flip stale from a persisted drifted record
+/home/bunker-lore-df14/leg.sh: line 73: /home/bunker-lore-df14/lore/.venv/bin/python: No such file or directory
+[08:08:37] delta_audit_rc=127
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+[08:08:37] === stage 6: the ledger's own cost on a fresh box (cold == warm here)
+/usr/bin/time: cannot run /home/bunker-lore-df14/lore/.venv/bin/python: No such file or directory
+real 0.00
+user 0.00
+sys 0.00
+[08:08:37] === stage 7: INSTALL.md's uv instruction, verbatim
+11:- [uv](https://docs.astral.sh/uv/) is recommended (it provisions the virtualenv
+15:### Installing uv
+17:Obtaining uv on a normal surface is the official curl-to-shell installer:
+20:curl -LsSf https://astral.sh/uv/install.sh | sh
+28:the uv binary manually: download the standalone release for your platform from
+29:the [releases page](https://github.com/astral-sh/uv/releases/latest), put it
+[08:08:37] === stage 8: stamp table
+t0 1792483715
+t1 1792483716
+t2 1792483717
+t3 1792483717
+t4 1792483717
+t5 1792483717
+t6 1792483717
+t7 1792483717
+t8 1792483717
+total_seconds 2
+[08:08:37] LEG COMPLETE

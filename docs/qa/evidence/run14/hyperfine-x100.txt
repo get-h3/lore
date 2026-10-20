@@ -1,0 +1,4 @@
+Benchmark 1: /home/kara/get-h3/lore/.venv/bin/python -m lore audit
+  Time (mean ± σ):      9.564 s ±  0.388 s    [User: 8.730 s, System: 0.818 s]
+  Range (min … max):    9.223 s …  9.986 s    3 runs
+ 

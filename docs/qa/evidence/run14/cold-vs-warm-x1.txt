@@ -1,0 +1,25 @@
+# cold (drop_caches) vs warm runs of the audit ledger read, ledger = 3161 rows / 997079 bytes
+--- cold run 1
+real 0.23
+user 0.14
+sys 0.01
+--- cold run 2
+real 0.24
+user 0.13
+sys 0.01
+--- warm run
+real 0.13
+user 0.12
+sys 0.00
+--- cold consult
+real 0.15
+user 0.05
+sys 0.01
+--- warm consult
+real 0.05
+user 0.04
+sys 0.00
+--- control: cold cat of the ledger
+real 0.03
+user 0.00
+sys 0.00
