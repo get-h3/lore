@@ -695,3 +695,45 @@ The whole finding came from driving the documented example verbatim and then ask
 "did it run" (it did, rc=0, three well-classified proposals) but "**does this object contain what its own promise
 says it contains**" — an update for a class that has a runbook, evidence from the window, dead ends marked. Reading
 the payload against the promise is what surfaced a two-line call-graph gap that every green run had been hiding.
+
+## Run 14d (2026-10-20, HEAD `b29cbf5`) — the documented responder example, and what "unclassified" costs at 3 a.m.
+
+Fourth angle of the same tick (14: ledger cost + install; 14b: audit coverage; 14c: US-2 scribe). This one drove
+**US-1**, the incident responder, with the story's own words — and found the defect in the *example*, not in the
+engine.
+
+### The mechanism is honest; the example is not
+
+`lore match "spawn 503"` — the literal command in `docs/PRD.md:24` — returns `unclassified 0.00`. So does the story's
+quoted symptom ("scheduler spawns 503-ing at spawn time"). The cause is the classifier's contract, not a bug:
+`gateway-drain-window` is accepted on the signature `drain 503`, and the invented symptom shares exactly one token
+with it while lending `spawn` to `spawn-hot-loop`, so the two classes tie at 0.17/0.17 — far below the 0.6 long-text
+gate and the 0.3 short-text gate (`lore/classifier.py:34-59`). The interesting part for a future author of examples:
+the tool's own `--explain` route names `gateway-drain-window` as the top near-miss, so the *engine* is pointing at
+the right answer while the *documented invocation* prints only `unclassified`.
+
+### Two lessons worth keeping
+
+- **An honest negative is still the wrong answer when the docs chose the example.** The README teaches that
+  `unclassified` means "the fleet has never seen this", and here that reading is false — the fleet has a 7-check
+  runbook for the class the user is standing in. When the product's answer is deliberately absence-as-an-answer,
+  the examples are part of the contract and deserve the same verification as the code path.
+- **Check every ENTRY FORM for the same input.** The same symptom text that yields "no matching runbook" through
+  `lore consult "spawn 503"` resolves the class through `lore consult --failure "spawn 503 while restarting"`. A
+  responder's 3 a.m. experience therefore depends on which verb form they happened to type, and nothing in the
+  example, the README bullet or the help text says which one to use mid-fire. When a surface has several entry
+  points for one question, drive the input through ALL of them — the divergence is the finding even when one path
+  is perfect.
+
+### What was verified and left alone
+
+The README's five documented example strings all reproduce byte-exactly (including the deliberate
+`unclassified`), and US-1's other clause — "checks in order" — holds for all 14 registry rows (contiguous from 1,
+ascending, and identical between `compile` and `show`). Classifier recall on paraphrases is a CLOSED family
+(LORE-016 / LORE-023 / REVIEW-LORE-002 / LORE-043), so `LORE-070` is scoped to the documentation with the family
+explicitly named as out of scope — filed as a doc row at P4 under Bane's doc-severity ruling.
+
+### Measured, and deliberately not filed as perf
+
+`match` 56.2 ms ± 4.1 warm (12 runs), `match --explain` 49.9 ms ± 3.5, cold 0.09/0.10 s — the interpreter floor, with
+classification under a millisecond. There is nothing here to optimize and no user wait to report.

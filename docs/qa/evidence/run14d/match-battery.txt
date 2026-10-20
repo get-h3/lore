@@ -1,0 +1,25 @@
+== documented example strings (README / INSTALL) ==
+README:43 drain 503                            -> gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain
+README:55 secret .env clobber                  -> secret-env-clobber	confidence=0.90	evidence: signature:.env clobber; keyword:.env; keyword:clobber
+README:65 coffee machine                       -> unclassified	confidence=0.00	evidence: none
+README:83 gateway drain 503                    -> gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain; keyword:gateway
+README:151 key rotation expired                -> key-rotation-expiry	confidence=0.90	evidence: signature:rotation expired; keyword:expired; keyword:rotation
+
+== PRD US-1: the story's own sentence and its literal command ==
+PRD:24 literal `match "spawn 503"`             -> unclassified	confidence=0.00	evidence: none
+PRD:24 sentence (mid-fire phrasing)            -> unclassified	confidence=0.00	evidence: none
+PRD:24 paraphrase w/ cause                     -> gateway-drain-window	confidence=0.33	evidence: keyword:503; keyword:gateway; keyword:restart
+
+== PRD problem-section symptom strings (the narrative the tool must cover) ==
+PRD:16 drain 503s kill ticks                   -> gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain
+PRD:17 cooldown authority drift                -> cooldown-pin-drift	confidence=0.90	evidence: signature:cooldown authority drift; keyword:cooldown; keyword:fleet.toml; keyword:drift
+PRD:18 .env/.env.example clobber               -> secret-env-clobber	confidence=0.90	evidence: signature:.env clobber; keyword:.env; keyword:clobber
+PRD:34 disk-pressure corruption                -> unclassified	confidence=0.00	evidence: none
+PRD:34 shared-checkout collision               -> unclassified	confidence=0.00	evidence: none
+PRD:34 guard degradation                       -> gateway-guard-violation	confidence=0.90	evidence: signature:guard FAILED: secrets detected; keyword:guard; keyword:guard failed; keyword:secrets detected
+PRD:34 ingest backfill gap                     -> ingest-backfill-gap	confidence=0.90	evidence: signature:ingest backfill gap: rows missing; keyword:backfill; keyword:gap; keyword:ingest
+PRD:34 spawn hot loop                          -> spawn-hot-loop	confidence=0.33	evidence: keyword:spawn; keyword:hot loop; keyword:respawn
+PRD:34 worktree reap data loss                 -> unclassified	confidence=0.00	evidence: none
+PRD:34 docs count drift                        -> unclassified	confidence=0.00	evidence: none
+PRD:34 gateway guard violation                 -> gateway-guard-violation	confidence=0.90	evidence: signature:gateway guard; keyword:gateway guard; keyword:banned command; keyword:guard; keyword:banned
+PRD:34 fast-forward push reject                -> fast-forward-push-reject	confidence=0.90	evidence: signature:non-fast-forward; keyword:non-fast-forward; keyword:push rejected

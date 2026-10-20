@@ -1,0 +1,17 @@
+classes: 14
+gateway-drain-window       checks=7  orders=[1, 2, 3, 4, 5, 6, 7] OK
+shared-checkout-collision  checks=3  orders=[1, 2, 3]        OK
+secret-env-clobber         checks=2  orders=[1, 2]           OK
+disk-pressure-corruption   checks=3  orders=[1, 2, 3]        OK
+cooldown-pin-drift         checks=3  orders=[1, 2, 3]        OK
+key-rotation-expiry        checks=2  orders=[1, 2]           OK
+guard-degradation          checks=2  orders=[1, 2]           OK
+spawn-hot-loop             checks=3  orders=[1, 2, 3]        OK
+ingest-backfill-gap        checks=2  orders=[1, 2]           OK
+gateway-guard-violation    checks=2  orders=[1, 2]           OK
+docs-count-drift           checks=2  orders=[1, 2]           OK
+worktree-reap-data-loss    checks=2  orders=[1, 2]           OK
+fast-forward-push-reject   checks=2  orders=[1, 2]           OK
+unclassified               checks=0  orders=[]               OK
+
+PROBLEMS: 0

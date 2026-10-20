@@ -1,0 +1,10 @@
+# run 14d — warm/cold for the responder's headline operation
+
+$ hyperfine --warmup 3 --runs 12 'python -m lore match "drain 503"'
+  56.2 ms +- 4.1 ms  [User: 46.8, System: 9.3]  (range 51.0-62.6)
+$ hyperfine --warmup 3 --runs 12 'python -m lore match "spawn 503" --explain'
+  49.9 ms +- 3.5 ms  [User: 41.0, System: 8.8]  (range 46.1-59.6)
+$ (sync + drop_caches; /usr/bin/time -p) python -m lore match "drain 503"
+  real 0.09 / 0.10 s  (user 0.06/0.05, sys 0.01)
+## reading: both at the interpreter-startup floor (~45 ms); classification itself is <1 ms.
+## NOTHING HERE IS SLOW ENOUGH TO FILE A PERF ROW.

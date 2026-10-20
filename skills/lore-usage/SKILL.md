@@ -324,3 +324,32 @@ one is a teaching error at rc 2, and **propose-not-write holds** — `absorb` wr
 
 Cost if you are gating on it: `absorb` runs at the interpreter floor (49.7 ms ± 1.9 warm with a six-block trail,
 0.08 s cold) — safe to call per incident.
+
+## The responder entry point: `match` and `consult` do not have the same recall (run 14d, 2026-10-20, HEAD `b29cbf5`)
+
+When you are mid-incident and pasting a symptom, the verb form you choose changes the answer.
+
+- `lore match "<symptom>"` — label + confidence; `--explain` adds the top near-misses with their raw scores. A
+  below-threshold answer is `unclassified confidence=0.00` with `evidence: none`, rc=0. That is honest
+  absence-as-an-answer, **not** an error: check the near-miss block before concluding "the fleet has never seen
+  this" — the top near-miss is often the class you want.
+- `lore consult "<symptom>"` — tick-start form; prints `no matching runbook` (rc=0) when the text does not clear
+  the gate. Same recall as `match`.
+- **`lore consult --failure "<the line you just saw>"` has strictly better recall than the positional form** and is
+  the form to use for a raw failure line. Verified on the same text: `consult "spawn 503"` → `no matching runbook`,
+  while `consult --failure "spawn 503 while restarting"` → `gateway-drain-window`, all 7 checks with fill-in hints,
+  logged as local lint history. If the positional form says nothing, retry the same text through `--failure`
+  before you give up.
+- The two gates behind these answers are `KEYWORD_THRESHOLD = 0.6` (long text) and `SHORT_KEYWORD_THRESHOLD = 0.3`
+  (short text) in `lore/classifier.py:34-59`; a symptom that names a class's *consequence* but not its signature
+  tokens can tie two classes below both gates — e.g. `spawn 503` puts `gateway-drain-window` and `spawn-hot-loop` at
+  0.17 each. Naming the class's own words ("drain 503", ".env clobber", "non-fast-forward") is what clears the gate.
+
+**Do not use this section as a recall complaint.** Paraphrase recall is a filed-and-closed family (LORE-016,
+LORE-023, REVIEW-LORE-002, LORE-043, all complete). `docs/PRD.md:24`'s example (`match "spawn 503"`) does not
+reproduce and is filed for a doc fix as **LORE-070** — the fix is the example or a pointer to `--failure`, not a
+classifier change.
+
+Ordering contract, re-verified here: every registry class's `checks[].order` is contiguous from 1, ascending in
+list position, and identical between `compile --format json` and `show --format json` — a responder can follow the
+runbook top-to-bottom.

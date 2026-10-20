@@ -1,0 +1,36 @@
+# run 14d — US-1: the PRD's own example symptom, and the mode asymmetry (HEAD b29cbf5)
+
+## PRD US-1 (docs/PRD.md:24): 'As an agent at 3 a.m. facing "scheduler spawns 503-ing at spawn\n## time," I ask `lore match "spawn 503"` and get the drain-window runbook'
+
+$ python -m lore match "spawn 503"
+unclassified	confidence=0.00	evidence: none
+rc=0
+
+$ python -m lore match "spawn 503" --explain   # the near-miss route
+unclassified	confidence=0.00	evidence: none
+near-misses:
+  gateway-drain-window  score=0.17  (1/6 keywords: 503)
+  spawn-hot-loop  score=0.17  (1/6 keywords: spawn)
+rc=0
+
+$ python -m lore match "scheduler spawns 503-ing at spawn time"   # the story's own quoted symptom
+unclassified	confidence=0.00	evidence: none
+rc=0
+
+## plain consult (the tick-start verb) on the same text
+$ python -m lore consult "spawn 503"
+no matching runbook
+rc=0
+
+## the form that DOES resolve the same symptom
+$ python -m lore consult --failure "spawn 503 while restarting"
+this class has a runbook: gateway-drain-window (Gateway drain window) status=proposal last_validated=never checks=7
+  last lint-validated 2026-10-20T08:35:42+00:00 on this box (local history, not operator attestation); executed 2/7 checks
+  check 1: logsey query "SELECT message, ts FROM logs WHERE message LIKE '%drain 503%' AND ts >= now() - INTERVAL 30 MINUTE"
+  check 2: grep -c 'drain 503' <gateway-log-path>
+...(7 checks rendered)
+
+## control: a documented README symptom through the same positional consult
+$ python -m lore consult "gateway drain 503"
+runbook: gateway-drain-window (Gateway drain window) status=proposal last_validated=never checks=7
+  last lint-validated 2026-10-20T08:35:42+00:00 on this box (local history, not operator attestation); executed 2/7 checks
