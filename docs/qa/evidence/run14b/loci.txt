@@ -1,0 +1,19 @@
+# loci (HEAD 6de0660)
+lore/__main__.py:583            for rb in compile_all():        <- audit rows come only from compile_all()
+lore/__main__.py:592            "runbook_compiled": True,     <- hard-coded literal
+lore/compiler.py:985            def compile_all(...)
+lore/compiler.py:954            for c in _CHECKS.get(cls.id, []) <- runbook bodies = literal table
+lore/compiler.py:76             _CHECKS: dict[str, list[Check]] = {   <- 13 hand-authored check sets
+lore/classes.py:38              SEED_CLASSES: tuple[FailureClass, ...] <- literal registry
+lore/classes.py:543             _REGISTRY = ClassRegistry(SEED_CLASSES + (UNCLASSIFIED_CLASS,))
+lore/__main__.py:461            parse_logsey_export(trail_text)  <- the ONLY incident-trail parser, used by absorb on a caller-supplied trail
+
+grep -rniE 'incident|duckbrain|logsey' lore/*.py  -> only: literal evidence detail strings inside _CHECKS, parse_logsey_export (absorb), help text
+lore/absorb.py:5
+lore/classes.py:5
+lore/compiler.py:93
+lore/evidence.py:26
+lore/__init__.py:1
+lore/__main__.py:6
+lore/runbook.py:4
+lore/validate.py:2

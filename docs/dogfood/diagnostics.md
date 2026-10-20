@@ -575,3 +575,73 @@ board's own `boardctl validate` is red (3 errors, 42 warnings) from *older*
 rows — two carry the out-of-vocabulary status `closed`, one events id descends
 — which no lane has owned yet; run 14 left that alone and added nothing to the
 count.
+
+## Run 14b (2026-10-20, HEAD `6de0660`) — the coverage matrix has no incident input
+
+Second angle of the same tick as run 14 (which covered the install path and the ledger's cost). This one drove the
+PRD's User Stories as stories — `US-1`/`US-2`/`US-3`, which no earlier run had done (run 13 exercised `SC-1..SC-4`
+and `US-4`). It found the product's headline mechanism missing rather than broken.
+
+### The shape of the defect: a promised measurement with no data path
+
+`lore audit` is documented as the *coverage* matrix (PRD `US-3`, `docs/PRD.md:28`): "every failure class seen in the
+last 90 days … the classes with incidents but no runbook — coverage as a number, not a feeling", restated as SC-2
+(`docs/PRD.md:63`) "runs on the fleet's last 90 days of incidents". What ships is an inventory of the shipped
+registry, and the difference is visible in two lines of code:
+
+```
+lore/__main__.py:583   for rb in compile_all():        # the rows come from the compiled registry, nothing else
+lore/__main__.py:592   "runbook_compiled": True,       # a CONSTANT — the "no runbook" gap can never print False
+```
+
+and the registry itself is a literal (`lore/classes.py:38` `SEED_CLASSES`, `lore/compiler.py:76` `_CHECKS`), so
+`summary.total_classes == 14` is a tuple length, not a measurement over incidents. The discriminating probe is the
+one worth remembering for the next audit-shaped target: **run the tool from an empty directory.** Same binary, no
+repository, no `.lore` ledger, no incident data:
+
+```
+$ cd /tmp/<empty> && <venv>/python -m lore audit --format json    # rc=0, 14 rows
+$ cd <repo>       && <venv>/python -m lore audit --format json    # identical 14 rows and identical summary
+```
+
+If a "coverage" report reads the same with and without every local data source, the report is about the code, not
+about the system. The only history-driven field on the whole row is `status`/`stale_reason` (the `LORE-064`
+wiring) — which is exactly why that wiring *looked* like the matrix was live.
+
+### The ingestion exists, but only on the write path
+
+`grep -rniE 'incident|duckbrain|logsey' lore/*.py` returns only literal evidence `detail` strings inside `_CHECKS`,
+help text, and `parse_logsey_export` at `lore/__main__.py:461` — used by `absorb` on a **caller-supplied** trail.
+So the trail parser is real; it feeds proposals (`US-2`), never coverage (`US-3`). A class the fleet actually hits
+that is not in `SEED_CLASSES` folds into `unclassified` and cannot move any number. This is the trap the honesty
+work around `last_validated` does not cover: the tool is scrupulous about the field it cannot fill, and silent
+about the count it fills from a constant.
+
+Related-but-distinct, and worth keeping apart when triaging: `LORE-064` (P1, fixed by `c63b82d`) was a signal that
+*existed* and was left unwired — a reconnection. This one is `LORE-067`: a capability that does not exist — a
+build. `LORE-065` (US-4 sync, P3) is the closest precedent for the grading.
+
+### The board under the tool is red, and that baseline was unrecorded
+
+A dogfood lane reads the board before it reads the product, and this one could not get a green:
+
+```
+RESULT: FAIL (3 error(s), 42 warning(s))
+  LORE-050 / LORE-054: status "closed" — outside the vocabulary, and not even a read alias
+  events.jsonl line 177: id 176 after id 177 — same tick, same ts => intra-tick append order, not a bad id
+```
+
+Both pre-date the tick; neither is run 14's or run 14b's. The durable lesson is the **baseline discipline**: on a
+board that is already red, "validate passes" is unavailable as evidence, so the run records the pre-append counts
+(3/42), attributes only a positive delta to its own write (here: `+0` errors, `+0` warnings), and files the
+pre-existing repair as its own row (`LORE-068`) instead of leaving the next lane to mis-attribute it.
+
+### What this run measured, and what it deliberately did not
+
+- Warm `lore audit --format json`: **0.11 s ×3** (`/usr/bin/time -p`). Run 14's hyperfine on the same command:
+  144.2 ms ± 15.7 ms with the repo's 3,161-row ledger, 48.3 ± 2.5 ms with none. The 0.11 vs 0.144 s spread is
+  method and load, not a regression — the same code, unchanged across `a6984b4..6de0660` (docs/board only).
+- **No PERF row.** The ledger cost is `PERF-2`'s (run 14, same tick); re-filing it would be a duplicate row. The
+  row for the incident input carries an explicit warning that fixing it must not deepen that loop.
+- Nothing was re-driven that run 14 drove; its staged probe scripts under `docs/qa/evidence/run14/` were left
+  staged and uncommitted, and every commit here is path-limited.

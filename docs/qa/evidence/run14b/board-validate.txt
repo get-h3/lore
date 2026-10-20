@@ -1,0 +1,6 @@
+[warn] events.jsonl line 166: event id "166" is not a JSON number (legacy shape tolerated)
+[error] events.jsonl line 177: event id 176 descends below earlier id 177 (ids must ascend; gaps tolerated)
+[warn] events.jsonl line 181: event has no id field (legacy shape tolerated)
+[warn] headerless board (no board.jsonl): tasks.jsonl line 1 is a task row, not board metadata — no header to validate; header counter checks skipped
+RESULT: FAIL (3 error(s), 42 warning(s))
+boardctl: validation failed

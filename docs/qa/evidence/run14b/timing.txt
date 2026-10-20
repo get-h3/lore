@@ -1,0 +1,8 @@
+warm audit x3 (/usr/bin/time -p, HEAD 6de0660):
+real 0.11
+real 0.11
+real 0.11
+run14 same-tick hyperfine basis (same code, a6984b4; code unchanged a6984b4..HEAD):
+  Time (mean ± σ):     144.2 ms ±  15.7 ms    [User: 131.6 ms, System: 12.5 ms]
+  Range (min … max):   130.3 ms … 179.1 ms    12 runs
+ 

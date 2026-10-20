@@ -264,3 +264,33 @@ both quotes that file AND asserts a number — so it is the one line the guard
 cannot check, and it has now gone stale twice (463 → 510 → 523). Verify by
 hand whenever you touch that line: `pytest -q` vs `cat scripts/test-count.txt`
 vs the literal. Board row: LORE-063-R2 (recurrence of LORE-063).
+
+## `lore audit` answers a REGISTRY question, not a coverage question (run 14b, 2026-10-20, HEAD `6de0660`)
+
+Read this before you quote `lore audit` to anyone as "coverage".
+
+`lore audit` prints **one row per compiled registry class** — that is exactly what its own docstring says
+(`lore/__main__.py:616`) and what the README's Shipped bullet says ("per **registry class**"). The rows are built by
+`compile_all()` (`lore/__main__.py:583`), the class list is the literal `SEED_CLASSES` tuple
+(`lore/classes.py:38`) plus the `unclassified` bucket, and the runbook bodies are the literal `_CHECKS` table
+(`lore/compiler.py:76`). Consequences worth knowing before you rely on it:
+
+- `summary.total_classes` is the **size of that tuple (14)**, not a count of classes the fleet actually hit. It is
+  14 whether this box has seen zero incidents or ten thousand.
+- `runbook_compiled` is the literal `True` (`lore/__main__.py:592`) — it can never print `False`, so "a class with
+  incidents but no runbook" is **unreachable in this output**. Do not present the column as a gap detector.
+- There is **no incident input** at audit time. Proven by running it from an empty directory: identical 14 rows and
+  identical summary with no repository, no `.lore` ledger and no incident data. The only history-driven field is
+  `status`/`stale_reason` (the `LORE-064` wiring) — which is why the matrix can look live while the coverage half
+  is a constant.
+- The trail parser exists (`parse_logsey_export`, `lore/__main__.py:461`) but only `lore absorb --window` uses it,
+  on a **caller-supplied** trail; it feeds proposals, never coverage.
+
+The fields that ARE honest and must stay that way: `last_validated` reports `"no data"` until a human attests (no
+code path writes it — a lint run is not attestation), and the `summary.note` says so. So use audit for what it
+measures — which registry classes exist, how many checks each carries, and whether the local lint has flagged
+drift — and do not use it as evidence of incident coverage. PRD `US-3` / `SC-2` promise the incident-coverage
+reading; that gap is filed as **`LORE-067`**.
+
+Cost: cheap. Warm `lore audit --format json` ≈ 0.11 s on the control box (and ≈ 48 ms with no
+`.lore/validate-history.jsonl`); it grows with that ledger — see the ledger-cost section above and `PERF-2`.
