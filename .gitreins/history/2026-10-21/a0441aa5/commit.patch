@@ -1,0 +1,45 @@
+commit 84d0a71aa56cc83ab57f9b954d8fbdb5d7cd2824
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Oct 21 12:19:32 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Oct 21 12:19:32 2026 -0500
+
+    docs(lore): annotate US-4 as code distribution; defer sync verb (LORE-065)
+    
+    Co-authored-by: Alexis Okuwa <wojonstech@gmail.com>
+---
+ README.md   | 7 +++++--
+ docs/PRD.md | 2 +-
+ 2 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/README.md b/README.md
+index cb26545..1f58822 100644
+--- a/README.md
++++ b/README.md
+@@ -191,8 +191,11 @@ assertion.
+   gives coverage reviewers a fixed vocabulary of failure classes — incidents
+   that resolve to `unclassified` are gaps you can *see*, not a confident zero.
+ - **The cold-start agent on a new box** (PRD US-4): a first responder that
+-  starts with the fleet's scar tissue instead of zero. `lore match` finds the
+-  class; `lore compile` prints the compiled runbook as a proposal.
++  starts with the fleet's scar tissue instead of zero. Classes ship inside the
++  lore package, so a fresh clone or wheel install delivers all 14 by code
++  distribution; `lore match` finds the class; `lore compile` prints the
++  compiled runbook as a proposal. A dedicated `lore sync` verb for pulling
++  updated runbooks from a central store is deferred (see RUNBOOK-STORE.md).
+ 
+ ## Why this exists
+ 
+diff --git a/docs/PRD.md b/docs/PRD.md
+index 9911468..573da95 100644
+--- a/docs/PRD.md
++++ b/docs/PRD.md
+@@ -27,7 +27,7 @@ The pattern: **every incident generates world-class runbook material, and it eva
+ 
+ **US-3 (runbook auditor):** As Bane reviewing coverage, I run `lore audit` and see: every failure class seen in the last 90 days, whether a runbook exists, whether its commands *still work* (last-validated date), and the classes with incidents but no runbook — coverage as a number, not a feeling.
+ 
+-**US-4 (new-box onboarding):** As an agent landing on a fresh fleet node, `lore` syncs the class runbooks; the box's first responder starts with four incidents' worth of scar tissue instead of zero.
++**US-4 (new-box onboarding):** As an agent landing on a fresh fleet node, `lore` syncs the class runbooks; the box's first responder starts with four incidents' worth of scar tissue instead of zero. (The classes ship inside the lore package itself — a fresh clone or wheel install delivers all 14 classes by code distribution; a dedicated `lore sync` verb for pulling updated runbooks is deferred. See docs/RUNBOOK-STORE.md.)
+ 
+ ## What it compiles
+ 
