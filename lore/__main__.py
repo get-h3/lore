@@ -357,8 +357,10 @@ def _cmd_validate(args: argparse.Namespace) -> int:
             print(f"  stale_reason: {reason if reason else 'none'}")
             env_absent = report.env_absent_orders
             if env_absent:
-                print(f"  env_absent: checks {', '.join(str(o) for o in env_absent)} "
-                      f"did not run (tool or file absent on this box — not drift)")
+                print(
+                    f"  env_absent: checks {', '.join(str(o) for o in env_absent)} "
+                    f"did not run (tool or file absent on this box — not drift)"
+                )
             print(f"  honesty: {report.honesty_label}")
             print()
         # Say where the run went, so the operator knows it did not evaporate.
