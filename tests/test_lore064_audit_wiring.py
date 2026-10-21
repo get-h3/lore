@@ -530,7 +530,7 @@ class TestAuditCliFormats:
         assert code == 0
         for ln in out.splitlines():
             if ln.startswith("|") and not ln.startswith("| class_id"):
-                assert ln.count("|") == 9, f"row must have 8 cells: {ln}"
+                assert ln.count("|") == 10, f"row must have 9 cells: {ln}"
 
     def test_cli_reads_history_from_current_working_directory(
         self,

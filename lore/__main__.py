@@ -355,6 +355,10 @@ def _cmd_validate(args: argparse.Namespace) -> int:
             )
             reason = report.stale_reason
             print(f"  stale_reason: {reason if reason else 'none'}")
+            env_absent = report.env_absent_orders
+            if env_absent:
+                print(f"  env_absent: checks {', '.join(str(o) for o in env_absent)} "
+                      f"did not run (tool or file absent on this box — not drift)")
             print(f"  honesty: {report.honesty_label}")
             print()
         # Say where the run went, so the operator knows it did not evaporate.
@@ -608,6 +612,12 @@ def _audit_rows(history_path: Path | None = None) -> list[dict]:
                 row = dict(row)  # never mutate the baseline row in place
                 row["status"] = STATUS_STALE
                 row["stale_reason"] = reason
+            # LORE-061: surface env_absent orders from history so operators
+            # can distinguish "tool absent" from "drift" in the audit view.
+            env_absent = rec.get("env_absent_orders")
+            if env_absent:
+                row = dict(row)  # make a copy if not already
+                row["env_absent_orders"] = env_absent
         rows.append(row)
     return rows
 
@@ -656,13 +666,15 @@ def _cmd_audit(args: argparse.Namespace) -> int:
 
     if args.format == "md":
         lines = [
-            "| class_id | name | runbook-compiled | checks | real commands | last_validated | status | stale_reason |",
-            "|---|---|---|---|---|---|---|---|",
+            "| class_id | name | runbook-compiled | checks | real commands | last_validated | status | env_absent | stale_reason |",
+            "|---|---|---|---|---|---|---|---|---|",
         ]
         lines.extend(
             f"| {r['class_id']} | {r['name']} | {r['runbook_compiled']} | "
             f"{r['check_count']} | {r['command_count']} | "
-            f"{r['last_validated']} | {r['status']} | {r.get('stale_reason', '')} |"
+            f"{r['last_validated']} | {r['status']} | "
+            f"{r.get('env_absent_orders', '')} | "
+            f"{r.get('stale_reason', '')} |"
             for r in rows
         )
         print("\n".join(lines))
@@ -687,6 +699,7 @@ def _cmd_audit(args: argparse.Namespace) -> int:
         "real-cmds",
         "last_validated",
         "status",
+        "env_absent",
         "stale_reason",
     )
     table_rows = [
@@ -699,6 +712,7 @@ def _cmd_audit(args: argparse.Namespace) -> int:
             str(r["command_count"]),
             r["last_validated"],
             r["status"],
+            str(r.get("env_absent_orders", "")),
             r.get("stale_reason", ""),
         )
         for r in rows

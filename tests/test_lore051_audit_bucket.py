@@ -115,16 +115,13 @@ def test_table_curated_rows_lack_bucket_prefix(capsys):
 
 # ----------------------------------------------------------------- md marker
 def test_md_rows_unchanged_eight_cell_contract(capsys):
-    """The md format keeps its pinned 8-cell row shape (LORE-064); the md
-    summary still names the bucket count distinctly? No — md shows the same
-    summary line; the bucket contract lives in JSON + table. Pinned here so
-    any md change is a DELIBERATE contract change, not a silent drift."""
+    """The md format keeps its 9-cell row shape (LORE-064 + LORE-061 env_absent)."""
     code = _run(["audit", "--format", "md"])
     assert code == 0
     out = capsys.readouterr().out
     for ln in out.splitlines():
         if ln.startswith("|") and not ln.startswith("| class_id"):
-            assert ln.count("|") == 9, f"row must have 8 cells: {ln}"
+            assert ln.count("|") == 10, f"row must have 9 cells: {ln}"
     # the bucket row still renders by its bare class_id (no prefix pollution)
     bucket_rows = [
         ln for ln in out.splitlines() if ln.startswith(f"| {UNCLASSIFIED_ID} ")
