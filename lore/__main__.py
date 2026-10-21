@@ -668,14 +668,16 @@ def _cmd_audit(args: argparse.Namespace) -> int:
 
     if args.format == "md":
         lines = [
-            "| class_id | name | runbook-compiled | checks | real commands | last_validated | status | env_absent | stale_reason |",
-            "|---|---|---|---|---|---|---|---|---|",
+            "| class_id | name | runbook-compiled | checks | real commands | last_validated | status | env_absent | bucket | stale_reason |",
+            "|---|---|---|---|---|---|---|---|---|---|",
         ]
         lines.extend(
-            f"| {r['class_id']} | {r['name']} | {r['runbook_compiled']} | "
+            f"| {('[bucket] ' + r['class_id']) if r.get('bucket') else r['class_id']} | "
+            f"{r['name']} | {r['runbook_compiled']} | "
             f"{r['check_count']} | {r['command_count']} | "
             f"{r['last_validated']} | {r['status']} | "
             f"{r.get('env_absent_orders', '')} | "
+            f"{'yes' if r.get('bucket') else '-'} | "
             f"{r.get('stale_reason', '')} |"
             for r in rows
         )

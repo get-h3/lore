@@ -115,16 +115,16 @@ def test_table_curated_rows_lack_bucket_prefix(capsys):
 
 # ----------------------------------------------------------------- md marker
 def test_md_rows_unchanged_eight_cell_contract(capsys):
-    """The md format keeps its 9-cell row shape (LORE-064 + LORE-061 env_absent)."""
+    """The md format keeps its 10-cell row shape (LORE-064 + LORE-061 env_absent + README-3 bucket)."""
     code = _run(["audit", "--format", "md"])
     assert code == 0
     out = capsys.readouterr().out
     for ln in out.splitlines():
         if ln.startswith("|") and not ln.startswith("| class_id"):
-            assert ln.count("|") == 10, f"row must have 9 cells: {ln}"
-    # the bucket row still renders by its bare class_id (no prefix pollution)
+            assert ln.count("|") == 11, f"row must have 10 cells: {ln}"
+    # the bucket row renders with [bucket] prefix in md (same as table)
     bucket_rows = [
-        ln for ln in out.splitlines() if ln.startswith(f"| {UNCLASSIFIED_ID} ")
+        ln for ln in out.splitlines() if "unclassified" in ln and "[bucket]" in ln
     ]
     assert len(bucket_rows) == 1
     assert "| True |" in bucket_rows[0]
