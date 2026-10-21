@@ -98,12 +98,21 @@ def derive_class_count(repo_root: Path) -> int | None:
 
 
 def _line_hits(line: str, canonical_test_count: int, class_count: int) -> bool:
-    """True when the line carries a stale count literal of either family."""
-    if SELF_REFERENCE in line:
-        return False
+    """True when the line carries a stale count literal of either family.
+
+    Self-reference exemption applies only when the line contains no stale
+    test-count literal — a line that says "scripts/test-count.txt" AND
+    asserts a wrong number must still flag (LORE-063-R2 recurrence).
+    """
+    stale_test = False
     for match in TEST_COUNT_RE.finditer(line):
         if int(match.group(1)) != canonical_test_count:
-            return True
+            stale_test = True
+            break
+    if stale_test:
+        return True
+    if SELF_REFERENCE in line:
+        return False
     for match in CLASS_COUNT_RE.finditer(line):
         prefix = line[: match.start()]
         if THRESHOLD_PREFIX_RE.search(prefix):
