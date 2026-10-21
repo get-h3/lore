@@ -27,7 +27,7 @@ The pattern: **every incident generates world-class runbook material, and it eva
 
 **US-3 (runbook auditor):** As Bane reviewing coverage, I run `lore audit` and see: every failure class seen in the last 90 days, whether a runbook exists, whether its commands *still work* (last-validated date), and the classes with incidents but no runbook — coverage as a number, not a feeling.
 
-**US-4 (new-box onboarding):** As an agent landing on a fresh fleet node, `lore` syncs the class runbooks; the box's first responder starts with four incidents' worth of scar tissue instead of zero.
+**US-4 (new-box onboarding):** As an agent landing on a fresh fleet node, `lore` syncs the class runbooks; the box's first responder starts with four incidents' worth of scar tissue instead of zero. (The classes ship inside the lore package itself — a fresh clone or wheel install delivers all 14 classes by code distribution; a dedicated `lore sync` verb for pulling updated runbooks is deferred. See docs/RUNBOOK-STORE.md.)
 
 ## What it compiles
 

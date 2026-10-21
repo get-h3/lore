@@ -191,8 +191,11 @@ assertion.
   gives coverage reviewers a fixed vocabulary of failure classes — incidents
   that resolve to `unclassified` are gaps you can *see*, not a confident zero.
 - **The cold-start agent on a new box** (PRD US-4): a first responder that
-  starts with the fleet's scar tissue instead of zero. `lore match` finds the
-  class; `lore compile` prints the compiled runbook as a proposal.
+  starts with the fleet's scar tissue instead of zero. Classes ship inside the
+  lore package, so a fresh clone or wheel install delivers all 14 by code
+  distribution; `lore match` finds the class; `lore compile` prints the
+  compiled runbook as a proposal. A dedicated `lore sync` verb for pulling
+  updated runbooks from a central store is deferred (see RUNBOOK-STORE.md).
 
 ## Why this exists
 
