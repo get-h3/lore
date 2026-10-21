@@ -1,0 +1,195 @@
+commit 797b5908235d03b2970e013e21d955a4a2b5f7f9
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Oct 21 12:30:55 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Oct 21 12:30:55 2026 -0500
+
+    fix(lore): count_sweep self-reference exemption no longer hides stale literals. Addresses LORE-063-R2.
+    
+    Co-authored-by: Alexis Okuwa <wojonstech@gmail.com>
+---
+ CONTRIBUTING.md                               |  2 +-
+ README.md                                     |  4 +-
+ docs/INSTALL.md                               |  4 +-
+ scripts/count_sweep.py                        | 17 +++++--
+ scripts/test-count.txt                        |  2 +-
+ skills/lore-usage/SKILL.md                    |  2 +-
+ tests/test_lore063r2_count_sweep_exemption.py | 64 +++++++++++++++++++++++++++
+ 7 files changed, 84 insertions(+), 11 deletions(-)
+
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index d9172cb..ba81d87 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
+ Once `.venv` exists, run the full gate from the repository root:
+ 
+ ```sh
+-uv run pytest -q                    # tests (green at 531 passed)
++uv run pytest -q                    # tests (green at 536 passed)
+ uv run ruff check .                 # lint — "All checks passed!"
+ uv run ruff format --check .        # formatting — "N files already formatted"
+ uv run scripts/check-test-count.sh  # test-count sync guard
+diff --git a/README.md b/README.md
+index 1f58822..12093d6 100644
+--- a/README.md
++++ b/README.md
+@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
+ [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
+ 
+ ```sh
+-uv run pytest -q        # 531 passed
++uv run pytest -q        # 536 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -354,7 +354,7 @@ and what does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
+-  with **531 tests passing** and a clean `ruff check`.
++  with **536 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index ffdbdda..fc432ca 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -80,14 +80,14 @@ Real output on the current tree:
+ ........................................................................ [ 55%]
+ ........................................................................ [ 83%]
+ ........................................................................ [100%]
+-531 passed
++536 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **531 tests** (38 test files: taxonomy, classifier,
++The count to expect is **536 tests** (38 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+diff --git a/scripts/count_sweep.py b/scripts/count_sweep.py
+index 331493a..124a477 100755
+--- a/scripts/count_sweep.py
++++ b/scripts/count_sweep.py
+@@ -98,12 +98,21 @@ def derive_class_count(repo_root: Path) -> int | None:
+ 
+ 
+ def _line_hits(line: str, canonical_test_count: int, class_count: int) -> bool:
+-    """True when the line carries a stale count literal of either family."""
+-    if SELF_REFERENCE in line:
+-        return False
++    """True when the line carries a stale count literal of either family.
++
++    Self-reference exemption applies only when the line contains no stale
++    test-count literal — a line that says "scripts/test-count.txt" AND
++    asserts a wrong number must still flag (LORE-063-R2 recurrence).
++    """
++    stale_test = False
+     for match in TEST_COUNT_RE.finditer(line):
+         if int(match.group(1)) != canonical_test_count:
+-            return True
++            stale_test = True
++            break
++    if stale_test:
++        return True
++    if SELF_REFERENCE in line:
++        return False
+     for match in CLASS_COUNT_RE.finditer(line):
+         prefix = line[: match.start()]
+         if THRESHOLD_PREFIX_RE.search(prefix):
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index 78b122b..1fc4946 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-531
++536
+diff --git a/skills/lore-usage/SKILL.md b/skills/lore-usage/SKILL.md
+index 35ac5ac..cfb1c8e 100644
+--- a/skills/lore-usage/SKILL.md
++++ b/skills/lore-usage/SKILL.md
+@@ -120,7 +120,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
+ ## Dev loop
+ 
+ ```sh
+-uv run pytest -q    # expect: 531 passed (count synced to scripts/test-count.txt, LORE-029)
++uv run pytest -q    # expect: 536 passed (count synced to scripts/test-count.txt, LORE-029)
+ uv run ruff check . # expect: All checks passed!
+ ```
+ 
+diff --git a/tests/test_lore063r2_count_sweep_exemption.py b/tests/test_lore063r2_count_sweep_exemption.py
+new file mode 100644
+index 0000000..2a10a39
+--- /dev/null
++++ b/tests/test_lore063r2_count_sweep_exemption.py
+@@ -0,0 +1,64 @@
++"""LORE-063-R2: count_sweep self-reference exemption no longer hides stale literals.
++
++Fixes the recurrence where a line containing both ``scripts/test-count.txt``
++and a stale ``<N> passed`` literal was silently skipped because the
++``SELF_REFERENCE`` check ran first and returned ``False``.
++
++Acceptance:
++1. A line containing ``scripts/test-count.txt`` + stale literal -> flagged.
++2. A line containing ``scripts/test-count.txt`` + canonical literal -> NOT flagged.
++3. Lines without ``scripts/test-count.txt`` still check as before.
++"""
++
++import pytest
++import test_count_guard
++
++count_sweep = test_count_guard._load_sweep_module()
++
++
++class TestLineHitsSelfReferenceExemption:
++    """The self-reference exemption must NOT hide stale literals."""
++
++    @pytest.fixture(autouse=True)
++    def _counts(self) -> tuple[int, int | None]:
++        """Return (canonical_test_count, class_count) for this repo."""
++        canonical = test_count_guard._read_canonical()
++        class_count = count_sweep.derive_class_count(test_count_guard.REPO_ROOT)
++        # class_count may be None on a broken install; use a safe default
++        return canonical, class_count if class_count is not None else 0
++
++    def test_stale_literal_with_self_reference_is_flagged(self, _counts) -> None:
++        """Line quoting the sync file but stating the wrong number must flag.
++
++        This is the LORE-063-R2 recurrence: the guard returned True
++        (clean) when the skill line read "510 passed" alongside a mention
++        of ``scripts/test-count.txt``, because the exemption ran first.
++        """
++        canonical, class_count = _counts
++        # A stale literal that differs from the canonical count
++        line = f"uv run pytest -q    # expect: {canonical + 7} passed (count synced to scripts/test-count.txt, LORE-029)"
++        assert count_sweep._line_hits(line, canonical, class_count) is True
++
++    def test_canonical_literal_with_self_reference_is_clean(self, _counts) -> None:
++        """When the line states the canonical count it stays clean."""
++        canonical, class_count = _counts
++        line = f"uv run pytest -q    # expect: {canonical} passed (count synced to scripts/test-count.txt, LORE-029)"
++        assert count_sweep._line_hits(line, canonical, class_count) is False
++
++    def test_stale_literal_without_self_reference_still_flags(self, _counts) -> None:
++        """Non-self-reference lines with stale literals continue to flag."""
++        canonical, class_count = _counts
++        line = f"# expect: {canonical + 1} passed"
++        assert count_sweep._line_hits(line, canonical, class_count) is True
++
++    def test_threshold_prefix_skips_class_count(self, _counts) -> None:
++        """Threshold-prefixed class counts (>=, >=, at least) are skipped."""
++        canonical, class_count = _counts
++        line = f">= {class_count + 1} classes"
++        assert count_sweep._line_hits(line, canonical, class_count) is False
++
++    def test_canonical_test_count_in_line_is_not_flagged(self, _counts) -> None:
++        """A line with the canonical test count is clean."""
++        canonical, class_count = _counts
++        line = f"# expect: {canonical} tests"
++        assert count_sweep._line_hits(line, canonical, class_count) is False
