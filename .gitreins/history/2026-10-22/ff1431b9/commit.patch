@@ -1,0 +1,33 @@
+commit 1553f6a17e4d140d8585131d1182fbd7dc0a67e0
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Thu Oct 22 14:30:54 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Thu Oct 22 14:30:54 2026 -0500
+
+    docs: refresh INSTALL unknown-class paste to the live 14-class list. Addresses README-6.
+    
+    The pasted refusal output predated the 09-26 class wave: it stopped at
+    11 of 14 classes with no truncation marker, so a reader diffing the doc
+    against a correct checkout concluded the checkout was wrong (INSTALL.md
+    pasted-verbatim claim, row README-6). Re-ran
+    'uv run python -m lore compile --class does-not-exist' and replaced the
+    fence line with the live 14-class Known list byte-identical; ends at
+    unclassified in registry tuple order. AC greps: fast-forward-push-reject
+    count 1, ingest-backfill-gap present only at this fence, paste == live.
+---
+ docs/INSTALL.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 37d4642..d1f01a2 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -350,7 +350,7 @@ uv run python -m lore compile --class does-not-exist ; echo "exit=$?"
+ ```
+ 
+ ```
+-error: unknown class_id 'does-not-exist'; registry is closed. Known: gateway-drain-window, shared-checkout-collision, secret-env-clobber, disk-pressure-corruption, cooldown-pin-drift, key-rotation-expiry, guard-degradation, spawn-hot-loop, ingest-backfill-gap, gateway-guard-violation, unclassified
++error: unknown class_id 'does-not-exist'; registry is closed. Known: gateway-drain-window, shared-checkout-collision, secret-env-clobber, disk-pressure-corruption, cooldown-pin-drift, key-rotation-expiry, guard-degradation, spawn-hot-loop, ingest-backfill-gap, gateway-guard-violation, docs-count-drift, worktree-reap-data-loss, fast-forward-push-reject, unclassified
+ exit=2
+ ```
+ 
