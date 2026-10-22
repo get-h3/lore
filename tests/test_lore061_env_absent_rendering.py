@@ -193,7 +193,10 @@ class TestAuditEnvAbsentOrders:
             "total_checks": 3,
         }
         with (
-            patch("lore.__main__.last_local_validation", return_value=rec),
+            patch(
+                "lore.__main__.last_local_validation_batch",
+                return_value={"test": rec},
+            ),
             patch(
                 "lore.__main__.compile_all",
                 return_value=[self._make_runbook("test", 3)],
@@ -232,7 +235,10 @@ class TestAuditEnvAbsentOrders:
             "total_checks": 1,
         }
         with (
-            patch("lore.__main__.last_local_validation", return_value=rec),
+            patch(
+                "lore.__main__.last_local_validation_batch",
+                return_value={"test": rec},
+            ),
             patch(
                 "lore.__main__.compile_all",
                 return_value=[self._make_runbook("test", 1)],
@@ -268,7 +274,10 @@ class TestAuditEnvAbsentOrders:
             "total_checks": 3,
         }
         with (
-            patch("lore.__main__.last_local_validation", return_value=rec),
+            patch(
+                "lore.__main__.last_local_validation_batch",
+                return_value={"test": rec},
+            ),
             patch(
                 "lore.__main__.compile_all",
                 return_value=[self._make_runbook("test", 3)],
@@ -301,7 +310,10 @@ class TestAuditEnvAbsentOrders:
             "total_checks": 2,
         }
         with (
-            patch("lore.__main__.last_local_validation", return_value=rec),
+            patch(
+                "lore.__main__.last_local_validation_batch",
+                return_value={"test": rec},
+            ),
             patch(
                 "lore.__main__.compile_all",
                 return_value=[self._make_runbook("test", 2)],

@@ -180,6 +180,7 @@ __all__ = [
     "apply_lint",
     "is_read_only_command",
     "last_local_validation",
+    "last_local_validation_batch",
     "lint_all",
     "lint_runbook",
     "local_validation_note",
@@ -1224,6 +1225,49 @@ def last_local_validation(
             continue
         found = rec  # keep scanning: the NEWEST record wins
     return found
+
+
+def last_local_validation_batch(
+    path: Path | None = None,
+) -> dict[str, dict]:
+    """PERF-2: newest local-history record per class_id, in ONE file pass.
+
+    Same read contract as :func:`last_local_validation` — pure read; a
+    missing/unreadable file yields ``{}``; blank lines and malformed lines
+    are skipped (a torn line is data loss for that line only, never a
+    crash); a non-dict record is skipped — but scans the file once and
+    returns every class's newest record keyed by ``class_id``, so a caller
+    serving N classes reads the ledger one time instead of N times
+    (PERF-2: ``lore audit`` was 14 full parses per invocation).
+
+    Newest-wins is by FILE ORDER, exactly as in
+    :func:`last_local_validation`: the scan keeps the LAST record per
+    ``class_id``, never max(timestamp). Records are the parsed dicts,
+    unmodified, including fields this module does not write (e.g. a
+    hand-shaped ``env_absent_orders``).
+    """
+    target = path if path is not None else HISTORY_FILE
+    try:
+        with target.open("r", encoding="utf-8") as fh:
+            lines = fh.readlines()
+    except OSError:
+        return {}
+    newest: dict[str, dict] = {}
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        try:
+            rec = json.loads(stripped)
+        except ValueError:
+            continue  # a malformed line is skipped, not fatal
+        if not isinstance(rec, dict):
+            continue
+        class_id = rec.get("class_id")
+        if not isinstance(class_id, str):
+            continue
+        newest[class_id] = rec  # keep scanning: the NEWEST record wins
+    return newest
 
 
 # The exact wording consult/compile surface for a local-history hit —

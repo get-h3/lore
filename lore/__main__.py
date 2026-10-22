@@ -54,6 +54,7 @@ from lore.validate import (
     OUTCOME_TEMPLATE,
     is_read_only_command,
     last_local_validation,
+    last_local_validation_batch,
     lint_runbook,
     local_validation_note,
     persist_validate_history,
@@ -584,7 +585,16 @@ def _audit_rows(history_path: Path | None = None) -> list[dict]:
     is a test seam; production resolves ``HISTORY_FILE`` against the
     current working directory. No history (missing/empty file, no record
     for the class) → the rows are exactly what they were before.
+
+    PERF-2: the ledger is read ONCE per invocation via
+    :func:`lore.validate.last_local_validation_batch` (one scan builds the
+    newest-record-per-class map), then the per-class loop does dict
+    lookups. Before, each of the 14 registry classes re-read and re-parsed
+    the ENTIRE file (44,254 json.loads at a 3,161-row ledger; 1.06 s at
+    10x). Semantics are unchanged: newest record per class wins by FILE
+    ORDER, torn lines are skipped, a missing file yields the baseline rows.
     """
+    history = last_local_validation_batch(path=history_path)
     rows: list[dict] = []
     for rb in compile_all():
         real_commands = [
@@ -607,7 +617,7 @@ def _audit_rows(history_path: Path | None = None) -> list[dict]:
         # separate registry classes from the bucket instead of miscounting 14.
         if rb.class_id == UNCLASSIFIED_ID:
             row["bucket"] = True
-        rec = last_local_validation(rb.class_id, path=history_path)
+        rec = history.get(rb.class_id)
         if rec is not None:
             reason = _history_drift_reason(rec)
             if reason is not None:
