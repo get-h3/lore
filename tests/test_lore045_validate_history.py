@@ -265,7 +265,8 @@ def test_cli_validate_execute_full_registry_one_record_per_class(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """No --class: one record per registry class (curated + unclassified)."""
+    """No --class: one record per class WITH checks; unclassified (0 checks)
+    is skipped per LORE-066."""
     from lore.classes import SEED_CLASSES
 
     _run, _calls = _all_ok_runner()
@@ -274,7 +275,8 @@ def test_cli_validate_execute_full_registry_one_record_per_class(
     code, _out, _err = _cli(["validate", "--execute"], capsys)
     assert code == 0
     records = _read_history(tmp_path)
-    expected_ids = [fc.id for fc in SEED_CLASSES] + ["unclassified"]
+    # unclassified has 0 checks → skipped (LORE-066)
+    expected_ids = [fc.id for fc in SEED_CLASSES]
     assert [r["class_id"] for r in records] == expected_ids
 
 

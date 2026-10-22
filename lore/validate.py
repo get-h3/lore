@@ -1179,6 +1179,13 @@ def persist_validate_history(
     """
     records: list[dict] = []
     for report in reports:
+        total_checks = len(report.results)
+        if total_checks == 0:
+            # LORE-066: skip persisting a history record when the class
+            # has no checks (e.g. the unclassified bucket). A 0-check
+            # record carries no evidence and claims
+            # "commands parse and answer" which is a lie-by-omission.
+            continue
         rec = {
             "class_id": report.class_id,
             "timestamp": report.created_at,
@@ -1186,7 +1193,7 @@ def persist_validate_history(
             "outcomes": [r.outcome for r in report.results],
             "drifted_orders": list(report.drifted_orders),
             "executed_count": len(report.executed_orders),
-            "total_checks": len(report.results),
+            "total_checks": total_checks,
         }
         records.append(rec)
     return append_history_records(records, path=path)
