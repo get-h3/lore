@@ -990,14 +990,23 @@ def compile_all(*, evidence: list[dict] | None = None) -> list[Runbook]:
 
 
 # ---------------------------------------------------------------- proposals
-def propose(class_id: str, existing: Runbook | None = None) -> dict:
+def propose(
+    class_id: str, existing: Runbook | None = None, *, fresh: Runbook | None = None
+) -> dict:
     """Structured diff between a freshly compiled runbook and an existing one.
 
     Returns a proposal dict — never writes anything. When ``existing`` is
     None the proposal is a full "new runbook" proposal. Sections compared:
     signature, checks (by order), recovery_ladder, guardrails, evidence_trail.
+
+    ``fresh`` (keyword-only, LORE-069): an optional PRE-BUILT fresh-side
+    runbook, for callers whose proposal must diff content the curated
+    registry alone cannot produce (e.g. ``absorb_proposal`` folding swept
+    trail evidence into the compiled runbook before diffing). When omitted
+    the fresh side is ``compile_class(class_id)`` exactly as before — the
+    default shape, and every section, is unchanged.
     """
-    fresh = compile_class(class_id)
+    fresh = fresh if fresh is not None else compile_class(class_id)
     proposal: dict = {
         "class_id": class_id,
         "action": "new" if existing is None else "update",

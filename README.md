@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 544 passed
+uv run pytest -q        # 557 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -354,7 +354,7 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **544 tests passing** and a clean `ruff check`.
+  with **557 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published
@@ -407,7 +407,13 @@ and what does not:
 - The `lore absorb --window <dur> [--ns N] [--board B] [--source S]` sweep —
   parses a prior evidence trail from stdin (or `--trail-file`), classifies each
   block, groups by class, and prints per-class absorb **proposals** on stdout.
-  Propose-not-write holds: nothing is ever written; an empty trail is an
+  Every proposal is a real runbook **update** (LORE-069): it diffs the folded
+  trail (swept blocks, or the lesson parsed with the sweep's tolerance) against
+  the class's existing runbook, so `action` is `"update"` with the
+  trail-derived content named in `added.evidence_trail`, and each folded block
+  carries `outcome: dead-end|observed` (PRD US-2's dead-end marking). A trail
+  that adds nothing is an explicitly empty update. Propose-not-write holds:
+  nothing is ever written; an empty trail is an
   explicit empty result (exit 0). `--ns`/`--board` are recorded in the proposal
   provenance (no live lookups — the flags exist for a future integration).
   `--source` (LORE-020) threads the provenance marker into every per-class

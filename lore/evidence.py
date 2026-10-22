@@ -198,6 +198,20 @@ def _block_from_text_line(line: str, *, window: str | None) -> EvidenceBlock | N
     )
 
 
+def parse_text_line(line: str, *, window: str | None = None) -> EvidenceBlock | None:
+    """Parse one "timestamped, source-attributed" text line, tolerantly.
+
+    Public seam over the sweep's internal line parser (LORE-069): callers
+    outside ``parse_logsey_export`` (e.g. ``absorb_proposal`` folding a
+    lesson's lines into a proposal) get the EXACT tolerance the ``--window``
+    sweep applies — same timestamp regex, same key=value attribution, no
+    second parsing vocabulary to drift. A line with no leading ISO-8601
+    timestamp returns ``None`` (plain prose is not evidence); nothing is
+    fabricated to fill the gap.
+    """
+    return _block_from_text_line(line, window=window)
+
+
 def parse_logsey_export(text: str) -> list[EvidenceBlock]:
     """Parse a documented logsey export payload into evidence blocks.
 

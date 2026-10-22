@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **LORE-069** — `lore absorb` can now emit a real runbook UPDATE. Its only
+  production call site (`absorb_proposal`, lore/absorb.py) previously called
+  `propose(class_id)` with no `existing` argument, so EVERY payload said
+  `"action": "new"` with `added` byte-identical to the runbook the class
+  already has — the tested diff engine (compiler.py) was unreachable from any
+  user-facing path, and PRD US-2's "drafts the runbook update ... evidence
+  blocks, dead ends marked dead" was unmet. `absorb_proposal` now compiles the
+  class's existing runbook, folds the trail evidence into the fresh side (swept
+  blocks passed through faithfully from `absorb_sweep`, or the lesson text
+  parsed with the exact `parse_text_line` tolerance the `--window` sweep uses;
+  folded via `attach_evidence`), and calls
+  `propose(class_id, existing=..., fresh=...)` — `propose` gained an additive
+  keyword-only `fresh` parameter (default unchanged). Curated classes with a
+  trail that adds evidence get `"action": "update"` with a NON-EMPTY
+  `added.evidence_trail` naming the trail-derived content; a trail that adds
+  nothing is an explicitly empty update (never a fake `"new"`); every folded
+  block also lands in the payload's `blocks` list as
+  `{kind, detail, source, observed_at, outcome}` with `outcome` the closed
+  vocabulary `"dead-end"`/`"observed"` (US-2's dead-end marking, structured).
+  Propose-not-write holds — nothing is written. 13 regression tests at the
+  `absorb_proposal` seam pin both the update and the no-change case; the
+  run-14c usage-skill caveat section is updated to describe the fixed surface.
+
 - **LORE-060** — gateway-drain-window's logsey checks (orders 1 and 7) now
   speak logsey's REAL CLI contract: ONE quoted SQL string over the indexed
   DuckDB engine (`logs` table, `message`/`ts` columns, `now() - INTERVAL <n>

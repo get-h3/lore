@@ -32,8 +32,8 @@ from datetime import UTC, datetime
 import lore
 from lore.classes import get_registry
 from lore.classifier import classify
-from lore.compiler import propose
-from lore.evidence import EvidenceBlock
+from lore.compiler import compile_class, propose
+from lore.evidence import EvidenceBlock, attach_evidence, parse_text_line
 
 __all__ = [
     "DECISION_ABSORB",
@@ -42,6 +42,8 @@ __all__ = [
     "GateVerdict",
     "absorb_proposal",
     "absorb_sweep",
+    "block_outcome",
+    "fold_lesson_blocks",
     "gate_close",
     "validate_close_decision",
     "verdict_record",
@@ -159,8 +161,128 @@ def verdict_record(
     }
 
 
-def absorb_proposal(class_id: str, lesson: str, source: str | None = None) -> dict:
+# ------------------------------------------------------- lesson folding (LORE-069)
+# Outcome vocabulary for one evidence block, as PRD US-2's scribe names it:
+# a dead end is a command/approach that was tried and FAILED in the swept
+# window; everything else is an observed fact (working or neutral). The
+# vocabulary is closed: anything that does not match a dead-end pattern is
+# "observed" — never guessed into a stronger claim.
+OUTCOME_DEAD_END = "dead-end"
+OUTCOME_OBSERVED = "observed"
+
+# Dead-end markers, word-bounded so "undead", "deadline", "dealedge" etc.
+# never trigger. Kept deliberately small and honest: these are the phrases
+# an operator (or a sweep line) uses to record that something did NOT work.
+_DEAD_END_RE = re.compile(
+    r"\b(dead end|dead-end|unsuccessfully|failed to|did not work|didn't work"
+    r"|does not work|doesn't work|no avail|nothing worked)\b",
+    re.IGNORECASE,
+)
+
+# The proposal carries, per block, its parsed identity: kind + first line of
+# detail (truncated for payload brevity) + the outcome label.
+_DETAIL_SNIPPET_LEN = 160
+
+
+def block_outcome(detail: str) -> str:
+    """Closed-vocabulary outcome for one evidence detail (US-2)."""
+    return OUTCOME_DEAD_END if _DEAD_END_RE.search(detail or "") else OUTCOME_OBSERVED
+
+
+def _blocks_from_lesson(lesson: str) -> list[EvidenceBlock]:
+    """Parse a lesson text with the SAME tolerance the --window sweep uses.
+
+    The lesson arrives as either swept-block details (already evidence) or
+    operator prose. Each line is offered to :func:`parse_text_line` — a
+    leading ISO-8601 timestamp makes it a logsey-export block, plain prose
+    lines stay prose. Nothing is fabricated: a lesson of pure prose yields
+    no blocks (honest, and the proposal still says ``update``).
+    """
+    blocks: list[EvidenceBlock] = []
+    for line in (lesson or "").splitlines():
+        b = parse_text_line(line.strip())
+        if b is not None:
+            blocks.append(b)
+    return blocks
+
+
+def block_proposal_entry(b: EvidenceBlock) -> dict:
+    """One per-block entry for the proposal's ``blocks`` field (US-2)."""
+    first_line = b.detail.splitlines()[0] if b.detail else ""
+    if len(first_line) > _DETAIL_SNIPPET_LEN:
+        first_line = first_line[: _DETAIL_SNIPPET_LEN - 3] + "..."
+    return {
+        "kind": b.kind,
+        "detail": first_line,
+        "source": b.source,
+        "observed_at": b.observed_at,
+        "outcome": block_outcome(b.detail),
+    }
+
+
+def _entry_to_block(e: dict) -> EvidenceBlock:
+    """One trail-entry dict -> EvidenceBlock (fold + rendering share this)."""
+    return EvidenceBlock(
+        kind=e["kind"],
+        detail=e["detail"],
+        source=e.get("source"),
+        observed_at=e.get("observed_at"),
+        window=e.get("window"),
+    )
+
+
+def fold_lesson_blocks(fresh, blocks: list[dict]) -> object:
+    """Return a NEW runbook with trail-derived evidence folded in (LORE-069).
+
+    ``fresh`` is the registry-compiled runbook; ``blocks`` are trail entries
+    (``{"kind","detail"}``, optionally ``observed_at``/``window``/``source``)
+    from a swept window or a parsed lesson. Each entry is appended to the
+    runbook's evidence_trail via :func:`lore.evidence.attach_evidence`, so
+    the diff between ``fresh-with-evidence`` and the existing runbook NAMES
+    the trail-derived content (PRD US-2's "evidence blocks, dead ends
+    marked dead" — the outcome labels ride the per-block entries). The
+    attach is frozen-safe and attaches NOTHING to checks (no per_check
+    mapping is invented); propose-not-write holds — nothing is written.
+    """
+    evidence_blocks = [
+        EvidenceBlock(
+            kind=e["kind"],
+            detail=e["detail"],
+            source=e.get("source"),
+            observed_at=e.get("observed_at"),
+            window=e.get("window"),
+        )
+        for e in blocks
+        if isinstance(e, dict) and e.get("kind") and e.get("detail")
+    ]
+    if not evidence_blocks:
+        return fresh
+    return attach_evidence(fresh, evidence_blocks)
+
+
+def absorb_proposal(
+    class_id: str, lesson: str, source: str | None = None, *, blocks=None
+) -> dict:
     """Build the concrete proposal payload an 'absorb' decision hands the operator.
+
+    LORE-069: the proposal now diffs against the class's EXISTING runbook
+    with the trail evidence folded into the fresh side, so a curated class
+    with a runbook gets ``"action": "update"`` and a payload that NAMES the
+    delta (``changed``/``removed``/``added`` carry the trail-derived
+    content) instead of a byte-copy of the runbook the class already has
+    labelled ``"new"``. A trail that adds nothing yields an explicitly
+    empty update — honest absence, never a fake "new".
+
+    Per-block US-2 rendering: every folded block also lands in the
+    proposal's ``blocks`` list as ``{kind, detail, source, observed_at,
+    outcome}``, ``outcome`` being the closed vocabulary
+    ``"dead-end"``/``"observed"`` (see :func:`block_outcome`) — dead ends
+    are marked dead in structured form, not prose.
+
+    ``blocks`` (keyword-only, caller-supplied): already-parsed evidence
+    entries (from the sweep's classified blocks) folded into the fresh
+    side; when omitted the ``lesson`` text is parsed with the SAME
+    tolerance the ``--window`` sweep uses (:func:`lore.evidence.parse_text_line`).
 
     Calls ``lore.compiler.propose`` semantics (propose-not-write: the payload
     is data, nothing is written). Fail-safe: an unknown class returns
@@ -172,9 +294,26 @@ def absorb_proposal(class_id: str, lesson: str, source: str | None = None) -> di
     to the payload — the default shape stays byte-compatible.
     """
     try:
-        payload = propose(class_id)
+        existing = compile_class(class_id)
     except KeyError:
         return {"error": f"unknown class '{class_id}'"}
+
+    folded = list(blocks or [])
+    if not folded:
+        folded = [
+            {
+                "kind": b.kind,
+                "detail": b.detail,
+                "observed_at": b.observed_at,
+                "source": b.source,
+                "window": b.window,
+            }
+            for b in _blocks_from_lesson(lesson)
+        ]
+
+    fresh = fold_lesson_blocks(compile_class(class_id), [dict(e) for e in folded])
+    payload = propose(class_id, existing=existing, fresh=fresh)
+    payload["blocks"] = [block_proposal_entry(_entry_to_block(e)) for e in folded]
     payload["lesson"] = lesson
     if source is not None:
         payload["source"] = source
@@ -262,7 +401,18 @@ def absorb_sweep(
     proposals: list[dict] = []
     for class_id, members in grouped.items():
         proposal = absorb_proposal(
-            class_id, "\n".join(b.detail for b in members), source=source
+            class_id,
+            "\n".join(b.detail for b in members),
+            source=source,
+            blocks=[
+                {
+                    "kind": b.kind,
+                    "detail": b.detail,
+                    "observed_at": b.observed_at,
+                    "source": b.source,
+                }
+                for b in members
+            ],
         )
         proposal["sweep"] = {
             "window": window,
