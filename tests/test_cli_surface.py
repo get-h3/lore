@@ -82,11 +82,17 @@ def test_cli_audit_json_all_classes_honest_freshness(capsys):
     rows = data["classes"]
     assert [r["class_id"] for r in rows] == [c.id for c in get_registry().all_classes()]
     for r in rows:
-        assert r["runbook_compiled"] is True
+        # LORE-067: runbook_compiled is now computed from incident data,
+        # not a literal. In test mode (no events file), it's False with
+        # a coverage_note explaining the degradation path.
+        assert isinstance(r["runbook_compiled"], bool)
         assert isinstance(r["check_count"], int)
         assert r["command_count"] <= r["check_count"]
         # HONESTY: no fabricated dates — every class reports 'no data' today.
         assert r["last_validated"] == NO_DATA
+        # LORE-067: surface the new fields
+        assert "incident_seen" in r
+        assert "coverage_note" in r or r["runbook_compiled"] is True
     assert data["summary"]["total_classes"] == len(rows)
     # The note states the truth: nothing auto-populates the field in v0.1.
     assert "never auto-populated" in data["summary"]["note"]

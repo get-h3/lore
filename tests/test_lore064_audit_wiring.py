@@ -315,7 +315,7 @@ class TestAuditRowsWiring:
         )
         rows = _audit_rows(history_path=_history_path(tmp_path))
         row = _row_for(rows, A_CLASS)
-        assert set(row) == {
+        expected = {
             "class_id",
             "name",
             "runbook_compiled",
@@ -325,6 +325,10 @@ class TestAuditRowsWiring:
             "status",
             "stale_reason",
         }
+        # LORE-067: incident data path adds these keys
+        expected.add("incident_seen")
+        expected.add("coverage_note")
+        assert set(row) == expected
 
 
 # ------------------------------------------- apply_lint wording parity

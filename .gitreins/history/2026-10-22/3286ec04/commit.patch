@@ -1,0 +1,72 @@
+commit 5f9a7c10b073e32a5ef8a188a1629702f2b89c89
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Thu Oct 22 09:48:17 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Thu Oct 22 09:48:17 2026 -0500
+
+    fix(show): remove duplicate evidence trail from --evidence (README-5)
+    
+    The _cmd_show function was re-attaching the runbook's own evidence_trail
+    back into the runbook via attach_evidence, doubling every entry (3->6).
+    
+    The compiled runbook already carries its trail; --evidence just renders
+    it.  Skip the pointless re-attach.
+    
+    Also remove the now-unused attach_evidence import.
+    
+    Addresses README-5.
+    ch:trace row=README-5 commit=<auto> test=tests/test_cli_surface.py::test_cli_show_evidence_json evidence=show gateway-drain-window --evidence --format json (3 entries, not 6)
+---
+ lore/__main__.py          | 14 +++++---------
+ tests/test_cli_surface.py |  6 ++++--
+ 2 files changed, 9 insertions(+), 11 deletions(-)
+
+diff --git a/lore/__main__.py b/lore/__main__.py
+index dec0397..80ab437 100644
+--- a/lore/__main__.py
++++ b/lore/__main__.py
+@@ -43,7 +43,6 @@ from lore.consult import ConsultResult, consult, consult_failure
+ from lore.evidence import (
+     EvidenceBlock,
+     LogseyExportParseError,
+-    attach_evidence,
+     parse_logsey_export,
+ )
+ from lore.placeholders import placeholder_hints
+@@ -500,14 +499,11 @@ def _cmd_show(args: argparse.Namespace) -> int:
+         print(f"error: {exc.args[0]}", file=sys.stderr)
+         return 2
+ 
+-    if args.evidence:
+-        rb = attach_evidence(
+-            rb,
+-            [
+-                EvidenceBlock(kind=e["kind"], detail=e["detail"])
+-                for e in rb.evidence_trail
+-            ],
+-        )
++    # --evidence renders the runbook's own evidence_trail.
++    # attach_evidence appends, so re-wiring the same trail back in would
++    # duplicate every entry (3 -> 6).  The compiled runbook already carries
++    # its trail; we just need the second markdown section below.
++    # See README-5: the call was a no-op double-wire.
+ 
+     if args.format == "json":
+         print(json.dumps(rb.to_dict(), indent=2))
+diff --git a/tests/test_cli_surface.py b/tests/test_cli_surface.py
+index 562a91f..46dc852 100644
+--- a/tests/test_cli_surface.py
++++ b/tests/test_cli_surface.py
+@@ -64,8 +64,10 @@ def test_cli_show_evidence_json(capsys):
+     code = _run(["show", "gateway-drain-window", "--evidence", "--format", "json"])
+     assert code == 0
+     data = json.loads(capsys.readouterr().out)
+-    # attach_evidence doubled the seed trail (seed + attached blocks)
+-    assert len(data["evidence_trail"]) >= 2
++    # --evidence renders the runbook's own evidence_trail (not doubled);
++    # README-5 fix: the old code re-attached the same trail, causing
++    # 3 -> 6 duplicate entries.  Now it stays at the seed count.
++    assert len(data["evidence_trail"]) == 3
+ 
+ 
+ # ----------------------------------------------------------------- lore audit

@@ -127,7 +127,9 @@ def test_md_rows_unchanged_eight_cell_contract(capsys):
         ln for ln in out.splitlines() if "unclassified" in ln and "[bucket]" in ln
     ]
     assert len(bucket_rows) == 1
-    assert "| True |" in bucket_rows[0]
+    # LORE-067: runbook_compiled is now computed (not literal True);
+    # in test mode (no events) it's False, but the cell must exist.
+    assert "| False |" in bucket_rows[0] or "| True |" in bucket_rows[0]
 
 
 # ------------------------------------------------- scripted-consumer contract

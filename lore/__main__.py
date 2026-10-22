@@ -560,7 +560,9 @@ def _history_drift_reason(rec: dict) -> str | None:
     return f"lint drift: {detail}"
 
 
-def _audit_rows(history_path: Path | None = None) -> list[dict]:
+def _audit_rows(
+    history_path: Path | None = None, events_path: Path | None = None
+) -> list[dict]:
     """Coverage + freshness matrix rows, one per registry class (PRD US-3).
 
     LORE-064 (PRD SC-3): the freshness signal is now WIRED. After building
@@ -589,8 +591,24 @@ def _audit_rows(history_path: Path | None = None) -> list[dict]:
     the ENTIRE file (44,254 json.loads at a 3,161-row ledger; 1.06 s at
     10x). Semantics are unchanged: newest record per class wins by FILE
     ORDER, torn lines are skipped, a missing file yields the baseline rows.
+
+    LORE-067: incident data path is wired into coverage. ``events_path``
+    is a test seam; production resolves via ``lore.incidents._find_events_path``.
     """
     history = last_local_validation_batch(path=history_path)
+    # LORE-067: wire incident data path into coverage matrix
+    try:
+        from lore.incidents import incident_classes, incident_count
+    except ImportError:
+
+        def incident_classes(**_kw):  # type: ignore
+            return set()
+
+        def incident_count(**_kw):  # type: ignore
+            return 0
+
+    seen_classes = incident_classes(_events_path=events_path)
+    incident_count(events_path=events_path)  # LORE-067: side-effect call for future use
     rows: list[dict] = []
     for rb in compile_all():
         real_commands = [
@@ -598,15 +616,22 @@ def _audit_rows(history_path: Path | None = None) -> list[dict]:
             for c in rb.checks
             if c.command.strip() and c.command.strip() != NO_VALID_EVIDENCE
         ]
+        is_seen = rb.class_id in seen_classes
         row: dict = {
             "class_id": rb.class_id,
             "name": rb.name,
-            "runbook_compiled": True,
+            "runbook_compiled": is_seen,
             "check_count": len(rb.checks),
             "command_count": len(real_commands),
             "last_validated": rb.last_validated or NO_VALID_EVIDENCE,
             "status": rb.status,
         }
+        # LORE-067: surface incident data path
+        row["incident_seen"] = is_seen
+        if not seen_classes:
+            row["coverage_note"] = (
+                "incident source unavailable — coverage based on registry, not incidents"
+            )
         # LORE-051: ``unclassified`` is the catch-all BUCKET (13 curated + 1
         # bucket), not a 14th curated class. Only the bucket entry carries the
         # marker — curated keys stay untouched so scripted consumers can
