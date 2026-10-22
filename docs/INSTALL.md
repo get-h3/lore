@@ -350,7 +350,7 @@ uv run python -m lore compile --class does-not-exist ; echo "exit=$?"
 ```
 
 ```
-error: unknown class_id 'does-not-exist'; registry is closed. Known: gateway-drain-window, shared-checkout-collision, secret-env-clobber, disk-pressure-corruption, cooldown-pin-drift, key-rotation-expiry, guard-degradation, spawn-hot-loop, ingest-backfill-gap, gateway-guard-violation, unclassified
+error: unknown class_id 'does-not-exist'; registry is closed. Known: gateway-drain-window, shared-checkout-collision, secret-env-clobber, disk-pressure-corruption, cooldown-pin-drift, key-rotation-expiry, guard-degradation, spawn-hot-loop, ingest-backfill-gap, gateway-guard-violation, docs-count-drift, worktree-reap-data-loss, fast-forward-push-reject, unclassified
 exit=2
 ```
 
