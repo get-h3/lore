@@ -369,7 +369,13 @@ and what does not:
   flips a drifted runbook to `stale`, carrying the reason. **Default is plan
   mode** — it lists what *would* run and executes nothing; `--execute` opts in.
   The report carries a machine-checkable honesty label: the lint proves commands
-  *parse and answer*, **not** that recovery *succeeds*. No schedule is installed
+  *parse and answer*, **not** that recovery *succeeds*. Executed checks grade the
+  runbook against the live box's logsey index state: with a stale-or-missing
+  logsey index, logsey's JSONL corpus-fallback engine rejects indexed SQL with
+  exit 4 (`unsupported predicate`) and those orders record `error` (the class
+  flips `stale` with reason `lint drift: check N (error)`); that signal is index
+  drift, not runbook drift — `logsey index rebuild` (then re-run the lint)
+  restores `ok`. No schedule is installed
   yet (a separate task owns the weekly timer). A real `--execute` run is also
   PERSISTED locally: one JSONL record per class is appended to
   `.lore/validate-history.jsonl` in the current working directory (git-ignored,

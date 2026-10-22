@@ -38,7 +38,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   MINUTE` windows), not the unshipped `--pattern/--since` flags that exit 2
   ("unexpected second argument") on the actual binary (dogfood run 10,
   verified live on HEAD 9b97fa2). `validate --execute` now reports both
-  checks `ok` (exit 0) instead of env-absent-looking exits; the read-only
+  checks `ok` (exit 0) instead of env-absent-looking exits — with a FRESH
+  logsey index; on a stale-or-missing index logsey serves the JSONL
+  corpus fallback, which rejects the indexed SQL with exit 4
+  (`unsupported predicate`) and the checks record `error` (LORE-060-R2:
+  index drift, not runbook drift — `logsey index rebuild`, then re-run
+  the lint, restores `ok`); the read-only
   gate, the 127-classification fixtures, the README/INSTALL rendered check,
   and the test-count literal were all synced. New
   `tests/test_lore060_logsey_sql_contract.py` pins the single-arg SQL shape
