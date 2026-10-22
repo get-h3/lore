@@ -11,5 +11,7 @@
       "base_sha": "3d38f02",
       "step": 1
     }
-  ]
+  ],
+  "finished_at": "2026-10-22T01:58:03.524176-05:00",
+  "recovery_note": "closed by lore-foreman-2026-10-22-06-02-53 wave-recovery tick: 0 workers, all prior wave branches already merged to main, worktree reaped; recovery re-verified this tick before close."
 }

@@ -1,0 +1,111 @@
+{
+  "task_id": "PERF-2",
+  "task_title": "single-pass ledger read for lore audit",
+  "task_criteria": [
+    "lore audit completes <100ms CLI / ~50ms in-process budget at a 3161-row synthetic ledger with results identical to the multi-pass baseline; full suite+lint+format+count-guard green"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "df800c67196460477a5dc24d93154f67e12db071",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261022T065431.161601Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\nscanners: nice=nice -n 10\n1:54AM INF scanned ~7134404 bytes (7.13 MB) in 1.28s\n1:54AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 203 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261022T065431.161601Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.13.5\ncollected 544 items\n\ntests/test_absorb.py .........................                           [  4%]\ntests/test_bench.py .....                                                [  5%]\ntests/test_classes.py .........                                          [  7%]\ntests/test_classifier.py ............                                    [  9%]\ntests/test_cli_surface.py ......................                         [ 13%]\ntests/test_compiler.py .............................                     [ 18%]\ntests/test_consult.py ....................                               [ 22%]\ntests/test_count_guard.py .............                                  [ 24%]\ntests/test_dist_name.py ....                                             [ 25%]\ntests/test_evidence.py ......................                            [ 29%]\ntests/test_lore011_drain_acceptance.py .......                           [ 30%]\ntests/test_lore016_qa_audit.py .....................                     [ 34%]\ntests/test_lore017_gateway_guard.py ........                             [ 36%]\ntests/test_lore020_absorb_window.py ...                                  [ 36%]\ntests/test_lore021_naming_docs.py .......                                [ 38%]\ntests/test_lore022_freshness_docs.py .....                               [ 38%]\ntests/test_lore030_ux_guard.py ....                                      [ 39%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 41%]\ntests/test_lore041_collision_canonical.py ...........                    [ 43%]\ntests/test_lore043_short_text_threshold.py ....................          [ 47%]\ntests/test_lore045_validate_history.py ....................              [ 51%]\ntests/test_lore046_match_output.py ...........                           [ 53%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 55%]\ntests/test_lore049_guard_secrets_detected.py .....                       [ 56%]\ntests/test_lore050_placeholder_fill_in_and_executed_ratio.py ........... [ 58%]\n.......                                                                  [ 59%]\ntests/test_lore051_audit_bucket.py .........                             [ 61%]\ntests/test_lore052_bash_runner_env_absent.py ...........                 [ 63%]\ntests/test_lore053_absorb_window_error.py ....                           [ 63%]\ntests/test_lore054_match_class_filter.py ....                            [ 64%]\ntests/test_lore055_consult_missing_input.py ......                       [ 65%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 66%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 67%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 69%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 70%]\ntests/test_lore064_audit_wiring.py .............................         [ 75%]\ntests/test_near_miss.py ..............                                   [ 77%]\ntests/test_perf2_audit_single_pass.py ........                           [ 79%]\ntests/test_readme_links.py .                                             [ 79%]\ntests/test_review001_gate_record.py ........                             [ 81%]\ntests/test_review002_recall.py ........                                  [ 82%]\ntests/test_review003_env_absent.py .......                               [ 83%]\ntests/test_validate.py ................................................. [ 92%]\n.......................................                                  [100%]\n\n============================= 544 passed in 3.41s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261022T065431.161601Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 lore audit completes <100ms CLI / ~50ms in-process budget at a 3161-row synthetic ledger with results identical to the multi-pass baseline; full suite+lint+format+count-guard green: PERF (independently measured at a 3165-row synthetic ledger, 14 classes x 226 batches + 1 arm): in-process _audit_rows mean=6.07ms max=6.48ms (budget ~50ms); real CLI subprocess `python -m lore audit --format json` mean=56.6ms median=56.1ms max=61.9ms (budget <100ms); warm main() mean=7.14ms. BASELINE EQUIVALENCE: loaded HEAD~1 lore/__main__.py + lore/validate.py (pre-change multi-pass) under aliases and diffed _audit_rows() output on a 3165-row ledger that also contained a torn line, a blank line and a non-dict line -> 'row count new/old: 14 14', 'rows identical: True'; batch==multipass per class True, 14 keys == 14 classes. IMPLEMENTATION: lore/validate.py:1230 last_local_validation_batch() scans once, keeps LAST record per class_id (newest by FILE ORDER, not max(timestamp)), skips blank/torn/non-dict/non-str-class_id, OSError->{}; lore/__main__.py:597 hoists `history = last_local_validation_batch(path=history_path)` out of the per-class loop and line 620 uses `history.get(rb.class_id)`; last_local_validation still used at __main__.py:76 (not dead). GATES (actual output): `uv run pytest -x --tb=short -q` exit 0 '544 passed in 4.59s'; `uv run pytest tests/test_perf2_audit_single_pass.py -v` exit 0 '8 passed in 0.23s' (incl. test_audit_cli_under_budget, test_audit_matches_multipass_rows, test_audit_cli_json_unchanged_vs_baseline); `uv run ruff check . --quiet` exit 0; `uv run ruff format --check .` exit 0 '213 files already formatted'; `bash scripts/check-test-count.sh` exit 0 'PASS: test-count guard: canonical=544 matches live=544; class-count=13; no stale count literals in living docs'. LSP diagnostics: 0. Docs count synced 536->544 across README/INSTALL/CONTRIBUTING/SKILL.md/scripts/test-count.txt; LORE-061 tests re-seamed to patch last_local_validation_batch.\nSingle-pass ledger read verified: 6.07ms in-process and 56.6ms CLI at a 3165-row ledger, output byte-identical to the pre-change multi-pass baseline, with 544 tests, ruff check/format and the count guard all green.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 lore audit completes <100ms CLI / ~50ms in-process budget at a 3161-row synthetic ledger with results identical to the multi-pass baseline; full suite+lint+format+count-guard green: PERF (independently measured at a 3165-row synthetic ledger, 14 classes x 226 batches + 1 arm): in-process _audit_rows mean=6.07ms max=6.48ms (budget ~50ms); real CLI subprocess `python -m lore audit --format json` mean=56.6ms median=56.1ms max=61.9ms (budget <100ms); warm main() mean=7.14ms. BASELINE EQUIVALENCE: loaded HEAD~1 lore/__main__.py + lore/validate.py (pre-change multi-pass) under aliases and diffed _audit_rows() output on a 3165-row ledger that also contained a torn line, a blank line and a non-dict line -> 'row count new/old: 14 14', 'rows identical: True'; batch==multipass per class True, 14 keys == 14 classes. IMPLEMENTATION: lore/validate.py:1230 last_local_validation_batch() scans once, keeps LAST record per class_id (newest by FILE ORDER, not max(timestamp)), skips blank/torn/non-dict/non-str-class_id, OSError->{}; lore/__main__.py:597 hoists `history = last_local_validation_batch(path=history_path)` out of the per-class loop and line 620 uses `history.get(rb.class_id)`; last_local_validation still used at __main__.py:76 (not dead). GATES (actual output): `uv run pytest -x --tb=short -q` exit 0 '544 passed in 4.59s'; `uv run pytest tests/test_perf2_audit_single_pass.py -v` exit 0 '8 passed in 0.23s' (incl. test_audit_cli_under_budget, test_audit_matches_multipass_rows, test_audit_cli_json_unchanged_vs_baseline); `uv run ruff check . --quiet` exit 0; `uv run ruff format --check .` exit 0 '213 files already formatted'; `bash scripts/check-test-count.sh` exit 0 'PASS: test-count guard: canonical=544 matches live=544; class-count=13; no stale count literals in living docs'. LSP diagnostics: 0. Docs count synced 536->544 across README/INSTALL/CONTRIBUTING/SKILL.md/scripts/test-count.txt; LORE-061 tests re-seamed to patch last_local_validation_batch.\nSingle-pass ledger read verified: 6.07ms in-process and 56.6ms CLI at a 3165-row ledger, output byte-identical to the pre-change multi-pass baseline, with 544 tests, ruff check/format and the count guard all green.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "lore audit completes <100ms CLI / ~50ms in-process budget at a 3161-row synthetic ledger with results identical to the multi-pass baseline; full suite+lint+format+count-guard green",
+                "status": "PASS",
+                "detail": "PERF (independently measured at a 3165-row synthetic ledger, 14 classes x 226 batches + 1 arm): in-process _audit_rows mean=6.07ms max=6.48ms (budget ~50ms); real CLI subprocess `python -m lore audit --format json` mean=56.6ms median=56.1ms max=61.9ms (budget <100ms); warm main() mean=7.14ms. BASELINE EQUIVALENCE: loaded HEAD~1 lore/__main__.py + lore/validate.py (pre-change multi-pass) under aliases and diffed _audit_rows() output on a 3165-row ledger that also contained a torn line, a blank line and a non-dict line -> 'row count new/old: 14 14', 'rows identical: True'; batch==multipass per class True, 14 keys == 14 classes. IMPLEMENTATION: lore/validate.py:1230 last_local_validation_batch() scans once, keeps LAST record per class_id (newest by FILE ORDER, not max(timestamp)), skips blank/torn/non-dict/non-str-class_id, OSError->{}; lore/__main__.py:597 hoists `history = last_local_validation_batch(path=history_path)` out of the per-class loop and line 620 uses `history.get(rb.class_id)`; last_local_validation still used at __main__.py:76 (not dead). GATES (actual output): `uv run pytest -x --tb=short -q` exit 0 '544 passed in 4.59s'; `uv run pytest tests/test_perf2_audit_single_pass.py -v` exit 0 '8 passed in 0.23s' (incl. test_audit_cli_under_budget, test_audit_matches_multipass_rows, test_audit_cli_json_unchanged_vs_baseline); `uv run ruff check . --quiet` exit 0; `uv run ruff format --check .` exit 0 '213 files already formatted'; `bash scripts/check-test-count.sh` exit 0 'PASS: test-count guard: canonical=544 matches live=544; class-count=13; no stale count literals in living docs'. LSP diagnostics: 0. Docs count synced 536->544 across README/INSTALL/CONTRIBUTING/SKILL.md/scripts/test-count.txt; LORE-061 tests re-seamed to patch last_local_validation_batch."
+              }
+            ],
+            "summary": "Single-pass ledger read verified: 6.07ms in-process and 56.6ms CLI at a 3165-row ledger, output byte-identical to the pre-change multi-pass baseline, with 544 tests, ruff check/format and the count guard all green."
+          }
+        }
+      ]
+    }
+  },
+  "summary": "Judge Result: PERF-2\n\nStage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 lore audit completes <100ms CLI / ~50ms in-process budget at a 3161-row synthetic ledger with results identical to the multi-pass baseline; full suite+lint+format+count-guard green: PERF (independently measured at a 3165-row synthetic ledger, 14 classes x 226 batches + 1 arm): in-process _audit_rows mean=6.07ms max=6.48ms (budget ~50ms); real CLI subprocess `python -m lore audit --format json` mean=56.6ms median=56.1ms max=61.9ms (budget <100ms); warm main() mean=7.14ms. BASELINE EQUIVALENCE: loaded HEAD~1 lore/__main__.py + lore/validate.py (pre-change multi-pass) under aliases and diffed _audit_rows() output on a 3165-row ledger that also contained a torn line, a blank line and a non-dict line -> 'row count new/old: 14 14', 'rows identical: True'; batch==multipass per class True, 14 keys == 14 classes. IMPLEMENTATION: lore/validate.py:1230 last_local_validation_batch() scans once, keeps LAST record per class_id (newest by FILE ORDER, not max(timestamp)), skips blank/torn/non-dict/non-str-class_id, OSError->{}; lore/__main__.py:597 hoists `history = last_local_validation_batch(path=history_path)` out of the per-class loop and line 620 uses `history.get(rb.class_id)`; last_local_validation still used at __main__.py:76 (not dead). GATES (actual output): `uv run pytest -x --tb=short -q` exit 0 '544 passed in 4.59s'; `uv run pytest tests/test_perf2_audit_single_pass.py -v` exit 0 '8 passed in 0.23s' (incl. test_audit_cli_under_budget, test_audit_matches_multipass_rows, test_audit_cli_json_unchanged_vs_baseline); `uv run ruff check . --quiet` exit 0; `uv run ruff format --check .` exit 0 '213 files already formatted'; `bash scripts/check-test-count.sh` exit 0 'PASS: test-count guard: canonical=544 matches live=544; class-count=13; no stale count literals in living docs'. LSP diagnostics: 0. Docs count synced 536->544 across README/INSTALL/CONTRIBUTING/SKILL.md/scripts/test-count.txt; LORE-061 tests re-seamed to patch last_local_validation_batch.\nSingle-pass ledger read verified: 6.07ms in-process and 56.6ms CLI at a 3165-row ledger, output byte-identical to the pre-change multi-pass baseline, with 544 tests, ruff check/format and the count guard all green.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-10-22T06:55:39.988667",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-10-22T06:55:40.006470+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 23120,
+        "truncated": false,
+        "source": "git show df800c671964"
+      }
+    ],
+    "task_id": "PERF-2"
+  }
+}

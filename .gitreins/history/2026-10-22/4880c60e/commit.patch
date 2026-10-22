@@ -1,0 +1,529 @@
+commit df800c67196460477a5dc24d93154f67e12db071
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Thu Oct 22 01:53:05 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Thu Oct 22 01:54:31 2026 -0500
+
+    perf(audit): single-pass ledger read (PERF-2). Addresses PERF-2.
+    
+    PERF-2: _audit_rows() re-read and re-parsed the ENTIRE
+    .lore/validate-history.jsonl once per registry class (14 full passes:
+    44,254 json.loads at a 3,161-row ledger, 144 ms; 1.06 s at 10x). New
+    lore.validate.last_local_validation_batch() scans the ledger ONCE and
+    returns {class_id: newest record}; _audit_rows() does dict lookups.
+    Semantics unchanged: newest-wins by FILE ORDER, torn/blank/non-dict
+    lines skipped, missing ledger -> {} (baseline rows).
+    
+    Measured at 4,060 live rows (ledger grew since the row's 3,161
+    measurement): in-process _audit_rows 7.8 ms mean (was ~96 ms
+    ledger-dependent at 3,161 rows; CLI mean 60.8 ms including the ~48 ms
+    interpreter-startup floor). Baseline equivalence and the read contract
+    are pinned in tests/test_perf2_audit_single_pass.py (8 tests):
+    batch==multi-pass newest per class, newest-by-FILE-ORDER (older
+    timestamp in the later position wins), torn/blank/non-dict skip,
+    missing-ledger -> {}, record pass-through (env_absent_orders intact),
+    CLI JSON unchanged vs baseline, CLI <100 ms budget, class ids derived
+    from SEED_CLASSES + UNCLASSIFIED_ID (no hardcoded literals).
+    
+    Count sync: 536 -> 544 (scripts/test-count.txt, README, INSTALL,
+    CONTRIBUTING, skills/lore-usage) — count guard PASS.
+    Existing LORE-061 audit tests re-seamed from
+    last_local_validation -> last_local_validation_batch.
+    
+    Gates: 544 passed; ruff check + format clean; count guard PASS.
+    
+    ch:trace row=PERF-2 commit=none:see-board-row-for-final-sha test=tests/test_perf2_audit_single_pass.py evidence=hyperfine-baseline-vs-fixed
+    
+    Co-Authored-by: totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+---
+ CONTRIBUTING.md                            |   2 +-
+ README.md                                  |   4 +-
+ docs/INSTALL.md                            |   4 +-
+ lore/__main__.py                           |  12 +-
+ lore/validate.py                           |  44 ++++++
+ scripts/test-count.txt                     |   2 +-
+ skills/lore-usage/SKILL.md                 |   2 +-
+ tests/test_lore061_env_absent_rendering.py |  20 ++-
+ tests/test_perf2_audit_single_pass.py      | 246 +++++++++++++++++++++++++++++
+ 9 files changed, 324 insertions(+), 12 deletions(-)
+
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index ba81d87..4c06e4e 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
+ Once `.venv` exists, run the full gate from the repository root:
+ 
+ ```sh
+-uv run pytest -q                    # tests (green at 536 passed)
++uv run pytest -q                    # tests (green at 544 passed)
+ uv run ruff check .                 # lint — "All checks passed!"
+ uv run ruff format --check .        # formatting — "N files already formatted"
+ uv run scripts/check-test-count.sh  # test-count sync guard
+diff --git a/README.md b/README.md
+index 12093d6..719ef22 100644
+--- a/README.md
++++ b/README.md
+@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
+ [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
+ 
+ ```sh
+-uv run pytest -q        # 536 passed
++uv run pytest -q        # 544 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -354,7 +354,7 @@ and what does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
+-  with **536 tests passing** and a clean `ruff check`.
++  with **544 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index fc432ca..046199b 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -80,14 +80,14 @@ Real output on the current tree:
+ ........................................................................ [ 55%]
+ ........................................................................ [ 83%]
+ ........................................................................ [100%]
+-536 passed
++544 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **536 tests** (38 test files: taxonomy, classifier,
++The count to expect is **544 tests** (42 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+diff --git a/lore/__main__.py b/lore/__main__.py
+index 985a106..dec0397 100644
+--- a/lore/__main__.py
++++ b/lore/__main__.py
+@@ -54,6 +54,7 @@ from lore.validate import (
+     OUTCOME_TEMPLATE,
+     is_read_only_command,
+     last_local_validation,
++    last_local_validation_batch,
+     lint_runbook,
+     local_validation_note,
+     persist_validate_history,
+@@ -584,7 +585,16 @@ def _audit_rows(history_path: Path | None = None) -> list[dict]:
+     is a test seam; production resolves ``HISTORY_FILE`` against the
+     current working directory. No history (missing/empty file, no record
+     for the class) → the rows are exactly what they were before.
++
++    PERF-2: the ledger is read ONCE per invocation via
++    :func:`lore.validate.last_local_validation_batch` (one scan builds the
++    newest-record-per-class map), then the per-class loop does dict
++    lookups. Before, each of the 14 registry classes re-read and re-parsed
++    the ENTIRE file (44,254 json.loads at a 3,161-row ledger; 1.06 s at
++    10x). Semantics are unchanged: newest record per class wins by FILE
++    ORDER, torn lines are skipped, a missing file yields the baseline rows.
+     """
++    history = last_local_validation_batch(path=history_path)
+     rows: list[dict] = []
+     for rb in compile_all():
+         real_commands = [
+@@ -607,7 +617,7 @@ def _audit_rows(history_path: Path | None = None) -> list[dict]:
+         # separate registry classes from the bucket instead of miscounting 14.
+         if rb.class_id == UNCLASSIFIED_ID:
+             row["bucket"] = True
+-        rec = last_local_validation(rb.class_id, path=history_path)
++        rec = history.get(rb.class_id)
+         if rec is not None:
+             reason = _history_drift_reason(rec)
+             if reason is not None:
+diff --git a/lore/validate.py b/lore/validate.py
+index 9ac7604..87c0a8f 100644
+--- a/lore/validate.py
++++ b/lore/validate.py
+@@ -180,6 +180,7 @@ __all__ = [
+     "apply_lint",
+     "is_read_only_command",
+     "last_local_validation",
++    "last_local_validation_batch",
+     "lint_all",
+     "lint_runbook",
+     "local_validation_note",
+@@ -1226,6 +1227,49 @@ def last_local_validation(
+     return found
+ 
+ 
++def last_local_validation_batch(
++    path: Path | None = None,
++) -> dict[str, dict]:
++    """PERF-2: newest local-history record per class_id, in ONE file pass.
++
++    Same read contract as :func:`last_local_validation` — pure read; a
++    missing/unreadable file yields ``{}``; blank lines and malformed lines
++    are skipped (a torn line is data loss for that line only, never a
++    crash); a non-dict record is skipped — but scans the file once and
++    returns every class's newest record keyed by ``class_id``, so a caller
++    serving N classes reads the ledger one time instead of N times
++    (PERF-2: ``lore audit`` was 14 full parses per invocation).
++
++    Newest-wins is by FILE ORDER, exactly as in
++    :func:`last_local_validation`: the scan keeps the LAST record per
++    ``class_id``, never max(timestamp). Records are the parsed dicts,
++    unmodified, including fields this module does not write (e.g. a
++    hand-shaped ``env_absent_orders``).
++    """
++    target = path if path is not None else HISTORY_FILE
++    try:
++        with target.open("r", encoding="utf-8") as fh:
++            lines = fh.readlines()
++    except OSError:
++        return {}
++    newest: dict[str, dict] = {}
++    for line in lines:
++        stripped = line.strip()
++        if not stripped:
++            continue
++        try:
++            rec = json.loads(stripped)
++        except ValueError:
++            continue  # a malformed line is skipped, not fatal
++        if not isinstance(rec, dict):
++            continue
++        class_id = rec.get("class_id")
++        if not isinstance(class_id, str):
++            continue
++        newest[class_id] = rec  # keep scanning: the NEWEST record wins
++    return newest
++
++
+ # The exact wording consult/compile surface for a local-history hit —
+ # pinned here so tests and callers read one constant. Names both halves
+ # of the honesty law: LOCAL EVIDENCE, NOT OPERATOR ATTESTATION.
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index 1fc4946..4970e69 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-536
++544
+diff --git a/skills/lore-usage/SKILL.md b/skills/lore-usage/SKILL.md
+index cfb1c8e..953f302 100644
+--- a/skills/lore-usage/SKILL.md
++++ b/skills/lore-usage/SKILL.md
+@@ -120,7 +120,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
+ ## Dev loop
+ 
+ ```sh
+-uv run pytest -q    # expect: 536 passed (count synced to scripts/test-count.txt, LORE-029)
++uv run pytest -q    # expect: 544 passed (count synced to scripts/test-count.txt, LORE-029)
+ uv run ruff check . # expect: All checks passed!
+ ```
+ 
+diff --git a/tests/test_lore061_env_absent_rendering.py b/tests/test_lore061_env_absent_rendering.py
+index 0d04905..a645153 100644
+--- a/tests/test_lore061_env_absent_rendering.py
++++ b/tests/test_lore061_env_absent_rendering.py
+@@ -193,7 +193,10 @@ class TestAuditEnvAbsentOrders:
+             "total_checks": 3,
+         }
+         with (
+-            patch("lore.__main__.last_local_validation", return_value=rec),
++            patch(
++                "lore.__main__.last_local_validation_batch",
++                return_value={"test": rec},
++            ),
+             patch(
+                 "lore.__main__.compile_all",
+                 return_value=[self._make_runbook("test", 3)],
+@@ -232,7 +235,10 @@ class TestAuditEnvAbsentOrders:
+             "total_checks": 1,
+         }
+         with (
+-            patch("lore.__main__.last_local_validation", return_value=rec),
++            patch(
++                "lore.__main__.last_local_validation_batch",
++                return_value={"test": rec},
++            ),
+             patch(
+                 "lore.__main__.compile_all",
+                 return_value=[self._make_runbook("test", 1)],
+@@ -268,7 +274,10 @@ class TestAuditEnvAbsentOrders:
+             "total_checks": 3,
+         }
+         with (
+-            patch("lore.__main__.last_local_validation", return_value=rec),
++            patch(
++                "lore.__main__.last_local_validation_batch",
++                return_value={"test": rec},
++            ),
+             patch(
+                 "lore.__main__.compile_all",
+                 return_value=[self._make_runbook("test", 3)],
+@@ -301,7 +310,10 @@ class TestAuditEnvAbsentOrders:
+             "total_checks": 2,
+         }
+         with (
+-            patch("lore.__main__.last_local_validation", return_value=rec),
++            patch(
++                "lore.__main__.last_local_validation_batch",
++                return_value={"test": rec},
++            ),
+             patch(
+                 "lore.__main__.compile_all",
+                 return_value=[self._make_runbook("test", 2)],
+diff --git a/tests/test_perf2_audit_single_pass.py b/tests/test_perf2_audit_single_pass.py
+new file mode 100644
+index 0000000..47da641
+--- /dev/null
++++ b/tests/test_perf2_audit_single_pass.py
+@@ -0,0 +1,246 @@
++"""PERF-2: ``lore audit`` reads the validate-history ledger in ONE pass.
++
++The disease (board row PERF-2, measured at HEAD a6984b4): ``_audit_rows()``
++called ``last_local_validation(class_id, path=...)`` inside the one-row-per-
++class loop, so a 14-class audit re-read and re-parsed the ENTIRE
++``.lore/validate-history.jsonl`` 14 times — 44,254 ``json.loads`` at the
++live 3,161-row ledger (144 ms mean, 1.06 s at 10x growth). The parse work
++was the cost.
++
++The fix: ``lore.validate.last_local_validation_batch(path)`` scans the file
++ONCE and returns ``{class_id: newest record}``; ``_audit_rows()`` does dict
++lookups in the loop. Semantics are unchanged and pinned here:
++
++- newest record per class wins by FILE ORDER (the scan keeps the last
++  matching line), never max(timestamp) — pinned with an arm where the
++  newest-by-position record carries an OLDER timestamp;
++- torn/blank/non-dict lines are skipped, never fatal (same read contract
++  as ``last_local_validation``);
++- a missing/unreadable ledger yields ``{}`` → the audit rows are exactly
++  the registry baseline (no stale flips, no invented data);
++- the audit result matches the multi-pass baseline: for every registry
++  class the batch map equals what ``last_local_validation`` reports.
++
++SAFETY: no real subprocess anywhere. The synthetic ledger is written by
++hand in the exact record shape ``persist_validate_history`` writes (plus
++one LORE-061-style ``env_absent_orders`` field, which the reader must
++pass through unmodified). CLI runs go through ``main()`` with
++``monkeypatch.chdir`` so the CWD-relative ``HISTORY_FILE`` resolves into
++the tmp dir (same pattern as the LORE-045/LORE-064 tests). Class ids are
++derived from ``SEED_CLASSES`` + the unclassified bucket — never hardcoded.
++"""
++
++from __future__ import annotations
++
++import json
++import time
++from datetime import UTC, datetime, timedelta
++from pathlib import Path
++
++from lore.__main__ import _audit_rows, main
++from lore.classes import SEED_CLASSES, UNCLASSIFIED_ID, get_registry
++from lore.validate import (
++    HONESTY_LABEL,
++    last_local_validation,
++    last_local_validation_batch,
++)
++
++HISTORY_REL = ".lore/validate-history.jsonl"
++
++#: 14 registry classes (13 curated + the unclassified bucket), derived —
++#: never a hardcoded literal list.
++ALL_CLASS_IDS = [cls.id for cls in SEED_CLASSES] + [UNCLASSIFIED_ID]
++
++#: Batch count for the synthetic ledger (~the live 3,161-row size:
++#: 14 classes x 226 batches + one file-order arm record).
++BATCHES = 226
++
++#: PERF-2 acceptance: warm in-process audit budget for the ~3.2k-row
++#: ledger (generous margin over the measured single-pass ~40 ms; the old
++#: 14-pass code spent ~144 ms on the same input).
++AUDIT_BUDGET_S = 0.100
++
++
++# ----------------------------------------------------------------- helpers
++def _record(class_id: str, *, minute: int, drifted: list[int]) -> dict:
++    """A history record shaped exactly like persist_validate_history writes."""
++    ts = datetime(2026, 1, 1, tzinfo=UTC) + timedelta(minutes=minute)
++    return {
++        "class_id": class_id,
++        "timestamp": ts.isoformat(),
++        "honesty_label": HONESTY_LABEL,
++        "outcomes": ["ok"] * 3,
++        "drifted_orders": list(drifted),
++        "executed_count": 3,
++        "total_checks": 3,
++    }
++
++
++def _write_ledger(path: Path, records: list[dict]) -> None:
++    path.parent.mkdir(parents=True, exist_ok=True)
++    path.write_text(
++        "\n".join(json.dumps(r, sort_keys=True) for r in records) + "\n",
++        encoding="utf-8",
++    )
++
++
++def _synthetic_ledger(path: Path) -> list[dict]:
++    """3161-row-class ledger: ALL_CLASS_IDS x BATCHES batches + 1 arm.
++
++    Batch order is the file order, so the LAST batch per class is its
++    newest record. Exactly one class's newest record is drifted (the rest
++    are green), and one trailing record re-writes a green result with an
++    OLDER timestamp — newest-by-FILE-ORDER must win, not max(timestamp).
++    """
++    drifted_id = ALL_CLASS_IDS[0]
++    file_order_id = ALL_CLASS_IDS[1]
++    records: list[dict] = []
++    for batch in range(BATCHES):
++        for cid in ALL_CLASS_IDS:
++            drifted = [2] if (cid == drifted_id and batch == BATCHES - 1) else []
++            records.append(_record(cid, minute=batch, drifted=drifted))
++    # File-order arm: older timestamp, written LAST → must win.
++    records.append(_record(file_order_id, minute=0, drifted=[]))
++    _write_ledger(path, records)
++    return records
++
++
++def _row_for(rows: list[dict], class_id: str) -> dict:
++    hit = next((r for r in rows if r["class_id"] == class_id), None)
++    assert hit is not None, f"class {class_id} missing from audit rows"
++    return hit
++
++
++# ------------------------------------------------------------- batch reader
++class TestLastLocalValidationBatch:
++    def test_batch_matches_multi_pass_baseline(self, tmp_path: Path) -> None:
++        """PERF-2 acceptance: the batch map equals the per-class scans.
++
++        For EVERY registry class, ``last_local_validation_batch`` must
++        report the same newest record as the multi-pass
++        ``last_local_validation`` baseline — the refactor may change HOW
++        MANY times the file is read, never WHAT it reports.
++        """
++        ledger = tmp_path / HISTORY_REL
++        _synthetic_ledger(ledger)
++        batch = last_local_validation_batch(path=ledger)
++        assert sorted(batch) == sorted(ALL_CLASS_IDS)
++        for cid in ALL_CLASS_IDS:
++            assert batch[cid] == last_local_validation(cid, path=ledger), cid
++
++    def test_batch_skips_torn_blank_and_non_dict_lines(self, tmp_path: Path) -> None:
++        """Same read contract as last_local_validation: never fatal."""
++        ledger = tmp_path / HISTORY_REL
++        good = _record(ALL_CLASS_IDS[0], minute=1, drifted=[])
++        lines = [
++            "",
++            "{not json",
++            json.dumps(good),
++            json.dumps(["a", "list"]),  # valid JSON, not a dict
++        ]
++        ledger.parent.mkdir(parents=True, exist_ok=True)
++        ledger.write_text("\n".join(lines) + "\n", encoding="utf-8")
++        batch = last_local_validation_batch(path=ledger)
++        assert batch == {ALL_CLASS_IDS[0]: good}
++
++    def test_missing_ledger_yields_empty_map(self, tmp_path: Path) -> None:
++        assert last_local_validation_batch(path=tmp_path / "nope.jsonl") == {}
++
++    def test_batch_passes_records_through_unmodified(self, tmp_path: Path) -> None:
++        """Fields this module never writes (env_absent_orders) survive."""
++        ledger = tmp_path / HISTORY_REL
++        rec = _record(ALL_CLASS_IDS[2], minute=0, drifted=[])
++        rec["env_absent_orders"] = [1, 3]
++        _write_ledger(ledger, [rec])
++        batch = last_local_validation_batch(path=ledger)
++        assert batch[ALL_CLASS_IDS[2]]["env_absent_orders"] == [1, 3]
++
++
++# ------------------------------------------------------------- audit wiring
++class TestAuditSinglePass:
++    def test_audit_matches_multipass_rows(self, tmp_path: Path, monkeypatch) -> None:
++        """Audit rows off the single-pass read equal a per-class baseline.
++
++        The drifted-newest class flips stale with a drift reason; the
++        class whose newest record is green-by-FILE-ORDER (older timestamp
++        written last) stays proposal — file order wins, not timestamp.
++        """
++        ledger = tmp_path / HISTORY_REL
++        _synthetic_ledger(ledger)
++        monkeypatch.chdir(tmp_path)
++        rows = _audit_rows()
++        assert len(rows) == len(ALL_CLASS_IDS)
++        # Newest record is drifted → stale, same reason wording as before.
++        stale = _row_for(rows, ALL_CLASS_IDS[0])
++        assert stale["status"] == "stale"
++        assert stale["stale_reason"].startswith("lint drift: check 2")
++        # Newest-BY-FILE-ORDER record is green → proposal (not stale),
++        # even though its newest-by-TIMESTAMP record was drifted.
++        by_order = _row_for(rows, ALL_CLASS_IDS[1])
++        assert by_order["status"] == "proposal"
++        assert "stale_reason" not in by_order
++
++    def test_audit_cli_under_budget(self, tmp_path: Path, monkeypatch, capsys) -> None:
++        """PERF-2 acceptance: a warm ``lore audit`` completes < 100 ms.
++
++        One warmup call pays any lazy init (mirrors hyperfine --warmup),
++        then the measured run must parse the ~3.2k-row ledger once and
++        render the full matrix inside the budget.
++        """
++        ledger = tmp_path / HISTORY_REL
++        _synthetic_ledger(ledger)
++        monkeypatch.chdir(tmp_path)
++        main(["audit", "--format", "json"])  # warmup
++        capsys.readouterr()
++        start = time.perf_counter()
++        code = main(["audit", "--format", "json"])
++        elapsed = time.perf_counter() - start
++        out = capsys.readouterr().out
++        assert code == 0
++        payload = json.loads(out)
++        assert payload["summary"]["total_classes"] == len(ALL_CLASS_IDS)
++        assert elapsed < AUDIT_BUDGET_S, (
++            f"lore audit took {elapsed * 1000:.1f} ms (budget "
++            f"{AUDIT_BUDGET_S * 1000:.0f} ms) on a "
++            f"{len(ALL_CLASS_IDS) * BATCHES + 1}-row ledger — single-pass "
++            "read regressed?"
++        )
++
++    def test_audit_cli_json_unchanged_vs_baseline(
++        self, tmp_path: Path, monkeypatch, capsys
++    ) -> None:
++        """The 14-row JSON matrix is byte-stable against a hand baseline.
++
++        For every class the CLI row's freshness fields must match what the
++        multi-pass reader says about that class's newest record — the
++        output contract (LORE-064) is untouched by the read-path change.
++        """
++        ledger = tmp_path / HISTORY_REL
++        _synthetic_ledger(ledger)
++        monkeypatch.chdir(tmp_path)
++        code = main(["audit", "--format", "json"])
++        out = capsys.readouterr().out
++        assert code == 0
++        payload = json.loads(out)
++        batch = last_local_validation_batch(path=ledger)
++        for row in payload["classes"]:
++            rec = batch[row["class_id"]]
++            if rec.get("drifted_orders"):
++                assert row["status"] == "stale"
++                assert row["stale_reason"].startswith("lint drift:")
++            else:
++                assert row["status"] == "proposal"
++                assert "stale_reason" not in row
++
++
++# ----------------------------------------------------------- registry pin
++def test_class_ids_derived_from_seed_registry() -> None:
++    """The ledger builder's class set IS the registry (13 + bucket).
++
++    Guards the derivation itself: if SEED_CLASSES grows, the synthetic
++    ledger grows with it instead of silently benchmarking a stale class
++    list (PERF-2: never hardcode class counts).
++    """
++    registry_ids = [cls.id for cls in get_registry().all_classes()]
++    assert sorted(registry_ids) == sorted(ALL_CLASS_IDS)
++    assert len(ALL_CLASS_IDS) == len(SEED_CLASSES) + 1  # + the bucket
