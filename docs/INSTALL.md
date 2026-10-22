@@ -45,7 +45,7 @@ uv sync --extra dev
 > Bare `uv sync` (without `--extra dev`) is not enough for running tests — tests need `--extra dev`.
 
 `uv sync --extra dev` provisions `.venv` plus pytest and ruff. Real output
-(versions will drift; the shape will not):
+> Versions will drift — the shape of the dependency output stays the same:
 
 ```
  + packaging==26.3
@@ -54,6 +54,8 @@ uv sync --extra dev
  + pytest==9.1.1
  + ruff==0.16.8
 ```
+
+On 2026-10-22 the pasted ruff is `0.16.8` (at time of writing) while `uv.lock` resolved `0.17.1`.
 
 pip-only alternative: `python3 -m venv .venv && .venv/bin/pip install -e .[dev]`.
 
