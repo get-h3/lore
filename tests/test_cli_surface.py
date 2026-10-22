@@ -64,8 +64,10 @@ def test_cli_show_evidence_json(capsys):
     code = _run(["show", "gateway-drain-window", "--evidence", "--format", "json"])
     assert code == 0
     data = json.loads(capsys.readouterr().out)
-    # attach_evidence doubled the seed trail (seed + attached blocks)
-    assert len(data["evidence_trail"]) >= 2
+    # --evidence renders the runbook's own evidence_trail (not doubled);
+    # README-5 fix: the old code re-attached the same trail, causing
+    # 3 -> 6 duplicate entries.  Now it stays at the seed count.
+    assert len(data["evidence_trail"]) == 3
 
 
 # ----------------------------------------------------------------- lore audit

@@ -43,7 +43,6 @@ from lore.consult import ConsultResult, consult, consult_failure
 from lore.evidence import (
     EvidenceBlock,
     LogseyExportParseError,
-    attach_evidence,
     parse_logsey_export,
 )
 from lore.placeholders import placeholder_hints
@@ -500,14 +499,11 @@ def _cmd_show(args: argparse.Namespace) -> int:
         print(f"error: {exc.args[0]}", file=sys.stderr)
         return 2
 
-    if args.evidence:
-        rb = attach_evidence(
-            rb,
-            [
-                EvidenceBlock(kind=e["kind"], detail=e["detail"])
-                for e in rb.evidence_trail
-            ],
-        )
+    # --evidence renders the runbook's own evidence_trail.
+    # attach_evidence appends, so re-wiring the same trail back in would
+    # duplicate every entry (3 -> 6).  The compiled runbook already carries
+    # its trail; we just need the second markdown section below.
+    # See README-5: the call was a no-op double-wire.
 
     if args.format == "json":
         print(json.dumps(rb.to_dict(), indent=2))
