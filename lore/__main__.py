@@ -632,6 +632,8 @@ def _audit_rows(
             row["coverage_note"] = (
                 "incident source unavailable — coverage based on registry, not incidents"
             )
+        else:
+            row["coverage_note"] = ""
         # LORE-051: ``unclassified`` is the catch-all BUCKET (13 curated + 1
         # bucket), not a 14th curated class. Only the bucket entry carries the
         # marker — curated keys stay untouched so scripted consumers can

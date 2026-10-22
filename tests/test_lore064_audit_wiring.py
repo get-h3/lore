@@ -313,7 +313,11 @@ class TestAuditRowsWiring:
             _history_path(tmp_path),
             _drift_record(A_CLASS, [1], ["error"]),
         )
-        rows = _audit_rows(history_path=_history_path(tmp_path))
+        # Pass a nonexistent events path so coverage_note is included
+        rows = _audit_rows(
+            history_path=_history_path(tmp_path),
+            events_path=tmp_path / "nonexistent_events.jsonl",
+        )
         row = _row_for(rows, A_CLASS)
         expected = {
             "class_id",

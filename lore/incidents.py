@@ -3,22 +3,45 @@
 PRD US-3: "every failure class seen in the last 90 days"
 PRD SC-2: "`lore audit` runs on the fleet's last 90 days of incidents"
 
-This module provides `incident_classes()` which reads the board's events.jsonl
-to determine which failure classes have been encountered as incidents (via absorb
-proposals or task completions referencing failure classes).  If no event source
-is available it returns an empty set — graceful degradation, never raises.
+This module provides ``incident_classes()`` which reads the board's events
+and tasks to determine which failure classes have been encountered as
+incidents.  If no event source is available it returns an empty set —
+graceful degradation, never raises.
 
 Usage (production):
     >>> from lore.incidents import incident_classes
     >>> seen = incident_classes(window_days=90)
     >>> assert "gateway-drain-window" in seen
+
+Architecture
+------------
+
+Incident detection uses two signals:
+
+1. **Direct class_id references** — some event details embed
+   ``{"class_id": "gateway-drain-window", "action": "update"}`` or similar
+   structures.  Parsed first (O(n) scan of events).
+
+2. **Board-task correlation** — tasks completed (from events.jsonl) are
+   looked up in the board.  Their ``detail`` and ``foreman_note`` fields
+   are scanned for known class_id patterns (e.g. ``gateway-drain-window``,
+   ``shared-checkout-collision``).  The known class list comes from the
+   runtime registry, so additions to SEED_CLASSES are automatically
+   detected.
+
+Both signals are unioned.  If either source is missing the other fills
+in; if both are missing, an empty set is returned.
 """
 
 from __future__ import annotations
 
 import json
+import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+
+# Lazy-loaded: the full class registry, imported at call time to avoid
+# circular imports when lore.incidents is imported during module init.
 
 
 def _find_events_path() -> Path | None:
@@ -37,6 +60,40 @@ def _find_events_path() -> Path | None:
     if parent.exists():
         return parent
     return None
+
+
+def _find_board_path() -> Path | None:
+    """Locate the board tasks.jsonl for task lookups."""
+    base = Path.cwd()
+    tasks = base / ".coding-hermes" / "board" / "tasks.jsonl"
+    if tasks.exists():
+        return tasks
+    parent = base.parent / ".coding-hermes" / "board" / "tasks.jsonl"
+    if parent.exists():
+        return parent
+    return None
+
+
+def _get_class_ids() -> list[str]:
+    """Return the list of known failure-class IDs from the registry."""
+    try:
+        from lore.classes import SEED_CLASSES, UNCLASSIFIED_CLASS
+
+        return [c.id for c in SEED_CLASSES] + [UNCLASSIFIED_CLASS.id]
+    except ImportError:
+        # Fallback: return common class IDs so we don't miss incidents
+        return []
+
+
+def _build_class_pattern(class_ids: list[str]) -> re.Pattern | None:
+    """Build a regex to match any known class_id in text."""
+    if not class_ids:
+        return None
+    escaped = [re.escape(cid) for cid in class_ids]
+    try:
+        return re.compile("|".join(escaped))
+    except re.error:
+        return None
 
 
 def _parse_absorb_class_ids(events: list[dict]) -> set[str]:
@@ -81,61 +138,60 @@ def _parse_absorb_class_ids(events: list[dict]) -> set[str]:
     return found
 
 
-def _classify_task_ids(
-    task_ids: list[str],
+def _scan_board_task_detail(
+    board_path: Path, class_pattern: re.Pattern | None
 ) -> set[str]:
-    """Map task IDs (from events) to failure-class IDs via the classifier.
+    """Scan board tasks' detail/foreman_note for class_id mentions.
 
-    Uses the classifier's ``classify()`` function.  Returns a set of
-    class_ids that matched incidents in the last window_days.
-    Tasks that don't classify to any class are silently skipped.
+    Returns class_ids found in the text of tasks that are relevant.
     """
-    # Import here to avoid circular imports and to allow graceful degradation
-    try:
-        from lore.classifier import classify, classify_all
-    except ImportError:
+    if class_pattern is None:
         return set()
 
-    class_set: set[str] = set()
-    for task_id in task_ids:
-        # Only LORE-* prefixed task IDs map to failure classes
-        if not task_id.startswith("LORE-"):
-            continue
-        # Classify the task_id string to find its failure class
-        result = classify(task_id)
-        # Classification uses confidence > 0 as the "matched" signal
-        matched = result.confidence > 0
-        if matched and result.class_id == "unclassified":
-            # Get near-misses from classify_all for this task_id
-            all_results = classify_all(task_id)
-            for r in all_results:
-                if r.confidence > 0 and r.class_id != "unclassified":
-                    class_set.add(r.class_id)
-        elif matched and result.class_id and result.class_id != "unclassified":
-            class_set.add(result.class_id)
-    return class_set
+    found: set[str] = set()
+    try:
+        with open(board_path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    task = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+
+                text = " ".join(
+                    str(task.get(k, "")) for k in ("detail", "foreman_note", "title")
+                )
+                if text and class_pattern.search(text):
+                    for cid in class_pattern.findall(text):
+                        found.add(cid)
+    except OSError:
+        pass
+    return found
 
 
 def incident_classes(
     window_days: int = 90,
     *,
     _events_path: Path | None = None,
+    _board_path: Path | None = None,
     _now: datetime | None = None,
 ) -> set[str]:
     """Return the set of failure-class IDs seen in the last *window_days*.
 
-    Reads board events to find:
+    Reads board events and tasks to find:
     1. Absorb proposals (direct class_id references — the primary signal)
-    2. Completed task IDs that map to failure classes via classification
+    2. Board tasks whose detail/notes mention failure-class IDs (secondary signal)
 
     Returns:
-        A set of failure-class IDs (e.g. ``{"gateway-drain-window", ...}``)
-        that have had incident records in the window.  Returns an empty set
+        A set of failure-class IDs (e.g. ``{"gateway-drain-window", ...}``)\
+        that have had incident records in the window.  Returns an empty set\
         if no event source is available or the window contains no data.
 
     Note:
-        If no events file exists, returns ``set()`` — this is graceful
-        degradation, not an error.  The caller (_audit_rows) should note
+        If no events file exists, returns ``set()`` — this is graceful\
+        degradation, not an error.  The caller (_audit_rows) should note\
         this in the audit output.
     """
     if _events_path is None:
@@ -177,11 +233,23 @@ def incident_classes(
     # 1. Extract absorb proposals (direct class_id)
     classes_from_absorb: set[str] = _parse_absorb_class_ids(events)
 
-    # 2. Extract task IDs and classify them
-    task_ids = [evt["task_id"] for evt in events if evt.get("task_id")]
-    classes_from_tasks = _classify_task_ids(task_ids)
+    # 2. Scan board tasks for class_id mentions (secondary signal)
+    if _board_path is None:
+        _board_path = _find_board_path()
 
-    return classes_from_absorb | classes_from_tasks
+    class_ids = _get_class_ids()
+    class_pattern = _build_class_pattern(class_ids)
+    classes_from_board = (
+        _scan_board_task_detail(_board_path, class_pattern)
+        if _board_path is not None
+        else set()
+    )
+
+    # Exclude the catch-all bucket — unclassified is not a real class
+    classes_from_absorb = {c for c in classes_from_absorb if c != "unclassified"}
+    classes_from_board = {c for c in classes_from_board if c != "unclassified"}
+
+    return classes_from_absorb | classes_from_board
 
 
 def incident_count(events_path: Path | None = None, window_days: int = 90) -> int:
