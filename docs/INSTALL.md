@@ -129,9 +129,7 @@ positional arguments:
                         --execute to run the gate-approved read-only commands
     gate                closure absorb-gate (LORE-008): machine-check a lesson
                         decision (absorb or no-new-lesson ack); exit 0 =
-                        allowed, 1 = denied; opt-in --record PATH appends one
-                        JSONL audit record per ALLOWED verdict (denials never
-                        write)
+                        allowed, 1 = denied
     absorb              build the runbook-update PROPOSAL for an absorb
                         decision (stdout only — propose-not-write, nothing is
                         written)
@@ -139,9 +137,7 @@ positional arguments:
                         human-markdown default, --format json optional
     audit               coverage + freshness matrix over every registry class
                         (LORE-010, PRD US-3); honest 'no data' freshness —
-                        never fabricated dates; the `unclassified` catch-all
-                        bucket is marked (`bucket: true` in JSON, `[bucket]`
-                        prefix in table) so it never reads as a 14th class
+                        never fabricated dates
 
 options:
   -h, --help            show this help message and exit
