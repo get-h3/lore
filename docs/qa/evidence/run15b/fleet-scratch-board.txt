@@ -1,0 +1,9 @@
+# fleet-shaped scratch board: .coding-hermes/board/{events,tasks}.jsonl
+#   evt-2 detail = {"class_id": "disk-full-on-host"}  <- NOT a registry class
+#   evt-3 timestamp 2026-06-01 (outside the 90d window)
+{"id": "evt-1", "timestamp": "2026-10-22T10:00:00+00:00", "event": "absorb_proposal", "detail": "{\"class_id\": \"gateway-drain-window\", \"action\": \"update\"}"}
+{"id": "evt-2", "timestamp": "2026-10-21T09:00:00+00:00", "event": "absorb_proposal", "detail": "{\"class_id\": \"disk-full-on-host\", \"action\": \"new\"}"}
+{"id": "evt-3", "timestamp": "2026-06-01T09:00:00+00:00", "event": "absorb_proposal", "detail": "{\"class_id\": \"cooldown-pin-drift\", \"action\": \"update\"}"}
+# --- tasks ---
+{"id": "FLEET-1", "status": "complete", "title": "reap lost data", "detail": "worktree-reap-data-loss recurred", "foreman_note": "see worktree-reap-data-loss"}
+{"id": "FLEET-2", "status": "complete", "title": "host ran out of disk", "detail": "disk-full-on-host", "foreman_note": "rootfs 100%"}

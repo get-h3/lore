@@ -1,0 +1,188 @@
+[
+  {
+    "class_id": "gateway-drain-window",
+    "action": "update",
+    "added": {
+      "evidence_trail": [
+        {
+          "kind": "logsey-export",
+          "detail": "unit=hermes-gateway severity=error component=gateway pid=41022 gateway drain 503 while restart: 96 503s inside the window, baseline 0/hour outside"
+        }
+      ]
+    },
+    "removed": {},
+    "changed": {},
+    "note": "proposal only \u2014 an operator must approve before this lands anywhere",
+    "blocks": [
+      {
+        "kind": "logsey-export",
+        "detail": "unit=hermes-gateway severity=error component=gateway pid=41022 gateway drain 503 while restart: 96 503s inside the window, baseline 0/hour outside",
+        "source": "hermes-gateway",
+        "observed_at": "2026-10-20T08:01:12Z",
+        "outcome": "observed"
+      }
+    ],
+    "lesson": "unit=hermes-gateway severity=error component=gateway pid=41022 gateway drain 503 while restart: 96 503s inside the window, baseline 0/hour outside",
+    "source": "dogfood-run15b",
+    "sweep": {
+      "window": "2h",
+      "ns": null,
+      "board": null,
+      "source": "dogfood-run15b",
+      "blocks_total": 6,
+      "blocks_class": 1,
+      "evidence": [
+        {
+          "kind": "logsey-export",
+          "detail": "unit=hermes-gateway severity=error component=gateway pid=41022 gateway drain 503 while restart: 96 503s inside the window, baseline 0/hour outside"
+        }
+      ]
+    },
+    "provenance": {
+      "kind": "absorb-sweep",
+      "window": "2h",
+      "ns": null,
+      "board": null,
+      "source": "dogfood-run15b"
+    }
+  },
+  {
+    "class_id": "unclassified",
+    "action": "update",
+    "added": {
+      "evidence_trail": [
+        {
+          "kind": "logsey-export",
+          "detail": "unit=hermes-gateway severity=warn component=gateway pid=41022 drain window still open at 25 minutes; dependents not warned in advance"
+        },
+        {
+          "kind": "logsey-export",
+          "detail": "source=docs-lane level=warn component=docs README claims 148 tests passing but the suite collects 523 (docs-count-drift)"
+        },
+        {
+          "kind": "logsey-export",
+          "detail": "source=foreman level=info component=board board row closed without an absorb; no lesson filed"
+        },
+        {
+          "kind": "logsey-export",
+          "detail": "source=kernel level=error component=storage disk pressure: filesystem at 100% busy, duckdb reads timing out"
+        }
+      ]
+    },
+    "removed": {},
+    "changed": {},
+    "note": "proposal only \u2014 an operator must approve before this lands anywhere",
+    "blocks": [
+      {
+        "kind": "logsey-export",
+        "detail": "unit=hermes-gateway severity=warn component=gateway pid=41022 drain window still open at 25 minutes; dependents not warned in advance",
+        "source": "hermes-gateway",
+        "observed_at": "2026-10-20T08:03:44Z",
+        "outcome": "observed"
+      },
+      {
+        "kind": "logsey-export",
+        "detail": "source=docs-lane level=warn component=docs README claims 148 tests passing but the suite collects 523 (docs-count-drift)",
+        "source": "docs-lane",
+        "observed_at": "2026-10-20T08:14:20Z",
+        "outcome": "observed"
+      },
+      {
+        "kind": "logsey-export",
+        "detail": "source=foreman level=info component=board board row closed without an absorb; no lesson filed",
+        "source": "foreman",
+        "observed_at": "2026-10-20T08:17:55Z",
+        "outcome": "observed"
+      },
+      {
+        "kind": "logsey-export",
+        "detail": "source=kernel level=error component=storage disk pressure: filesystem at 100% busy, duckdb reads timing out",
+        "source": "kernel",
+        "observed_at": "2026-10-20T08:21:09Z",
+        "outcome": "observed"
+      }
+    ],
+    "lesson": "unit=hermes-gateway severity=warn component=gateway pid=41022 drain window still open at 25 minutes; dependents not warned in advance\nsource=docs-lane level=warn component=docs README claims 148 tests passing but the suite collects 523 (docs-count-drift)\nsource=foreman level=info component=board board row closed without an absorb; no lesson filed\nsource=kernel level=error component=storage disk pressure: filesystem at 100% busy, duckdb reads timing out",
+    "source": "dogfood-run15b",
+    "sweep": {
+      "window": "2h",
+      "ns": null,
+      "board": null,
+      "source": "dogfood-run15b",
+      "blocks_total": 6,
+      "blocks_class": 4,
+      "evidence": [
+        {
+          "kind": "logsey-export",
+          "detail": "unit=hermes-gateway severity=warn component=gateway pid=41022 drain window still open at 25 minutes; dependents not warned in advance"
+        },
+        {
+          "kind": "logsey-export",
+          "detail": "source=docs-lane level=warn component=docs README claims 148 tests passing but the suite collects 523 (docs-count-drift)"
+        },
+        {
+          "kind": "logsey-export",
+          "detail": "source=foreman level=info component=board board row closed without an absorb; no lesson filed"
+        },
+        {
+          "kind": "logsey-export",
+          "detail": "source=kernel level=error component=storage disk pressure: filesystem at 100% busy, duckdb reads timing out"
+        }
+      ]
+    },
+    "provenance": {
+      "kind": "absorb-sweep",
+      "window": "2h",
+      "ns": null,
+      "board": null,
+      "source": "dogfood-run15b"
+    }
+  },
+  {
+    "class_id": "gateway-guard-violation",
+    "action": "update",
+    "added": {
+      "evidence_trail": [
+        {
+          "kind": "logsey-export",
+          "detail": "source=gitreins-guard severity=error component=guard guard FAILED: secrets detected in staged diff (gitleaks); commit rejected"
+        }
+      ]
+    },
+    "removed": {},
+    "changed": {},
+    "note": "proposal only \u2014 an operator must approve before this lands anywhere",
+    "blocks": [
+      {
+        "kind": "logsey-export",
+        "detail": "source=gitreins-guard severity=error component=guard guard FAILED: secrets detected in staged diff (gitleaks); commit rejected",
+        "source": "gitreins-guard",
+        "observed_at": "2026-10-20T08:11:03Z",
+        "outcome": "observed"
+      }
+    ],
+    "lesson": "source=gitreins-guard severity=error component=guard guard FAILED: secrets detected in staged diff (gitleaks); commit rejected",
+    "source": "dogfood-run15b",
+    "sweep": {
+      "window": "2h",
+      "ns": null,
+      "board": null,
+      "source": "dogfood-run15b",
+      "blocks_total": 6,
+      "blocks_class": 1,
+      "evidence": [
+        {
+          "kind": "logsey-export",
+          "detail": "source=gitreins-guard severity=error component=guard guard FAILED: secrets detected in staged diff (gitleaks); commit rejected"
+        }
+      ]
+    },
+    "provenance": {
+      "kind": "absorb-sweep",
+      "window": "2h",
+      "ns": null,
+      "board": null,
+      "source": "dogfood-run15b"
+    }
+  }
+]

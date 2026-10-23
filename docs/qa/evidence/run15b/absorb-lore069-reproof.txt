@@ -1,0 +1,6 @@
+# LORE-069 RE-PROOF — documented window mode, real prior trail
+{"class_id":"gateway-drain-window","action":"update","added":1,"changed":0,"removed":0}
+{"class_id":"unclassified","action":"update","added":1,"changed":0,"removed":0}
+{"class_id":"gateway-guard-violation","action":"update","added":1,"changed":0,"removed":0}
+# single path (--class/--lesson) for contrast:
+{"class_id":"gateway-drain-window","action":"update","added":0,"changed":0,"blocks":0,"lesson":"logsey checks need a fresh index"}

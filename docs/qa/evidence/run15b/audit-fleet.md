@@ -1,0 +1,18 @@
+| class_id | name | runbook-compiled | checks | real commands | last_validated | status | env_absent | bucket | stale_reason |
+|---|---|---|---|---|---|---|---|---|---|
+| gateway-drain-window | Gateway drain window | True | 7 | 7 | no data | proposal |  | - |  |
+| shared-checkout-collision | Shared checkout collision | False | 3 | 3 | no data | proposal |  | - |  |
+| secret-env-clobber | Secret / .env clobber | False | 2 | 2 | no data | proposal |  | - |  |
+| disk-pressure-corruption | Disk-pressure corruption | False | 3 | 3 | no data | proposal |  | - |  |
+| cooldown-pin-drift | Cooldown / pin drift | False | 3 | 3 | no data | proposal |  | - |  |
+| key-rotation-expiry | Key rotation / expiry | False | 2 | 2 | no data | proposal |  | - |  |
+| guard-degradation | Guard / gate degradation | False | 2 | 2 | no data | proposal |  | - |  |
+| spawn-hot-loop | Spawn hot loop | False | 3 | 3 | no data | proposal |  | - |  |
+| ingest-backfill-gap | Ingest backfill gap | False | 2 | 2 | no data | proposal |  | - |  |
+| gateway-guard-violation | Gateway guard violation | False | 2 | 2 | no data | proposal |  | - |  |
+| docs-count-drift | Docs count drift | False | 2 | 2 | no data | proposal |  | - |  |
+| worktree-reap-data-loss | Worktree reap data loss | True | 2 | 2 | no data | proposal |  | - |  |
+| fast-forward-push-reject | Fast-forward push reject | False | 2 | 2 | no data | proposal |  | - |  |
+| [bucket] unclassified | Unclassified | False | 0 | 0 | no data | proposal |  | yes |  |
+
+**Summary:** 14 classes; 1 with zero real commands; last_validated is never auto-populated in v0.1 (operator attestation is planned, not implemented — a lint run is not attestation); today's freshness signal is the lint itself — the stale flag and its drift reason — and the field honestly reports 'no data' until a human attests. Stale comes from the local validate history (not attestation).

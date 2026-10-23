@@ -1,0 +1,10 @@
+# US-3 gap: a class WITH incidents and NO runbook is unrepresentable
+grep -c disk-full-on-host audit-fleet.json  -> 0
+grep -c disk-full-on-host audit-fleet.md    -> 0
+grep -c disk-full-on-host audit-fleet-table.txt -> 0
+grep -c incident audit-fleet.md             -> 0  (md renders no incident column)
+# rows whose incident_seen=true:
+{"class_id":"gateway-drain-window","runbook_compiled":true,"coverage_note":""}
+{"class_id":"worktree-reap-data-loss","runbook_compiled":true,"coverage_note":""}
+# a row with incident_seen=false still gets coverage_note="":
+{"incident_seen":false,"coverage_note":"","status":"proposal"}

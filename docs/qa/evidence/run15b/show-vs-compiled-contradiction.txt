@@ -1,0 +1,49 @@
+# the contradiction: same binary, same cwd, a class whose 'compiled' column says False
+# Runbook: Secret / .env clobber (`secret-env-clobber`)
+
+- **Status:** proposal
+- **Last validated:** no data (never validated)
+- **Provenance:** Compiled by lore.compiler from the curated class registry (lore.classes) and the fleet's incident history. Operator approval required to publish (propose-not-write).
+- **Signature:** `(?:\.env(?:\.example)?|(?<!\.)env)\s+(?:twins?|clobber|overwrite)`
+
+## Checks (in order)
+
+### Check 1 (read-only)
+
+```sh
+docker inspect <container> --format '{{range .Config.Env}}{{println .}}{{end}}' | head -20
+```
+- Fill-in: `<container>` — the affected container's name or ID (docker ps on the host running the service)
+- Healthy: live secret-bearing values present
+- Incident: example/placeholder values (key 401s downstream)
+- Decision: confirm the clobber before any rewrite
+- Evidence: incident: PRD §The problem, measured case 3: recovery required reading Docker env by hand
+
+### Check 2 (read-only)
+
+```sh
+diff <(grep -o '^[A-Z_]*' .env | sort) <(grep -o '^[A-Z_]*' .env.example | sort)
+```
+- Healthy: key SETS differ: example is a subset/superset only in shape, values never compared
+- Incident: example twin overwrote live keys (same key names, placeholder values)
+- Decision: decide which generations to restore; diff four secret generations by hand if lineage unclear
+- Evidence: incident: .env/.env.example twin-clobber broke central logins until repaired by hand
+
+## Recovery ladder
+
+1. Read the live container env by hand (docker inspect) to establish what the service ACTUALLY sees.
+2. Diff the secret generations to find which value set is the live one.
+3. Repair the container env from the verified live generation, one key at a time.
+4. Re-verify the downstream auth path returns 200 before declaring recovery.
+
+## Guardrails (never X)
+
+- Never copy .env.example over .env (or deploy an example twin over live secrets).
+- Never rewrite container env from the config FILE alone — verify what the container actually sees first.
+- Never compare secret VALUES in a diff that could land in logs — compare key NAMES, repair values out-of-band.
+
+## Evidence trail
+
+- board: LORE-003 seed class 'secret/env clobber'
+- incident: PRD §The problem, measured case 3 (.env/.env.example twin clobber)
+rc=0

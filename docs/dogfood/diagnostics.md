@@ -800,3 +800,69 @@ Use `check_count` for "does a runbook exist", `status`/`stale_reason` for freshn
 Row ids for the fixes: `LORE-067-R2` (column semantics + tests), `LORE-067-R3` (novel classes invisible, prose
 counted as incidents, incident count discarded), `DOC-8` (undocumented source path + the stale skill claim corrected
 here), `LORE-068-R2` (board validator FAIL from a duplicate `foreman_note` key on `DOC-6`).
+## Run 15b (2026-10-23): the scribe surface at the HEAD where LORE-069 shipped, and a fresh-machine battery
+
+**Why this section exists.** Run 15 (same tick, first delivery, commit `f4e0599`) drove the audit
+coverage surface end to end and left a full record above. This section is the tick's SECOND
+delivery: it drives the surface run 15 did not — `lore absorb` after LORE-069's fix — and it adds
+the one thing a coverage audit cannot self-certify, a full fresh-machine battery on a disposable
+bunker agent.
+
+**How the two records relate.** No finding here duplicates run 15's. This session independently
+reproduced run 15's audit findings from its own clean clone (empty dir → 14/14 `compiled=False`
+while `show` prints the runbook; a novel `class_id` yields no row; `coverage_note` invisible in
+table/md) and recorded them as corroboration events **383** / **384** on `LORE-067-R2` /
+`LORE-067-R3` instead of minting sibling rows. Two draft rows of its own on that surface were
+deleted before commit, on the rule that one defect gets one row.
+
+**The one new finding.** `absorb` is the only verb that answers an unknown class with a green
+exit code:
+
+| verb | input | rc |
+|---|---|---|
+| `lore match --class nope` | unknown class | 2 |
+| `lore show nope` | unknown class | 2 |
+| `lore compile --class nope` | unknown class | 2 |
+| `lore absorb --class nope --lesson x` | unknown class | **0** |
+
+`absorb` prints `{"error": "unknown class 'nope'"}` and exits 0, so a `set -e` consumer, a CI
+step or a foreman loop treats a typo'd class as success. The usage skill's prose ("class must
+exist", `skills/lore-usage/SKILL.md`) was already right — the exit code was not — and the caveat
+is now written next to that command. Filed as `LORE-20261011` (P3).
+
+**What held up, measured.** LORE-069's acceptance criterion is met in the documented window mode:
+the real six-block trail at `docs/qa/evidence/run14c/trail-real.txt` yields three proposals, all
+`action=update` with `added=1` (`gateway-drain-window`, `unclassified`, `gateway-guard-violation`).
+A log-shaped `--lesson` folds into one block with `outcome="observed"`; a prose `--lesson` yields
+an explicitly empty update with the text still carried in `lesson` — both honest, both as the
+skill now documents.
+
+**PERF-2 re-proof against the grown ledger.** The defect was filed at 3,161 rows / 144 ms. The
+ledger is now 5,127 rows / 1.4 MB: `strace -f -e trace=openat` counts **one** open of
+`validate-history.jsonl` per audit (14 before the fix) and also one at a synthetic 10× ledger
+(51,270 rows); hyperfine gives 67.6 ± 7.4 ms (5,127) / 154.7 ± 4.8 ms (51,270) / 54.7 ± 4.6 ms
+(no ledger) ⇒ ~1.9 µs marginal per row, linear, and 2.1× faster than the pre-fix number at a
+larger corpus. No PERF row: 155 ms at 10× the real corpus is not something a user waits on. The
+open-count is the load-independent discriminator; the wall numbers move ±10% on a loaded box.
+
+**Fresh-machine battery (install leg), agent `96a5db78` on `bunker-mvp`, TTL 4 h, QA-HEAD
+`f4e0599`, 20 evidence rows.** `fresh-install` OK (`get-h3-lore-0.1.2` wheel + deps),
+`toolchain-bootstrap` OK (go 1.27.3, python venv, gcc/g++, node 22.15.0, compose+buildx),
+`ci-pass` OK (`act`: 1 job green), `upgrade` OK (v0.1.0 tree → HEAD reinstall clean),
+`chaos-resource` PASS (3 GiB cap), `chaos-errorpath` OK (rc=2 on a missing config);
+`docker-deploy` / `chaos-shutdown` / `chaos-corruption` / `ui-probe` N/A by construction (no
+compose file, no db/state files, no web UI). **One cell is UNVERIFIED and is reported as such:**
+`chaos-disconnect` — `disc.log` was empty, so the network cut was never exercised; rc=0 there is
+not a pass. That is the same vacuity `LORE-058` recorded, and the stale-fix question belongs to
+the QA harness (`bunker-qa.sh`), not to lore; it is not filed as a lore recurrence because the
+cited fix is in the harness's deploy path, which this run did not exercise. Agent teardown: destroy
+reported failure, then the agent was GONE from the server list — teardown recovered, no residue
+(confirmed by a follow-up `bunker list`).
+
+**Rules this run re-confirms for the next reader.**
+- A `--lesson`-shaped probe is not a trail probe: the single path can only fold a LOG-SHAPED line
+  into a block. Grading "absorb ignores my lesson" from a prose lesson is a false red.
+- `bunker-qa.sh collect` prints `rc=0` inside a pipeline even when destroy fails; the cell rows,
+  not the exit code, are the verdict.
+- The board validator's FAIL in this repo is pre-existing and row-tracked (`LORE-068-R2`): the
+  baseline at HEAD is 1 error / 94 warnings, and this run's appends added 0 / 0.

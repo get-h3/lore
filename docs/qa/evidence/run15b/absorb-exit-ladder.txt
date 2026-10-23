@@ -1,0 +1,10 @@
+# exit ladder for an unknown class, four verbs, same HEAD
+match --class nope     -> rc=2
+show nope              -> rc=2
+compile --class nope   -> rc=2
+absorb --class nope    -> rc=0
+# absorb's own stderr/stdout on the same call:
+{
+  "error": "unknown class 'nope'"
+}
+rc=0

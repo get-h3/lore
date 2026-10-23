@@ -1,0 +1,15 @@
+# json: runbook_compiled == incident_seen on every row (empty dir)
+{"class_id":"gateway-drain-window","runbook_compiled":false,"incident_seen":false,"coverage_note":"incident source unavailable — coverage based on registry, not incidents"}
+{"class_id":"shared-checkout-collision","runbook_compiled":false,"incident_seen":false,"coverage_note":"incident source unavailable — coverage based on registry, not incidents"}
+{"class_id":"secret-env-clobber","runbook_compiled":false,"incident_seen":false,"coverage_note":"incident source unavailable — coverage based on registry, not incidents"}
+{"class_id":"disk-pressure-corruption","runbook_compiled":false,"incident_seen":false,"coverage_note":"incident source unavailable — coverage based on registry, not incidents"}
+{"class_id":"cooldown-pin-drift","runbook_compiled":false,"incident_seen":false,"coverage_note":"incident source unavailable — coverage based on registry, not incidents"}
+{"class_id":"key-rotation-expiry","runbook_compiled":false,"incident_seen":false,"coverage_note":"incident source unavailable — coverage based on registry, not incidents"}
+{"class_id":"guard-degradation","runbook_compiled":false,"incident_seen":false,"coverage_note":"incident source unavailable — coverage based on registry, not incidents"}
+{"class_id":"spawn-hot-loop","runbook_compiled":false,"incident_seen":false,"coverage_note":"incident source unavailable — coverage based on registry, not incidents"}
+{"class_id":"ingest-backfill-gap","runbook_compiled":false,"incident_seen":false,"coverage_note":"incident source unavailable — coverage based on registry, not incidents"}
+{"class_id":"gateway-guard-violation","runbook_compiled":false,"incident_seen":false,"coverage_note":"incident source unavailable — coverage based on registry, not incidents"}
+{"class_id":"docs-count-drift","runbook_compiled":false,"incident_seen":false,"coverage_note":"incident source unavailable — coverage based on registry, not incidents"}
+{"class_id":"worktree-reap-data-loss","runbook_compiled":false,"incident_seen":false,"coverage_note":"incident source unavailable — coverage based on registry, not incidents"}
+{"class_id":"fast-forward-push-reject","runbook_compiled":false,"incident_seen":false,"coverage_note":"incident source unavailable — coverage based on registry, not incidents"}
+{"class_id":"unclassified","runbook_compiled":false,"incident_seen":false,"coverage_note":"incident source unavailable — coverage based on registry, not incidents"}

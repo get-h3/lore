@@ -50,7 +50,11 @@ exist", run `uv tool upgrade lore` before filing a bug.
   `--reason`. ALLOW → exit 0, DENY → exit 1 with all violations listed.
   `--source qa-dagger|dogfood-dagger` records provenance on the verdict line.
 - `absorb --class X --lesson "..." [--source ...]` — the runbook-update
-  PROPOSAL payload (stdout only, propose-not-write).
+  PROPOSAL payload (stdout only, propose-not-write). EXIT-CODE CAVEAT (run 15b,
+  LORE-20261011): an UNKNOWN class prints `{"error": "unknown class 'X'"}` and
+  still exits **0** — unlike `match --class`, `show` and `compile --class`,
+  which exit 2. In a script, do not trust `absorb`'s rc alone: check that the
+  payload carries no `error` key (or pre-validate the id with `lore show X`).
 - `absorb --window 2h [--trail-file P|--ns N|--source ...]` — sweep a PRIOR
   evidence trail into per-class absorb proposals (stdout only). The trail
   must be a logsey-export payload: a line matching `logsey export`, a fenced
