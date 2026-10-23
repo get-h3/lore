@@ -1,0 +1,6 @@
+rc=0
+window=90d  in-window events=1 (zero incidents)  tasks=2 (both 2024, prose mentions only)
+incident_seen=["gateway-drain-window","worktree-reap-data-loss"]
+compiled_false=["shared-checkout-collision","secret-env-clobber","disk-pressure-corruption","cooldown-pin-drift","key-rotation-expiry","guard-degradation","spawn-hot-loop","ingest-backfill-gap","gateway-guard-violation","docs-count-drift","fast-forward-push-reject","unclassified"]
+--- same board with the old tasks removed (control) ---
+incident_seen=[]

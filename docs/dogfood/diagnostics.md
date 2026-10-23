@@ -737,3 +737,66 @@ explicitly named as out of scope — filed as a doc row at P4 under Bane's doc-s
 
 `match` 56.2 ms ± 4.1 warm (12 runs), `match --explain` 49.9 ms ± 3.5, cold 0.09/0.10 s — the interpreter floor, with
 classification under a millisecond. There is nothing here to optimize and no user wait to report.
+
+## Run 15 (2026-10-23, HEAD `da91c1e`) — the incident path LORE-067 wired, driven as a user
+
+### What the fix actually is
+
+`LORE-067` (closed by `96c7cc2` + `8f217c9`) added `lore/incidents.py` and one call in `_audit_rows`. The shape:
+
+- `_find_events_path()` / `_find_board_path()` (`lore/incidents.py:47-74`) resolve
+  `.coding-hermes/board/{events,tasks}.jsonl` against **`Path.cwd()` and `cwd.parent`** — no flag, no env var, no
+  config. Missing file = `None` = "no incidents", still `rc=0`.
+- `incident_classes()` (`:174`) windows the events file at `:203` (default 90 days), extracts `class_id` from event
+  `detail` (JSON or embedded text, `:99-138`), and unions that with a board-task prose scan (`:141-171`) that has **no
+  window at all**.
+- Both signals can only produce ids the registry already knows: the regex is `_build_class_pattern(SEED_CLASSES ids)`
+  (`:88-96`, `:240-246`).
+- `_audit_rows` then does `is_seen = rb.class_id in seen_classes` and writes that value to **both** `runbook_compiled`
+  and `incident_seen` (`lore/__main__.py:610-634`); `incident_count()` is called at `:611` and its result dropped.
+
+So the fix wired the *presence* of a signal into a column that documented *runbook existence*, instead of adding a
+column beside it. Before the fix the column was a constant `True` (run 14b's finding); after it, the column is a
+different fact that happens to be false for most rows, in most directories, for the classes that are most obviously
+covered.
+
+### The probes that separate mechanism from defect
+
+1. **CWD is the source.** Same HEAD, four directories: repo root (10/14 seen), fresh clone in a bunker box (same),
+   empty dir (0/14), foreign fleet repo `get-h3/shim` (0/14 — 430 events, different vocabulary). A coverage number
+   that changes with where you `cd` is not a coverage number.
+2. **Control vs treatment on the class universe.** Fixture boards with one in-window event:
+   `{"class_id":"gateway-drain-window"}` → `incident_seen=['gateway-drain-window']` (mechanism works);
+   `{"class_id":"postgres-deadlock-storm"}` → `rows=14`, `incident_seen=[]`, novel id absent from the entire output.
+   The discriminator is what makes this a defect in the *story* rather than a bug in the parser: the parser is fine,
+   the universe is closed.
+3. **Window law on the secondary signal.** One generic event + two tasks dated 2024 whose titles merely name class
+   ids → two "incidents". Remove the tasks → none. Prose is a signal; the window is not applied to it.
+4. **The tests that should have caught it.** `tests/test_cli_surface.py:85-88` asserts
+   `isinstance(r["runbook_compiled"], bool)` — any bool passes — and `:95` accepts `"coverage_note" in r or
+   r["runbook_compiled"] is True`. `tests/test_lore051_audit_bucket.py:130` records the change as a comment. 560
+   green tests, zero assertions on the documented meaning of the column. When a fix rewrites a contract, the test
+   that used to pin the contract is where the regression becomes visible — here it was relaxed instead.
+
+### Errors hit on the way (mine, not the product's)
+
+- `bunker exec <agent> --script <file>` mangled the script: the upload wrapper wrote
+  `~/.bunker/exec-script.sh` and the shell reported `unexpected EOF while looking for matching '\''` (line 38 on the
+  first attempt, line 28 on the second — different scripts, same symptom). The staged file was byte-complete
+  (`wc -c` = 2376, `sed -n '24,30p'` correct), so the corruption is in the wrapper's own quoting, not the transfer.
+  **Right way:** `bunker cp --server <s> <local> <agent>:<name>` then
+  `bunker exec --server <s> <agent> -- bash -lc 'bash $HOME/<name>'`. Both of the failed attempts were dropped from
+  the evidence; the leg that produced `fresh-box-leg.txt` is the staged-file run.
+- One probe script's inline `python3 -c` summary had a list-comprehension bug (`string indices must be integers`) in
+  the treatment arm; the arm was re-run with the file-based `jq` reduction before anything was recorded. The failed
+  attempt is not cited as product behaviour.
+
+### Right way to read audit today
+
+Use `check_count` for "does a runbook exist", `status`/`stale_reason` for freshness, and treat `compiled` /
+`incident_seen` as a **cwd-scoped, registry-closed incident hint** until `LORE-067-R2` / `-R3` land. Do not quote
+`summary.total_classes` as fleet coverage — it is the size of a literal tuple.
+
+Row ids for the fixes: `LORE-067-R2` (column semantics + tests), `LORE-067-R3` (novel classes invisible, prose
+counted as incidents, incident count discarded), `DOC-8` (undocumented source path + the stale skill claim corrected
+here), `LORE-068-R2` (board validator FAIL from a duplicate `foreman_note` key on `DOC-6`).

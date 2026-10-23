@@ -1,0 +1,100 @@
+board: /home/kara/get-h3/lore/.coding-hermes/board (topology B)
+rows: 104 tasks, 222 events, 0 fixtures
+key uniformity: 82/104 rows carry only canon keys; drift 22 row(s): base_sha(4), closed(1), closed_by_commit(1), commit(2), content_commit(1), created(13), origin(2), tier(1), verdict(1), wave_tick(2) — 0 fixable by 'boardctl update <id> --normalize'
+[warn] tasks.jsonl line 1 (task LORE-001): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 2 (task LORE-002): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 3 (task LORE-003): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 4 (task LORE-004): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 5 (task LORE-005): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 6 (task LORE-006): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 7 (task LORE-007): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 8 (task LORE-008): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 9 (task LORE-009): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 10 (task LORE-010): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 11 (task LORE-011): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 12 (task LORE-012): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 13 (task LORE-013): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 14 (task LORE-014): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 15 (task LORE-015): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 16 (task LORE-016): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 18 (task LORE-018): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 19 (task LORE-019): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 20 (task LORE-020): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 21 (task LORE-021): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 22 (task QA-LORE-1): guard_result "Tier-1 PASS 82f6a6bf; Tier-2 PASS COMPLETE (async)" is free-form — not in the guard_result vocabulary {PASS,FAIL,SKIP} (valid: that vocabulary or the structured form {"status":"pass|fail|skip|pending","details":"<prose>"}; writes now enforce this; hand-edit the row or rewrite via boardctl update)
+[warn] tasks.jsonl line 22 (task QA-LORE-1): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 23 (task LORE-022): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 24 (task LORE-023): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 25 (task LORE-024): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 26 (task LORE-025): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 27 (task LORE-026): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 28 (task LORE-027): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 31 (task LORE-030): key(s) {origin, wave_tick} outside the declared canon
+[warn] tasks.jsonl line 32 (task LORE-031): key(s) {origin, wave_tick} outside the declared canon
+[warn] tasks.jsonl line 33 (task LORE-032): ci_result "PENDING" is free-form — not in the ci_result vocabulary {GREEN,RED,SKIP} (valid: that vocabulary or the structured form {"status":"pass|fail|skip|pending","details":"<prose>"}; writes now enforce this; hand-edit the row or rewrite via boardctl update)
+[warn] tasks.jsonl line 33 (task LORE-032): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 34 (task LORE-033): created_at absent (null) — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 35 (task LORE-034): created_at absent (null) — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 36 (task LORE-035): created_at absent (null) — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 45 (task README-1): key(s) {base_sha} outside the declared canon
+[warn] tasks.jsonl line 46 (task README-2): title carries "P3" but priority is "P5" — the priority field wins; rewrite the title with 'boardctl update README-2 --title', or fix the field with 'boardctl update README-2 --priority <Pn>', or re-file the row with 'boardctl create --id README-2 --force --priority <Pn>' if it should be re-filed
+[warn] tasks.jsonl line 52 (task RELEASE-LORE-002): key(s) {content_commit} outside the declared canon
+[warn] tasks.jsonl line 53 (task REVIEW-LORE-001): key(s) {base_sha} outside the declared canon
+[warn] tasks.jsonl line 54 (task REVIEW-LORE-002): key(s) {base_sha} outside the declared canon
+[warn] tasks.jsonl line 55 (task REVIEW-LORE-003): key(s) {base_sha} outside the declared canon
+[warn] tasks.jsonl line 59 (task LORE-041): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 60 (task LORE-044): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 63 (task RELEASE-LORE-003-SUP-1): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 64 (task RELEASE-LORE-001): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 68 (task QA-LORE-4): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 69 (task LORE-047): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 70 (task LORE-048-SUP-2): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 72 (task RELEASE-LORE-003): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 73 (task LORE-048): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 74 (task SUP-DEPS-20261013-LORE): ci_result "success" is free-form — not in the ci_result vocabulary {GREEN,RED,SKIP} (valid: that vocabulary or the structured form {"status":"pass|fail|skip|pending","details":"<prose>"}; writes now enforce this; hand-edit the row or rewrite via boardctl update)
+[warn] tasks.jsonl line 75 (task LORE-049): key(s) {closed_by_commit} outside the declared canon
+[warn] tasks.jsonl line 76 (task LORE-050): guard_result "PASS (tier-1, commit 4a8ed83)" is free-form — not in the guard_result vocabulary {PASS,FAIL,SKIP} (valid: that vocabulary or the structured form {"status":"pass|fail|skip|pending","details":"<prose>"}; writes now enforce this; hand-edit the row or rewrite via boardctl update)
+[warn] tasks.jsonl line 76 (task LORE-050): ci_result "success (gh run on main, 2026-10-15)" is free-form — not in the ci_result vocabulary {GREEN,RED,SKIP} (valid: that vocabulary or the structured form {"status":"pass|fail|skip|pending","details":"<prose>"}; writes now enforce this; hand-edit the row or rewrite via boardctl update)
+[warn] tasks.jsonl line 78 (task LORE-20261007): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 78 (task LORE-20261007): key(s) {created} outside the declared canon
+[warn] tasks.jsonl line 79 (task LORE-20261008): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 79 (task LORE-20261008): key(s) {created} outside the declared canon
+[warn] tasks.jsonl line 80 (task LORE-052-SUP-1): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 80 (task LORE-052-SUP-1): key(s) {created} outside the declared canon
+[warn] tasks.jsonl line 81 (task LORE-053): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 81 (task LORE-053): key(s) {commit, created, verdict} outside the declared canon
+[warn] tasks.jsonl line 82 (task LORE-052): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 82 (task LORE-052): key(s) {closed, commit, tier} outside the declared canon
+[warn] tasks.jsonl line 83 (task LORE-054): ci_result "success" is free-form — not in the ci_result vocabulary {GREEN,RED,SKIP} (valid: that vocabulary or the structured form {"status":"pass|fail|skip|pending","details":"<prose>"}; writes now enforce this; hand-edit the row or rewrite via boardctl update)
+[warn] tasks.jsonl line 86 (task PERF-1): ci_result "success" is free-form — not in the ci_result vocabulary {GREEN,RED,SKIP} (valid: that vocabulary or the structured form {"status":"pass|fail|skip|pending","details":"<prose>"}; writes now enforce this; hand-edit the row or rewrite via boardctl update)
+[warn] tasks.jsonl line 87 (task LORE-057): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 87 (task LORE-057): key(s) {created} outside the declared canon
+[warn] tasks.jsonl line 88 (task LORE-058): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 88 (task LORE-058): key(s) {created} outside the declared canon
+[warn] tasks.jsonl line 89 (task LORE-059): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 89 (task LORE-059): key(s) {created} outside the declared canon
+[warn] tasks.jsonl line 90 (task LORE-060): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 90 (task LORE-060): key(s) {created} outside the declared canon
+[warn] tasks.jsonl line 91 (task LORE-061): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 91 (task LORE-061): key(s) {created} outside the declared canon
+[warn] tasks.jsonl line 92 (task LORE-062): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 92 (task LORE-062): key(s) {created} outside the declared canon
+[warn] tasks.jsonl line 93 (task LORE-063): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 93 (task LORE-063): key(s) {created} outside the declared canon
+[warn] tasks.jsonl line 94 (task LORE-064): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 94 (task LORE-064): key(s) {created} outside the declared canon
+[warn] tasks.jsonl line 95 (task LORE-065): created_at absent — the report parser excludes this row from time-based metrics; hand-edit the row to add a parseable created_at
+[warn] tasks.jsonl line 95 (task LORE-065): key(s) {created} outside the declared canon
+[error] tasks.jsonl: line 105: duplicate key "foreman_note" in row
+[warn] events.jsonl line 80: event has no id field (legacy shape tolerated)
+[warn] events.jsonl line 129: event id "128" is not a JSON number (legacy shape tolerated)
+[warn] events.jsonl line 130: event id "130" is not a JSON number (legacy shape tolerated)
+[warn] events.jsonl line 150: event has no id field (legacy shape tolerated)
+[warn] events.jsonl line 159: event has no id field (legacy shape tolerated)
+[warn] events.jsonl line 164: event id "164" is not a JSON number (legacy shape tolerated)
+[warn] events.jsonl line 165: event id "165" is not a JSON number (legacy shape tolerated)
+[warn] events.jsonl line 166: event id "166" is not a JSON number (legacy shape tolerated)
+[warn] events.jsonl line 181: event has no id field (legacy shape tolerated)
+[warn] headerless board (no board.jsonl): tasks.jsonl line 1 is a task row, not board metadata — no header to validate; header counter checks skipped
+RESULT: FAIL (1 error(s), 94 warning(s))
+boardctl: validation failed

@@ -1,0 +1,14 @@
+== ARM 1: REGISTRY class in the incident log (control) ==
+rows=14 seen=['gateway-drain-window']
+== ARM 2: UNKNOWN class in the incident log (treatment) ==
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "<string>", line 1, in <listcomp>
+TypeError: string indices must be integers, not 'str'
+== ARM 2 markdown (what the operator sees) ==
+class_id                   name                       bucket  compiled  checks  real-cmds  last_validated  status    env_absent  stale_reason
+-------------------------  -------------------------  ------  --------  ------  ---------  --------------  --------  ----------  ------------
+gateway-drain-window       Gateway drain window       -       False     7       7          no data         proposal
+shared-checkout-collision  Shared checkout collision  -       False     3       3          no data         proposal
+== grep the whole audit for the novel class ==
+0

@@ -265,35 +265,48 @@ cannot check, and it has now gone stale twice (463 → 510 → 523). Verify by
 hand whenever you touch that line: `pytest -q` vs `cat scripts/test-count.txt`
 vs the literal. Board row: LORE-063-R2 (recurrence of LORE-063).
 
-## `lore audit` answers a REGISTRY question, not a coverage question (run 14b, 2026-10-20, HEAD `6de0660`)
+## `lore audit` answers a REGISTRY question, and (since LORE-067) its incident columns are CWD-relative — and `compiled` does NOT mean "a runbook exists" at HEAD `da91c1e` (run 15, 2026-10-23)
 
-Read this before you quote `lore audit` to anyone as "coverage".
+Read this before you quote `lore audit` to anyone as "coverage", and before you read its `compiled` column as a gap detector.
 
-`lore audit` prints **one row per compiled registry class** — that is exactly what its own docstring says
-(`lore/__main__.py:616`) and what the README's Shipped bullet says ("per **registry class**"). The rows are built by
-`compile_all()` (`lore/__main__.py:583`), the class list is the literal `SEED_CLASSES` tuple
-(`lore/classes.py:38`) plus the `unclassified` bucket, and the runbook bodies are the literal `_CHECKS` table
-(`lore/compiler.py:76`). Consequences worth knowing before you rely on it:
+`lore audit` prints **one row per compiled registry class** — that is what its docstring says
+(`lore/__main__.py:_audit_rows`) and what the README's Shipped bullet says ("per **registry class**"). The rows are
+built by `compile_all()`, the class list is the literal `SEED_CLASSES` tuple (`lore/classes.py:38`) plus the
+`unclassified` bucket, and the runbook bodies are the literal `_CHECKS` table (`lore/compiler.py:76`).
 
-- `summary.total_classes` is the **size of that tuple (14)**, not a count of classes the fleet actually hit. It is
-  14 whether this box has seen zero incidents or ten thousand.
-- `runbook_compiled` is the literal `True` (`lore/__main__.py:592`) — it can never print `False`, so "a class with
-  incidents but no runbook" is **unreachable in this output**. Do not present the column as a gap detector.
-- There is **no incident input** at audit time. Proven by running it from an empty directory: identical 14 rows and
-  identical summary with no repository, no `.lore` ledger and no incident data. The only history-driven field is
-  `status`/`stale_reason` (the `LORE-064` wiring) — which is why the matrix can look live while the coverage half
-  is a constant.
-- The trail parser exists (`parse_logsey_export`, `lore/__main__.py:461`) but only `lore absorb --window` uses it,
-  on a **caller-supplied** trail; it feeds proposals, never coverage.
+**What LORE-067 added at HEAD `da91c1e`, and what is wrong with it** (filed by run 15 as `LORE-067-R2` / `-R3`; the
+sentences below describe the SHIPPED behaviour so read them as warnings, not as the contract):
+
+- Incident data **is** read now — from `.coding-hermes/board/events.jsonl` (and `tasks.jsonl`) resolved against the
+  **current working directory** and its parent (`lore/incidents.py:47-74`). Run audit from a different directory and
+  the incident facts change; when no board is found it degrades silently to "no incidents" with `rc=0`.
+- `runbook_compiled` is set to **incident presence**, not runbook existence (`is_seen = rb.class_id in
+  seen_classes`, then `row["runbook_compiled"] = is_seen`; `lore/__main__.py:610-634`). So it prints `false` for
+  classes whose checks print on the same row (repo root: `cooldown-pin-drift` checks=3, `docs-count-drift` 2,
+  `worktree-reap-data-loss` 2) and `false` for **all 14** in any directory without a board (empty dir, or another
+  fleet repo such as `get-h3/shim`). `incident_seen` carries the same value. **Do not read `false` as "no runbook"
+  — read `check_count`.** Do not present the column as a gap detector either.
+- "A class with incidents but **no runbook**" is still unreachable: the scanner only recognises class ids that are
+  already in the registry (`lore/incidents.py:88-96` builds its regex from `SEED_CLASSES`), and rows only come from
+  `compile_all()`. A novel class_id in `events.jsonl` (probed: `postgres-deadlock-storm`) produces no row, no
+  summary entry, no number at all (`incident_count()` is computed at `lore/__main__.py:611` and discarded).
+- The board-task signal counts **prose mentions with no time window**: a task from 2024 whose title merely says
+  "mention gateway-drain-window in passing" flips `incident_seen` to true (`lore/incidents.py:141-171` has no
+  timestamp filter; only the events file is windowed at `:203`). Documentation edits therefore mutate the report.
+- `summary.total_classes` is the **size of that tuple (14)**, not a count of classes the fleet actually hit — it is 14
+  whether the box has seen zero incidents or ten thousand.
 
 The fields that ARE honest and must stay that way: `last_validated` reports `"no data"` until a human attests (no
-code path writes it — a lint run is not attestation), and the `summary.note` says so. So use audit for what it
-measures — which registry classes exist, how many checks each carries, and whether the local lint has flagged
-drift — and do not use it as evidence of incident coverage. PRD `US-3` / `SC-2` promise the incident-coverage
-reading; that gap is filed as **`LORE-067`**.
+code path writes it — a lint run is not attestation) and `summary.note` says so; `status`/`stale_reason` come from the
+local lint ledger (`LORE-064` wiring). Use audit for what it measures — which registry classes exist, how many checks
+each carries, and whether the local lint has flagged drift — and do not use it as evidence of incident coverage yet.
+PRD `US-3` / `SC-2` promise that reading; the gap is filed as `LORE-067-R2` (column semantics) and `LORE-067-R3`
+(detection: novel classes invisible, prose counted as incidents), with the undocumented source path as `DOC-8`.
 
-Cost: cheap. Warm `lore audit --format json` ≈ 0.11 s on the control box (and ≈ 48 ms with no
-`.lore/validate-history.jsonl`); it grows with that ledger — see the ledger-cost section above and `PERF-2`.
+Cost: 68.0 ms ± 14.6 warm `lore audit --format json` on the repo's 5,127-row ledger (60.6 ms ± 5.8 with no ledger at
+all — the rest is interpreter startup), 146 ms at 10× rows, 1.17 s at 100× (512k rows). The ledger is read **once**
+per invocation (one `openat`, verified with strace — `PERF-2`).
+
 
 ## `lore absorb` proposals are real UPDATES (LORE-069 fixed 2026-10-22) — the run-14c caveat no longer applies
 

@@ -1,0 +1,165 @@
+{
+  "classes": [
+    {
+      "class_id": "gateway-drain-window",
+      "name": "Gateway drain window",
+      "runbook_compiled": false,
+      "check_count": 7,
+      "command_count": 7,
+      "last_validated": "no data",
+      "status": "proposal",
+      "incident_seen": false,
+      "coverage_note": ""
+    },
+    {
+      "class_id": "shared-checkout-collision",
+      "name": "Shared checkout collision",
+      "runbook_compiled": false,
+      "check_count": 3,
+      "command_count": 3,
+      "last_validated": "no data",
+      "status": "proposal",
+      "incident_seen": false,
+      "coverage_note": ""
+    },
+    {
+      "class_id": "secret-env-clobber",
+      "name": "Secret / .env clobber",
+      "runbook_compiled": false,
+      "check_count": 2,
+      "command_count": 2,
+      "last_validated": "no data",
+      "status": "proposal",
+      "incident_seen": false,
+      "coverage_note": ""
+    },
+    {
+      "class_id": "disk-pressure-corruption",
+      "name": "Disk-pressure corruption",
+      "runbook_compiled": false,
+      "check_count": 3,
+      "command_count": 3,
+      "last_validated": "no data",
+      "status": "proposal",
+      "incident_seen": false,
+      "coverage_note": ""
+    },
+    {
+      "class_id": "cooldown-pin-drift",
+      "name": "Cooldown / pin drift",
+      "runbook_compiled": false,
+      "check_count": 3,
+      "command_count": 3,
+      "last_validated": "no data",
+      "status": "proposal",
+      "incident_seen": false,
+      "coverage_note": ""
+    },
+    {
+      "class_id": "key-rotation-expiry",
+      "name": "Key rotation / expiry",
+      "runbook_compiled": false,
+      "check_count": 2,
+      "command_count": 2,
+      "last_validated": "no data",
+      "status": "proposal",
+      "incident_seen": false,
+      "coverage_note": ""
+    },
+    {
+      "class_id": "guard-degradation",
+      "name": "Guard / gate degradation",
+      "runbook_compiled": false,
+      "check_count": 2,
+      "command_count": 2,
+      "last_validated": "no data",
+      "status": "proposal",
+      "incident_seen": false,
+      "coverage_note": ""
+    },
+    {
+      "class_id": "spawn-hot-loop",
+      "name": "Spawn hot loop",
+      "runbook_compiled": false,
+      "check_count": 3,
+      "command_count": 3,
+      "last_validated": "no data",
+      "status": "proposal",
+      "incident_seen": false,
+      "coverage_note": ""
+    },
+    {
+      "class_id": "ingest-backfill-gap",
+      "name": "Ingest backfill gap",
+      "runbook_compiled": false,
+      "check_count": 2,
+      "command_count": 2,
+      "last_validated": "no data",
+      "status": "proposal",
+      "incident_seen": false,
+      "coverage_note": ""
+    },
+    {
+      "class_id": "gateway-guard-violation",
+      "name": "Gateway guard violation",
+      "runbook_compiled": false,
+      "check_count": 2,
+      "command_count": 2,
+      "last_validated": "no data",
+      "status": "proposal",
+      "incident_seen": false,
+      "coverage_note": ""
+    },
+    {
+      "class_id": "docs-count-drift",
+      "name": "Docs count drift",
+      "runbook_compiled": false,
+      "check_count": 2,
+      "command_count": 2,
+      "last_validated": "no data",
+      "status": "proposal",
+      "incident_seen": false,
+      "coverage_note": ""
+    },
+    {
+      "class_id": "worktree-reap-data-loss",
+      "name": "Worktree reap data loss",
+      "runbook_compiled": false,
+      "check_count": 2,
+      "command_count": 2,
+      "last_validated": "no data",
+      "status": "proposal",
+      "incident_seen": false,
+      "coverage_note": ""
+    },
+    {
+      "class_id": "fast-forward-push-reject",
+      "name": "Fast-forward push reject",
+      "runbook_compiled": false,
+      "check_count": 2,
+      "command_count": 2,
+      "last_validated": "no data",
+      "status": "proposal",
+      "incident_seen": false,
+      "coverage_note": ""
+    },
+    {
+      "class_id": "unclassified",
+      "name": "Unclassified",
+      "runbook_compiled": false,
+      "check_count": 0,
+      "command_count": 0,
+      "last_validated": "no data",
+      "status": "proposal",
+      "incident_seen": false,
+      "coverage_note": "",
+      "bucket": true
+    }
+  ],
+  "summary": {
+    "total_classes": 14,
+    "classes_with_zero_real_commands": 1,
+    "stale_classes": 0,
+    "note": "last_validated is never auto-populated in v0.1 (operator attestation is planned, not implemented \u2014 a lint run is not attestation); today's freshness signal is the lint itself \u2014 the stale flag and its drift reason \u2014 and the field honestly reports 'no data' until a human attests. Stale comes from the local validate history (not attestation)."
+  }
+}

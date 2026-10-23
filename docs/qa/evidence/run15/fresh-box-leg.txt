@@ -1,0 +1,51 @@
+lore dogfood run 15 — fresh-machine install leg (ephemeral bunker agent df-lore-1023, server bunker-mvp)
+Captured from `bunker exec --server bunker-mvp --timeout 540 df-lore-1023 -- bash -lc 'bash $HOME/install-leg2.sh'`
+(script staged with `bunker cp`; the `--script` upload path mangles the heredoc-less script's quotes — see diagnostics.md run-15 note)
+Agent: df-lore-1023, expires 2026-10-23T14:18Z, spawn ttl 2h.
+
+=== box ===
+Linux 6.8.0-142-generic
+Python 3.12.3
+uv: absent
+=== t0 12:19:59 ===
+--- documented quickstart: git clone https://github.com/get-h3/lore ---
+clone rc=0 elapsed=1s
+HEAD: da91c1e 2026-10-23 06:54:51 -0500 chore(gitreins): retain DOC-6 verification verdict
+--- uv bootstrap (INSTALL.md documented installer) ---
+uv install rc=0 elapsed=1s
+    source $HOME/.local/bin/env (sh, bash, zsh)
+    source $HOME/.local/bin/env.fish (fish)
+uv: uv 0.13.5 (x86_64-unknown-linux-gnu)
+--- uv sync --extra dev ---
+sync rc=0 elapsed=2s
+ + tomli==2.5.0
+ + tomli-w==1.2.0
+ + typing-extensions==4.16.0
+ + urllib3==2.8.0
+--- docs' OWN first command ---
+gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain
+match rc=0 elapsed=0s
+secret-env-clobber	confidence=0.90	evidence: signature:.env clobber; keyword:.env; keyword:clobber
+rc=0
+unclassified	confidence=0.00	evidence: none
+rc=0
+--- coverage question on a fresh checkout ---
+audit rc=0
+total=14 compiled_true=10 compiled_false=4 checks_but_uncompiled=3
+coverage_note0=''
+summary_keys=['classes_with_zero_real_commands', 'note', 'stale_classes', 'total_classes']
+--- operator markdown view ---
+class_id                   name                       bucket  compiled  checks  real-cmds  last_validated  status    env_absent  stale_reason
+-------------------------  -------------------------  ------  --------  ------  ---------  --------------  --------  ----------  ------------
+gateway-drain-window       Gateway drain window       -       True      7       7          no data         proposal
+shared-checkout-collision  Shared checkout collision  -       True      3       3          no data         proposal
+secret-env-clobber         Secret / .env clobber      -       True      2       2          no data         proposal
+--- test suite (documented command) ---
+pytest rc=0 elapsed=10s
+560 passed in 9.00s
+ruff rc=0
+All checks passed!
+=== t_end 12:20:15 ===
+
+VERDICT (install leg): PASS — documented quickstart driven AS WRITTEN (clone -> uv installer -> uv sync --extra dev -> `uv run python -m lore match "drain 503"`) on a box with no uv and no checkout; ~5s of in-box install time; 560 tests + ruff clean; and the coverage defect (LORE-067-R2) reproduced identically on the fresh clone: compiled_false=4 with checks_but_uncompiled=3.
+Read-back at the end of the tick (`bunker exec ... git log -1`): HEAD da91c1e — the agent's checkout and the controller checkout are the same commit.

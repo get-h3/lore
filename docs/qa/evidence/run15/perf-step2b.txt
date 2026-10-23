@@ -1,0 +1,28 @@
+run 15 — Step 2b measurements (HEAD da91c1e, control box, loadavg ~13-18)
+binary: /home/kara/get-h3/lore/.venv/bin/lore   hyperfine --warmup 1 --runs 5
+ledger: .lore/validate-history.jsonl — 5,127 rows / 1,467,378 bytes
+
+=== PERF-2 re-proof: ledger read is single-pass (was 14 reads, one per class) ===
+strace -f -e trace=openat -o s.txt lore audit --format json
+  x1  (5,127 rows)   openat hits on validate-history.jsonl: 1
+  x10 (51,270 rows)  openat hits on validate-history.jsonl: 1
+VERDICT: PERF-2's core claim holds numerically — one open per invocation at both scales.
+
+=== audit --format json vs ledger size (warm) ===
+  no ledger           mean  60.6 ms ±  5.8 ms   (min 55.7  max 69.7)   <- interpreter+import floor
+  1x   5,127 rows     mean  68.0 ms ± 14.6 ms   (min 58.2  max 92.9)   <- +7.4 ms for the real ledger
+  10x  51,270 rows    mean 146.2 ms ±  4.3 ms   (min 141.3 max 151.7)
+  100x 512,700 rows   mean 1170.6 ms ± 39.0 ms  (min 1121.1 max 1220.8)
+Growth is roughly linear up to 10x and ~13x per 10x at the 100x end (memory/GC, not a re-read).
+
+=== headline operation: match ===
+  warm  `lore match "drain 503"`            mean  76.4 ms ± 8.5 ms   (hyperfine x5)
+  one-shot `/usr/bin/time -p` first run     real 0.06 / user 0.04 / sys 0.01
+  (classification itself is <1 ms; the number is process spawn + imports)
+
+=== verdict on Step 2b ===
+Nothing a user would feel: 68 ms for the audit on the repo's own ledger (+7.4 ms over the
+no-ledger floor), 76 ms for a match. At the ledger's observed growth (~2,000 rows / 3 days
+since 2026-10-20) the 100x arm is ~2 years away, and even there it is 1.17 s.
+NO PERF row filed: a win nobody can feel is not a finding, and PERF-2 already owns the
+scaling work (verified above, not re-filed).
