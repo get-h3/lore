@@ -82,11 +82,11 @@ def test_cli_audit_json_all_classes_honest_freshness(capsys):
     rows = data["classes"]
     assert [r["class_id"] for r in rows] == [c.id for c in get_registry().all_classes()]
     for r in rows:
-        # LORE-067: runbook_compiled is now computed from incident data,
-        # not a literal. In test mode (no events file), it's False with
-        # a coverage_note explaining the degradation path.
+        # The compiled column is registry-derived, independently of incident
+        # coverage. The catch-all may remain an uncompiled zero-check bucket.
         assert isinstance(r["runbook_compiled"], bool)
         assert isinstance(r["check_count"], int)
+        assert r["runbook_compiled"] is (r["check_count"] > 0)
         assert r["command_count"] <= r["check_count"]
         # HONESTY: no fabricated dates — every class reports 'no data' today.
         assert r["last_validated"] == NO_DATA

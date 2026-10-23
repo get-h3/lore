@@ -617,16 +617,19 @@ def _audit_rows(
             if c.command.strip() and c.command.strip() != NO_VALID_EVIDENCE
         ]
         is_seen = rb.class_id in seen_classes
+        check_count = len(rb.checks)
         row: dict = {
             "class_id": rb.class_id,
             "name": rb.name,
-            "runbook_compiled": is_seen,
-            "check_count": len(rb.checks),
+            # The compiled flag describes the registry runbook, not incident
+            # coverage. Incident presence is reported separately below.
+            "runbook_compiled": check_count > 0,
+            "check_count": check_count,
             "command_count": len(real_commands),
             "last_validated": rb.last_validated or NO_VALID_EVIDENCE,
             "status": rb.status,
         }
-        # LORE-067: surface incident data path
+        # LORE-067: surface incident data path independently of compilation.
         row["incident_seen"] = is_seen
         if not seen_classes:
             row["coverage_note"] = (
