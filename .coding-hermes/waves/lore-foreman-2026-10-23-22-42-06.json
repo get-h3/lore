@@ -1,0 +1,29 @@
+{
+  "tick_id": "lore-foreman-2026-10-23-22-42-06",
+  "project": "lore",
+  "budget": 12,
+  "mode": "serial-fallback",
+  "census": {
+    "board": ".coding-hermes/board/tasks.jsonl",
+    "unique_rows": 119,
+    "pending_rows": 6,
+    "dispatchable_rows": 5,
+    "highest_priority_pending": "RELEASE-LORE-003",
+    "highest_priority_dispatchable": "README-7"
+  },
+  "tasks": [
+    {
+      "id": "RELEASE-LORE-003",
+      "dispatched": false,
+      "reason": "owner-gated release authorization is absent; existing row explicitly requires the owner's recorded go and blocks release until CHANGELOG 0.1.2 is promoted"
+    }
+  ],
+  "verification": {
+    "head": "6972cde14c265d74770032d2e003b0d318d7545c",
+    "origin_main": "6972cde14c265d74770032d2e003b0d318d7545c",
+    "release_dry_run": "REFUSE: working tree is dirty — commit or stash before cutting; no release mutation performed",
+    "ci": "latest three GitHub Actions runs completed successfully on exact published heads"
+  },
+  "finished_at": "2026-10-23T22:42:06-05:00",
+  "closeout_note": "No worker or GitReins implementation lifecycle started because the highest-priority pending row is owner-gated. No duplicate row filed. Untracked .gitreins/history verdict bundles were left untouched."
+}
