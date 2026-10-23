@@ -6,10 +6,11 @@
   "census": {
     "board": ".coding-hermes/board/tasks.jsonl",
     "unique_rows": 119,
-    "pending_rows": 6,
-    "dispatchable_rows": 5,
+    "pending_rows": 10,
+    "owner_gated_rows": ["RELEASE-LORE-003"],
+    "dispatchable_rows": 9,
     "highest_priority_pending": "RELEASE-LORE-003",
-    "highest_priority_dispatchable": "README-7"
+    "highest_priority_dispatchable": "LORE-067-R3"
   },
   "tasks": [
     {
@@ -19,11 +20,12 @@
     }
   ],
   "verification": {
-    "head": "6972cde14c265d74770032d2e003b0d318d7545c",
-    "origin_main": "6972cde14c265d74770032d2e003b0d318d7545c",
+    "head_before_tick": "6972cde14c265d74770032d2e003b0d318d7545c",
+    "origin_main_before_tick": "6972cde14c265d74770032d2e003b0d318d7545c",
     "release_dry_run": "REFUSE: working tree is dirty — commit or stash before cutting; no release mutation performed",
     "ci": "latest three GitHub Actions runs completed successfully on exact published heads"
   },
+  "status": "not-dispatched",
   "finished_at": "2026-10-23T22:42:06-05:00",
-  "closeout_note": "No worker or GitReins implementation lifecycle started because the highest-priority pending row is owner-gated. No duplicate row filed. Untracked .gitreins/history verdict bundles were left untouched."
+  "closeout_note": "Highest-priority pending row is owner-gated. No worker or GitReins implementation lifecycle was started. Dispatchable rows remain pending for the next tick. Untracked .gitreins/history verdict bundles were left untouched."
 }
