@@ -104,7 +104,7 @@ re-validated says "no data" rather than a confident-looking date.
 ## Making changes
 
 - **Focused tests.** Run the targeted tests for what you touched first
-  (`uv run pytest tests/<module>_test.py -q` or `-k <pattern>`), then the full
+  (`uv run pytest tests/test_<module>.py -q` or `-k <pattern>`), then the full
   suite before you open a PR. A new function gets a test; a bug fix gets a
   regression test, proven failing (red) before the fix.
 - **Documentation changes.** Docs are part of the verified surface: if you edit
