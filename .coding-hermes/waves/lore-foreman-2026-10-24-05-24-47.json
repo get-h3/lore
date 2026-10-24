@@ -27,5 +27,5 @@
     }
   ],
   "finished_at": "2026-10-24T06:00:00Z",
-  "closeout": "LORE-067-R3 complete; final board closeout commit fee15da pushed; exact-head CI run 40068490309 queued at closeout and must be read before final completion claim."
+  "closeout": "LORE-067-R3 complete; final board closeout commit fee15da pushed; exact-head CI run 40068490309 success; wave manifest closeout follows in commit 45e1f5e."
 }
