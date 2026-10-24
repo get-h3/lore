@@ -608,7 +608,7 @@ def _audit_rows(
             return 0
 
     seen_classes = incident_classes(_events_path=events_path)
-    incident_count(events_path=events_path)  # LORE-067: side-effect call for future use
+    incident_count(events_path=events_path)
     rows: list[dict] = []
     for rb in compile_all():
         real_commands = [
@@ -668,6 +668,17 @@ def _cmd_audit(args: argparse.Namespace) -> int:
     sentinel), and the freshness state. Read-only; stdout only.
     """
     rows = _audit_rows()
+    registry_class_ids = {row["class_id"] for row in rows}
+    try:
+        from lore.incidents import _find_events_path, incident_classes, incident_count
+
+        events_path = _find_events_path()
+        seen_classes = incident_classes(_events_path=events_path)
+        incidents_seen = incident_count(events_path=events_path)
+    except ImportError:
+        seen_classes = set()
+        incidents_seen = 0
+    uncovered_classes = sorted(seen_classes - registry_class_ids)
     zero_command = sum(1 for r in rows if r["command_count"] == 0)
     stale_rows = [r for r in rows if r.get("stale_reason") is not None]
     stale_count = len(stale_rows)
@@ -694,6 +705,8 @@ def _cmd_audit(args: argparse.Namespace) -> int:
                         "total_classes": len(rows),
                         "classes_with_zero_real_commands": zero_command,
                         "stale_classes": stale_count,
+                        "incident_count": incidents_seen,
+                        "uncovered_classes": uncovered_classes,
                         "note": summary_note,
                     },
                 },
@@ -1024,7 +1037,10 @@ def build_parser() -> argparse.ArgumentParser:
         "audit",
         help=(
             "coverage + freshness matrix over every registry class (LORE-010, "
-            "PRD US-3); honest 'no data' freshness — never fabricated dates"
+            "PRD US-3); incident evidence is read from "
+            ".coding-hermes/board/events.jsonl under the current directory "
+            "(90-day window; novel classes land in summary.uncovered_classes); "
+            "honest 'no data' freshness — never fabricated dates"
         ),
     )
     audit_p.add_argument(

@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 560 passed
+uv run pytest -q        # 562 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -354,7 +354,7 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **560 tests passing** and a clean `ruff check`.
+  with **562 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published
@@ -410,6 +410,14 @@ and what does not:
   `bucket: true` on the unclassified entry only (curated entries have no
   `bucket` key), and the table/md render it as `[bucket] unclassified` with
   `yes` in the dedicated bucket column (curated rows show `-`).
+  Incident coverage (LORE-067, LORE-067-R3) is read from the board under the
+  **current working directory** — `.coding-hermes/board/events.jsonl` (plus
+  `tasks.jsonl`) — over a 90-day window. A class seen there gets
+  `incident_seen: true`; a class named by an in-window event but absent from
+  the registry is reported in `summary.uncovered_classes` (a gap you can see
+  before its runbook exists), and `summary.incident_count` carries the number
+  of in-window events. No board → the incident facts degrade to empty with
+  exit 0, and `coverage_note` says the source was unavailable.
 - The `lore absorb --window <dur> [--ns N] [--board B] [--source S]` sweep —
   parses a prior evidence trail from stdin (or `--trail-file`), classifies each
   block, groups by class, and prints per-class absorb **proposals** on stdout.
