@@ -128,13 +128,25 @@ def test_cli_no_subcommand_is_argparse_exit2():
 
 
 # ------------------------------------------------------ absorb error paths
-def test_cli_absorb_unknown_class_failsafe_payload_exit0(capsys):
-    # Implemented behavior: absorb_proposal's fail-safe error payload is
-    # printed at exit 0 (propose-not-write: the error IS the stdout payload).
-    code, out, _err = _run(["absorb", "--class", "nope", "--lesson", "x"], capsys)
-    assert code == 0
-    payload = json.loads(out)
-    assert payload == {"error": "unknown class 'nope'"}
+def test_cli_absorb_unknown_and_valid_classes_and_match_unknown(capsys):
+    unknown_absorb, out, err = _run(
+        ["absorb", "--class", "nope-class", "--lesson", "x"], capsys
+    )
+    assert unknown_absorb == 2
+    assert err == ""
+    assert json.loads(out) == {"error": "unknown class 'nope-class'"}
+
+    valid_absorb, out, err = _run(
+        ["absorb", "--class", "gateway-drain-window", "--lesson", "x"], capsys
+    )
+    assert valid_absorb == 0
+    assert err == ""
+    assert json.loads(out)["class_id"] == "gateway-drain-window"
+
+    unknown_match, out, err = _run(["match", "--class", "nope", "text"], capsys)
+    assert unknown_match == 2
+    assert out == ""
+    assert "error: unknown class 'nope'" in err
 
 
 # ---------------------------------------------- validate PLAN-ONLY default

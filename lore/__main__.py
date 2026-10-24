@@ -439,13 +439,9 @@ def _cmd_absorb(args: argparse.Namespace) -> int:
                 file=sys.stderr,
             )
             return 2
-        print(
-            json.dumps(
-                absorb_proposal(args.class_id, args.lesson, source=args.source),
-                indent=2,
-            )
-        )
-        return 0
+        payload = absorb_proposal(args.class_id, args.lesson, source=args.source)
+        print(json.dumps(payload, indent=2))
+        return 2 if "error" in payload else 0
 
     try:
         parse_duration(args.window)
