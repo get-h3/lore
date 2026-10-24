@@ -1,0 +1,24 @@
+{
+  "tick": "lore-foreman-2026-10-24-05-24-47",
+  "project": "lore",
+  "budget": 1,
+  "mode": "serial-fallback",
+  "census": {
+    "pending": ["RELEASE-LORE-003", "README-7", "README-8", "README-9", "DOC-7", "LORE-070", "DOC-8", "LORE-067-R3", "LORE-068-R2", "LORE-20261011", "PERF-3"],
+    "selected": "LORE-067-R3",
+    "selection_reason": "highest-priority implementation row eligible after owner-gated release row; P3 functional audit gap"
+  },
+  "workers": [
+    {
+      "task_id": "LORE-067-R3",
+      "worktree": "/home/kara/worktrees/lore-LORE-067-R3",
+      "branch": "wt/LORE-067-R3",
+      "base_sha": "9d6bb0d",
+      "status": "dispatched",
+      "pid": 3375270,
+      "model": "glm-5.3-flash",
+      "provider": "ollama-cloud"
+    }
+  ],
+  "finished_at": null
+}
