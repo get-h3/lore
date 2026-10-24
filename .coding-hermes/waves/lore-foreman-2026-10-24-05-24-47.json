@@ -4,7 +4,7 @@
   "budget": 1,
   "mode": "serial-fallback",
   "census": {
-    "pending": ["RELEASE-LORE-003", "README-7", "README-8", "README-9", "DOC-7", "LORE-070", "DOC-8", "LORE-067-R3", "LORE-068-R2", "LORE-20261011", "PERF-3"],
+    "pending_at_selection": ["RELEASE-LORE-003", "README-7", "README-8", "README-9", "DOC-7", "LORE-070", "DOC-8", "LORE-067-R3", "LORE-068-R2", "LORE-20261011", "PERF-3"],
     "selected": "LORE-067-R3",
     "selection_reason": "highest-priority implementation row eligible after owner-gated release row; P3 functional audit gap"
   },
@@ -14,11 +14,18 @@
       "worktree": "/home/kara/worktrees/lore-LORE-067-R3",
       "branch": "wt/LORE-067-R3",
       "base_sha": "9d6bb0d",
-      "status": "dispatched",
+      "implementation_commit": "6457219",
+      "merge_commit": "7f53711",
+      "status": "merged_and_verified",
       "pid": 3375270,
       "model": "glm-5.3-flash",
-      "provider": "ollama-cloud"
+      "provider": "ollama-cloud",
+      "gitreins_verdict": "1b0eda34",
+      "implementation_ci_run": 40068168601,
+      "implementation_ci": "success",
+      "remote_parity": 0
     }
   ],
-  "finished_at": null
+  "finished_at": "2026-10-24T06:00:00Z",
+  "closeout": "LORE-067-R3 complete; final board closeout commit fee15da pushed; exact-head CI run 40068490309 queued at closeout and must be read before final completion claim."
 }
