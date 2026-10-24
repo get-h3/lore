@@ -124,7 +124,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
 ## Dev loop
 
 ```sh
-uv run pytest -q    # expect: 560 passed (count synced to scripts/test-count.txt, LORE-029)
+uv run pytest -q    # expect: 562 passed (count synced to scripts/test-count.txt, LORE-029)
 uv run ruff check . # expect: All checks passed!
 ```
 
@@ -269,43 +269,36 @@ cannot check, and it has now gone stale twice (463 → 510 → 523). Verify by
 hand whenever you touch that line: `pytest -q` vs `cat scripts/test-count.txt`
 vs the literal. Board row: LORE-063-R2 (recurrence of LORE-063).
 
-## `lore audit` answers a REGISTRY question, and (since LORE-067) its incident columns are CWD-relative — and `compiled` does NOT mean "a runbook exists" at HEAD `da91c1e` (run 15, 2026-10-23)
+## `lore audit` answers a REGISTRY question plus an INCIDENT-COVERAGE question, and its incident columns are CWD-relative (LORE-067 + LORE-067-R3, 2026-10-24)
 
-Read this before you quote `lore audit` to anyone as "coverage", and before you read its `compiled` column as a gap detector.
+Read this before you quote `lore audit` to anyone as "coverage".
 
 `lore audit` prints **one row per compiled registry class** — that is what its docstring says
 (`lore/__main__.py:_audit_rows`) and what the README's Shipped bullet says ("per **registry class**"). The rows are
 built by `compile_all()`, the class list is the literal `SEED_CLASSES` tuple (`lore/classes.py:38`) plus the
 `unclassified` bucket, and the runbook bodies are the literal `_CHECKS` table (`lore/compiler.py:76`).
 
-**What LORE-067 added at HEAD `da91c1e`, and what is wrong with it** (filed by run 15 as `LORE-067-R2` / `-R3`; the
-sentences below describe the SHIPPED behaviour so read them as warnings, not as the contract):
+Incident evidence (LORE-067, corrected by LORE-067-R3) lives beside those rows, not inside them:
 
-- Incident data **is** read now — from `.coding-hermes/board/events.jsonl` (and `tasks.jsonl`) resolved against the
-  **current working directory** and its parent (`lore/incidents.py:47-74`). Run audit from a different directory and
-  the incident facts change; when no board is found it degrades silently to "no incidents" with `rc=0`.
-- `runbook_compiled` is set to **incident presence**, not runbook existence (`is_seen = rb.class_id in
-  seen_classes`, then `row["runbook_compiled"] = is_seen`; `lore/__main__.py:610-634`). So it prints `false` for
-  classes whose checks print on the same row (repo root: `cooldown-pin-drift` checks=3, `docs-count-drift` 2,
-  `worktree-reap-data-loss` 2) and `false` for **all 14** in any directory without a board (empty dir, or another
-  fleet repo such as `get-h3/shim`). `incident_seen` carries the same value. **Do not read `false` as "no runbook"
-  — read `check_count`.** Do not present the column as a gap detector either.
-- "A class with incidents but **no runbook**" is still unreachable: the scanner only recognises class ids that are
-  already in the registry (`lore/incidents.py:88-96` builds its regex from `SEED_CLASSES`), and rows only come from
-  `compile_all()`. A novel class_id in `events.jsonl` (probed: `postgres-deadlock-storm`) produces no row, no
-  summary entry, no number at all (`incident_count()` is computed at `lore/__main__.py:611` and discarded).
-- The board-task signal counts **prose mentions with no time window**: a task from 2024 whose title merely says
-  "mention gateway-drain-window in passing" flips `incident_seen` to true (`lore/incidents.py:141-171` has no
-  timestamp filter; only the events file is windowed at `:203`). Documentation edits therefore mutate the report.
-- `summary.total_classes` is the **size of that tuple (14)**, not a count of classes the fleet actually hit — it is 14
-  whether the box has seen zero incidents or ten thousand.
+- The source is `.coding-hermes/board/events.jsonl` (and `tasks.jsonl`) resolved against the **current working
+  directory** and its parent (`lore/incidents.py`). Run audit from a different directory and the incident facts
+  change; when no board is found it degrades to "no incidents" with `rc=0` and `coverage_note` says the source was
+  unavailable.
+- `runbook_compiled` means **a runbook exists** (`check_count > 0`). It is not an incident flag (that was
+  LORE-067-R2, fixed).
+- A class named by a structured `class_id` in an **in-window** event is reported even when the registry has never
+  heard of it: it appears in `summary.uncovered_classes`, and `summary.incident_count` carries the in-window event
+  count. That is the "incidents but no runbook" question from PRD US-3 — a novel class no longer disappears.
+- The board-task signal is time-bounded and evidence-only: a task counts only if it carries a structured
+  incident/closure marker (`source`/`kind`/`type`/`event_type`/`action` = `incident`/`closure`…) AND its own
+  `created_at`/`updated_at`/`completed_at`/`ts` falls inside the window. Old task prose that merely names a class id
+  is **not** an incident (that was LORE-067-R3's second half, fixed).
+- `summary.total_classes` is still the **size of the registry tuple (14)**, not a count of classes the fleet actually
+  hit. Read `incident_count` / `uncovered_classes` for the fleet reading.
 
 The fields that ARE honest and must stay that way: `last_validated` reports `"no data"` until a human attests (no
 code path writes it — a lint run is not attestation) and `summary.note` says so; `status`/`stale_reason` come from the
-local lint ledger (`LORE-064` wiring). Use audit for what it measures — which registry classes exist, how many checks
-each carries, and whether the local lint has flagged drift — and do not use it as evidence of incident coverage yet.
-PRD `US-3` / `SC-2` promise that reading; the gap is filed as `LORE-067-R2` (column semantics) and `LORE-067-R3`
-(detection: novel classes invisible, prose counted as incidents), with the undocumented source path as `DOC-8`.
+local lint ledger (`LORE-064` wiring).
 
 Cost: 68.0 ms ± 14.6 warm `lore audit --format json` on the repo's 5,127-row ledger (60.6 ms ± 5.8 with no ledger at
 all — the rest is interpreter startup), 146 ms at 10× rows, 1.17 s at 100× (512k rows). The ledger is read **once**

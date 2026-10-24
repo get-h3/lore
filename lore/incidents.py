@@ -18,25 +18,25 @@ Architecture
 
 Incident detection uses two signals:
 
-1. **Direct class_id references** — some event details embed
-   ``{"class_id": "gateway-drain-window", "action": "update"}`` or similar
-   structures.  Parsed first (O(n) scan of events).
+1. **Direct class_id references** — event records whose detail embeds
+   ``{"class_id": "gateway-drain-window", "action": "update"}`` (or a
+   top-level equivalent) are extracted without consulting the registry.  A
+   newly observed class therefore remains visible to the audit even before a
+   runbook is compiled for it.
 
-2. **Board-task correlation** — tasks completed (from events.jsonl) are
-   looked up in the board.  Their ``detail`` and ``foreman_note`` fields
-   are scanned for known class_id patterns (e.g. ``gateway-drain-window``,
-   ``shared-checkout-collision``).  The known class list comes from the
-   runtime registry, so additions to SEED_CLASSES are automatically
-   detected.
+2. **Board-task correlation** — retained only as a secondary signal for
+   explicitly marked incident/closure tasks.  A task must have its own
+   timestamp inside the window; arbitrary class-id prose in historical task
+   titles and notes is not incident evidence.
 
-Both signals are unioned.  If either source is missing the other fills
-in; if both are missing, an empty set is returned.
+Direct event evidence is authoritative and task evidence is filtered to the
+registry's known classes.  If either source is missing the other fills in; if
+both are missing, an empty set is returned.
 """
 
 from __future__ import annotations
 
 import json
-import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -85,87 +85,111 @@ def _get_class_ids() -> list[str]:
         return []
 
 
-def _build_class_pattern(class_ids: list[str]) -> re.Pattern | None:
-    """Build a regex to match any known class_id in text."""
-    if not class_ids:
-        return None
-    escaped = [re.escape(cid) for cid in class_ids]
-    try:
-        return re.compile("|".join(escaped))
-    except re.error:
-        return None
+def _parse_class_ids(value: object) -> set[str]:
+    """Extract explicit ``class_id`` values from a JSON-like value.
 
-
-def _parse_absorb_class_ids(events: list[dict]) -> set[str]:
-    """Extract failure-class IDs from absorb proposal records in events.
-
-    Absorb proposals are stored in event ``detail`` as a JSON string that
-    contains ``"class_id": "..."``.  Returns the unique set of class_ids.
+    This intentionally does not search arbitrary prose.  A class is incident
+    evidence when the source names it in a structured ``class_id`` field.
     """
     found: set[str] = set()
-    for evt in events:
-        detail = evt.get("detail") or ""
-        # The detail may be a dict or a JSON string
-        if isinstance(detail, dict):
-            if "class_id" in detail:
-                found.add(detail["class_id"])
-            continue
-        detail = str(detail) if detail else ""
-        if not detail:
-            continue
-        # Try parsing as embedded JSON first
+    if isinstance(value, dict):
+        class_id = value.get("class_id")
+        if isinstance(class_id, str) and class_id.strip():
+            found.add(class_id.strip())
+        for nested in value.values():
+            if isinstance(nested, (dict, list)):
+                found.update(_parse_class_ids(nested))
+    elif isinstance(value, list):
+        for item in value:
+            found.update(_parse_class_ids(item))
+    elif isinstance(value, str):
         try:
-            embedded = json.loads(detail)
-            if isinstance(embedded, dict):
-                if "class_id" in embedded:
-                    found.add(embedded["class_id"])
-                # Also check if embedded is a list
-                if isinstance(embedded, list):
-                    for item in embedded:
-                        if isinstance(item, dict) and "class_id" in item:
-                            found.add(item["class_id"])
-                continue
+            parsed = json.loads(value)
         except (json.JSONDecodeError, TypeError):
-            pass
-        # Fallback: grep for "class_id" in the raw string
-        idx = detail.find('"class_id"')
-        if idx >= 0:
-            rest = detail[idx + 11 :]
-            if rest.startswith('"'):
-                end = rest.find('"', 1)
-                if end > 0:
-                    found.add(rest[1:end])
+            return set()
+        if isinstance(parsed, (dict, list)):
+            found.update(_parse_class_ids(parsed))
     return found
 
 
-def _scan_board_task_detail(
-    board_path: Path, class_pattern: re.Pattern | None
-) -> set[str]:
-    """Scan board tasks' detail/foreman_note for class_id mentions.
+def _parse_absorb_class_ids(events: list[dict]) -> set[str]:
+    """Extract explicit class IDs from in-window event records."""
+    found: set[str] = set()
+    for event in events:
+        found.update(_parse_class_ids(event))
+    return found
 
-    Returns class_ids found in the text of tasks that are relevant.
-    """
-    if class_pattern is None:
+
+def _parse_timestamp(value: object) -> datetime | None:
+    """Parse a board timestamp, treating naive values as UTC."""
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        timestamp = datetime.fromisoformat(value)
+    except ValueError:
+        return None
+    return timestamp.replace(tzinfo=UTC) if timestamp.tzinfo is None else timestamp
+
+
+def _task_timestamp(task: dict) -> datetime | None:
+    """Return the first usable timestamp owned by a task record."""
+    for key in ("created_at", "updated_at", "completed_at", "ts", "timestamp"):
+        timestamp = _parse_timestamp(task.get(key))
+        if timestamp is not None:
+            return timestamp
+    return None
+
+
+def _is_incident_task(task: dict) -> bool:
+    """Accept only structured incident/closure task signals, not prose."""
+    for key in ("source", "kind", "type", "event_type", "action"):
+        value = task.get(key)
+        if isinstance(value, str) and value.lower() in {
+            "incident",
+            "incident-closure",
+            "incident_close",
+            "closure",
+            "closed-incident",
+        }:
+            return True
+    detail = task.get("detail")
+    if isinstance(detail, dict):
+        for key in ("source", "kind", "type", "event_type", "action"):
+            value = detail.get(key)
+            if isinstance(value, str) and value.lower() in {
+                "incident",
+                "incident-closure",
+                "incident_close",
+                "closure",
+                "closed-incident",
+            }:
+                return True
+    return False
+
+
+def _scan_board_task_detail(
+    board_path: Path, class_ids: set[str], cutoff: datetime, now: datetime
+) -> set[str]:
+    """Extract known class IDs from recent structured incident task records."""
+    if not class_ids:
         return set()
 
     found: set[str] = set()
     try:
-        with open(board_path) as f:
-            for line in f:
-                line = line.strip()
-                if not line:
+        with open(board_path, encoding="utf-8") as board:
+            for line in board:
+                if not line.strip():
                     continue
                 try:
                     task = json.loads(line)
                 except json.JSONDecodeError:
                     continue
-
-                text = " ".join(
-                    str(task.get(k, "")) for k in ("detail", "foreman_note", "title")
-                )
-                if text and class_pattern.search(text):
-                    for cid in class_pattern.findall(text):
-                        found.add(cid)
+                if not isinstance(task, dict) or not _is_incident_task(task):
+                    continue
+                timestamp = _task_timestamp(task)
+                if timestamp is None or timestamp < cutoff or timestamp > now:
+                    continue
+                found.update(_parse_class_ids(task) & class_ids)
     except OSError:
         pass
     return found
@@ -200,56 +224,76 @@ def incident_classes(
         return set()
 
     events: list[dict] = []
-    cutoff = (_now or datetime.now(UTC)) - timedelta(days=window_days)
+    now = _now or datetime.now(UTC)
+    cutoff = now - timedelta(days=window_days)
 
     try:
-        with open(_events_path) as f:
-            for line in f:
-                line = line.strip()
-                if not line:
+        with open(_events_path, encoding="utf-8") as event_file:
+            for line in event_file:
+                if not line.strip():
                     continue
                 try:
-                    evt = json.loads(line)
+                    event = json.loads(line)
                 except json.JSONDecodeError:
                     continue
-                # Check timestamp against window
-                ts_str = evt.get("timestamp", "")
-                if ts_str:
-                    try:
-                        ts = datetime.fromisoformat(ts_str)
-                        if ts.tzinfo is None:
-                            ts = ts.replace(tzinfo=UTC)
-                        if ts < cutoff:
-                            continue
-                    except ValueError:
-                        continue
-                events.append(evt)
+                if not isinstance(event, dict):
+                    continue
+                timestamp = _parse_timestamp(event.get("timestamp", event.get("ts")))
+                # Untimestamped events cannot be placed honestly in a window.
+                if timestamp is None or timestamp < cutoff or timestamp > now:
+                    continue
+                events.append(event)
     except OSError:
         return set()
 
     if not events:
         return set()
 
-    # 1. Extract absorb proposals (direct class_id)
-    classes_from_absorb: set[str] = _parse_absorb_class_ids(events)
+    # Direct event evidence is not constrained by the current registry.  This
+    # is what makes a novel incident class visible before its runbook exists.
+    classes_from_events = _parse_absorb_class_ids(events)
 
-    # 2. Scan board tasks for class_id mentions (secondary signal)
     if _board_path is None:
         _board_path = _find_board_path()
-
-    class_ids = _get_class_ids()
-    class_pattern = _build_class_pattern(class_ids)
+    known_class_ids = set(_get_class_ids())
     classes_from_board = (
-        _scan_board_task_detail(_board_path, class_pattern)
+        _scan_board_task_detail(_board_path, known_class_ids, cutoff, now)
         if _board_path is not None
         else set()
     )
 
-    # Exclude the catch-all bucket — unclassified is not a real class
-    classes_from_absorb = {c for c in classes_from_absorb if c != "unclassified"}
-    classes_from_board = {c for c in classes_from_board if c != "unclassified"}
+    # Exclude the catch-all bucket — unclassified is not a real class.
+    classes_from_events.discard("unclassified")
+    classes_from_board.discard("unclassified")
+    return classes_from_events | classes_from_board
 
-    return classes_from_absorb | classes_from_board
+
+def _count_windowed_events(
+    events_path: Path | None, window_days: int, now: datetime | None = None
+) -> int:
+    """Count timestamped event records in the requested window."""
+    if events_path is None:
+        return 0
+    current = now or datetime.now(UTC)
+    cutoff = current - timedelta(days=window_days)
+    count = 0
+    try:
+        with open(events_path, encoding="utf-8") as event_file:
+            for line in event_file:
+                if not line.strip():
+                    continue
+                try:
+                    event = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if not isinstance(event, dict):
+                    continue
+                timestamp = _parse_timestamp(event.get("timestamp", event.get("ts")))
+                if timestamp is not None and cutoff <= timestamp <= current:
+                    count += 1
+    except OSError:
+        return 0
+    return count
 
 
 def incident_count(events_path: Path | None = None, window_days: int = 90) -> int:
@@ -263,28 +307,4 @@ def incident_count(events_path: Path | None = None, window_days: int = 90) -> in
     if events_path is None:
         return 0
 
-    cutoff = datetime.now(UTC) - timedelta(days=window_days)
-    count = 0
-    try:
-        with open(events_path) as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    evt = json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-                ts_str = evt.get("timestamp", "")
-                if ts_str:
-                    try:
-                        ts = datetime.fromisoformat(ts_str)
-                        if ts.tzinfo is None:
-                            ts = ts.replace(tzinfo=UTC)
-                        if ts >= cutoff:
-                            count += 1
-                    except ValueError:
-                        continue
-    except OSError:
-        return 0
-    return count
+    return _count_windowed_events(events_path, window_days)
