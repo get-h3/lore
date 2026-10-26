@@ -3,34 +3,46 @@
 Tick: `lore-dogfood-2026-10-26-12-43-59`
 Product HEAD: `d015baaef21d04c46f4dbca0598b965c26e6b8f2`
 
-## Promise and real use
+## Promise
 
-lore promises a runbook lookup from a symptom, ordered validation checks, proposal-only absorb output, and an audit matrix. A detached HEAD worktree ran the documented CLI surface with isolated HOME/state:
+A fleet operator can install `lore`, paste a failure symptom, retrieve the matching runbook and its ordered checks, and audit recent incident coverage honestly. A post-incident scribe can produce a proposal-only absorb update. The documented fresh-machine path is `git clone`, install `uv`, `uv sync --extra dev`, then run the CLI.
 
-- `uv sync --extra dev`: rc 0.
-- README match examples reproduced: `drain 503` -> `gateway-drain-window` at confidence 0.90; `secret .env clobber` -> `secret-env-clobber` at 0.90; the coffee-machine example -> explicit `unclassified` at 0.00; `gateway drain 503` -> `gateway-drain-window` at 0.90.
-- `compile --class gateway-drain-window --format json`: rc 0, structured runbook proposal.
-- `validate --class gateway-drain-window`: rc 0, plan-only output that names commands without executing them.
-- `absorb --window 2h --trail-file <two-line trail> --source dogfood-dagger`: rc 0, one gateway proposal with two observed evidence blocks; proposal-only output.
-- `audit --format json`: rc 0, 14 classes and `summary.incident_count=218`; the actual JSON shape is an object containing `classes` and `summary`.
-- Unknown `absorb --class does-not-exist --lesson x`: rc 2 with `unknown class`, matching the current implementation.
+## Evidence boundary
 
-The existing LORE-070 issue was re-proven as a current surface concern: `consult --failure "spawn 503 while restarting" --json` returned rc 0 but `class_id: null` and zero checks in this detached HEAD, while the committed usage skill and diagnostics claim that form returns `gateway-drain-window` with seven checks. No new board row was created because this is the same finding family; the foreman should compare the current behavior with LORE-070's committed evidence before deciding whether it is a regression or environment/data discrepancy.
+The canonical checkout was `/home/kara/get-h3/lore`, branch `main`, HEAD `d015baaef21d04c46f4dbca0598b965c26e6b8f2`, equal to `origin/main` at the start of the run. The checkout had only pre-existing untracked `.gitreins/history/` runtime artifacts; no product source or board state was changed. Local CLI probes used the existing `.venv` and scratch directories. The bunker battery recorded the same QA HEAD.
 
-## Performance
+## Real-use results
 
-Command: `hyperfine --warmup 3 --runs 12 'env HOME=/tmp/lore-dogfood-20261026-124359/home2 .venv/bin/python -m lore match "drain 503"'`.
+The README's working examples continued to work. `lore match "drain 503"` returned `gateway-drain-window` with confidence 0.90. `lore match "spawn 503"`, the exact PRD US-1 example, returned `unclassified confidence=0.00`; the same failure text through `lore consult --failure "spawn 503 while restarting"` returned the gateway-drain-window runbook and seven checks. This is a fresh re-proof of the existing LORE-070 documentation finding, not a new classifier row.
 
-Warm: 61.6 ms ± 13.9 ms, range 51.0–101.2 ms. Cold isolated-HOME process: 0.04 s real, 0.04 s user, 0.00 s sys. `audit --format json` was 0.08 s one-shot on the current ledger. Nothing was slow enough to be user-noticeable; no PERF row or profile was warranted.
+The absorb exit contract is now honest at this HEAD: `absorb --class nope-class --lesson x` returned the JSON error and rc=2; a valid `absorb --class gateway-drain-window --lesson x` returned rc=0 with an explicit proposal-only empty update. No write occurred.
 
-## Install leg
+The audit JSON surface returned an object with `classes` and `summary`. From the repository root it reported `incident_count=218`, `uncovered_classes=[]`, and no `incident_seen` classes in the current event window. Scratch controls behaved distinctly: a current structured event for `postgres-deadlock-storm` produced `incident_count=1` and `uncovered_classes=[postgres-deadlock-storm]`; a current known-class event produced `incident_seen=[gateway-drain-window]`; an old prose-only task mentioning a class produced no incident class. The incident data path and window behavior held on the tested controls. Consumers must read `.classes` and `.summary`, not assume a top-level array.
 
-`bunker-qa.sh launch /home/kara/get-h3/lore` tested QA-HEAD `d015baa` on `bunker-mvp`, but spawn failed before a usable agent existed because the remote root and `/tmp` were 100% full: `mktemp: failed to create directory via template '/tmp/tmp.XXXXXXXXXX': No space left on device`. `bunkerd` was active. `bunker3` and `bunker4` were unreachable; `bunker2` had SSH/bunkerd but was not registered in the bunker CLI config. The failed launch's agent `9587d8b1` was destroyed and the follow-up list showed three remaining agents, not that id. Installability remains unproven and is recorded as explicit `SKIPPED-install-bunker` evidence in the run record; no visibility, permissions, credentials, or board state were changed.
+Time-to-first-success was under one second on the warm local checkout: the first working match completed in approximately 62 ms in the captured run.
 
-## Verification
+## Performance measurement
 
-`uv run pytest -q`: 562 passed in 4.23 s.
+The measured headline operations were CLI invocations from the checkout, with the same `.venv`, command, and input scale:
 
-The run record is parked in DuckBrain under namespace `lore`, key `/dogfood/2026-10-26-lore-dogfood-lane`, and was read back with the distinctive tick, verdict, and install-skip phrases. Scratch evidence was under `/tmp/lore-dogfood-20261026-124359/` and the detached worktree was removed.
+- Warm `hyperfine --warmup 3 --runs 12 '.venv/bin/lore match "drain 503"'`: mean 101.2 ms ± 24.5 ms, range 83.2–173.3 ms.
+- Warm `hyperfine --warmup 3 --runs 12 '.venv/bin/lore audit --format json'`: mean 119.8 ms ± 35.6 ms, range 90.3–213.5 ms.
+- Cold-process `/usr/bin/time -p .venv/bin/lore match 'drain 503'`: 0.05–0.07 s real across three fresh processes.
 
-ch:trace row=none:read-only-dogfood spec=docs/dogfood/2026-10-26-integration.md#promise test=562-passed-in-4.23s doc=skills/lore-usage/SKILL.md evidence=/tmp/lore-dogfood-20261026-124359 witness=lore-dogfood-2026-10-26-12-43-59 verdict=PROMISING-BUT-ROUGH:install-unproven-and-LORE-070-reproof commit=pending memory=/dogfood/2026-10-26-lore-dogfood-lane
+These are below a user-noticeable wait for this CLI workload. No new PERF row was filed. The existing PERF-3 task remains pending and was not re-filed or re-measured with a new candidate. Captured local outputs are in `/tmp/lore-dogfood-20261026-local/`; no flamegraph was justified by these numbers.
+
+## Fresh-machine install leg
+
+The required `bunker-qa.sh` leg ran on reachable `bunker-mvp`, agent `de18c55d`, against the recorded QA HEAD, and the agent was destroyed. The post-collect inventory showed the agent absent. `bunker2` was also reachable with active `bunkerd`; `bunker3` and `bunker4` were unreachable, but no fallback was needed.
+
+The collected cells were not a clean install PASS. `fresh-install` was FAIL because the harness reported `install rc=0 but no artifact found (toolsd not in PATH, PREFIX/bin/toolsd missing, or zero-size)` even though its detail also records `get-h3-lore-0.1.2` and dependencies installed. This is detector/harness evidence, not a proven lore install failure. The same battery recorded `upgrade` OK, `ci-pass` OK with one green job, 562 tests surviving the network-cut cell, resource-cap PASS, and clean missing-config rc=2. Because the intended fresh-install artifact/smoke proof was not gradeable, installability at this HEAD remains UNPROVEN; it is not reported as a silent pass. No board row was written from the harness-shaped failure because the target board is read-only for this lane and the evidence does not prove a product defect.
+
+## Value judgment
+
+Verdict: PROMISING-BUT-ROUGH. The core CLI is useful and fast enough, the structured audit controls are now materially more trustworthy, and the unknown-class exit-code fix works. Usability remains rough because the PRD's own responder example still returns an unclassified result, and the fresh-machine battery's artifact detector cannot grade the installed lore artifact. The existing LORE-070 row owns the responder-example defect; the install evidence is ready for the owning QA/harness lane to classify and file if it is not already covered.
+
+## Artifacts and limitations
+
+This report and the canonical dogfood log entry are the write-back artifacts from this read-only dogfood lane. The diagnostics trail already contains the tick addendum and was not rewritten. No code, board row, board event, scheduler state, visibility, permission, or credential was modified. The usage skill already contains the current audit and responder guidance, so it was not duplicated.
+
+ch:trace row=none:read-only-dogfood spec=docs/PRD.md#US-1+US-3 test=/tmp/lore-dogfood-20261026-probe.py doc=docs/dogfood/2026-10-26-integration.md evidence=/tmp/lore-dogfood-20261026-local+/tmp/lore-dogfood-20261026-1243-evidence.jsonl witness=lore-dogfood-2026-10-26-12-43-59 verdict=PROMISING-BUT-ROUGH:LORE-070-reproof+fresh-install-unproven commit=a35ebe2 memory=none:not-written
