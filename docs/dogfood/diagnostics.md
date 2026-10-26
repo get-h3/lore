@@ -866,3 +866,7 @@ reported failure, then the agent was GONE from the server list — teardown reco
   not the exit code, are the verdict.
 - The board validator's FAIL in this repo is pre-existing and row-tracked (`LORE-068-R2`): the
   baseline at HEAD is 1 error / 94 warnings, and this run's appends added 0 / 0.
+
+## 2026-10-26 run addendum
+
+ch:trace row=none:read-only-dogfood spec=docs/dogfood/2026-10-26-integration.md#promise test=562-passed-in-4.23s doc=skills/lore-usage/SKILL.md evidence=/tmp/lore-dogfood-20261026-124359 witness=lore-dogfood-2026-10-26-12-43-59 verdict=PROMISING-BUT-ROUGH:install-unproven-and-LORE-070-reproof commit=pending memory=/dogfood/2026-10-26-lore-dogfood-lane
