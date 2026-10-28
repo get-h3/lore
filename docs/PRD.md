@@ -21,7 +21,7 @@ The pattern: **every incident generates world-class runbook material, and it eva
 
 ## User stories
 
-**US-1 (incident responder, mid-fire):** As an agent at 3 a.m. facing "scheduler spawns 503-ing at spawn time," I ask `lore match "spawn 503"` and get the drain-window runbook — checks in order, the exact logsey query, the known-good command sequence — compiled from the last three times this happened.
+**US-1 (incident responder, mid-fire):** As an agent at 3 a.m. facing "scheduler spawns 503-ing at spawn time," I ask `lore match "gateway drain 503"` and get the drain-window runbook — checks in order, the exact logsey query, the known-good command sequence — compiled from the last three times this happened. (Note: the free-text classifier matches signature/keyword patterns, so phrasing matters — the raw symptom phrase "spawn 503" alone classifies as unclassified (0.00), while the command above matches with confidence 0.90; `lore consult --failure` fed the same incident text also resolves to gateway-drain-window.)
 
 **US-2 (post-incident scribe):** As the agent that just closed an incident, I run `lore absorb --window 2h --ns coding-hermes` and it drafts the runbook update from what actually happened — evidence blocks, working commands, dead ends marked dead — filed as a *proposal* the operator approves.
 
