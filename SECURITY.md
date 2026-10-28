@@ -25,18 +25,24 @@ not boilerplate:
 
 1. **Review before you execute.** A command in a runbook was correct *the last
    time this class of incident happened*, on a different box, at a different
-   point in the system's history. Re-validation (planned, not yet implemented)
-   will prove commands parse and answer — it cannot prove recovery succeeds.
-   Every runbook carries that honesty label. Treat any runbook command the way
-   you would treat a command from a stranger's gist: read it, understand what
-   it touches, then decide.
+   point in the system's history. The shipped `lore validate` lint proves
+   commands parse and answer — by default in plan mode (nothing is executed),
+   with the opt-in `--execute` flag actually running gate-approved read-only
+   commands and flipping drifted runbooks to `status: stale` with a drift
+   reason. That lint cannot prove recovery succeeds, and it is not operator
+   attestation: no shipped check attests that an operator ran a runbook
+   against a live incident and the recovery worked — that attestation path
+   remains unimplemented. Every runbook carries that honesty label. Treat any
+   runbook command the way you would treat a command from a stranger's gist:
+   read it, understand what it touches, then decide.
 
-2. **Read-only / verify-mode by design intent.** The re-validation loop is
-   specified to run every runbook command in read-only/verify mode
-   (`--verify` flags, `--dry-run`, SELECT-only queries). Commands written into
-   runbooks should be the *diagnostic* form of an action, not the destructive
-   form. If a runbook step mutates state, that belongs on the recovery ladder
-   behind a human decision — not in an auto-validated check.
+2. **Read-only / verify-mode by design intent.** `lore validate` holds itself
+   to the same rule: even with `--execute` it runs only gate-approved
+   read-only commands (`--verify` flags, `--dry-run`, SELECT-only queries);
+   the default is plan-only. Commands written into runbooks should be the
+   *diagnostic* form of an action, not the destructive form. If a runbook
+   step mutates state, that belongs on the recovery ladder behind a human
+   decision — not in an auto-validated check.
 
 3. **Never commit a command that embeds a secret.** Runbooks are public
    material by default. A command that had to carry a token, key, or
