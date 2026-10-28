@@ -1,0 +1,119 @@
+commit 67d1fad6feb5b8b2683e151a242f55896ed14462
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Oct 28 15:27:25 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Oct 28 15:27:25 2026 -0500
+
+    docs: sync counts to 566; README flag inventory + tool-install collision guidance; INSTALL help fence refresh. Addresses README-9, README-11-R2, DOC-5-R2.
+---
+ CONTRIBUTING.md            |  2 +-
+ README.md                  | 16 ++++++++++++++--
+ docs/INSTALL.md            |  4 ++--
+ scripts/test-count.txt     |  2 +-
+ skills/lore-usage/SKILL.md |  2 +-
+ 5 files changed, 19 insertions(+), 7 deletions(-)
+
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index 76b0aea..4e20030 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
+ Once `.venv` exists, run the full gate from the repository root:
+ 
+ ```sh
+-uv run pytest -q                    # tests (green at 562 passed)
++uv run pytest -q                    # tests (green at 566 passed)
+ uv run ruff check .                 # lint — "All checks passed!"
+ uv run ruff format --check .        # formatting — "N files already formatted"
+ uv run scripts/check-test-count.sh  # test-count sync guard
+diff --git a/README.md b/README.md
+index 7a76321..17f42d5 100644
+--- a/README.md
++++ b/README.md
+@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
+ [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
+ 
+ ```sh
+-uv run pytest -q        # 562 passed
++uv run pytest -q        # 566 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -151,6 +151,14 @@ uv tool install git+https://github.com/get-h3/lore
+ lore match "key rotation expired"
+ ```
+ 
++If a `lore` executable already exists on your PATH (an older install, or a
++different tool claiming the name), `uv tool install` fails with
++`error: Executable already exists: lore (use --force to overwrite)`. Upgrade an
++existing install in place with `uv tool upgrade lore`; use `uv tool install
++--force` with the same URL only when you intend to overwrite whatever currently
++owns the name — `--force` clobbers the existing executable, so keep the
++installed version when in doubt.
++
+ > **Never `pip install lore`.** That distribution name on PyPI belongs to an
+ > unrelated third-party package (instacart/lore) — this project is **not**
+ > published there, and never will be under the bare name. The PyPI
+@@ -354,8 +362,10 @@ and what does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
+-  with **562 tests passing** and a clean `ruff check`.
++  with **566 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
++  Flags: `match [--class CLASS_ID]` filters results to only the named registry
++  class (ships today; not planned-only).
+ - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
+   Runbook per curated class, as a **proposal** — it never writes a published
+   runbook to disk. See "What a runbook carries" above for the shape.
+@@ -368,6 +378,8 @@ and what does not:
+ - The read-only command lint (`lore validate`): re-runs each runbook's checks and
+   flips a drifted runbook to `stale`, carrying the reason. **Default is plan
+   mode** — it lists what *would* run and executes nothing; `--execute` opts in.
++  `validate [--format {json,md}]` renders the report as JSON or markdown
++  instead of the default table.
+   The report carries a machine-checkable honesty label: the lint proves commands
+   *parse and answer*, **not** that recovery *succeeds*. Executed checks grade the
+   runbook against the live box's logsey index state: with a stale-or-missing
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index d1f9b65..5928bca 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -82,14 +82,14 @@ Real output on the current tree:
+ ........................................................................ [ 55%]
+ ........................................................................ [ 83%]
+ ........................................................................ [100%]
+-564 passed
++566 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **564 tests** (45 test files: taxonomy, classifier,
++The count to expect is **566 tests** (46 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index 18133fa..a13be20 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-564
+\ No newline at end of file
++566
+diff --git a/skills/lore-usage/SKILL.md b/skills/lore-usage/SKILL.md
+index 86ce995..853564b 100644
+--- a/skills/lore-usage/SKILL.md
++++ b/skills/lore-usage/SKILL.md
+@@ -124,7 +124,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
+ ## Dev loop
+ 
+ ```sh
+-uv run pytest -q    # expect: 562 passed (count synced to scripts/test-count.txt, LORE-029)
++uv run pytest -q    # expect: 566 passed (count synced to scripts/test-count.txt, LORE-029)
+ uv run ruff check . # expect: All checks passed!
+ ```
+ 

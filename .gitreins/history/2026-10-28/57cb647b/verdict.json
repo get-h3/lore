@@ -1,0 +1,119 @@
+{
+  "task_id": "LORE-070",
+  "task_title": "PRD US-1 example cites matching phrasing",
+  "task_criteria": [
+    "grep -n 'lore match \"gateway drain 503\"' docs/PRD.md finds >=1 line; 'lore match \"spawn 503\"' absent as command; ch:trace row=LORE-070 resolves with doc=docs/PRD.md"
+  ],
+  "passed": false,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "67d1fad6feb5b8b2683e151a242f55896ed14462",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261028T202729.368423Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\nscanners: nice=nice -n 10\n3:29PM INF scanned ~8278865 bytes (8.28 MB) in 5.67s\n3:29PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 248 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261028T202729.368423Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.13.5\ncollected 566 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  7%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 12%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 21%]\ntests/test_consult.py ....................                               [ 24%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 27%]\ntests/test_evidence.py ......................                            [ 31%]\ntests/test_lore011_drain_acceptance.py .......                           [ 32%]\ntests/test_lore016_qa_audit.py .....................                     [ 36%]\ntests/test_lore017_gateway_guard.py ........                             [ 37%]\ntests/test_lore020_absorb_window.py ...                                  [ 38%]\ntests/test_lore021_naming_docs.py .......                                [ 39%]\ntests/test_lore022_freshness_docs.py .....                               [ 40%]\ntests/test_lore030_ux_guard.py ....                                      [ 41%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 43%]\ntests/test_lore041_collision_canonical.py ...........                    [ 45%]\ntests/test_lore043_short_text_threshold.py ....................          [ 48%]\ntests/test_lore045_validate_history.py ....................              [ 52%]\ntests/test_lore046_match_output.py ...........                           [ 54%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 56%]\n\n\u2026 [400 chars omitted \u2014 5 line(s)] \u2026\ntests/test_lore053_absorb_window_error.py ....                           [ 64%]\ntests/test_lore054_match_class_filter.py ....                            [ 65%]\ntests/test_lore055_consult_missing_input.py ......                       [ 66%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 66%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 68%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 69%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 70%]\ntests/test_lore064_audit_wiring.py .............................         [ 75%]\ntests/test_lore066_zero_check_skip.py ...                                [ 75%]\ntests/test_lore067_incident_audit.py ..                                  [ 76%]\ntests/test_near_miss.py ..............                                   [ 78%]\ntests/test_perf2_audit_single_pass.py ........                           [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 81%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 566 passed in 8.36s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261028T202729.368423Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": false,
+      "any_failed": true,
+      "summary": "INCOMPLETE\n  \u2717 grep -n 'lore match \"gateway drain 503\"' docs/PRD.md finds >=1 line; 'lore match \"spawn 503\"' absent as command; ch:trace row=LORE-070 resolves with doc=docs/PRD.md: Two of three sub-checks pass, the third fails. (a) PASS: `grep -n 'lore match \"gateway drain 503\"' docs/PRD.md` returns docs/PRD.md:24 \u2014 '**US-1 (incident responder, mid-fire):** ... I ask `lore match \"gateway drain 503\"` and get the drain-window runbook ...'. (b) PASS: `grep -n 'lore match \"spawn 503\"' docs/PRD.md` exits 1 (no match); the only 'spawn 503' occurrence at line 24 is the quoted raw symptom phrase in the explanatory note ('the raw symptom phrase \"spawn 503\" alone classifies as unclassified (0.00)'), not a command. Live repro confirms the doc: `uv run lore match \"gateway drain 503\"` -> 'gateway-drain-window confidence=0.90', exit 0. (c) FAIL: no `ch:trace row=LORE-070` marker resolves with doc=docs/PRD.md. The only row=LORE-070 trace in the repo is .coding-hermes/board/tasks.jsonl:113 with `doc=docs/PRD.md#L24` (a fragment, not doc=docs/PRD.md) and `verdict=none:not-judged commit=none:row-filed-before-fix` \u2014 i.e. the pre-fix filing trace, not a resolution trace. There is no ch:trace marker in docs/PRD.md, in any test file (only tests/test_lore055_consult_missing_input.py:20 row=LORE-055 and tests/test_count_guard.py:106 row=LORE-057), nor in .gitreins/tasks.yaml (LORE-070's criteria text merely mentions the marker). The board row itself is still `\"status\": \"pending\"` with `worker_status: dispatched` in .coding-hermes/board/tasks.jsonl:113, so the row does not resolve. Test suite run for completeness: `uv run pytest -x --tb=short -q` -> '566 passed in 3.88s', exit 0.\nThe PRD US-1 example now cites the matching phrasing and the failing 'spawn 503' command is gone, but no ch:trace row=LORE-070 marker resolves with doc=docs/PRD.md (only a pre-fix board trace with doc=docs/PRD.md#L24, and the board row is still pending), so the criterion is not fully met.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": false,
+          "output": "INCOMPLETE\n  \u2717 grep -n 'lore match \"gateway drain 503\"' docs/PRD.md finds >=1 line; 'lore match \"spawn 503\"' absent as command; ch:trace row=LORE-070 resolves with doc=docs/PRD.md: Two of three sub-checks pass, the third fails. (a) PASS: `grep -n 'lore match \"gateway drain 503\"' docs/PRD.md` returns docs/PRD.md:24 \u2014 '**US-1 (incident responder, mid-fire):** ... I ask `lore match \"gateway drain 503\"` and get the drain-window runbook ...'. (b) PASS: `grep -n 'lore match \"spawn 503\"' docs/PRD.md` exits 1 (no match); the only 'spawn 503' occurrence at line 24 is the quoted raw symptom phrase in the explanatory note ('the raw symptom phrase \"spawn 503\" alone classifies as unclassified (0.00)'), not a command. Live repro confirms the doc: `uv run lore match \"gateway drain 503\"` -> 'gateway-drain-window confidence=0.90', exit 0. (c) FAIL: no `ch:trace row=LORE-070` marker resolves with doc=docs/PRD.md. The only row=LORE-070 trace in the repo is .coding-hermes/board/tasks.jsonl:113 with `doc=docs/PRD.md#L24` (a fragment, not doc=docs/PRD.md) and `verdict=none:not-judged commit=none:row-filed-before-fix` \u2014 i.e. the pre-fix filing trace, not a resolution trace. There is no ch:trace marker in docs/PRD.md, in any test file (only tests/test_lore055_consult_missing_input.py:20 row=LORE-055 and tests/test_count_guard.py:106 row=LORE-057), nor in .gitreins/tasks.yaml (LORE-070's criteria text merely mentions the marker). The board row itself is still `\"status\": \"pending\"` with `worker_status: dispatched` in .coding-hermes/board/tasks.jsonl:113, so the row does not resolve. Test suite run for completeness: `uv run pytest -x --tb=short -q` -> '566 passed in 3.88s', exit 0.\nThe PRD US-1 example now cites the matching phrasing and the failing 'spawn 503' command is gone, but no ch:trace row=LORE-070 marker resolves with doc=docs/PRD.md (only a pre-fix board trace with doc=docs/PRD.md#L24, and the board row is still pending), so the criterion is not fully met.",
+          "error": "",
+          "data": {
+            "verdict": "INCOMPLETE",
+            "items": [
+              {
+                "criterion": "grep -n 'lore match \"gateway drain 503\"' docs/PRD.md finds >=1 line; 'lore match \"spawn 503\"' absent as command; ch:trace row=LORE-070 resolves with doc=docs/PRD.md",
+                "status": "FAIL",
+                "detail": "Two of three sub-checks pass, the third fails. (a) PASS: `grep -n 'lore match \"gateway drain 503\"' docs/PRD.md` returns docs/PRD.md:24 \u2014 '**US-1 (incident responder, mid-fire):** ... I ask `lore match \"gateway drain 503\"` and get the drain-window runbook ...'. (b) PASS: `grep -n 'lore match \"spawn 503\"' docs/PRD.md` exits 1 (no match); the only 'spawn 503' occurrence at line 24 is the quoted raw symptom phrase in the explanatory note ('the raw symptom phrase \"spawn 503\" alone classifies as unclassified (0.00)'), not a command. Live repro confirms the doc: `uv run lore match \"gateway drain 503\"` -> 'gateway-drain-window confidence=0.90', exit 0. (c) FAIL: no `ch:trace row=LORE-070` marker resolves with doc=docs/PRD.md. The only row=LORE-070 trace in the repo is .coding-hermes/board/tasks.jsonl:113 with `doc=docs/PRD.md#L24` (a fragment, not doc=docs/PRD.md) and `verdict=none:not-judged commit=none:row-filed-before-fix` \u2014 i.e. the pre-fix filing trace, not a resolution trace. There is no ch:trace marker in docs/PRD.md, in any test file (only tests/test_lore055_consult_missing_input.py:20 row=LORE-055 and tests/test_count_guard.py:106 row=LORE-057), nor in .gitreins/tasks.yaml (LORE-070's criteria text merely mentions the marker). The board row itself is still `\"status\": \"pending\"` with `worker_status: dispatched` in .coding-hermes/board/tasks.jsonl:113, so the row does not resolve. Test suite run for completeness: `uv run pytest -x --tb=short -q` -> '566 passed in 3.88s', exit 0."
+              }
+            ],
+            "summary": "The PRD US-1 example now cites the matching phrasing and the failing 'spawn 503' command is gone, but no ch:trace row=LORE-070 marker resolves with doc=docs/PRD.md (only a pre-fix board trace with doc=docs/PRD.md#L24, and the board row is still pending), so the criterion is not fully met.",
+            "provenance": {
+              "model": "deepseek-v4-flash",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "deepseek-v4-flash",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY"
+    }
+  },
+  "summary": "Judge Result: LORE-070\n\nStage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: FAIL\n  INCOMPLETE\n  \u2717 grep -n 'lore match \"gateway drain 503\"' docs/PRD.md finds >=1 line; 'lore match \"spawn 503\"' absent as command; ch:trace row=LORE-070 resolves with doc=docs/PRD.md: Two of three sub-checks pass, the third fails. (a) PASS: `grep -n 'lore match \"gateway drain 503\"' docs/PRD.md` returns docs/PRD.md:24 \u2014 '**US-1 (incident responder, mid-fire):** ... I ask `lore match \"gateway drain 503\"` and get the drain-window runbook ...'. (b) PASS: `grep -n 'lore match \"spawn 503\"' docs/PRD.md` exits 1 (no match); the only 'spawn 503' occurrence at line 24 is the quoted raw symptom phrase in the explanatory note ('the raw symptom phrase \"spawn 503\" alone classifies as unclassified (0.00)'), not a command. Live repro confirms the doc: `uv run lore match \"gateway drain 503\"` -> 'gateway-drain-window confidence=0.90', exit 0. (c) FAIL: no `ch:trace row=LORE-070` marker resolves with doc=docs/PRD.md. The only row=LORE-070 trace in the repo is .coding-hermes/board/tasks.jsonl:113 with `doc=docs/PRD.md#L24` (a fragment, not doc=docs/PRD.md) and `verdict=none:not-judged commit=none:row-filed-before-fix` \u2014 i.e. the pre-fix filing trace, not a resolution trace. There is no ch:trace marker in docs/PRD.md, in any test file (only tests/test_lore055_consult_missing_input.py:20 row=LORE-055 and tests/test_count_guard.py:106 row=LORE-057), nor in .gitreins/tasks.yaml (LORE-070's criteria text merely mentions the marker). The board row itself is still `\"status\": \"pending\"` with `worker_status: dispatched` in .coding-hermes/board/tasks.jsonl:113, so the row does not resolve. Test suite run for completeness: `uv run pytest -x --tb=short -q` -> '566 passed in 3.88s', exit 0.\nThe PRD US-1 example now cites the matching phrasing and the failing 'spawn 503' command is gone, but no ch:trace row=LORE-070 marker resolves with doc=docs/PRD.md (only a pre-fix board trace with doc=docs/PRD.md#L24, and the board row is still pending), so the criterion is not fully met.\n\nOverall: FAIL \u2717",
+  "evaluated_at": "2026-10-28T20:29:44.451277",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-10-28T20:29:44.464463+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 5389,
+        "truncated": false,
+        "source": "git show 67d1fad6feb5"
+      }
+    ],
+    "task_id": "LORE-070"
+  }
+}

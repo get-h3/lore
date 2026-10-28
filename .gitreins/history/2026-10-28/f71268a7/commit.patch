@@ -1,0 +1,101 @@
+commit 86c56fdf60098e12011d0c4b0f3b5490e065c6b0
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Oct 28 11:28:25 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Oct 28 11:28:25 2026 -0500
+
+    release: bump version to 0.2.0 and promote CHANGELOG
+    
+    - pyproject.toml: version 0.1.2 -> 0.2.0
+    - lore/__init__.py: __version__ 0.1.2 -> 0.2.0
+    - CHANGELOG.md: promote [Unreleased] fixes to [0.2.0] section
+    - tests/test_cli_surface.py: relax version sanity check from 0.1.x to 0.x
+    - tests/test_dist_name.py: relax version prefix check from 0.1. to 0.
+    - uv.lock: refreshed to match pyproject version
+    
+    Addresses RELEASE-LORE-005
+---
+ CHANGELOG.md              | 2 ++
+ lore/__init__.py          | 2 +-
+ pyproject.toml            | 2 +-
+ tests/test_cli_surface.py | 4 ++--
+ tests/test_dist_name.py   | 2 +-
+ uv.lock                   | 2 +-
+ 6 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 49e0406..772b076 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
+ 
+ ## [Unreleased]
+ 
++## [0.2.0] — 2026-10-28
++
+ ### Fixed
+ 
+ - **LORE-069** — `lore absorb` can now emit a real runbook UPDATE. Its only
+diff --git a/lore/__init__.py b/lore/__init__.py
+index 89a4b0e..e2a54cb 100644
+--- a/lore/__init__.py
++++ b/lore/__init__.py
+@@ -1,6 +1,6 @@
+ """lore: compile the fleet's incident history into living runbooks per failure class."""
+ 
+-__version__ = "0.1.2"
++__version__ = "0.2.0"
+ 
+ from lore.classes import UNCLASSIFIED_ID, ClassRegistry, FailureClass, get_registry
+ 
+diff --git a/pyproject.toml b/pyproject.toml
+index 6a52049..6e2922d 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
+ 
+ [project]
+ name = "get-h3-lore"
+-version = "0.1.2"
++version = "0.2.0"
+ description = "Runbook compiler: compiles fleet incident history into living, re-validated runbooks per failure class"
+ readme = "README.md"
+ requires-python = ">=3.11"
+diff --git a/tests/test_cli_surface.py b/tests/test_cli_surface.py
+index 4bc5f7c..eaee1c9 100644
+--- a/tests/test_cli_surface.py
++++ b/tests/test_cli_surface.py
+@@ -344,5 +344,5 @@ def test_version_single_source_of_truth():
+         f"uv.lock get-h3-lore version ({lock_version.group(1)}) != pyproject ({declared})"
+     )
+ 
+-    # sanity: not a placeholder and still in the 0.1.x line this repo ships
+-    assert declared.startswith("0.1.")
++    # sanity: not a placeholder and still in the 0.x line this repo ships
++    assert declared.startswith("0.")
+diff --git a/tests/test_dist_name.py b/tests/test_dist_name.py
+index ccf173d..9d4b338 100644
+--- a/tests/test_dist_name.py
++++ b/tests/test_dist_name.py
+@@ -37,7 +37,7 @@ def test_console_script_still_named_lore() -> None:
+ def test_import_package_still_lore_with_version() -> None:
+     import lore
+ 
+-    assert lore.__version__.startswith("0.1.")
++    assert lore.__version__.startswith("0.")
+ 
+ 
+ def test_never_pip_install_lore_warning_in_docs() -> None:
+diff --git a/uv.lock b/uv.lock
+index 644fe45..74aaef5 100644
+--- a/uv.lock
++++ b/uv.lock
+@@ -230,7 +230,7 @@ wheels = [
+ 
+ [[package]]
+ name = "get-h3-lore"
+-version = "0.1.2"
++version = "0.2.0"
+ source = { editable = "." }
+ 
+ [package.optional-dependencies]
