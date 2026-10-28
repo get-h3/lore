@@ -414,9 +414,9 @@ printf 'logsey export --window 2h\n```\n2026-09-24T10:00:00 unit=loreforge gatew
   nothing lands in a registry or on disk. The runbook-store design (central
   registry + materialized per-repo dirs) is decided in
   [RUNBOOK-STORE.md](RUNBOOK-STORE.md) but not implemented.
-- **No scheduled lint / re-validation yet.** The weekly read-only command lint
-  that would flip stale runbooks is in flight (`LORE-006`); nothing runs on a
-  schedule today.
+- **No scheduled lint / re-validation yet.** The read-only command lint ships
+  today as `lore validate`; what is absent is only the weekly
+  *schedule* that would run it on a calendar — nothing runs on a schedule.
 - **Propose-not-write.** The compiler never writes to disk. Publishing anything
   requires an operator's explicit approval, by design.
 - **Not a monitor.** lore classifies and compiles; it does not watch logs,
