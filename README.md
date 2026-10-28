@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 562 passed
+uv run pytest -q        # 566 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -150,6 +150,14 @@ Zero runtime dependencies, so installation is instant:
 uv tool install git+https://github.com/get-h3/lore
 lore match "key rotation expired"
 ```
+
+If a `lore` executable already exists on your PATH (an older install, or a
+different tool claiming the name), `uv tool install` fails with
+`error: Executable already exists: lore (use --force to overwrite)`. Upgrade an
+existing install in place with `uv tool upgrade lore`; use `uv tool install
+--force` with the same URL only when you intend to overwrite whatever currently
+owns the name — `--force` clobbers the existing executable, so keep the
+installed version when in doubt.
 
 > **Never `pip install lore`.** That distribution name on PyPI belongs to an
 > unrelated third-party package (instacart/lore) — this project is **not**
@@ -354,8 +362,10 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **562 tests passing** and a clean `ruff check`.
+  with **566 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
+  Flags: `match [--class CLASS_ID]` filters results to only the named registry
+  class (ships today; not planned-only).
 - The runbook compiler (`lore compile [--class X] [--format json|md]`): emits a
   Runbook per curated class, as a **proposal** — it never writes a published
   runbook to disk. See "What a runbook carries" above for the shape.
@@ -368,6 +378,8 @@ and what does not:
 - The read-only command lint (`lore validate`): re-runs each runbook's checks and
   flips a drifted runbook to `stale`, carrying the reason. **Default is plan
   mode** — it lists what *would* run and executes nothing; `--execute` opts in.
+  `validate [--format {json,md}]` renders the report as JSON or markdown
+  instead of the default table.
   The report carries a machine-checkable honesty label: the lint proves commands
   *parse and answer*, **not** that recovery *succeeds*. Executed checks grade the
   runbook against the live box's logsey index state: with a stale-or-missing

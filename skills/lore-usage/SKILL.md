@@ -124,7 +124,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
 ## Dev loop
 
 ```sh
-uv run pytest -q    # expect: 562 passed (count synced to scripts/test-count.txt, LORE-029)
+uv run pytest -q    # expect: 566 passed (count synced to scripts/test-count.txt, LORE-029)
 uv run ruff check . # expect: All checks passed!
 ```
 
