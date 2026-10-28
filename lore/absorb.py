@@ -386,9 +386,20 @@ def absorb_sweep(
     if not blocks:
         return []
 
+    # PERF-3: memoize the classifier per invocation — sweeps over repeated
+    # evidence (the normal logsey-export case) classify each unique detail
+    # text once instead of once per block. Function-local, so nothing leaks
+    # across sweeps; grouping order and output values are unchanged.
+    classification_cache: dict[str, object] = {}
+
     grouped: dict[str, list[EvidenceBlock]] = {}
     for block in blocks:
-        classification = classify(block.detail)
+        detail = block.detail
+        if detail in classification_cache:
+            classification = classification_cache[detail]
+        else:
+            classification = classify(detail)
+            classification_cache[detail] = classification
         grouped.setdefault(classification.class_id, []).append(block)
 
     provenance = {
