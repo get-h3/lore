@@ -1,0 +1,33 @@
+commit 90911b0ba738c76b18e5ead314fcf18ee476cdbe
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Thu Oct 22 10:45:00 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Thu Oct 22 10:45:00 2026 -0500
+
+    docs: name both ruff versions in INSTALL.md drift caveat. Addresses LORE-059.
+---
+ docs/INSTALL.md | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 7ca2f39..6d3ae50 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -45,7 +45,7 @@ uv sync --extra dev
+ > Bare `uv sync` (without `--extra dev`) is not enough for running tests — tests need `--extra dev`.
+ 
+ `uv sync --extra dev` provisions `.venv` plus pytest and ruff. Real output
+-(versions will drift; the shape will not):
++> Versions will drift — the shape of the dependency output stays the same:
+ 
+ ```
+  + packaging==26.3
+@@ -55,6 +55,8 @@ uv sync --extra dev
+  + ruff==0.16.8
+ ```
+ 
++On 2026-10-22 the pasted ruff is `0.16.8` (at time of writing) while `uv.lock` resolved `0.17.1`.
++
+ pip-only alternative: `python3 -m venv .venv && .venv/bin/pip install -e .[dev]`.
+ 
+ > **Never `pip install lore`.** The bare `lore` name on PyPI is an unrelated

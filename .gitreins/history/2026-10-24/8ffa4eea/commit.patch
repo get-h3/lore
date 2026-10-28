@@ -1,0 +1,70 @@
+commit 102b1faa071ac8074d6bda45a1250b0794ae4a95
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Sat Oct 24 18:23:43 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Sat Oct 24 18:23:43 2026 -0500
+
+    fix(cli): return exit 2 for unknown absorb class. Addresses LORE-20261011.
+---
+ lore/__main__.py               | 10 +++-------
+ tests/test_lore016_qa_audit.py | 26 +++++++++++++++++++-------
+ 2 files changed, 22 insertions(+), 14 deletions(-)
+
+diff --git a/lore/__main__.py b/lore/__main__.py
+index d3561d8..0a6f931 100644
+--- a/lore/__main__.py
++++ b/lore/__main__.py
+@@ -439,13 +439,9 @@ def _cmd_absorb(args: argparse.Namespace) -> int:
+                 file=sys.stderr,
+             )
+             return 2
+-        print(
+-            json.dumps(
+-                absorb_proposal(args.class_id, args.lesson, source=args.source),
+-                indent=2,
+-            )
+-        )
+-        return 0
++        payload = absorb_proposal(args.class_id, args.lesson, source=args.source)
++        print(json.dumps(payload, indent=2))
++        return 2 if "error" in payload else 0
+ 
+     try:
+         parse_duration(args.window)
+diff --git a/tests/test_lore016_qa_audit.py b/tests/test_lore016_qa_audit.py
+index d98df5c..a0ca2e9 100644
+--- a/tests/test_lore016_qa_audit.py
++++ b/tests/test_lore016_qa_audit.py
+@@ -128,13 +128,25 @@ def test_cli_no_subcommand_is_argparse_exit2():
+ 
+ 
+ # ------------------------------------------------------ absorb error paths
+-def test_cli_absorb_unknown_class_failsafe_payload_exit0(capsys):
+-    # Implemented behavior: absorb_proposal's fail-safe error payload is
+-    # printed at exit 0 (propose-not-write: the error IS the stdout payload).
+-    code, out, _err = _run(["absorb", "--class", "nope", "--lesson", "x"], capsys)
+-    assert code == 0
+-    payload = json.loads(out)
+-    assert payload == {"error": "unknown class 'nope'"}
++def test_cli_absorb_unknown_and_valid_classes_and_match_unknown(capsys):
++    unknown_absorb, out, err = _run(
++        ["absorb", "--class", "nope-class", "--lesson", "x"], capsys
++    )
++    assert unknown_absorb == 2
++    assert err == ""
++    assert json.loads(out) == {"error": "unknown class 'nope-class'"}
++
++    valid_absorb, out, err = _run(
++        ["absorb", "--class", "gateway-drain-window", "--lesson", "x"], capsys
++    )
++    assert valid_absorb == 0
++    assert err == ""
++    assert json.loads(out)["class_id"] == "gateway-drain-window"
++
++    unknown_match, out, err = _run(["match", "--class", "nope", "text"], capsys)
++    assert unknown_match == 2
++    assert out == ""
++    assert "error: unknown class 'nope'" in err
+ 
+ 
+ # ---------------------------------------------- validate PLAN-ONLY default

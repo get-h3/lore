@@ -1,0 +1,58 @@
+commit d3cd3f5cc8adcdab59f269429b27a0b2eba498bd
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Thu Oct 22 12:00:37 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Thu Oct 22 12:00:37 2026 -0500
+
+    docs: scope logsey check claims with fresh-index precondition (LORE-060-R2).
+    
+    The curated logsey SQL (orders 1,7) is correct: verified live that a fresh
+    DuckDB index serves now() - INTERVAL and validate --execute grades both
+    orders ok exit 0 (drifted_orders empty). On a stale/missing index logsey's
+    corpus fallback rejects the SQL with exit 4 unsupported-predicate and the
+    checks record error - index drift, not runbook drift. README.md validate
+    bullet and CHANGELOG LORE-060 entry now state the fresh-index precondition
+    and the rebuild-then-relint recovery path. Gates: 560 pytest passed, ruff
+    check+format clean, count guard PASS. Addresses LORE-060-R2.
+---
+ CHANGELOG.md | 7 ++++++-
+ README.md    | 8 +++++++-
+ 2 files changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index e710e7f..49e0406 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -38,7 +38,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
+   MINUTE` windows), not the unshipped `--pattern/--since` flags that exit 2
+   ("unexpected second argument") on the actual binary (dogfood run 10,
+   verified live on HEAD 9b97fa2). `validate --execute` now reports both
+-  checks `ok` (exit 0) instead of env-absent-looking exits; the read-only
++  checks `ok` (exit 0) instead of env-absent-looking exits — with a FRESH
++  logsey index; on a stale-or-missing index logsey serves the JSONL
++  corpus fallback, which rejects the indexed SQL with exit 4
++  (`unsupported predicate`) and the checks record `error` (LORE-060-R2:
++  index drift, not runbook drift — `logsey index rebuild`, then re-run
++  the lint, restores `ok`); the read-only
+   gate, the 127-classification fixtures, the README/INSTALL rendered check,
+   and the test-count literal were all synced. New
+   `tests/test_lore060_logsey_sql_contract.py` pins the single-arg SQL shape
+diff --git a/README.md b/README.md
+index 35454e0..fc4664b 100644
+--- a/README.md
++++ b/README.md
+@@ -369,7 +369,13 @@ and what does not:
+   flips a drifted runbook to `stale`, carrying the reason. **Default is plan
+   mode** — it lists what *would* run and executes nothing; `--execute` opts in.
+   The report carries a machine-checkable honesty label: the lint proves commands
+-  *parse and answer*, **not** that recovery *succeeds*. No schedule is installed
++  *parse and answer*, **not** that recovery *succeeds*. Executed checks grade the
++  runbook against the live box's logsey index state: with a stale-or-missing
++  logsey index, logsey's JSONL corpus-fallback engine rejects indexed SQL with
++  exit 4 (`unsupported predicate`) and those orders record `error` (the class
++  flips `stale` with reason `lint drift: check N (error)`); that signal is index
++  drift, not runbook drift — `logsey index rebuild` (then re-run the lint)
++  restores `ok`. No schedule is installed
+   yet (a separate task owns the weekly timer). A real `--execute` run is also
+   PERSISTED locally: one JSONL record per class is appended to
+   `.lore/validate-history.jsonl` in the current working directory (git-ignored,

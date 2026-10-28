@@ -1,0 +1,119 @@
+{
+  "task_id": "LORE-068-R2",
+  "task_title": "Repair duplicate foreman_note in DOC-6 board row",
+  "task_criteria": [
+    "On the current canonical tree, boardctl validate returns zero errors; DOC-6's physical JSONL line parses, contains exactly one foreman_note key, and its value preserves both the trace-citation correction text and the GitReins Tier-2 PASS verdict text. Verify untouched board rows and events.jsonl are unchanged from the implementation commit."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "51cb70299c9fa8fe0c3bc80e6152eed652ec2eef",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261024T075029.431243Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\nscanners: nice=nice -n 10\n8:03AM INF scanned ~7942030 bytes (7.94 MB) in 2.21s\n8:03AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 243 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261024T075029.431243Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n================================================= test session starts ==================================================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.13.5\ncollected 562 items\n\ntests/test_absorb.py ......................................                                                      [  6%]\ntests/test_bench.py .....                                                                                        [  7%]\ntests/test_classes.py .........                                                                                  [  9%]\ntests/test_classifier.py ............                                                                            [ 11%]\ntests/test_cli_surface.py ......................                                                                 [ 15%]\ntests/test_compiler.py .............................                                                             [ 20%]\ntests/test_consult.py ....................                                                                       [ 24%]\ntests/test_count_guard.py .............                                                                          [ 26%]\ntests/test_dist_name.py ....                                                                                     [ 27%]\ntests/test_evidence.py ......................                                                                    [ 30%]\ntests/test_lore011_drain_acceptance.py .......                                                                   [ 32%]\ntests/test_lore016_qa_audit.py .....................                                                             [ 35%]\ntests/test_lore017_gateway_guard.py ........                                                                     [ 37%]\ntests/test_lore020_absorb_window.py ...                                                                          [ 37%]\ntests/test_lore021_naming_docs.py .......                                                                        [ 39%]\ntests/test_lore022_freshness_docs.py .....                                                                       [ 40%]\n\n\u2026 [2040 chars omitted \u2014 17 line(s)] \u2026\ntests/test_lore063r2_count_sweep_exemption.py .....                                                              [ 70%]\ntests/test_lore064_audit_wiring.py .............................                                                 [ 75%]\ntests/test_lore066_zero_check_skip.py ...                                                                        [ 75%]\ntests/test_lore067_incident_audit.py ..                                                                          [ 76%]\ntests/test_near_miss.py ..............                                                                           [ 78%]\ntests/test_perf2_audit_single_pass.py ........                                                                   [ 80%]\ntests/test_readme_links.py .                                                                                     [ 80%]\ntests/test_review001_gate_record.py ........                                                                     [ 81%]\ntests/test_review002_recall.py ........                                                                          [ 83%]\ntests/test_review003_env_absent.py .......                                                                       [ 84%]\ntests/test_validate.py ........................................................................................  [100%]\n\n================================================= 562 passed in 6.85s ==================================================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261024T075029.431243Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 On the current canonical tree, boardctl validate returns zero errors; DOC-6's physical JSONL line parses, contains exactly one foreman_note key, and its value preserves both the trace-citation correction text and the GitReins Tier-2 PASS verdict text. Verify untouched board rows and events.jsonl are unchanged from the implementation commit.: boardctl validate -> exit 0, 'RESULT: OK (106 warning(s))', 0 '[error]' lines. DOC-6 is tasks.jsonl line 105; json.loads succeeds, raw line has exactly 1 occurrence of '\"foreman_note\"' (pre-fix df3356f had 2), and the value contains both 'trace-citation correction (no reassessment) ... /project/lore/docs-audit-2026-10-19' and 'GitReins Tier-2 PASS verdict 1f1ec613; Tier-1 PASS' (the old note is a verbatim substring of the merged note). git diff df3356f..51cb702 --name-only lists only .coding-hermes/board/tasks.jsonl (1 insertion, 1 deletion); events.jsonl blob sha identical (7b63d9a23b66bb767a150fd70434a245cd3aeb95) and tasks.jsonl.snap identical (3806de5f...); line-by-line comparison shows only line 105 differs, other 119 rows byte-identical, and all non-foreman_note fields of DOC-6 unchanged. Test suite: `uv run pytest -x --tb=short -q` -> '562 passed in 3.72s', exit 0.\nDOC-6's duplicate foreman_note is merged into a single key preserving both texts, boardctl validate reports zero errors, and only that one board line changed with events.jsonl untouched.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 On the current canonical tree, boardctl validate returns zero errors; DOC-6's physical JSONL line parses, contains exactly one foreman_note key, and its value preserves both the trace-citation correction text and the GitReins Tier-2 PASS verdict text. Verify untouched board rows and events.jsonl are unchanged from the implementation commit.: boardctl validate -> exit 0, 'RESULT: OK (106 warning(s))', 0 '[error]' lines. DOC-6 is tasks.jsonl line 105; json.loads succeeds, raw line has exactly 1 occurrence of '\"foreman_note\"' (pre-fix df3356f had 2), and the value contains both 'trace-citation correction (no reassessment) ... /project/lore/docs-audit-2026-10-19' and 'GitReins Tier-2 PASS verdict 1f1ec613; Tier-1 PASS' (the old note is a verbatim substring of the merged note). git diff df3356f..51cb702 --name-only lists only .coding-hermes/board/tasks.jsonl (1 insertion, 1 deletion); events.jsonl blob sha identical (7b63d9a23b66bb767a150fd70434a245cd3aeb95) and tasks.jsonl.snap identical (3806de5f...); line-by-line comparison shows only line 105 differs, other 119 rows byte-identical, and all non-foreman_note fields of DOC-6 unchanged. Test suite: `uv run pytest -x --tb=short -q` -> '562 passed in 3.72s', exit 0.\nDOC-6's duplicate foreman_note is merged into a single key preserving both texts, boardctl validate reports zero errors, and only that one board line changed with events.jsonl untouched.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "On the current canonical tree, boardctl validate returns zero errors; DOC-6's physical JSONL line parses, contains exactly one foreman_note key, and its value preserves both the trace-citation correction text and the GitReins Tier-2 PASS verdict text. Verify untouched board rows and events.jsonl are unchanged from the implementation commit.",
+                "status": "PASS",
+                "detail": "boardctl validate -> exit 0, 'RESULT: OK (106 warning(s))', 0 '[error]' lines. DOC-6 is tasks.jsonl line 105; json.loads succeeds, raw line has exactly 1 occurrence of '\"foreman_note\"' (pre-fix df3356f had 2), and the value contains both 'trace-citation correction (no reassessment) ... /project/lore/docs-audit-2026-10-19' and 'GitReins Tier-2 PASS verdict 1f1ec613; Tier-1 PASS' (the old note is a verbatim substring of the merged note). git diff df3356f..51cb702 --name-only lists only .coding-hermes/board/tasks.jsonl (1 insertion, 1 deletion); events.jsonl blob sha identical (7b63d9a23b66bb767a150fd70434a245cd3aeb95) and tasks.jsonl.snap identical (3806de5f...); line-by-line comparison shows only line 105 differs, other 119 rows byte-identical, and all non-foreman_note fields of DOC-6 unchanged. Test suite: `uv run pytest -x --tb=short -q` -> '562 passed in 3.72s', exit 0."
+              }
+            ],
+            "summary": "DOC-6's duplicate foreman_note is merged into a single key preserving both texts, boardctl validate reports zero errors, and only that one board line changed with events.jsonl untouched.",
+            "provenance": {
+              "model": "deepseek-v4-flash",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "deepseek-v4-flash",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY"
+    }
+  },
+  "summary": "Judge Result: LORE-068-R2\n\nStage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 On the current canonical tree, boardctl validate returns zero errors; DOC-6's physical JSONL line parses, contains exactly one foreman_note key, and its value preserves both the trace-citation correction text and the GitReins Tier-2 PASS verdict text. Verify untouched board rows and events.jsonl are unchanged from the implementation commit.: boardctl validate -> exit 0, 'RESULT: OK (106 warning(s))', 0 '[error]' lines. DOC-6 is tasks.jsonl line 105; json.loads succeeds, raw line has exactly 1 occurrence of '\"foreman_note\"' (pre-fix df3356f had 2), and the value contains both 'trace-citation correction (no reassessment) ... /project/lore/docs-audit-2026-10-19' and 'GitReins Tier-2 PASS verdict 1f1ec613; Tier-1 PASS' (the old note is a verbatim substring of the merged note). git diff df3356f..51cb702 --name-only lists only .coding-hermes/board/tasks.jsonl (1 insertion, 1 deletion); events.jsonl blob sha identical (7b63d9a23b66bb767a150fd70434a245cd3aeb95) and tasks.jsonl.snap identical (3806de5f...); line-by-line comparison shows only line 105 differs, other 119 rows byte-identical, and all non-foreman_note fields of DOC-6 unchanged. Test suite: `uv run pytest -x --tb=short -q` -> '562 passed in 3.72s', exit 0.\nDOC-6's duplicate foreman_note is merged into a single key preserving both texts, boardctl validate reports zero errors, and only that one board line changed with events.jsonl untouched.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-10-24T13:05:02.635095",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-10-24T13:05:02.652148+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 464,
+        "truncated": false,
+        "source": "git show 51cb70299c9f"
+      }
+    ],
+    "task_id": "LORE-068-R2"
+  }
+}

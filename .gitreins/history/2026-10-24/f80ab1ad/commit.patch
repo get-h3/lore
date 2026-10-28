@@ -1,0 +1,11 @@
+commit 51cb70299c9fa8fe0c3bc80e6152eed652ec2eef
+Merge: df3356f 9099e62
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Sat Oct 24 07:45:27 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Sat Oct 24 07:45:27 2026 -0500
+
+    merge: repair DOC-6 duplicate board note. Addresses LORE-068-R2.
+
+ .coding-hermes/board/tasks.jsonl | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)

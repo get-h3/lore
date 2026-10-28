@@ -1,0 +1,37 @@
+commit 420dd45c979ba0bed35f374747041c88f01587c3
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Thu Oct 22 10:33:03 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Thu Oct 22 10:33:03 2026 -0500
+
+    fix: align INSTALL.md help fence with real binary output. Addresses DOC-5.
+---
+ docs/INSTALL.md | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 8001a95..7ca2f39 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -129,9 +129,7 @@ positional arguments:
+                         --execute to run the gate-approved read-only commands
+     gate                closure absorb-gate (LORE-008): machine-check a lesson
+                         decision (absorb or no-new-lesson ack); exit 0 =
+-                        allowed, 1 = denied; opt-in --record PATH appends one
+-                        JSONL audit record per ALLOWED verdict (denials never
+-                        write)
++                        allowed, 1 = denied
+     absorb              build the runbook-update PROPOSAL for an absorb
+                         decision (stdout only — propose-not-write, nothing is
+                         written)
+@@ -139,9 +137,7 @@ positional arguments:
+                         human-markdown default, --format json optional
+     audit               coverage + freshness matrix over every registry class
+                         (LORE-010, PRD US-3); honest 'no data' freshness —
+-                        never fabricated dates; the `unclassified` catch-all
+-                        bucket is marked (`bucket: true` in JSON, `[bucket]`
+-                        prefix in table) so it never reads as a 14th class
++                        never fabricated dates
+ 
+ options:
+   -h, --help            show this help message and exit
