@@ -295,7 +295,7 @@ uv run python -m lore compile --class secret-env-clobber --format json | head -2
   {
     "class_id": "secret-env-clobber",
     "name": "Secret / .env clobber",
-    "signature": "\\.env(\\.example)?\\s+(twins?|clobber|overwrite)",
+    "signature": "(?:\\.env(?:\\.example)?|(?<!\\.)env)\\s+(?:twins?|clobber|overwrite)",
     "checks": [
       {
         "order": 1,
