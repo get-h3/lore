@@ -151,13 +151,22 @@ uv tool install git+https://github.com/get-h3/lore
 lore match "key rotation expired"
 ```
 
-If a `lore` executable already exists on your PATH (an older install, or a
-different tool claiming the name), `uv tool install` fails with
-`error: Executable already exists: lore (use --force to overwrite)`. Upgrade an
-existing install in place with `uv tool upgrade lore`; use `uv tool install
---force` with the same URL only when you intend to overwrite whatever currently
-owns the name — `--force` clobbers the existing executable, so keep the
-installed version when in doubt.
+If a `lore` executable already exists on your PATH, upgrade an installed
+`lore` tool in place:
+
+```sh
+uv tool upgrade lore
+```
+
+If you intentionally need to overwrite an existing tool that owns the `lore`
+executable name, use:
+
+```sh
+uv tool install --force git+https://github.com/get-h3/lore
+```
+
+`--force` is appropriate only for that deliberate overwrite; otherwise, keep
+the existing installed version rather than clobbering its executable.
 
 > **Never `pip install lore`.** That distribution name on PyPI belongs to an
 > unrelated third-party package (instacart/lore) — this project is **not**
