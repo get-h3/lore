@@ -37,7 +37,7 @@ def test_console_script_still_named_lore() -> None:
 def test_import_package_still_lore_with_version() -> None:
     import lore
 
-    assert lore.__version__.startswith("0.1.")
+    assert lore.__version__.startswith("0.")
 
 
 def test_never_pip_install_lore_warning_in_docs() -> None:

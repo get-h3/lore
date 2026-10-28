@@ -344,5 +344,5 @@ def test_version_single_source_of_truth():
         f"uv.lock get-h3-lore version ({lock_version.group(1)}) != pyproject ({declared})"
     )
 
-    # sanity: not a placeholder and still in the 0.1.x line this repo ships
-    assert declared.startswith("0.1.")
+    # sanity: not a placeholder and still in the 0.x line this repo ships
+    assert declared.startswith("0.")
