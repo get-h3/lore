@@ -1,0 +1,11 @@
+commit 44768fc76cea937ed7e00f4ff38efb9c60aba352
+Merge: a390fe1 f9be8c4
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Oct 28 16:35:15 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Oct 28 16:35:15 2026 -0500
+
+    Merge branch 'wt/README-11'
+
+ README.md | 23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)

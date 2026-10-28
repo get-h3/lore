@@ -1,0 +1,52 @@
+{
+  "tick": "lore-foreman-2026-10-28-21-25-05",
+  "project": "lore",
+  "base": "origin/main",
+  "base_sha": "2f094b260860d7f9af4339471466cb44d7290cd2",
+  "wave_budget": 12,
+  "selected": [
+    {
+      "task_id": "README-7",
+      "worktree": "/home/kara/worktrees/lore-README-7",
+      "branch": "wt/README-7",
+      "base_sha": "2f094b260860d7f9af4339471466cb44d7290cd2",
+      "scope": [
+        "docs/INSTALL.md"
+      ]
+    },
+    {
+      "task_id": "README-11",
+      "worktree": "/home/kara/worktrees/lore-README-11",
+      "branch": "wt/README-11",
+      "base_sha": "2f094b260860d7f9af4339471466cb44d7290cd2",
+      "scope": [
+        "README.md"
+      ]
+    }
+  ],
+  "independence": "no depends_on edges; disjoint docs files",
+  "status": "complete",
+  "workers": [
+    {
+      "task_id": "README-7",
+      "branch": "wt/README-7",
+      "worktree": "/home/kara/worktrees/lore-README-7",
+      "commit": "e1413c1ac0737ef87ca2d1ff7a8af8b876ea86e5",
+      "merge_commit": "a390fe190831197f574366adbc48db9c6e8ae170",
+      "verdict": "10e18b54",
+      "result": "merged+pushed"
+    },
+    {
+      "task_id": "README-11",
+      "branch": "wt/README-11",
+      "worktree": "/home/kara/worktrees/lore-README-11",
+      "commit": "f9be8c4178aa4b37044f717e70952ac7e6310373",
+      "merge_commit": "44768fc76cea937ed7e00f4ff38efb9c60aba352",
+      "verdict": "6cdd8198",
+      "result": "merged+pushed"
+    }
+  ],
+  "finished_at": "2026-10-28T21:36:00Z",
+  "final_head": "44768fc76cea937ed7e00f4ff38efb9c60aba352",
+  "ci": "recent origin/main runs success; closeout CI pending after board commit"
+}

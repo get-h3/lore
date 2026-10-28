@@ -1,0 +1,11 @@
+commit a390fe190831197f574366adbc48db9c6e8ae170
+Merge: 2f094b2 e1413c1
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Oct 28 16:33:58 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Oct 28 16:33:58 2026 -0500
+
+    Merge branch 'wt/README-7'
+
+ docs/INSTALL.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
