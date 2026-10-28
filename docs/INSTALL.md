@@ -82,14 +82,14 @@ Real output on the current tree:
 ........................................................................ [ 55%]
 ........................................................................ [ 83%]
 ........................................................................ [100%]
-562 passed
+564 passed
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **562 tests** (44 test files: taxonomy, classifier,
+The count to expect is **564 tests** (45 test files: taxonomy, classifier,
 compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
 your run says something else, you are on a different revision — check
 `git log` before trusting this document.
@@ -151,6 +151,12 @@ may have heard of (runbook-store materialization, the scheduled weekly lint) is
 **planned** — see the README's Status section. `lore validate` runs the lint;
 the weekly *schedule* that would run it for you is not installed (that is a
 separate task).
+
+`lore audit` reads its incident evidence from `.coding-hermes/board/events.jsonl`
+(plus tasks.jsonl), resolved against the current working directory (one
+parent-directory fallback), over a 90-day window. A missing board degrades to
+empty incident facts with exit 0 and the `coverage_note` says the source was
+unavailable.
 
 ### What `validate --execute` assumes
 

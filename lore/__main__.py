@@ -1033,10 +1033,17 @@ def build_parser() -> argparse.ArgumentParser:
         "audit",
         help=(
             "coverage + freshness matrix over every registry class (LORE-010, "
-            "PRD US-3); incident evidence is read from "
-            ".coding-hermes/board/events.jsonl under the current directory "
-            "(90-day window; novel classes land in summary.uncovered_classes); "
-            "honest 'no data' freshness — never fabricated dates"
+            "PRD US-3); honest 'no data' freshness — never fabricated dates"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Incident evidence source (DOC-8):\n"
+            "  Incident records are read from .coding-hermes/board/events.jsonl\n"
+            "  (plus tasks.jsonl), resolved against the CURRENT WORKING\n"
+            "  DIRECTORY (one parent-directory fallback), over a\n"
+            "  90-day window. A missing board degrades to empty incident facts\n"
+            "  with exit 0 and the coverage_note says the source was\n"
+            "  unavailable. Novel classes land in summary.uncovered_classes.\n"
         ),
     )
     audit_p.add_argument(
