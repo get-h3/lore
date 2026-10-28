@@ -1,1 +1,111 @@
-{"tick_id":"lore-foreman-2026-10-28-19-50-37","project":"lore","budget":7,"mode":"wave","base_sha":"db5b2f8","tasks":[{"id":"PERF-3","worktree":"/home/kara/worktrees/lore-PERF-3","branch":"wt/PERF-3","files":["lore/absorb.py","tests/test_absorb_perf.py"]},{"id":"DOC-7","worktree":"/home/kara/worktrees/lore-DOC-7","branch":"wt/DOC-7","files":["docs/RUNBOOK-STORE.md"]},{"id":"DOC-9","worktree":"/home/kara/worktrees/lore-DOC-9","branch":"wt/DOC-9","files":["SECURITY.md"]},{"id":"LORE-070","worktree":"/home/kara/worktrees/lore-LORE-070","branch":"wt/LORE-070","files":["docs/PRD.md"]},{"id":"DOC-8","worktree":"/home/kara/worktrees/lore-DOC-8","branch":"wt/DOC-8","files":["lore/__main__.py","docs/INSTALL.md","tests/"]},{"id":"README-9","worktree":"foreman-direct","branch":"main","files":["README.md"],"note":"deferred: README.md shared with DOC-8 scope"},{"id":"README-11-R2","worktree":"foreman-direct","branch":"main","files":["README.md"],"note":"deferred: README.md shared with DOC-8 scope"},{"id":"DOC-5-R2","worktree":"foreman-direct","branch":"main","files":["docs/INSTALL.md"],"note":"deferred: INSTALL --help fence depends on DOC-8 help change; foreman-direct after merge"}],"status":"dispatched","dispatched_at":"2026-10-28T19:56:00-05:00","worker_model":"glm-5.3-flash","worker_provider":"ollama-cloud"}
+{
+ "tick_id": "lore-foreman-2026-10-28-19-50-37",
+ "project": "lore",
+ "budget": 7,
+ "mode": "wave",
+ "base_sha": "db5b2f8",
+ "tasks": [
+  {
+   "id": "PERF-3",
+   "worktree": "/home/kara/worktrees/lore-PERF-3",
+   "branch": "wt/PERF-3",
+   "files": [
+    "lore/absorb.py",
+    "tests/test_absorb_perf.py"
+   ],
+   "implementation_commit": "b2a7dd357ecb8d06503f55ccca2545fd69d737d7",
+   "merge_commit": "b2a7dd357ecb8d06503f55ccca2545fd69d737d7",
+   "status": "merged_and_verified",
+   "verdicts": "tier2 FAIL 70e33c65 (trace-only) superseded by PASS ab777833 @ 7ab218c; tier1 PASS c7eadca2"
+  },
+  {
+   "id": "DOC-7",
+   "worktree": "/home/kara/worktrees/lore-DOC-7",
+   "branch": "wt/DOC-7",
+   "files": [
+    "docs/RUNBOOK-STORE.md"
+   ],
+   "implementation_commit": "f9e31392aeef711dfcb2fb886843e7782acf1af4",
+   "merge_commit": "f9e31392aeef711dfcb2fb886843e7782acf1af4",
+   "status": "merged_and_verified",
+   "verdicts": "tier2 FAIL f79ace34 (trace-only) superseded by PASS e2bd4fd3 @ 7ab218c; tier1 PASS 9017b9e3"
+  },
+  {
+   "id": "DOC-9",
+   "worktree": "/home/kara/worktrees/lore-DOC-9",
+   "branch": "wt/DOC-9",
+   "files": [
+    "SECURITY.md"
+   ],
+   "implementation_commit": "fb9c6826064081bab80a51213cdf7d429c1d68cb",
+   "merge_commit": "fb9c6826064081bab80a51213cdf7d429c1d68cb",
+   "status": "merged_and_verified",
+   "verdicts": "PASS 6c13ee00 @ 67d1fad (first judge)"
+  },
+  {
+   "id": "LORE-070",
+   "worktree": "/home/kara/worktrees/lore-LORE-070",
+   "branch": "wt/LORE-070",
+   "files": [
+    "docs/PRD.md"
+   ],
+   "implementation_commit": "fad9faf47ef26350a283fe415bc2f3a4508f30d3",
+   "merge_commit": "fad9faf47ef26350a283fe415bc2f3a4508f30d3",
+   "status": "merged_and_verified",
+   "verdicts": "tier2 FAIL 57cb647b (trace-only) superseded by PASS 65622525 @ 7ab218c; tier1 PASS 9c3b7c19"
+  },
+  {
+   "id": "DOC-8",
+   "worktree": "/home/kara/worktrees/lore-DOC-8",
+   "branch": "wt/DOC-8",
+   "files": [
+    "lore/__main__.py",
+    "docs/INSTALL.md",
+    "tests/"
+   ],
+   "implementation_commit": "ce693fd11a50ad717d996efe1e3571cc979a1e5b",
+   "merge_commit": "ce693fd11a50ad717d996efe1e3571cc979a1e5b",
+   "status": "merged_and_verified",
+   "verdicts": "tier2 FAIL c859a107 (trace-only) superseded by PASS bc445513 @ 7ab218c; tier1 PASS baf4d418"
+  },
+  {
+   "id": "README-9",
+   "worktree": "foreman-direct",
+   "branch": "main",
+   "files": [
+    "README.md"
+   ],
+   "note": "deferred: README.md shared with DOC-8 scope"
+  },
+  {
+   "id": "README-11-R2",
+   "worktree": "foreman-direct",
+   "branch": "main",
+   "files": [
+    "README.md"
+   ],
+   "note": "deferred: README.md shared with DOC-8 scope"
+  },
+  {
+   "id": "DOC-5-R2",
+   "worktree": "foreman-direct",
+   "branch": "main",
+   "files": [
+    "docs/INSTALL.md"
+   ],
+   "note": "deferred: INSTALL --help fence depends on DOC-8 help change; foreman-direct after merge"
+  }
+ ],
+ "status": "complete",
+ "dispatched_at": "2026-10-28T19:56:00-05:00",
+ "worker_model": "glm-5.3-flash",
+ "worker_provider": "ollama-cloud",
+ "closeout_commits": [
+  "67d1fad (foreman-direct counts/README/INSTALL)",
+  "7ab218c (board close + markers + verdicts)",
+  "29400e3 (event reconcile + re-judge verdicts)"
+ ],
+ "suite": "566 passed / ruff clean / count guard PASS at 67d1fad..29400e3",
+ "ci": "github success on dispatch 69f5a34; closeout-head check at 29400e3 pending-readback in tick report",
+ "finished_at": "2026-10-28T21:05:00-05:00"
+}
