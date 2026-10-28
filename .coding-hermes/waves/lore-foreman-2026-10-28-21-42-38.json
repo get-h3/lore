@@ -1,0 +1,26 @@
+{
+  "tick": "lore-foreman-2026-10-28-21-42-38",
+  "project": "lore",
+  "base": "origin/main",
+  "base_sha": "ecde67075c9697fac3369be289bf6c58b6881b07",
+  "wave_budget": 12,
+  "selected": [
+    {
+      "task_id": "README-8",
+      "worktree": "/home/kara/worktrees/lore-README-8",
+      "branch": "wt/README-8",
+      "base_sha": "ecde67075c9697fac3369be289bf6c58b6881b07",
+      "scope": ["docs/INSTALL.md"]
+    },
+    {
+      "task_id": "README-9-R2",
+      "worktree": "/home/kara/worktrees/lore-README-9-R2",
+      "branch": "wt/README-9-R2",
+      "base_sha": "ecde67075c9697fac3369be289bf6c58b6881b07",
+      "scope": ["README.md"]
+    }
+  ],
+  "independence": "no depends_on edges; disjoint documentation files",
+  "status": "dispatching",
+  "workers": []
+}
