@@ -1,0 +1,119 @@
+{
+  "task_id": "README-11-R2",
+  "task_title": "recurring uv tool install collision guidance",
+  "task_criteria": [
+    "grep -nE 'uv tool (install .*--force|upgrade)' README.md exits 0; grep -n -- '--force' README.md exits 0; original recipe line still present; ch:trace row=README-11-R2 marker resolves in the committed row"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "3b33ea73846ed17755cbfdd92624859ba1d7cf50",
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261028T204753.868131Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: harness state excluded from gitleaks scope (.gitreins/**)\nsecrets: scanners=gitleaks+builtin cross-check\nscanners: nice=nice -n 10\n3:48PM INF scanned ~8385945 bytes (8.39 MB) in 2.24s\n3:48PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 248 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261028T204753.868131Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.13.5\ncollected 566 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  7%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 12%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 21%]\ntests/test_consult.py ....................                               [ 24%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 27%]\ntests/test_evidence.py ......................                            [ 31%]\ntests/test_lore011_drain_acceptance.py .......                           [ 32%]\ntests/test_lore016_qa_audit.py .....................                     [ 36%]\ntests/test_lore017_gateway_guard.py ........                             [ 37%]\ntests/test_lore020_absorb_window.py ...                                  [ 38%]\ntests/test_lore021_naming_docs.py .......                                [ 39%]\ntests/test_lore022_freshness_docs.py .....                               [ 40%]\ntests/test_lore030_ux_guard.py ....                                      [ 41%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 43%]\ntests/test_lore041_collision_canonical.py ...........                    [ 45%]\ntests/test_lore043_short_text_threshold.py ....................          [ 48%]\ntests/test_lore045_validate_history.py ....................              [ 52%]\ntests/test_lore046_match_output.py ...........                           [ 54%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 56%]\n\n\u2026 [400 chars omitted \u2014 5 line(s)] \u2026\ntests/test_lore053_absorb_window_error.py ....                           [ 64%]\ntests/test_lore054_match_class_filter.py ....                            [ 65%]\ntests/test_lore055_consult_missing_input.py ......                       [ 66%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 66%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 68%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 69%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 70%]\ntests/test_lore064_audit_wiring.py .............................         [ 75%]\ntests/test_lore066_zero_check_skip.py ...                                [ 75%]\ntests/test_lore067_incident_audit.py ..                                  [ 76%]\ntests/test_near_miss.py ..............                                   [ 78%]\ntests/test_perf2_audit_single_pass.py ........                           [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 81%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 566 passed in 4.61s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261028T204753.868131Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 grep -nE 'uv tool (install .*--force|upgrade)' README.md exits 0; grep -n -- '--force' README.md exits 0; original recipe line still present; ch:trace row=README-11-R2 marker resolves in the committed row: All four legs verified. (a) `grep -nE 'uv tool (install .*--force|upgrade)' README.md` -> exit 0, hit README.md:157 'existing install in place with `uv tool upgrade lore`; use `uv tool install'. (b) `grep -n -- '--force' README.md` -> exit 0, hits README.md:156,158,159. (c) Original recipe preserved: README.md:150 'uv tool install git+https://github.com/get-h3/lore' (grep exit 0); `git show 67d1fad -- README.md` shows the guidance was ADDED (+8 lines at 155-160, inside '### Or install it as a tool' at line 145), not substituted. (d) Marker resolves in the committed row: `git show HEAD:.coding-hermes/board/tasks.jsonl` line 123 row README-11-R2 has status=complete, commit_hash=67d1fad6feb5b8b2683e151a242f55896ed14462 (verified real: `git cat-file -t` -> commit, subject 'docs: sync counts to 566; README flag inventory + tool-install collision guidance'), completed_at=2026-10-28T20:47:34Z, guard_result=PASS, ci_result=GREEN, and worker_summary carries 'ch:trace row=README-11-R2 ... verdict=a1bb4abe commit=67d1fad6feb5b8b2683e151a242f55896ed14462' \u2014 i.e. the previously failing 'verdict=none:not-judged commit=none:row-filed-before-fix' marker is superseded by a resolved one; events.jsonl:254 task_completed and :257 task_updated corroborate. Tests: `uv run pytest -x --tb=short` -> EXIT=0, '566 passed in 3.49s'.\nREADME.md:150 keeps the original install recipe with collision guidance added at 155-160 (upgrade/--force), both greps exit 0, the board row's ch:trace marker resolves to commit 67d1fad, and the full suite passes (566 passed, exit 0).",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 grep -nE 'uv tool (install .*--force|upgrade)' README.md exits 0; grep -n -- '--force' README.md exits 0; original recipe line still present; ch:trace row=README-11-R2 marker resolves in the committed row: All four legs verified. (a) `grep -nE 'uv tool (install .*--force|upgrade)' README.md` -> exit 0, hit README.md:157 'existing install in place with `uv tool upgrade lore`; use `uv tool install'. (b) `grep -n -- '--force' README.md` -> exit 0, hits README.md:156,158,159. (c) Original recipe preserved: README.md:150 'uv tool install git+https://github.com/get-h3/lore' (grep exit 0); `git show 67d1fad -- README.md` shows the guidance was ADDED (+8 lines at 155-160, inside '### Or install it as a tool' at line 145), not substituted. (d) Marker resolves in the committed row: `git show HEAD:.coding-hermes/board/tasks.jsonl` line 123 row README-11-R2 has status=complete, commit_hash=67d1fad6feb5b8b2683e151a242f55896ed14462 (verified real: `git cat-file -t` -> commit, subject 'docs: sync counts to 566; README flag inventory + tool-install collision guidance'), completed_at=2026-10-28T20:47:34Z, guard_result=PASS, ci_result=GREEN, and worker_summary carries 'ch:trace row=README-11-R2 ... verdict=a1bb4abe commit=67d1fad6feb5b8b2683e151a242f55896ed14462' \u2014 i.e. the previously failing 'verdict=none:not-judged commit=none:row-filed-before-fix' marker is superseded by a resolved one; events.jsonl:254 task_completed and :257 task_updated corroborate. Tests: `uv run pytest -x --tb=short` -> EXIT=0, '566 passed in 3.49s'.\nREADME.md:150 keeps the original install recipe with collision guidance added at 155-160 (upgrade/--force), both greps exit 0, the board row's ch:trace marker resolves to commit 67d1fad, and the full suite passes (566 passed, exit 0).",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "grep -nE 'uv tool (install .*--force|upgrade)' README.md exits 0; grep -n -- '--force' README.md exits 0; original recipe line still present; ch:trace row=README-11-R2 marker resolves in the committed row",
+                "status": "PASS",
+                "detail": "All four legs verified. (a) `grep -nE 'uv tool (install .*--force|upgrade)' README.md` -> exit 0, hit README.md:157 'existing install in place with `uv tool upgrade lore`; use `uv tool install'. (b) `grep -n -- '--force' README.md` -> exit 0, hits README.md:156,158,159. (c) Original recipe preserved: README.md:150 'uv tool install git+https://github.com/get-h3/lore' (grep exit 0); `git show 67d1fad -- README.md` shows the guidance was ADDED (+8 lines at 155-160, inside '### Or install it as a tool' at line 145), not substituted. (d) Marker resolves in the committed row: `git show HEAD:.coding-hermes/board/tasks.jsonl` line 123 row README-11-R2 has status=complete, commit_hash=67d1fad6feb5b8b2683e151a242f55896ed14462 (verified real: `git cat-file -t` -> commit, subject 'docs: sync counts to 566; README flag inventory + tool-install collision guidance'), completed_at=2026-10-28T20:47:34Z, guard_result=PASS, ci_result=GREEN, and worker_summary carries 'ch:trace row=README-11-R2 ... verdict=a1bb4abe commit=67d1fad6feb5b8b2683e151a242f55896ed14462' \u2014 i.e. the previously failing 'verdict=none:not-judged commit=none:row-filed-before-fix' marker is superseded by a resolved one; events.jsonl:254 task_completed and :257 task_updated corroborate. Tests: `uv run pytest -x --tb=short` -> EXIT=0, '566 passed in 3.49s'."
+              }
+            ],
+            "summary": "README.md:150 keeps the original install recipe with collision guidance added at 155-160 (upgrade/--force), both greps exit 0, the board row's ch:trace marker resolves to commit 67d1fad, and the full suite passes (566 passed, exit 0).",
+            "provenance": {
+              "model": "deepseek-v4-flash",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "deepseek-v4-flash",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY"
+    }
+  },
+  "summary": "Judge Result: README-11-R2\n\nStage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: harness state excluded from gitleaks scope (.gitreins/**)\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 grep -nE 'uv tool (install .*--force|upgrade)' README.md exits 0; grep -n -- '--force' README.md exits 0; original recipe line still present; ch:trace row=README-11-R2 marker resolves in the committed row: All four legs verified. (a) `grep -nE 'uv tool (install .*--force|upgrade)' README.md` -> exit 0, hit README.md:157 'existing install in place with `uv tool upgrade lore`; use `uv tool install'. (b) `grep -n -- '--force' README.md` -> exit 0, hits README.md:156,158,159. (c) Original recipe preserved: README.md:150 'uv tool install git+https://github.com/get-h3/lore' (grep exit 0); `git show 67d1fad -- README.md` shows the guidance was ADDED (+8 lines at 155-160, inside '### Or install it as a tool' at line 145), not substituted. (d) Marker resolves in the committed row: `git show HEAD:.coding-hermes/board/tasks.jsonl` line 123 row README-11-R2 has status=complete, commit_hash=67d1fad6feb5b8b2683e151a242f55896ed14462 (verified real: `git cat-file -t` -> commit, subject 'docs: sync counts to 566; README flag inventory + tool-install collision guidance'), completed_at=2026-10-28T20:47:34Z, guard_result=PASS, ci_result=GREEN, and worker_summary carries 'ch:trace row=README-11-R2 ... verdict=a1bb4abe commit=67d1fad6feb5b8b2683e151a242f55896ed14462' \u2014 i.e. the previously failing 'verdict=none:not-judged commit=none:row-filed-before-fix' marker is superseded by a resolved one; events.jsonl:254 task_completed and :257 task_updated corroborate. Tests: `uv run pytest -x --tb=short` -> EXIT=0, '566 passed in 3.49s'.\nREADME.md:150 keeps the original install recipe with collision guidance added at 155-160 (upgrade/--force), both greps exit 0, the board row's ch:trace marker resolves to commit 67d1fad, and the full suite passes (566 passed, exit 0).\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-10-28T20:48:38.920132",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-10-28T20:48:38.946896+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 262176,
+        "truncated": true,
+        "source": "git show 3b33ea73846e"
+      }
+    ],
+    "task_id": "README-11-R2"
+  }
+}
