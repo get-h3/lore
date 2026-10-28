@@ -1,0 +1,43 @@
+{
+  "tick": "lore-foreman-2026-10-28-22-15-29",
+  "project": "lore",
+  "base": "origin/main",
+  "base_sha": "a181ca4dfb8ee2076043d5037ea1c0ed0223da0e",
+  "wave_budget": 12,
+  "census": {
+    "eligible_pending": [
+      "README-7-R2",
+      "README-8-R2"
+    ],
+    "selected": [
+      "README-7-R2"
+    ],
+    "independent_pairs": [],
+    "reason": "serial fallback: README-7-R2 and README-8-R2 both edit docs/INSTALL.md; fewer than two mutually independent tasks"
+  },
+  "selected": [
+    {
+      "task_id": "README-7-R2",
+      "worktree": "/home/kara/worktrees/lore-README-7-R2",
+      "branch": "wt/README-7-R2",
+      "base_sha": "a181ca4dfb8ee2076043d5037ea1c0ed0223da0e",
+      "scope": [
+        "docs/INSTALL.md"
+      ]
+    }
+  ],
+  "status": "complete",
+  "workers": [
+    {
+      "task_id": "README-7-R2",
+      "worktree": "/home/kara/worktrees/lore-README-7-R2",
+      "branch": "wt/README-7-R2",
+      "commit": null,
+      "result": "verification-only; acceptance already satisfied on canonical head",
+      "verdict": "7f99c700"
+    }
+  ],
+  "finished_at": "2026-10-28T22:50:00Z",
+  "final_head": "a181ca4dfb8ee2076043d5037ea1c0ed0223da0e",
+  "ci": "canonical head a181ca4 exact-head GitHub Actions success"
+}
