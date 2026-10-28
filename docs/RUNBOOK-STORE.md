@@ -36,7 +36,7 @@ A `lore` namespace in the fleet's persistent memory holds the canonical copy of
 every runbook: class registry index, current runbook bodies, provenance, and
 `last_validated` state. Any agent on the fleet can read it before a single
 clone exists. This is the read-entry-point for PRD US-4 (new-box onboarding)
-and the authority `lore match` and a future `lore show` consult.
+and the authority `lore match` and `lore show` consult.
 
 ### 2. Materialized per-repo `runbooks/` directories
 
@@ -89,9 +89,9 @@ so the runbook is discoverable both by search (registry) and by proximity
 
 ## Write path — propose-not-write, end to end
 
-1. **Compile proposes.** `lore compile` (and the planned `lore absorb`,
-   LORE-005's evidence blocks feeding it) emits a runbook with
-   `status: proposal` to stdout. It never writes to the registry or to any
+1. **Compile proposes.** `lore compile` and the shipped `lore absorb`
+   (LORE-005's evidence blocks feeding it) print proposal payloads to
+   stdout only. Neither writes to the registry or to any
    `runbooks/` dir.
 2. **An operator approves.** A human (or an explicitly authorized operator
    flow) reviews the proposal — checks, commands, guardrails, evidence trail.
@@ -123,11 +123,14 @@ and a stored runbook.
 
 - `last_validated` is the only freshness signal, and None renders as
   "no data (never validated)" — never as zero or a fake date.
-- The re-validation loop — a weekly read-only command lint
-  (`--verify`/`--dry-run`/SELECT-only) that flips drifted runbooks to
-  `status: stale` — is **planned, in flight under LORE-006**. It is named here
-  as a contract the store must accommodate (`status: stale` already exists in
-  the data model), not as a shipped capability. Nothing re-validates today.
+- The re-validation loop — a read-only command lint (`lore validate`) that
+  flips drifted runbooks to `status: stale` — **ships** (LORE-006). It is
+  named here as a contract the store must accommodate (`status: stale`
+  already exists in the data model). The lint defaults to plan mode — it
+  lists what would run and executes nothing; `--execute` opts into the
+  gate-approved read-only checks. Only its weekly schedule is uninstalled:
+  nothing runs the lint on a timer today, so re-validation happens only
+  when an operator invokes it.
 - A stale runbook is not deleted: it stays in the registry and dirs with its
   honesty label, because a stale map is still evidence of the terrain.
 
@@ -142,7 +145,12 @@ and a stored runbook.
 
 ## Status of this decision
 
-Decided in this document (LORE-012). Implementation is **planned, not
-shipped**: today nothing writes anywhere, `compile` prints proposals to
-stdout, and the re-validation loop is in flight under LORE-006. When the
+Decided in this document (LORE-012). Implementation of the store is **planned, not
+shipped**: the registry and the materialized `runbooks/` dirs do not exist
+yet, and `compile`/`absorb` print proposals to stdout only. The write paths
+that ship today live outside the store, both opt-in: the gate's
+`--record PATH` appends one JSONL audit record per ALLOWED verdict (denials
+never write), and `validate --execute` appends one record per class to
+`.lore/validate-history.jsonl` in the current working directory. Neither
+writes runbook content to a store home. When the
 store lands, this document's write path becomes the implementation spec.
