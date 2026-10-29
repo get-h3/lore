@@ -870,3 +870,11 @@ reported failure, then the agent was GONE from the server list — teardown reco
 ## 2026-10-26 run addendum
 
 ch:trace row=none:read-only-dogfood spec=docs/dogfood/2026-10-26-integration.md#promise test=562-passed-in-4.23s doc=skills/lore-usage/SKILL.md evidence=/tmp/lore-dogfood-20261026-124359 witness=lore-dogfood-2026-10-26-12-43-59 verdict=PROMISING-BUT-ROUGH:install-unproven-and-LORE-070-reproof commit=pending memory=/dogfood/2026-10-26-lore-dogfood-lane
+
+## Run 17 — current-head CLI and fresh-machine re-proof (2026-10-29)
+
+At HEAD a92b577, the real CLI workflow was driven end to end: match, explain, consult, compile, show, validate plan/execute, audit, absorb single/window, and gate. The documented responder distinction still holds: `match "spawn 503"` is the near-miss form, while `consult --failure "spawn 503 while restarting"` returns the gateway-drain-window proposal with seven checks. The audit controls also hold: the repository audit reported 254 incident records and no uncovered classes; a scratch known-plus-novel event set reported the known class as seen and `postgres-deadlock-storm` as uncovered; an empty-directory control returned registry rows with no incident facts.
+
+The fresh bunker leg was gradeable on agent 400bc545 at bunker-mvp. `bunker-qa.sh collect` pulled 21 agent evidence rows, including fresh-install OK for get-h3-lore-0.2.0, CI OK, upgrade OK, disconnect OK with a network-cut summary, resource PASS, and clean missing-config rc=2. Docker/UI/state cells were N/A by project shape. The agent was destroyed and post-collect info returned not_found; unrelated agents were left alone.
+
+Performance was user-invisible: warm match 52.5ms ±5.6ms over 12 runs, warm audit 74.7ms ±9.6ms over 12 runs, and cold match 40–50ms across three fresh processes. No PERF row or profile was justified.

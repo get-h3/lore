@@ -363,3 +363,9 @@ classifier change.
 Ordering contract, re-verified here: every registry class's `checks[].order` is contiguous from 1, ascending in
 list position, and identical between `compile --format json` and `show --format json` — a responder can follow the
 runbook top-to-bottom.
+
+## Dogfood run 17 (2026-10-29)
+
+At HEAD `a92b577`, the complete CLI path was re-proven: `match`, `match --explain`, `consult --failure`, `compile`, `show`, `validate` plan/execute, `audit`, `absorb` single/window, and `gate`. `compile --format json` returns a one-element JSON list; `show --format json` returns one object. The audit JSON contains `.classes` and `.summary`; a known-plus-novel event control yielded `incident_seen` for the known class and `summary.uncovered_classes` for the novel class. A fresh bunker agent installed `get-h3-lore-0.2.0` and passed the applicable install, CI, upgrade, disconnect, resource, and error-path cells; compose, UI, and persistent-state cells were inapplicable.
+
+The PRD responder example remains intentionally tracked by LORE-070: `match "spawn 503"` is an unclassified near miss, while `consult --failure "spawn 503 while restarting"` returns the gateway-drain-window runbook. Warm timings were 52.5ms for match and 74.7ms for audit over 12 hyperfine runs; cold match was 40–50ms. These are not user-noticeable, so no PERF row was filed.
