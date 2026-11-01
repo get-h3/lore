@@ -1,0 +1,16 @@
+candidate_sha=66bcb429d6bcdaca6a5d7c549abf7a8b282b5148
+remote=git@github.com:get-h3/lore.git
+remote_repo=get-h3/lore
+last_tag=v0.1.0
+proposed_version=v0.2.0
+semver=MINOR
+range_count=381
+feat=10 fix=36 perf=4 docs=43 test=6 chore=51 other=231 breaking_subjects=0 breaking_footers=0
+ci_exact_head=40888027751 success
+release_tooling=scripts/release.sh docs/RELEASE.md .github/workflows/release-check.yml
+dry_run=PASS through clean/version/tag/changelog; REFUSE authorization (expected)
+authorization=ABSENT: effective release rows contain no pending/open RELEASE-cut row; RELEASE-LORE-003 is closed and prior notes explicitly await authorization
+gitreins=latest local live verdicts include RELEASE-LORE-005 PASS f71268a7; no verdict bound to current candidate beyond board evidence; no red live verdict found
+dogfood=2026-10-29 PROMISING-BUT-ROUGH; 566 passed, ruff clean, fresh install and upgrade OK; LORE-070 remains existing mismatch
+artifact=Python package metadata, but docs/RELEASE.md says git tags only and PyPI publishing disabled
+decision=NO-GO no tag/release mutation
