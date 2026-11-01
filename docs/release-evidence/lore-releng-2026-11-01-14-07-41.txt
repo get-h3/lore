@@ -1,16 +1,22 @@
-candidate_sha=66bcb429d6bcdaca6a5d7c549abf7a8b282b5148
+sweep=lore-releng-2026-11-01-14-07-41 reverify
+candidate_sha=d80ce08949cb912f9b048fe1f3790d015e62c1f3
 remote=git@github.com:get-h3/lore.git
 remote_repo=get-h3/lore
 last_tag=v0.1.0
 proposed_version=v0.2.0
 semver=MINOR
-range_count=381
-feat=10 fix=36 perf=4 docs=43 test=6 chore=51 other=231 breaking_subjects=0 breaking_footers=0
-ci_exact_head=40888027751 success
+range_count=382
+feat=10 fix=36 perf=4 docs=43 test=6 chore=51 other=332 breaking_subjects=0 breaking_footers=0
+ci_exact_head=41317528187 success; check=test success; steps=10
 release_tooling=scripts/release.sh docs/RELEASE.md .github/workflows/release-check.yml
-dry_run=PASS through clean/version/tag/changelog; REFUSE authorization (expected)
-authorization=ABSENT: effective release rows contain no pending/open RELEASE-cut row; RELEASE-LORE-003 is closed and prior notes explicitly await authorization
-gitreins=latest local live verdicts include RELEASE-LORE-005 PASS f71268a7; no verdict bound to current candidate beyond board evidence; no red live verdict found
-dogfood=2026-10-29 PROMISING-BUT-ROUGH; 566 passed, ruff clean, fresh install and upgrade OK; LORE-070 remains existing mismatch
-artifact=Python package metadata, but docs/RELEASE.md says git tags only and PyPI publishing disabled
-decision=NO-GO no tag/release mutation
+version_surfaces=pyproject.toml 0.2.0; lore/__init__.py 0.2.0; CHANGELOG [0.2.0] promoted
+release_dry_run=PASS clean/version/tag/changelog checks; REFUSE authorization (expected)
+local_gates=uv sync --extra dev; pytest 566 passed; ruff clean; check-test-count UNVERIFIED rc=2 (could not determine count under candidate environment)
+gitreins=post-setup guard PASS; degraded=false; skippedSteps=[]; working-tree scope; secrets/lint/full-tests pass; no verdict bound to candidate
+ dogfood=2026-10-29 PROMISING-BUT-ROUGH; fresh install/upgrade OK; local smoke 566 passed; LORE-070 remains existing mismatch
+artifact=Python package metadata; docs/RELEASE.md says git tags only and PyPI publishing disabled
+authorization=ABSENT: effective release rows contain no pending/open RELEASE-cut row; RELEASE-LORE-003 is closed
+release_state=only remote tag v0.1.0; v0.1.0 Release exists; v0.2.0 tag and Release absent
+board_validator=RESULT OK with 117 pre-existing warnings
+ decision=NO-GO; no tag, Release object, or package publication mutated
+unblock=explicit RELEASE-cut row naming get-h3/lore and v0.2.0, then rerun release.sh --dry-run and execute only the repo-owned authorized cut
