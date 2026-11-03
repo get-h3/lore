@@ -1,0 +1,49 @@
+bunker-qa.sh attempt 2 — runner session log (bunker-mvp, temp agent b0b931fb)
+Transcribed from the tracked background process log (42 lines, verbatim).
+Line 1 is the worker's wait-loop echo; the battery section is the runner's
+own stdout/stderr. Lines 9-32 are the runner's startup watchdog enumerating
+tick-death orphans from EARLIER dead ticks; it preserved their locks and
+destroyed none of them. The battery itself is lines 33-42.
+
+PORT_19090_UP after check 13 (2026-11-03T21:06:25Z)
+LISTEN 0      4096                100.115.67.116:19090      0.0.0.0:*
+bunker: reading server "bunker-mvp"
+
+══════════ Agents ══════════
+
+  Agent ID       Status     Disk Used      Max File Size  Created                   Public URL
+→ QA project: lore — fresh-system pass on bunker-mvp (ttl 4h)
+WATCHDOG: reaping tick-death-orphan agent=00a6ab6c server=bunker-mvp tick_pid=1789131
+WATCHDOG: evidence preservation failed for agent=00a6ab6c — retaining lock and refusing destroy
+WATCHDOG: reaping tick-death-orphan agent=04235b51 server=bunker-mvp tick_pid=2881865
+WATCHDOG: evidence preservation failed for agent=04235b51 — retaining lock and refusing destroy
+WATCHDOG: reaping tick-death-orphan agent=272c7abb server=bunker-mvp tick_pid=1450616
+WATCHDOG: evidence preservation failed for agent=272c7abb — retaining lock and refusing destroy
+WATCHDOG: reaping tick-death-orphan agent=3743b57d server=bunker-mvp tick_pid=1609411
+WATCHDOG: evidence preservation failed for agent=3743b57d — retaining lock and refusing destroy
+WATCHDOG: reaping tick-death-orphan agent=6a3ff7ae server=bunker-mvp tick_pid=3545960
+WATCHDOG: evidence preservation failed for agent=6a3ff7ae — retaining lock and refusing destroy
+WATCHDOG: reaping tick-death-orphan agent=74baf031 server=bunker-mvp tick_pid=1797865
+WATCHDOG: evidence preservation failed for agent=74baf031 — retaining lock and refusing destroy
+WATCHDOG: reaping tick-death-orphan agent=907a1dc8 server=bunker-mvp tick_pid=3545960
+WATCHDOG: evidence preservation failed for agent=907a1dc8 — retaining lock and refusing destroy
+WATCHDOG: reaping tick-death-orphan agent=acaf858e server=bunker-mvp tick_pid=1605135
+WATCHDOG: evidence preservation failed for agent=acaf858e — retaining lock and refusing destroy
+WATCHDOG: reaping tick-death-orphan agent=ae196e40 server=bunker-mvp tick_pid=1815900
+WATCHDOG: evidence preservation failed for agent=ae196e40 — retaining lock and refusing destroy
+WATCHDOG: reaping tick-death-orphan agent=cc35ae03 server=bunker-mvp tick_pid=1947382
+WATCHDOG: evidence preservation failed for agent=cc35ae03 — retaining lock and refusing destroy
+WATCHDOG: reaping tick-death-orphan agent=d274d7cc server=bunker-las-03 tick_pid=1496242
+WATCHDOG: evidence preservation failed for agent=d274d7cc — retaining lock and refusing destroy
+WATCHDOG: reaping tick-death-orphan agent=e384a8c7 server=bunker-mvp tick_pid=114304
+WATCHDOG: evidence preservation failed for agent=e384a8c7 — retaining lock and refusing destroy
+→ agent=b0b931fb @ bunker-mvp (tailscale)
+→ CELL fresh-install: sync repo → ~/qa-lore
+comm: file 2 is not in sorted order
+comm: file 1 is not in sorted order
+comm: input is not in sorted order
+CELLS-DONE
+Total time: ? | Passed: 0 | Failed: 0 | Audited: 0 | Findings: 0 | NotVerified: 0 — NOTHING AUDITED (0 cells with a verdict; wrapper steps do not count)
+→ destroying temp agent b0b931fb
+TEARDOWN-GONE
+RUNNER_EXIT=3

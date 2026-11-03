@@ -1,0 +1,259 @@
+{
+  "evidence_file": "bunker-qa-lore-r2.jsonl",
+  "total_rows": 22,
+  "parse_errors": 0,
+  "product_cells": 14,
+  "harness_rows": 8,
+  "wrapper_rows": 0,
+  "product_grade_counts": {
+    "PASS": 6,
+    "N/A": 6,
+    "FAIL": 1,
+    "INFO": 1
+  },
+  "verdict_product": "FAIL",
+  "rows": [
+    {
+      "line": 1,
+      "cell": "toolchain-bootstrap",
+      "status": "OK",
+      "grade": "PASS",
+      "wrapper": false,
+      "harness": true,
+      "project": "lore",
+      "detail": "python venv ready + pytest (~/tools/venv)",
+      "ts": "2026-11-03T21:07:06.473366+00:00"
+    },
+    {
+      "line": 2,
+      "cell": "toolchain-bootstrap",
+      "status": "OK",
+      "grade": "PASS",
+      "wrapper": false,
+      "harness": true,
+      "project": "lore",
+      "detail": "system gcc/g++ toolchain (~/tools/bin wrappers -> gcc/g++) \u2014 preferred over zig-cc for C++ cgo deps (MCP-008)",
+      "ts": "2026-11-03T21:07:12.614545+00:00"
+    },
+    {
+      "line": 3,
+      "cell": "toolchain-bootstrap",
+      "status": "OK",
+      "grade": "PASS",
+      "wrapper": false,
+      "harness": true,
+      "project": "lore",
+      "detail": "make available (preinstalled) \u2014 GNU Make 4.3",
+      "ts": "2026-11-03T21:07:12.646517+00:00"
+    },
+    {
+      "line": 4,
+      "cell": "fresh-install",
+      "status": "OK",
+      "grade": "PASS",
+      "wrapper": false,
+      "harness": false,
+      "project": "lore",
+      "detail": "Successfully installed CacheControl-0.14.4 boolean.py-5.0 certifi-2026.10.23 charset_normalizer-3.5.2 cyclonedx-python-lib-11.12.0 defusedxml-0.7.1 filelock-4.2.7 get-h3-lore-0.2.0 idna-3.20 license-expression-30.4.4 markdown-it-py-4.2.0 mdurl-0.1.2 msgpack-1.2.4 packageurl-python-0.17.6 pip-api-0.0",
+      "ts": "2026-11-03T21:07:20.544980+00:00"
+    },
+    {
+      "line": 5,
+      "cell": "lint",
+      "status": "OK",
+      "grade": "PASS",
+      "wrapper": false,
+      "harness": false,
+      "project": "lore",
+      "detail": "ruff check . (rc=0)",
+      "ts": "2026-11-03T21:07:20.649802+00:00"
+    },
+    {
+      "line": 6,
+      "cell": "tests",
+      "status": "OK",
+      "grade": "PASS",
+      "wrapper": false,
+      "harness": false,
+      "project": "lore",
+      "detail": " (rc=0)",
+      "ts": "2026-11-03T21:07:28.322677+00:00"
+    },
+    {
+      "line": 7,
+      "cell": "docker_build",
+      "status": "N/A",
+      "grade": "N/A",
+      "wrapper": false,
+      "harness": false,
+      "project": "lore",
+      "detail": "no Dockerfile trigger",
+      "ts": "2026-11-03T21:07:28.378195+00:00"
+    },
+    {
+      "line": 8,
+      "cell": "compose_config",
+      "status": "N/A",
+      "grade": "N/A",
+      "wrapper": false,
+      "harness": false,
+      "project": "lore",
+      "detail": "no compose file trigger",
+      "ts": "2026-11-03T21:07:28.424181+00:00"
+    },
+    {
+      "line": 9,
+      "cell": "toolchain-bootstrap",
+      "status": "OK",
+      "grade": "PASS",
+      "wrapper": false,
+      "harness": true,
+      "project": "lore",
+      "detail": "compose plugin installed (~/.docker/cli-plugins/docker-compose)",
+      "ts": "2026-11-03T21:07:30.057087+00:00"
+    },
+    {
+      "line": 10,
+      "cell": "toolchain-bootstrap",
+      "status": "OK",
+      "grade": "PASS",
+      "wrapper": false,
+      "harness": true,
+      "project": "lore",
+      "detail": "buildx plugin installed (github.com/docker/buildx v0.38.2 3c4cbd35852fc1a476923627a780a7836c28b654)",
+      "ts": "2026-11-03T21:07:31.319364+00:00"
+    },
+    {
+      "line": 11,
+      "cell": "toolchain-bootstrap",
+      "status": "OK",
+      "grade": "PASS",
+      "wrapper": false,
+      "harness": true,
+      "project": "lore",
+      "detail": "node+npm installed (v22.15.0)",
+      "ts": "2026-11-03T21:07:34.184326+00:00"
+    },
+    {
+      "line": 12,
+      "cell": "toolchain-bootstrap",
+      "status": "OK",
+      "grade": "PASS",
+      "wrapper": false,
+      "harness": true,
+      "project": "lore",
+      "detail": "HARNESS-COMPOSE=ok (docker compose version passes)",
+      "ts": "2026-11-03T21:07:34.404277+00:00"
+    },
+    {
+      "line": 13,
+      "cell": "toolchain-bootstrap",
+      "status": "OK",
+      "grade": "PASS",
+      "wrapper": false,
+      "harness": true,
+      "project": "lore",
+      "detail": "HARNESS_NODE=ok (node v22.15.0, npm 10.9.2)",
+      "ts": "2026-11-03T21:07:34.566591+00:00"
+    },
+    {
+      "line": 14,
+      "cell": "ci-pass",
+      "status": "OK",
+      "grade": "PASS",
+      "wrapper": false,
+      "harness": false,
+      "project": "lore",
+      "detail": "act: 1 jobs green \u2014 act_result=pass rc=0 (1 triggerable workflow(s))",
+      "ts": "2026-11-03T21:08:50.226123+00:00"
+    },
+    {
+      "line": 15,
+      "cell": "upgrade",
+      "status": "FAIL",
+      "grade": "FAIL",
+      "wrapper": false,
+      "harness": false,
+      "project": "lore",
+      "detail": "previous release get-h3-lore==0.1.0 would not install (tag v0.1.0): rc=1 cmd=[pip install get-h3-lore==0.1.0] \u2014 ERROR: Could not find a version that satisfies the requirement get-h3-lore==0.1.0 (from versions: none)|ERROR: No matching distribution found for get-h3-lore==0.1.0|",
+      "ts": "2026-11-03T21:08:53.763699+00:00"
+    },
+    {
+      "line": 16,
+      "cell": "docker-deploy",
+      "status": "N/A",
+      "grade": "N/A",
+      "wrapper": false,
+      "harness": false,
+      "project": "lore",
+      "detail": "no compose file",
+      "ts": "2026-11-03T21:08:53.833178+00:00"
+    },
+    {
+      "line": 17,
+      "cell": "ui-probe",
+      "status": "N/A",
+      "grade": "N/A",
+      "wrapper": false,
+      "harness": false,
+      "project": "lore",
+      "detail": "no web UI detected",
+      "ts": "2026-11-03T21:08:53.872625+00:00"
+    },
+    {
+      "line": 18,
+      "cell": "chaos-disconnect",
+      "status": "INFO",
+      "grade": "INFO",
+      "wrapper": false,
+      "harness": false,
+      "project": "lore",
+      "detail": "passes with network cut (no network dep)",
+      "ts": "2026-11-03T21:09:00.695215+00:00"
+    },
+    {
+      "line": 19,
+      "cell": "chaos-shutdown",
+      "status": "N/A",
+      "grade": "N/A",
+      "wrapper": false,
+      "harness": false,
+      "project": "lore",
+      "detail": "no compose file",
+      "ts": "2026-11-03T21:09:00.746429+00:00"
+    },
+    {
+      "line": 20,
+      "cell": "chaos-corruption",
+      "status": "N/A",
+      "grade": "N/A",
+      "wrapper": false,
+      "harness": false,
+      "project": "lore",
+      "detail": "no db/state files in repo",
+      "ts": "2026-11-03T21:09:00.791772+00:00"
+    },
+    {
+      "line": 21,
+      "cell": "chaos-resource",
+      "status": "PASS",
+      "grade": "PASS",
+      "wrapper": false,
+      "harness": false,
+      "project": "lore",
+      "detail": "suite survives 3G memory cap (cap=3145728KB child_saw=3145728 subshell_saw=3145728 parent_saw=unlimited)",
+      "ts": "2026-11-03T21:09:08.073986+00:00"
+    },
+    {
+      "line": 22,
+      "cell": "chaos-errorpath",
+      "status": "OK",
+      "grade": "PASS",
+      "wrapper": false,
+      "harness": false,
+      "project": "lore",
+      "detail": "clean error on missing config (rc=2)",
+      "ts": "2026-11-03T21:09:08.239658+00:00"
+    }
+  ]
+}
