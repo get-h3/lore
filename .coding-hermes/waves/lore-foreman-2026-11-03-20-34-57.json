@@ -1,0 +1,21 @@
+{
+  "tick": "lore-foreman-2026-11-03-20-34-57",
+  "project": "lore",
+  "wave": "none:verification-only-serial-owner-gated-host-reclaim-cleared",
+  "budget": 5,
+  "rows": [
+    {
+      "id": "QA-LORE-FOREMAN-1",
+      "priority": "P1",
+      "status": "pending",
+      "dispatch": "serial-worker",
+      "worktree": "/home/kara/worktrees/lore-QA-LORE-FOREMAN-1-R2",
+      "branch": "wt/QA-LORE-FOREMAN-1-R2",
+      "base_sha": "3f4be19a164177bc80a2f6e7488af646420826bb",
+      "dependency_proof": "No depends_on edges; RELEASE-LORE-006 is owner-gated and not executable.",
+      "authorization_proof": "Owner reclaim is complete: ssh bunker-mvp df -P / reports 87%, below the 94% battery gate.",
+      "authorization_required": "Do not perform destructive host cleanup; run only the battery and harvest its evidence."
+    }
+  ],
+  "created_before_dispatch": true
+}
