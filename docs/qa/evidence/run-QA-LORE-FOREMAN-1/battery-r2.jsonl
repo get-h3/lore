@@ -1,0 +1,1 @@
+{"cell":"run_battery","status":"FAIL","detail":"spawn failed on bunker-mvp: spawn attempt 2 failed: bunker: spawn agent: unavailable: dial tcp 100.115.67.116:19090: connect: connection refused; no product cells executed","ts":"2026-11-03T20:51:58Z","classification":"UNVERIFIED","tested_head":"3f4be19a164177bc80a2f6e7488af646420826bb"}
