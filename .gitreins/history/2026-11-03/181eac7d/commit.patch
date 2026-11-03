@@ -1,0 +1,17 @@
+commit d8862a1211ad0d453956df81f65c638d050b5dd5
+Merge: 30d413e d779dfa
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Tue Nov 3 16:38:56 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Tue Nov 3 16:38:56 2026 -0500
+
+    qa: integrate bunker-mvp battery evidence for QA-LORE-FOREMAN-1.
+
+ .../waves/lore-foreman-2026-11-03-20-34-57.json    |  21 ++
+ .../battery-r2-summary-attempt2.md                 | 112 +++++++++
+ .../run-QA-LORE-FOREMAN-1/battery-r2-summary.md    |  14 ++
+ .../run-QA-LORE-FOREMAN-1/battery-r2.jsonl         |   1 +
+ .../bunker-qa-lore-r2-cells.json                   | 259 +++++++++++++++++++++
+ .../bunker-qa-lore-r2-runner-log.txt               |  49 ++++
+ .../run-QA-LORE-FOREMAN-1/bunker-qa-lore-r2.jsonl  |  22 ++
+ 7 files changed, 478 insertions(+)
