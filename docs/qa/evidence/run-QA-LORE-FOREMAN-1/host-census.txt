@@ -1,0 +1,42 @@
+bunker-mvp disk reclaim — 2026-11-03 (lore-foreman tick 13:57:46, row QA-LORE-FOREMAN-1)
+host: bunker-mvp (78.46.173.180, Hetzner CI/QA host)
+before: /dev/sda1 150G, 141G used, 3.6-3.7G avail, 98% (launch threshold 94%)
+
+/anatomy:
+  /home   113G (28 bunker agent homes)
+  /var     14G  (/var/log 4.6G [journal 3.0G], /var/backups 4.0G [bunker archives 4.0G], /var/lib 5.2G)
+  /root    4.8G
+
+registered (RUNNING, kept — all writing within 2h):
+  cc35ae03, 3743b57d, 74baf031, e384a8c7, 272c7abb, acaf858e, 00a6ab6c, ae196e40
+  total 35.8G
+
+orphaned (NOT in bunkerd registry, 0 processes, no /run/user/<uid> rootless dockerd, newest file >=5h):
+  00.. excluded
+  03ecf3b5 2363M newest 2026-11-01T04:57
+  04235b51  600M newest 2026-11-03T04:40
+  08bc722c 2781M newest 2026-11-03T08:36
+  28309542  448M newest 2026-11-01T03:57
+  2ecf416b 6558M newest 2026-11-01T01:31
+  3a32e5eb 4691M newest 2026-11-02T16:30
+  3f3e8f96 1031M newest 2026-11-01T00:26
+  4160d972 11834M newest 2026-11-03T07:07
+  4a63cded 7507M newest 2026-10-31T22:53
+  6046f72e 7395M newest 2026-10-31T06:10
+  6282a0f5 5355M newest 2026-11-02T23:52
+  7f233985 1141M newest 2026-10-31T13:20
+  9c7f0037 5408M newest 2026-11-02T19:37
+  a8a9be27  511M newest 2026-11-03T01:14
+  ac09623c 6899M newest 2026-11-02T20:35
+  bed19365  663M newest 2026-11-01T10:58
+  d24c8922 4816M newest 2026-11-01T09:52
+  d5c1c615 5996M newest 2026-11-02T16:02
+  e3d0e434  825M newest 2026-11-01T20:52
+  fdb16e3b  667M newest 2026-11-01T19:54
+  total ~75.7G
+
+retained: /var/backups/bunker archives (4.0G, 6 tarballs, all 2026-11-03) — documented
+backup-of-record for destroyed temp agents; 08bc722c + 04235b51 archives are the only intact
+copy of those homes, so the archives were NOT pruned.
+
+action: delete the 20 orphaned homes; journal vacuum to 500M; prune dangling docker images.
