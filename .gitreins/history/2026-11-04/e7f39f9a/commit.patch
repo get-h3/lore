@@ -1,0 +1,331 @@
+commit aecfbea042101c916edb5deb82e9a3dca370b6dc
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Nov 4 13:14:08 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Nov 4 13:14:08 2026 -0500
+
+    feat(scripts): rename-aware upgrade-path check (QA-LORE-RELENG-1)
+    
+    The QA upgrade cell installs the previous release from the package index and
+    therefore cannot pass: get-h3-lore is deliberately unpublished on PyPI
+    (README/INSTALL state the posture), so "upgrade path untestable" was measuring
+    a channel this project does not have. This closes the testable half of that
+    gap on the channel that does exist, and fixes two instructions that were wrong.
+    
+    scripts/upgrade-path-check.sh (offline, 4 rungs, ~3s):
+      1 v0.1.0-install          tag v0.1.0 installs as distribution `lore` 0.1.0
+      2 naive-upgrade-leftover  installing the current tree over it leaves BOTH
+                                dists installed -> migration required (observed)
+      3 rename-migration        uninstall `lore` then install -> one dist, 0.2.0
+      4 post-upgrade-verify     CLI smoke + installed __version__ really swapped
+    
+    The rename is what makes this non-obvious: `lore` -> `get-h3-lore` changes the
+    distribution identity, so a plain install is not an upgrade and uv records the
+    tool under the new name. Verified live: `uv tool upgrade lore` answers
+    "`lore` is not installed"; the tool lists as `get-h3-lore v0.2.0` and
+    `uv tool upgrade get-h3-lore` is the working form. README and docs/INSTALL.md
+    now carry the migration instead of the stale `uv tool upgrade lore`.
+    
+    Evidence: docs/release-evidence/upgrade-path-2026-11-04.txt (this tree,
+    v0.1.0 tag c655666, RESULT: PASS rungs=4).
+    
+    Gates: pytest 566 passed; ruff check + format clean; check-test-count PASS
+    (canonical=566 live=566, class-count=13).
+    
+    Residual (not this row): index publication remains gated by
+    RELEASE-LORE-006 — nothing is published under get-h3-lore, so the QA cell's
+    index-based premise needs changing on the harness side, not in this repo.
+---
+ README.md                                         |  16 +-
+ docs/INSTALL.md                                   |  24 +++
+ docs/release-evidence/upgrade-path-2026-11-04.txt |   6 +
+ scripts/upgrade-path-check.sh                     | 203 ++++++++++++++++++++++
+ 4 files changed, 246 insertions(+), 3 deletions(-)
+
+diff --git a/README.md b/README.md
+index 319ac71..54bfdf9 100644
+--- a/README.md
++++ b/README.md
+@@ -151,13 +151,23 @@ uv tool install git+https://github.com/get-h3/lore
+ lore match "key rotation expired"
+ ```
+ 
+-If a `lore` executable already exists on your PATH, upgrade an installed
+-`lore` tool in place:
++If a `lore` executable already exists on your PATH, check the tool name before
++upgrading. The distribution was renamed to `get-h3-lore`, so a tool installed
++after the rename is recorded under the new name and `uv tool upgrade lore`
++answers "`lore` is not installed". Move an older tool across the rename by
++uninstalling the old name and installing again with the command above:
+ 
+ ```sh
+-uv tool upgrade lore
++uv tool uninstall lore          # only for a tool installed before the rename
++uv tool install git+https://github.com/get-h3/lore
++uv tool upgrade get-h3-lore     # upgrades after the rename
+ ```
+ 
++The same rename applies to the installed distribution: installing the current
++tree over an older release leaves the old `lore` distribution in place, so
++uninstall it first. `scripts/upgrade-path-check.sh` proves that migration end
++to end (old tag -> current tree -> one distribution, working `lore` command).
++
+ If you intentionally need to overwrite an existing tool that owns the `lore`
+ executable name, use:
+ 
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index c3b2ccb..003021f 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -367,6 +367,30 @@ uv tool install git+https://github.com/get-h3/lore
+ lore match "key rotation expired"
+ ```
+ 
++#### Upgrading across the distribution rename
++
++v0.1.0 shipped as distribution `lore`; the current tree is `get-h3-lore` (the
++import package and the `lore` command are unchanged). An installed
++distribution cannot be upgraded across a rename: a plain install of the new
++tree leaves the old `lore` distribution behind, so the environment ends up
++with two distributions and an ambiguous `lore` command. The supported
++migration drops the old distribution first:
++
++```sh
++uv pip uninstall lore
++uv pip install <path-or-git-url-of-the-current-tree>
++```
++
++The same applies to a tool install: `uv tool upgrade lore` answers "`lore` is
++not installed" because the tool is recorded under the distribution name — use
++`uv tool uninstall lore` then install again, and `uv tool upgrade get-h3-lore`
++for later upgrades.
++
++`scripts/upgrade-path-check.sh` exercises this path end to end, offline: it
++installs the `v0.1.0` tag (distribution `lore`), classifies what a naive
++install-over leaves behind, then performs the migration and verifies that the
++installed code — not just the reported version string — is the current tree.
++
+ > **Never `pip install lore`.** The bare `lore` name on PyPI belongs to an
+ > unrelated foreign package (instacart/lore). This project is not on PyPI under
+ > that name; its distribution name is `get-h3-lore`, and we do not publish to
+diff --git a/docs/release-evidence/upgrade-path-2026-11-04.txt b/docs/release-evidence/upgrade-path-2026-11-04.txt
+new file mode 100644
+index 0000000..adfa60f
+--- /dev/null
++++ b/docs/release-evidence/upgrade-path-2026-11-04.txt
+@@ -0,0 +1,6 @@
++upgrade-path-check: tag=v0.1.0 tag_version=0.1.0 head_version=0.2.0
++rung v0.1.0-install         OK   dist=lore version=0.1.0 script=lore
++rung naive-upgrade-leftover OK   leftover-confirmed: 2 dists installed (get_h3_lore-0.2.0 lore-0.1.0 )-> migration required
++rung rename-migration       OK   dists=1 (get_h3_lore-0.2.0) version=0.2.0
++rung post-upgrade-verify    OK   code_version=0.2.0 smoke=key-rotation-expiry
++RESULT: PASS rungs=4 tag=v0.1.0 head_version=0.2.0
+diff --git a/scripts/upgrade-path-check.sh b/scripts/upgrade-path-check.sh
+new file mode 100755
+index 0000000..176adbb
+--- /dev/null
++++ b/scripts/upgrade-path-check.sh
+@@ -0,0 +1,203 @@
++#!/usr/bin/env bash
++# Upgrade-path check — the `lore` -> `get-h3-lore` distribution rename.
++#
++# Why this exists (QA-LORE-RELENG-1): the project renamed its PyPI
++# *distribution* to `get-h3-lore` while the import package and the console
++# script stay `lore`. A rename changes the distribution identity, so a plain
++# install over an older release does not upgrade it — the old `lore`
++# distribution is never removed, and the operator is left with two installed
++# distributions and no way to tell which code the `lore` executable runs.
++# Nothing else in the gate set exercises that path, and the index-based
++# upgrade cell cannot (the project does not publish to PyPI by design), so
++# this script exercises the only supported channel: installs built from this
++# repository, offline, with no PyPI access.
++#
++# Rungs, each printed as `rung <name> OK|FAIL <detail>`:
++#   v0.1.0-install          tag v0.1.0 installs as distribution `lore` 0.1.0
++#   naive-upgrade-leftover  installing the current tree over it is classified
++#                           (leftover-confirmed = the hazard; clean-rename = fine)
++#   rename-migration        uninstall `lore`, install current tree => exactly
++#                           one distribution, at the current version
++#   post-upgrade-verify     the CLI works AND the installed code really swapped
++#                           (version marker, not just the version string pip reports)
++#
++# Exit: 0 = every rung observed, 1 = a rung failed, 2 = guard misconfigured.
++#
++# Usage: scripts/upgrade-path-check.sh [tag]      (default tag: v0.1.0)
++#        KEEP=1 scripts/upgrade-path-check.sh    (keep the scratch venv)
++
++set -uo pipefail
++
++ROOT="$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel 2>/dev/null)" || {
++    echo "GUARD: not inside a git checkout" >&2
++    exit 2
++}
++TAG="${1:-v0.1.0}"
++OLD_DIST="lore"
++NEW_DIST_MATCH="get_h3_lore"
++
++for bin in git uv; do
++    command -v "$bin" >/dev/null 2>&1 || {
++        echo "GUARD: $bin not on PATH" >&2
++        exit 2
++    }
++done
++[ -f "$ROOT/pyproject.toml" ] || {
++    echo "GUARD: no pyproject.toml at $ROOT" >&2
++    exit 2
++}
++git -C "$ROOT" rev-parse -q --verify "refs/tags/$TAG" >/dev/null || {
++    echo "GUARD: tag $TAG not found in $ROOT" >&2
++    exit 2
++}
++
++head_version="$(
++    sed -n 's/^version[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$ROOT/pyproject.toml" | head -1
++)"
++tag_version="$(
++    git -C "$ROOT" show "$TAG:pyproject.toml" |
++        sed -n 's/^version[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' | head -1
++)"
++[ -n "$head_version" ] && [ -n "$tag_version" ] || {
++    echo "GUARD: could not read project version from pyproject.toml" >&2
++    exit 2
++}
++
++BASE="${TMPDIR:-/tmp}"
++WORK="$(mktemp -d "$BASE/lore-upgrade-path-XXXXXX")" || exit 2
++SRC="$WORK/src-at-tag"
++VENV="$WORK/venv"
++PY="$VENV/bin/python"
++LOG="$WORK/install.log"
++fails=0
++
++cleanup() {
++    if [ "${KEEP:-0}" = "1" ]; then
++        echo "scratch: $WORK"
++    else
++        rm -rf "$WORK"
++    fi
++}
++trap cleanup EXIT
++
++pass() { printf 'rung %-22s OK   %s\n' "$1" "$2"; }
++fail() { printf 'rung %-22s FAIL %s\n' "$1" "$2"; fails=$((fails + 1)); }
++
++site_packages() {
++    ls -d "$VENV"/lib/python*/site-packages 2>/dev/null | head -1
++}
++dist_list() {
++    local sp; sp="$(site_packages)"
++    [ -n "$sp" ] || return 0
++    find "$sp" -maxdepth 1 -name '*.dist-info' -printf '%f\n' 2>/dev/null |
++        sed 's/\.dist-info$//' | sort
++}
++has_dist() { # $1 = distribution name prefix (dist-info stems are `<name>-<version>`)
++    dist_list | grep -q "^$1-" 2>/dev/null
++}
++dist_version() { # $1 = dist-info stem
++    local sp; sp="$(site_packages)"
++    grep -h -m1 '^Version:' "$sp/$1.dist-info/METADATA" 2>/dev/null | awk '{print $2}'
++}
++installed_code_version() {
++    sed -n 's/^__version__[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' \
++        "$(site_packages)/lore/__init__.py" 2>/dev/null | head -1
++}
++install_tree() { # $1 = install source; quiet, log captured
++    uv pip install -q --python "$PY" "$1" >>"$LOG" 2>&1
++}
++
++echo "upgrade-path-check: tag=$TAG tag_version=$tag_version head_version=$head_version"
++
++# ---------------------------------------------------------------- rung 1
++git clone -q --branch "$TAG" --depth 1 "file://$ROOT" "$SRC" >>"$LOG" 2>&1 ||
++    git clone -q --branch "$TAG" "$ROOT" "$SRC" >>"$LOG" 2>&1
++if [ ! -d "$SRC" ]; then
++    fail v0.1.0-install "clone of $TAG failed (see log below)"
++else
++    uv venv -q "$VENV" >>"$LOG" 2>&1
++    if install_tree "$SRC"; then
++        d1="$(dist_list)"
++        v1="$(dist_version "$(echo "$d1" | grep "^$OLD_DIST-" | head -1)")"
++        if [ "$(echo "$d1" | wc -l)" = "1" ] && [ "$v1" = "$tag_version" ] && [ -x "$VENV/bin/lore" ]; then
++            pass v0.1.0-install "dist=$OLD_DIST version=$v1 script=lore"
++        else
++            fail v0.1.0-install "dists=[$(echo "$d1" | tr '\n' ' ')] version=${v1:-none}"
++        fi
++    else
++        fail v0.1.0-install "install of $TAG tree failed (see log below)"
++    fi
++fi
++
++# ---------------------------------------------------------------- rung 2
++# Naive upgrade: install the current tree without removing the old distribution.
++# This is what a user does after reading "upgrade" as a version bump. It is a
++# CLASSIFICATION, not an assertion: a tool that cleans the rename up is fine,
++# a leftover is the hazard this script exists to name.
++if [ "$fails" -eq 0 ]; then
++    if install_tree "$ROOT"; then
++        have_old=0; have_new=0
++        has_dist "$OLD_DIST" && have_old=1
++        has_dist "$NEW_DIST_MATCH" && have_new=1
++        count="$(dist_list | wc -l)"
++        if [ "$have_old" = 1 ] && [ "$have_new" = 1 ]; then
++            pass naive-upgrade-leftover "leftover-confirmed: $count dists installed ($(dist_list | tr '\n' ' '))-> migration required"
++        elif [ "$have_new" = 1 ]; then
++            pass naive-upgrade-leftover "clean-rename: $count dist ($(dist_list | tr '\n' ' '))"
++        else
++            fail naive-upgrade-leftover "neither distribution present after install: [$(dist_list | tr '\n' ' ')]"
++        fi
++    else
++        fail naive-upgrade-leftover "install of current tree failed (see log below)"
++    fi
++fi
++
++# ---------------------------------------------------------------- rung 3
++# The supported migration: drop the old distribution, then install the new one.
++if [ "$fails" -eq 0 ]; then
++    uv pip uninstall -q --python "$PY" "$OLD_DIST" >>"$LOG" 2>&1
++    if has_dist "$OLD_DIST"; then
++        fail rename-migration "uninstall of $OLD_DIST did not remove it"
++    elif ! install_tree "$ROOT"; then
++        fail rename-migration "install of current tree failed after uninstall (see log below)"
++    else
++        d3="$(dist_list)"
++        count3="$(echo "$d3" | wc -l)"
++        new3="$(echo "$d3" | grep "^$NEW_DIST_MATCH-" | head -1)"
++        v3="$(dist_version "${new3:-missing}")"
++        if [ "$count3" = "1" ] && [ -n "$new3" ] && [ "$v3" = "$head_version" ]; then
++            pass rename-migration "dists=1 ($new3) version=$v3"
++        else
++            fail rename-migration "dists=$count3 [$(echo "$d3" | tr '\n' ' ')] version=${v3:-none}"
++        fi
++    fi
++fi
++
++# ---------------------------------------------------------------- rung 4
++# The version string is not proof: prove the installed CODE swapped, and that
++# the console script still runs the new build.
++if [ "$fails" -eq 0 ]; then
++    code_v="$(installed_code_version)"
++    smoke="$("$VENV/bin/lore" match "key rotation expired" 2>&1 | head -1 || true)"
++    if [ "$code_v" = "$head_version" ] && [ "$code_v" != "$tag_version" ]; then
++        case "$smoke" in
++            key-rotation-expiry*)
++                pass post-upgrade-verify "code_version=$code_v smoke=key-rotation-expiry"
++                ;;
++            *)
++                fail post-upgrade-verify "CLI smoke unexpected: ${smoke:-<empty>}"
++                ;;
++        esac
++    else
++        fail post-upgrade-verify "installed code version=${code_v:-none} expected=$head_version (tag was $tag_version)"
++    fi
++fi
++
++if [ "$fails" -gt 0 ]; then
++    echo "--- install log (tail) ---"
++    tail -20 "$LOG" 2>/dev/null
++    echo "RESULT: FAIL rungs_failed=$fails"
++    exit 1
++fi
++echo "RESULT: PASS rungs=4 tag=$TAG head_version=$head_version"
++exit 0

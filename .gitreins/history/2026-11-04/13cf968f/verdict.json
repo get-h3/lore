@@ -1,0 +1,121 @@
+{
+  "task_id": "QA-LORE-RELENG-1",
+  "task_title": "Upgrade path testable: rename-aware migration check",
+  "task_criteria": [
+    "scripts/upgrade-path-check.sh exists and exits 0 printing rung v0.1.0-install, rung rename-migration, rung post-upgrade-verify, rung naive-upgrade-leftover; docs/INSTALL.md states the uninstall-lore-then-install migration; pytest 566 passed, ruff clean, check-test-count PASS"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "aecfbea042101c916edb5deb82e9a3dca370b6dc",
+  "working_tree_content_fingerprint": "431eacac433e7c84a51dc1de7afeeba95d9f530cf6ec3c60c99717906670e1e7",
+  "working_tree_dirty_path_count": 3,
+  "items": [],
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261104T181416.041182Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nscanners: nice=nice -n 10\n1:14PM INF scanned ~8788003 bytes (8.79 MB) in 2.79s\n1:14PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 264 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261104T181416.041182Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.13.5\ncollected 566 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  7%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 12%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 21%]\ntests/test_consult.py ....................                               [ 24%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 27%]\ntests/test_evidence.py ......................                            [ 31%]\ntests/test_lore011_drain_acceptance.py .......                           [ 32%]\ntests/test_lore016_qa_audit.py .....................                     [ 36%]\ntests/test_lore017_gateway_guard.py ........                             [ 37%]\ntests/test_lore020_absorb_window.py ...                                  [ 38%]\ntests/test_lore021_naming_docs.py .......                                [ 39%]\ntests/test_lore022_freshness_docs.py .....                               [ 40%]\ntests/test_lore030_ux_guard.py ....                                      [ 41%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 43%]\ntests/test_lore041_collision_canonical.py ...........                    [ 45%]\ntests/test_lore043_short_text_threshold.py ....................          [ 48%]\ntests/test_lore045_validate_history.py ....................              [ 52%]\ntests/test_lore046_match_output.py ...........                           [ 54%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 56%]\n\n\u2026 [400 chars omitted \u2014 5 line(s)] \u2026\ntests/test_lore053_absorb_window_error.py ....                           [ 64%]\ntests/test_lore054_match_class_filter.py ....                            [ 65%]\ntests/test_lore055_consult_missing_input.py ......                       [ 66%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 66%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 68%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 69%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 70%]\ntests/test_lore064_audit_wiring.py .............................         [ 75%]\ntests/test_lore066_zero_check_skip.py ...                                [ 75%]\ntests/test_lore067_incident_audit.py ..                                  [ 76%]\ntests/test_near_miss.py ..............                                   [ 78%]\ntests/test_perf2_audit_single_pass.py ........                           [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 81%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 566 passed in 10.39s =============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261104T181416.041182Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 scripts/upgrade-path-check.sh exists and exits 0 printing rung v0.1.0-install, rung rename-migration, rung post-upgrade-verify, rung naive-upgrade-leftover; docs/INSTALL.md states the uninstall-lore-then-install migration; pytest 566 passed, ruff clean, check-test-count PASS: scripts/upgrade-path-check.sh exists (203 lines; pass/fail helpers at lines 83-84, rungs at 112-192). Ran `bash scripts/upgrade-path-check.sh` -> SCRIPT_EXIT=0 with output: 'rung v0.1.0-install OK dist=lore version=0.1.0 script=lore', 'rung naive-upgrade-leftover OK leftover-confirmed: 2 dists installed (get_h3_lore-0.2.0 lore-0.1.0 )-> migration required', 'rung rename-migration OK dists=1 (get_h3_lore-0.2.0) version=0.2.0', 'rung post-upgrade-verify OK code_version=0.2.0 smoke=key-rotation-expiry', 'RESULT: PASS rungs=4 tag=v0.1.0 head_version=0.2.0'. docs/INSTALL.md:370-387 section 'Upgrading across the distribution rename' states the migration: 'uv pip uninstall lore' then 'uv pip install <path-or-git-url-of-the-current-tree>', plus 'uv tool uninstall lore then install again'. Tests: `uv run pytest -q` -> '566 passed in 12.94s', exit 0. Lint: `uv run ruff check .` -> 'All checks passed!', exit 0. Count guard: `bash scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=566 matches live=566; class-count=13; no stale count literals in living docs', exit 0.\nAll four rungs print and the script exits 0, INSTALL.md documents the uninstall-lore-then-install migration, and pytest (566 passed), ruff, and check-test-count all pass.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 scripts/upgrade-path-check.sh exists and exits 0 printing rung v0.1.0-install, rung rename-migration, rung post-upgrade-verify, rung naive-upgrade-leftover; docs/INSTALL.md states the uninstall-lore-then-install migration; pytest 566 passed, ruff clean, check-test-count PASS: scripts/upgrade-path-check.sh exists (203 lines; pass/fail helpers at lines 83-84, rungs at 112-192). Ran `bash scripts/upgrade-path-check.sh` -> SCRIPT_EXIT=0 with output: 'rung v0.1.0-install OK dist=lore version=0.1.0 script=lore', 'rung naive-upgrade-leftover OK leftover-confirmed: 2 dists installed (get_h3_lore-0.2.0 lore-0.1.0 )-> migration required', 'rung rename-migration OK dists=1 (get_h3_lore-0.2.0) version=0.2.0', 'rung post-upgrade-verify OK code_version=0.2.0 smoke=key-rotation-expiry', 'RESULT: PASS rungs=4 tag=v0.1.0 head_version=0.2.0'. docs/INSTALL.md:370-387 section 'Upgrading across the distribution rename' states the migration: 'uv pip uninstall lore' then 'uv pip install <path-or-git-url-of-the-current-tree>', plus 'uv tool uninstall lore then install again'. Tests: `uv run pytest -q` -> '566 passed in 12.94s', exit 0. Lint: `uv run ruff check .` -> 'All checks passed!', exit 0. Count guard: `bash scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=566 matches live=566; class-count=13; no stale count literals in living docs', exit 0.\nAll four rungs print and the script exits 0, INSTALL.md documents the uninstall-lore-then-install migration, and pytest (566 passed), ruff, and check-test-count all pass.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "scripts/upgrade-path-check.sh exists and exits 0 printing rung v0.1.0-install, rung rename-migration, rung post-upgrade-verify, rung naive-upgrade-leftover; docs/INSTALL.md states the uninstall-lore-then-install migration; pytest 566 passed, ruff clean, check-test-count PASS",
+                "status": "PASS",
+                "detail": "scripts/upgrade-path-check.sh exists (203 lines; pass/fail helpers at lines 83-84, rungs at 112-192). Ran `bash scripts/upgrade-path-check.sh` -> SCRIPT_EXIT=0 with output: 'rung v0.1.0-install OK dist=lore version=0.1.0 script=lore', 'rung naive-upgrade-leftover OK leftover-confirmed: 2 dists installed (get_h3_lore-0.2.0 lore-0.1.0 )-> migration required', 'rung rename-migration OK dists=1 (get_h3_lore-0.2.0) version=0.2.0', 'rung post-upgrade-verify OK code_version=0.2.0 smoke=key-rotation-expiry', 'RESULT: PASS rungs=4 tag=v0.1.0 head_version=0.2.0'. docs/INSTALL.md:370-387 section 'Upgrading across the distribution rename' states the migration: 'uv pip uninstall lore' then 'uv pip install <path-or-git-url-of-the-current-tree>', plus 'uv tool uninstall lore then install again'. Tests: `uv run pytest -q` -> '566 passed in 12.94s', exit 0. Lint: `uv run ruff check .` -> 'All checks passed!', exit 0. Count guard: `bash scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=566 matches live=566; class-count=13; no stale count literals in living docs', exit 0."
+              }
+            ],
+            "summary": "All four rungs print and the script exits 0, INSTALL.md documents the uninstall-lore-then-install migration, and pytest (566 passed), ruff, and check-test-count all pass.",
+            "provenance": {
+              "model": "deepseek-v4-flash",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "deepseek-v4-flash",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY"
+    }
+  },
+  "summary": "Judge Result: QA-LORE-RELENG-1\n\nStage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 scripts/upgrade-path-check.sh exists and exits 0 printing rung v0.1.0-install, rung rename-migration, rung post-upgrade-verify, rung naive-upgrade-leftover; docs/INSTALL.md states the uninstall-lore-then-install migration; pytest 566 passed, ruff clean, check-test-count PASS: scripts/upgrade-path-check.sh exists (203 lines; pass/fail helpers at lines 83-84, rungs at 112-192). Ran `bash scripts/upgrade-path-check.sh` -> SCRIPT_EXIT=0 with output: 'rung v0.1.0-install OK dist=lore version=0.1.0 script=lore', 'rung naive-upgrade-leftover OK leftover-confirmed: 2 dists installed (get_h3_lore-0.2.0 lore-0.1.0 )-> migration required', 'rung rename-migration OK dists=1 (get_h3_lore-0.2.0) version=0.2.0', 'rung post-upgrade-verify OK code_version=0.2.0 smoke=key-rotation-expiry', 'RESULT: PASS rungs=4 tag=v0.1.0 head_version=0.2.0'. docs/INSTALL.md:370-387 section 'Upgrading across the distribution rename' states the migration: 'uv pip uninstall lore' then 'uv pip install <path-or-git-url-of-the-current-tree>', plus 'uv tool uninstall lore then install again'. Tests: `uv run pytest -q` -> '566 passed in 12.94s', exit 0. Lint: `uv run ruff check .` -> 'All checks passed!', exit 0. Count guard: `bash scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=566 matches live=566; class-count=13; no stale count literals in living docs', exit 0.\nAll four rungs print and the script exits 0, INSTALL.md documents the uninstall-lore-then-install migration, and pytest (566 passed), ruff, and check-test-count all pass.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-04T18:15:35.602739",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-04T18:15:35.620234+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 14695,
+        "truncated": false,
+        "source": "git show aecfbea04210"
+      }
+    ],
+    "task_id": "QA-LORE-RELENG-1"
+  }
+}
