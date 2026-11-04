@@ -151,12 +151,22 @@ uv tool install git+https://github.com/get-h3/lore
 lore match "key rotation expired"
 ```
 
-If a `lore` executable already exists on your PATH, upgrade an installed
-`lore` tool in place:
+If a `lore` executable already exists on your PATH, check the tool name before
+upgrading. The distribution was renamed to `get-h3-lore`, so a tool installed
+after the rename is recorded under the new name and `uv tool upgrade lore`
+answers "`lore` is not installed". Move an older tool across the rename by
+uninstalling the old name and installing again with the command above:
 
 ```sh
-uv tool upgrade lore
+uv tool uninstall lore          # only for a tool installed before the rename
+uv tool install git+https://github.com/get-h3/lore
+uv tool upgrade get-h3-lore     # upgrades after the rename
 ```
+
+The same rename applies to the installed distribution: installing the current
+tree over an older release leaves the old `lore` distribution in place, so
+uninstall it first. `scripts/upgrade-path-check.sh` proves that migration end
+to end (old tag -> current tree -> one distribution, working `lore` command).
 
 If you intentionally need to overwrite an existing tool that owns the `lore`
 executable name, use:

@@ -367,6 +367,30 @@ uv tool install git+https://github.com/get-h3/lore
 lore match "key rotation expired"
 ```
 
+#### Upgrading across the distribution rename
+
+v0.1.0 shipped as distribution `lore`; the current tree is `get-h3-lore` (the
+import package and the `lore` command are unchanged). An installed
+distribution cannot be upgraded across a rename: a plain install of the new
+tree leaves the old `lore` distribution behind, so the environment ends up
+with two distributions and an ambiguous `lore` command. The supported
+migration drops the old distribution first:
+
+```sh
+uv pip uninstall lore
+uv pip install <path-or-git-url-of-the-current-tree>
+```
+
+The same applies to a tool install: `uv tool upgrade lore` answers "`lore` is
+not installed" because the tool is recorded under the distribution name — use
+`uv tool uninstall lore` then install again, and `uv tool upgrade get-h3-lore`
+for later upgrades.
+
+`scripts/upgrade-path-check.sh` exercises this path end to end, offline: it
+installs the `v0.1.0` tag (distribution `lore`), classifies what a naive
+install-over leaves behind, then performs the migration and verifies that the
+installed code — not just the reported version string — is the current tree.
+
 > **Never `pip install lore`.** The bare `lore` name on PyPI belongs to an
 > unrelated foreign package (instacart/lore). This project is not on PyPI under
 > that name; its distribution name is `get-h3-lore`, and we do not publish to

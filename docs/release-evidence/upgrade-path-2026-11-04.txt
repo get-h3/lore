@@ -1,0 +1,6 @@
+upgrade-path-check: tag=v0.1.0 tag_version=0.1.0 head_version=0.2.0
+rung v0.1.0-install         OK   dist=lore version=0.1.0 script=lore
+rung naive-upgrade-leftover OK   leftover-confirmed: 2 dists installed (get_h3_lore-0.2.0 lore-0.1.0 )-> migration required
+rung rename-migration       OK   dists=1 (get_h3_lore-0.2.0) version=0.2.0
+rung post-upgrade-verify    OK   code_version=0.2.0 smoke=key-rotation-expiry
+RESULT: PASS rungs=4 tag=v0.1.0 head_version=0.2.0
