@@ -7,7 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.0] — 2026-10-28
+## [0.2.0] — 2026-11-16
+
+### Added
+
+- **LORE-071** — proposal-only absorb trigger (`lore/trigger.py`,
+  `docs/ABSORB-TRIGGER.md`). `BoardEventWatcher` reads a board's
+  `events.jsonl` by byte offset and accepts `task_completed` records plus any
+  record carrying an explicit `class_id` or lesson; the cursor is written only
+  after the complete suffix parses, atomically, so a restart resumes at the
+  saved offset and never replays seen records — and the board is never opened
+  for writing. `AugerDecisionTableAdapter` parses Auger's deterministic
+  Markdown export into `duckbrain-row` evidence blocks with explicit
+  provenance (`source=auger:<table>:<row_id>`). Both feed the existing
+  `absorb_sweep`, which returns in-memory proposals: no path publishes or
+  modifies a runbook. The cursor path is owner-managed local state, so no
+  production timer or service is installed by this release.
+
+- **QA-LORE-RELENG-1** — `scripts/upgrade-path-check.sh`, an offline
+  (~3s) four-rung upgrade check on the channel this project actually has. It
+  exists because the `lore` → `get-h3-lore` distribution rename makes a plain
+  install-over NOT an upgrade: rung 1 installs tag `v0.1.0` as distribution
+  `lore` 0.1.0, rung 2 confirms the naive install-over leaves BOTH dists
+  installed (`lore-0.1.0` + `get_h3_lore-0.2.0`), rung 3 performs the
+  documented migration (uninstall `lore`, install the current tree, exactly
+  one dist), and rung 4 verifies the CLI smoke and the installed
+  `__version__` really swapped. `uv tool upgrade lore` answers "`lore` is not
+  installed" — README and `docs/INSTALL.md` now carry the working form
+  (`uv tool upgrade get-h3-lore`) instead of the stale instruction.
 
 ### Fixed
 
