@@ -1,0 +1,3 @@
+{"id":1,"timestamp":"2026-09-23T09:27:24.330288+00:00","event_type":"task_completed","task_id":"LORE-003","actor":"foreman","detail":"{\"status\":\"complete\",\"class_id\":\"gateway-drain-window\",\"lesson\":\"drain before restart\"}","tick_number":null}
+{"id":2,"timestamp":"2026-09-23T09:27:30.094933+00:00","event_type":"task_updated","task_id":"LORE-013","actor":"foreman","detail":"{\"class_id\":\"shared-checkout-collision\",\"lesson\":\"stage explicit paths\"}","tick_number":null}
+{"id":3,"timestamp":"2026-09-23T09:27:36.983465+00:00","event_type":"audit","task_id":"LORE-003","actor":"foreman","detail":"{\"class_id\":\"gateway-drain-window\",\"lesson\":\"drain before restart\"}","tick_number":1}

@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 566 passed
+uv run pytest -q        # 572 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -381,7 +381,7 @@ and what does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **566 tests passing** and a clean `ruff check`.
+  with **572 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
   Flags: `match [--class CLASS_ID]` filters results to only the named registry
   class (ships today; not planned-only).
@@ -464,6 +464,8 @@ and what does not:
   `--source` (LORE-020) threads the provenance marker into every per-class
   proposal payload, same None-rule as the single-proposal path: omitted, the
   payloads keep their original shape with no `source` key.
+- Absorb trigger design: [docs/ABSORB-TRIGGER.md](docs/ABSORB-TRIGGER.md)
+  (board-event cursor + Auger export adapter; proposal-only, owner-installed).
 - Install guide: [docs/INSTALL.md](docs/INSTALL.md) (dependency vulnerability
   scanning: "Dependency vulnerability scanning"). Runbook-store design
   decision: [docs/RUNBOOK-STORE.md](docs/RUNBOOK-STORE.md).
