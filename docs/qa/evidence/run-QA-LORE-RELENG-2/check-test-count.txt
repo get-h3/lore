@@ -1,0 +1,1 @@
+PASS: test-count guard: canonical=572 matches live=572; class-count=13; no stale count literals in living docs

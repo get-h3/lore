@@ -1,0 +1,30 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________________ test_dns_lookup_must_be_blocked_by_the_plugin _________________
+
+    def test_dns_lookup_must_be_blocked_by_the_plugin():
+>       socket.getaddrinfo("example.com", 443)
+
+docs/qa/evidence/run-QA-LORE-RELENG-2/redproof_test_netblock.py:16: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/socket.py:987: in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'socket.getaddrinfo', args = ('example.com', 443, 0, 0, 0)
+
+    def _hook(event, args):
+        if event not in BLOCKED_EVENTS:
+            return
+        if event == "socket.connect":
+            address = args[1] if len(args) > 1 else None
+            if not _is_inet_address(address):
+                return
+>       raise OfflineSuiteViolation(f"offline-suite-violation: {event}({args[1:2]!r})")
+E       netblock_plugin.OfflineSuiteViolation: offline-suite-violation: socket.getaddrinfo((443,))
+
+docs/qa/evidence/run-QA-LORE-RELENG-2/netblock_plugin.py:40: OfflineSuiteViolation
+=========================== short test summary info ============================
+FAILED docs/qa/evidence/run-QA-LORE-RELENG-2/redproof_test_netblock.py::test_dns_lookup_must_be_blocked_by_the_plugin
+1 failed in 0.03s
