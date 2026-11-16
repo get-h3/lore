@@ -54,15 +54,17 @@ def test_board_event_watcher_reads_only_new_events_and_resumes(tmp_path):
     assert BoardEventWatcher(board, JsonCursorStore(cursor)).consume() == []
 
 
-def test_cursor_resume_falsifier_fails_without_persistence(tmp_path, monkeypatch):
+def test_cursor_resume_falsifier_fails_without_persistence(tmp_path):
     board = tmp_path / "events.jsonl"
     board.write_text((FIXTURES / "board-events.jsonl").read_text(), encoding="utf-8")
     cursor = tmp_path / "cursor.json"
     watcher = BoardEventWatcher(board, JsonCursorStore(cursor))
     assert len(watcher.consume()) == 3
 
-    # Mutation proof: a memory-only cursor stub replays the old suffix after a
-    # restart. The restored persisted store is exercised by the next test.
+    # Mutation proof: a memory-only cursor injected directly replays the old
+    # suffix after a restart — the same board whose persisted store returned
+    # only new events. (No monkeypatch: consume() uses the injected instance,
+    # so patching the class attribute is dead code.)
     class MemoryOnlyCursor:
         def get(self, _board):
             return 0
@@ -70,8 +72,8 @@ def test_cursor_resume_falsifier_fails_without_persistence(tmp_path, monkeypatch
         def set(self, _board, _offset):
             return None
 
-    monkeypatch.setattr("lore.trigger.JsonCursorStore", MemoryOnlyCursor)
     assert len(BoardEventWatcher(board, MemoryOnlyCursor()).consume()) == 3
+    assert len(BoardEventWatcher(board, JsonCursorStore(cursor)).consume()) == 0
 
 
 def test_board_event_watcher_ignores_non_class_events(tmp_path):
