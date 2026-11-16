@@ -37,3 +37,9 @@ node_modules/
 .lore/
 lore.egg-info/
 get_h3_lore.egg-info/
+
+# Agent-harness residue (not product artifacts). These trip `scripts/release.sh`
+# clean-tree gate on every release dry-run while staying untracked, so a release
+# readiness probe reads as dirty for reasons no reviewer can act on.
+.digest/
+.gitreins/rescued-*/

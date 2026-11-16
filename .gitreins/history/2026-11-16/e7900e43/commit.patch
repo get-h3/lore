@@ -1,0 +1,52 @@
+commit 0e662b1d7d8d6e04dea746582fea2342d1fecfcf
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Mon Nov 16 08:48:30 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Mon Nov 16 08:48:30 2026 -0500
+
+    test: make the cursor-resume falsifier actually mutate (judge caveat)
+    
+    The monkeypatch of lore.trigger.JsonCursorStore was dead code — consume()
+    uses the injected instance, so the mutation never took effect. Inject the
+    memory-only store directly (asserts the replay failure mode) and assert
+    the persisted store consumes 0 afterwards. Found by the tier-2 judge
+    (verdict 67d1f793).
+---
+ tests/test_lore071_trigger.py | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/tests/test_lore071_trigger.py b/tests/test_lore071_trigger.py
+index aaaf59a..b2ddd01 100644
+--- a/tests/test_lore071_trigger.py
++++ b/tests/test_lore071_trigger.py
+@@ -54,15 +54,17 @@ def test_board_event_watcher_reads_only_new_events_and_resumes(tmp_path):
+     assert BoardEventWatcher(board, JsonCursorStore(cursor)).consume() == []
+ 
+ 
+-def test_cursor_resume_falsifier_fails_without_persistence(tmp_path, monkeypatch):
++def test_cursor_resume_falsifier_fails_without_persistence(tmp_path):
+     board = tmp_path / "events.jsonl"
+     board.write_text((FIXTURES / "board-events.jsonl").read_text(), encoding="utf-8")
+     cursor = tmp_path / "cursor.json"
+     watcher = BoardEventWatcher(board, JsonCursorStore(cursor))
+     assert len(watcher.consume()) == 3
+ 
+-    # Mutation proof: a memory-only cursor stub replays the old suffix after a
+-    # restart. The restored persisted store is exercised by the next test.
++    # Mutation proof: a memory-only cursor injected directly replays the old
++    # suffix after a restart — the same board whose persisted store returned
++    # only new events. (No monkeypatch: consume() uses the injected instance,
++    # so patching the class attribute is dead code.)
+     class MemoryOnlyCursor:
+         def get(self, _board):
+             return 0
+@@ -70,8 +72,8 @@ def test_cursor_resume_falsifier_fails_without_persistence(tmp_path, monkeypatch
+         def set(self, _board, _offset):
+             return None
+ 
+-    monkeypatch.setattr("lore.trigger.JsonCursorStore", MemoryOnlyCursor)
+     assert len(BoardEventWatcher(board, MemoryOnlyCursor()).consume()) == 3
++    assert len(BoardEventWatcher(board, JsonCursorStore(cursor)).consume()) == 0
+ 
+ 
+ def test_board_event_watcher_ignores_non_class_events(tmp_path):

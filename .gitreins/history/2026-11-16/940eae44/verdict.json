@@ -1,0 +1,303 @@
+{
+  "task_id": "QA-LORE-RELENG-2",
+  "task_title": "Network-independency proven by an offline-enforced suite run (audit-hook kill switch)",
+  "task_criteria": [
+    "FAILIF: the suite reaches the network during the offline run, or the kill switch is not proven live (a getaddrinfo call must FAIL under it), or any test fails under it. PROOF: docs/qa/evidence/run-QA-LORE-RELENG-2/ contains netblock_plugin.py plus the raw log of a full pytest run under -p netblock_plugin with 0 failures, and a red-proof log where a deliberate DNS lookup raises OfflineSuiteViolation; the unmodified full suite also passes and ruff is clean"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "258db1c47c445e7d4eb0d95d384a204f92f5e46d",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "0ff450809dcceddd2eb4d19796bc167c0e5baf4a3408653c6a7bad7319b9fd04",
+  "working_tree_dirty_path_count": 1100,
+  "items": [
+    {
+      "criterion": "FAILIF: the suite reaches the network during the offline run, or the kill switch is not proven live (a getaddrinfo call must FAIL under it), or any test fails under it. PROOF: docs/qa/evidence/run-QA-LORE-RELENG-2/ contains netblock_plugin.py plus the raw log of a full pytest run under -p netblock_plugin with 0 failures, and a red-proof log where a deliberate DNS lookup raises OfflineSuiteViolation; the unmodified full suite also passes and ruff is clean",
+      "status": "PASS",
+      "detail": "All artifacts present and independently reproduced. (1) docs/qa/evidence/run-QA-LORE-RELENG-2/netblock_plugin.py:44 installs sys.addaudithook(_hook) blocking socket.getaddrinfo/gethostbyname/gethostbyaddr/INET socket.connect/http.client.connect/urllib.Request. (2) Offline full run: `PYTHONPATH=docs/qa/evidence/run-QA-LORE-RELENG-2 .venv/bin/python -m pytest tests/ -p netblock_plugin -q` -> '572 passed in 6.53s', exit 0 (matches offline-suite.txt '572 passed in 5.19s'). (3) Red-proof: `... pytest docs/qa/evidence/run-QA-LORE-RELENG-2/redproof_test_netblock.py -p netblock_plugin -q` -> exit 1, 'E netblock_plugin.OfflineSuiteViolation: offline-suite-violation: socket.getaddrinfo((443,))', '1 failed in 0.03s' (matches redproof-dns-blocked.txt and redproof-rc.txt redproof_rc=1). (4) Kill switch live in-process: getaddrinfo -> BLOCKED, raw socket.connect(('1.1.1.1',80)) -> BLOCKED, urllib.request.urlopen -> BLOCKED. (5) Unmodified suite: `.venv/bin/python -m pytest tests/ -q` -> '572 passed in 7.96s' exit 0 (matches baseline-suite.txt). (6) `.venv/bin/ruff check .` -> 'All checks passed!' rc=0; `ruff format --check .` -> '630 files already formatted' rc=0. (7) `bash scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=572 matches live=572' rc=0. (8) --collect-only yields 572 both with and without the plugin, so nothing was deselected/skipped to make the offline run green. (9) run-meta.txt commit 07ef9c9a6c613b9cb7009d383c4d265b453f04cf == HEAD~1 (the commit under test); all 11 files are tracked (git ls-files). Only cosmetic drift: README quotes '627 files already formatted' vs 630 now (file count grew after the run)."
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261116T204807.719240Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nscanners: nice=nice -n 10\n3:48PM INF scanned ~13513497 bytes (13.51 MB) in 3.74s\n3:48PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 281 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261116T204807.719240Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.13.5\ncollected 572 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 24%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 27%]\ntests/test_evidence.py ......................                            [ 31%]\ntests/test_lore011_drain_acceptance.py .......                           [ 32%]\ntests/test_lore016_qa_audit.py .....................                     [ 36%]\ntests/test_lore017_gateway_guard.py ........                             [ 37%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 39%]\ntests/test_lore022_freshness_docs.py .....                               [ 40%]\ntests/test_lore030_ux_guard.py ....                                      [ 40%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 42%]\ntests/test_lore041_collision_canonical.py ...........                    [ 44%]\ntests/test_lore043_short_text_threshold.py ....................          [ 48%]\ntests/test_lore045_validate_history.py ....................              [ 51%]\ntests/test_lore046_match_output.py ...........                           [ 53%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 55%]\n\n\u2026 [480 chars omitted \u2014 6 line(s)] \u2026\ntests/test_lore054_match_class_filter.py ....                            [ 64%]\ntests/test_lore055_consult_missing_input.py ......                       [ 65%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 66%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 67%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 68%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 69%]\ntests/test_lore064_audit_wiring.py .............................         [ 74%]\ntests/test_lore066_zero_check_skip.py ...                                [ 75%]\ntests/test_lore067_incident_audit.py ..                                  [ 75%]\ntests/test_lore071_trigger.py ......                                     [ 76%]\ntests/test_near_miss.py ..............                                   [ 79%]\ntests/test_perf2_audit_single_pass.py ........                           [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 81%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 572 passed in 6.93s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261116T204807.719240Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 FAILIF: the suite reaches the network during the offline run, or the kill switch is not proven live (a getaddrinfo call must FAIL under it), or any test fails under it. PROOF: docs/qa/evidence/run-QA-LORE-RELENG-2/ contains netblock_plugin.py plus the raw log of a full pytest run under -p netblock_plugin with 0 failures, and a red-proof log where a deliberate DNS lookup raises OfflineSuiteViolation; the unmodified full suite also passes and ruff is clean: All artifacts present and independently reproduced. (1) docs/qa/evidence/run-QA-LORE-RELENG-2/netblock_plugin.py:44 installs sys.addaudithook(_hook) blocking socket.getaddrinfo/gethostbyname/gethostbyaddr/INET socket.connect/http.client.connect/urllib.Request. (2) Offline full run: `PYTHONPATH=docs/qa/evidence/run-QA-LORE-RELENG-2 .venv/bin/python -m pytest tests/ -p netblock_plugin -q` -> '572 passed in 6.53s', exit 0 (matches offline-suite.txt '572 passed in 5.19s'). (3) Red-proof: `... pytest docs/qa/evidence/run-QA-LORE-RELENG-2/redproof_test_netblock.py -p netblock_plugin -q` -> exit 1, 'E netblock_plugin.OfflineSuiteViolation: offline-suite-violation: socket.getaddrinfo((443,))', '1 failed in 0.03s' (matches redproof-dns-blocked.txt and redproof-rc.txt redproof_rc=1). (4) Kill switch live in-process: getaddrinfo -> BLOCKED, raw socket.connect(('1.1.1.1',80)) -> BLOCKED, urllib.request.urlopen -> BLOCKED. (5) Unmodified suite: `.venv/bin/python -m pytest tests/ -q` -> '572 passed in 7.96s' exit 0 (matches baseline-suite.txt). (6) `.venv/bin/ruff check .` -> 'All checks passed!' rc=0; `ruff format --check .` -> '630 files already formatted' rc=0. (7) `bash scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=572 matches live=572' rc=0. (8) --collect-only yields 572 both with and without the plugin, so nothing was deselected/skipped to make the offline run green. (9) run-meta.txt commit 07ef9c9a6c613b9cb7009d383c4d265b453f04cf == HEAD~1 (the commit under test); all 11 files are tracked (git ls-files). Only cosmetic drift: README quotes '627 files already formatted' vs 630 now (file count grew after the run).\nThe offline-enforced suite run, the red-proven getaddrinfo kill switch, the unmodified baseline suite, ruff and the count guard all reproduce green at the recorded commit, so the network-independency claim is now enforced and falsifiable. [uncovered failure paths: failure mode 0 (A future test that reaches the network via a path the hook does not cover (e.g. a C-level resolver or a subprocess) would pass the offline run unnoticed): detected_by is empty \u2014 uncovered failure path]",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 FAILIF: the suite reaches the network during the offline run, or the kill switch is not proven live (a getaddrinfo call must FAIL under it), or any test fails under it. PROOF: docs/qa/evidence/run-QA-LORE-RELENG-2/ contains netblock_plugin.py plus the raw log of a full pytest run under -p netblock_plugin with 0 failures, and a red-proof log where a deliberate DNS lookup raises OfflineSuiteViolation; the unmodified full suite also passes and ruff is clean: All artifacts present and independently reproduced. (1) docs/qa/evidence/run-QA-LORE-RELENG-2/netblock_plugin.py:44 installs sys.addaudithook(_hook) blocking socket.getaddrinfo/gethostbyname/gethostbyaddr/INET socket.connect/http.client.connect/urllib.Request. (2) Offline full run: `PYTHONPATH=docs/qa/evidence/run-QA-LORE-RELENG-2 .venv/bin/python -m pytest tests/ -p netblock_plugin -q` -> '572 passed in 6.53s', exit 0 (matches offline-suite.txt '572 passed in 5.19s'). (3) Red-proof: `... pytest docs/qa/evidence/run-QA-LORE-RELENG-2/redproof_test_netblock.py -p netblock_plugin -q` -> exit 1, 'E netblock_plugin.OfflineSuiteViolation: offline-suite-violation: socket.getaddrinfo((443,))', '1 failed in 0.03s' (matches redproof-dns-blocked.txt and redproof-rc.txt redproof_rc=1). (4) Kill switch live in-process: getaddrinfo -> BLOCKED, raw socket.connect(('1.1.1.1',80)) -> BLOCKED, urllib.request.urlopen -> BLOCKED. (5) Unmodified suite: `.venv/bin/python -m pytest tests/ -q` -> '572 passed in 7.96s' exit 0 (matches baseline-suite.txt). (6) `.venv/bin/ruff check .` -> 'All checks passed!' rc=0; `ruff format --check .` -> '630 files already formatted' rc=0. (7) `bash scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=572 matches live=572' rc=0. (8) --collect-only yields 572 both with and without the plugin, so nothing was deselected/skipped to make the offline run green. (9) run-meta.txt commit 07ef9c9a6c613b9cb7009d383c4d265b453f04cf == HEAD~1 (the commit under test); all 11 files are tracked (git ls-files). Only cosmetic drift: README quotes '627 files already formatted' vs 630 now (file count grew after the run).\nThe offline-enforced suite run, the red-proven getaddrinfo kill switch, the unmodified baseline suite, ruff and the count guard all reproduce green at the recorded commit, so the network-independency claim is now enforced and falsifiable. [uncovered failure paths: failure mode 0 (A future test that reaches the network via a path the hook does not cover (e.g. a C-level resolver or a subprocess) would pass the offline run unnoticed): detected_by is empty \u2014 uncovered failure path]",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "FAILIF: the suite reaches the network during the offline run, or the kill switch is not proven live (a getaddrinfo call must FAIL under it), or any test fails under it. PROOF: docs/qa/evidence/run-QA-LORE-RELENG-2/ contains netblock_plugin.py plus the raw log of a full pytest run under -p netblock_plugin with 0 failures, and a red-proof log where a deliberate DNS lookup raises OfflineSuiteViolation; the unmodified full suite also passes and ruff is clean",
+                "status": "PASS",
+                "detail": "All artifacts present and independently reproduced. (1) docs/qa/evidence/run-QA-LORE-RELENG-2/netblock_plugin.py:44 installs sys.addaudithook(_hook) blocking socket.getaddrinfo/gethostbyname/gethostbyaddr/INET socket.connect/http.client.connect/urllib.Request. (2) Offline full run: `PYTHONPATH=docs/qa/evidence/run-QA-LORE-RELENG-2 .venv/bin/python -m pytest tests/ -p netblock_plugin -q` -> '572 passed in 6.53s', exit 0 (matches offline-suite.txt '572 passed in 5.19s'). (3) Red-proof: `... pytest docs/qa/evidence/run-QA-LORE-RELENG-2/redproof_test_netblock.py -p netblock_plugin -q` -> exit 1, 'E netblock_plugin.OfflineSuiteViolation: offline-suite-violation: socket.getaddrinfo((443,))', '1 failed in 0.03s' (matches redproof-dns-blocked.txt and redproof-rc.txt redproof_rc=1). (4) Kill switch live in-process: getaddrinfo -> BLOCKED, raw socket.connect(('1.1.1.1',80)) -> BLOCKED, urllib.request.urlopen -> BLOCKED. (5) Unmodified suite: `.venv/bin/python -m pytest tests/ -q` -> '572 passed in 7.96s' exit 0 (matches baseline-suite.txt). (6) `.venv/bin/ruff check .` -> 'All checks passed!' rc=0; `ruff format --check .` -> '630 files already formatted' rc=0. (7) `bash scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=572 matches live=572' rc=0. (8) --collect-only yields 572 both with and without the plugin, so nothing was deselected/skipped to make the offline run green. (9) run-meta.txt commit 07ef9c9a6c613b9cb7009d383c4d265b453f04cf == HEAD~1 (the commit under test); all 11 files are tracked (git ls-files). Only cosmetic drift: README quotes '627 files already formatted' vs 630 now (file count grew after the run)."
+              }
+            ],
+            "summary": "The offline-enforced suite run, the red-proven getaddrinfo kill switch, the unmodified baseline suite, ruff and the count guard all reproduce green at the recorded commit, so the network-independency claim is now enforced and falsifiable. [uncovered failure paths: failure mode 0 (A future test that reaches the network via a path the hook does not cover (e.g. a C-level resolver or a subprocess) would pass the offline run unnoticed): detected_by is empty \u2014 uncovered failure path]",
+            "provenance": {
+              "model": "deepseek-v4-flash",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "deepseek-v4-flash",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"QA-LORE-RELENG-2\"}",
+          "exit_code": 0,
+          "output_sha": "a14d6b7d1fcaffa2298a16af6050f4c311835b6b176294e66791b95b73254439"
+        },
+        {
+          "tool": "run_command",
+          "command": "ls -la docs/qa/evidence/run-QA-LORE-RELENG-2/",
+          "exit_code": 0,
+          "output_sha": "4a5683b15b76986b67ab7c3e72eee7a7bf9a1aa32628b8e44240b0f44d253375"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"docs/qa/evidence/run-QA-LORE-RELENG-2/netblock_plugin.py\"}",
+          "exit_code": 0,
+          "output_sha": "727f05ee2fd870512280f3125619d8a441fb2c189c2a36a9cb2b8938d3bf91c9"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"docs/qa/evidence/run-QA-LORE-RELENG-2/README.md\"}",
+          "exit_code": 0,
+          "output_sha": "52b90301131e88e9aa83cf933cbc2c80567c0faf66947ac4d30b9d05c9b29cdd"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd docs/qa/evidence/run-QA-LORE-RELENG-2 && for f in baseline-suite.txt offline-suite.txt check-test-count.txt redproof-dns-blocked.txt redproof-rc.txt redproof_test_netblock.py ruff-check.txt ruff-format.txt run-meta.txt; do echo \"=== $f ===\"; cat \"$f\"; echo; done",
+          "exit_code": 0,
+          "output_sha": "1b850d37d6958816cc250574abe9e263369b4b94536b1d8fc6b98b0aa9dbc7f6"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara 2>/dev/null; pwd; ls; cat .gitreins/config.yaml 2>/dev/null | head -50",
+          "exit_code": 0,
+          "output_sha": "f30c16229baaaa7c44ca8738b63beadaf8c554f5dbd9804a32a1fb18e618f741"
+        },
+        {
+          "tool": "run_command",
+          "command": "pwd; ls -a | head -40; cat .gitreins/config.yaml 2>/dev/null",
+          "exit_code": 0,
+          "output_sha": "2aae070c26d776d1872f71e7457b8974c8ba44c4e1c39de5518dc9e8fdf16b39"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git log --oneline -3 && git status --short && ls tests | head -30 && ls tests | wc -l",
+          "exit_code": 0,
+          "output_sha": "75dbffb25972cad7c8ed649819ee26bbad88967061d58720d8d0090f92352870"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && cat scripts/check-test-count.sh 2>/dev/null | head -40; ls scripts | head -40",
+          "exit_code": 0,
+          "output_sha": "54652edbd0873b9877246a6c20abf09fcebd31f42e94b6d13f6385e979f75e38"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && PYTHONPATH=docs/qa/evidence/run-QA-LORE-RELENG-2 .venv/bin/python -m pytest tests/ -p netblock_plugin -q 2>&1 | tail -15; echo \"OFFLINE_RC=$?\"",
+          "exit_code": 0,
+          "output_sha": "a87481e3810d40e2eece6aebb756452568a32ea5c538ad87519d3b07c60db560"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && PYTHONPATH=docs/qa/evidence/run-QA-LORE-RELENG-2 .venv/bin/python -m pytest docs/qa/evidence/run-QA-LORE-RELENG-2/redproof_test_netblock.py -p netblock_plugin -q 2>&1 | tail -8; echo \"REDPROOF_RC=${PIPESTATUS[0]}\"",
+          "exit_code": 2,
+          "output_sha": "8bb49ea1b14541598d19f39fb5a8a0c19ea68167cfa3b927e246967c2a5b5af9"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && .venv/bin/python -m pytest tests/ -q 2>&1 | tail -5; echo \"BASELINE_RC=${PIPESTATUS[0]}\"",
+          "exit_code": 2,
+          "output_sha": "62e72b8f97b8e4037f98d02d596a5e7856861dbf9486a5f2cb37d19b8e63d4e3"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && PYTHONPATH=docs/qa/evidence/run-QA-LORE-RELENG-2 .venv/bin/python -m pytest docs/qa/evidence/run-QA-LORE-RELENG-2/redproof_test_netblock.py -p netblock_plugin -q > /tmp/rp.txt 2>&1; echo \"REDPROOF_RC=$?\"; tail -3 /tmp/rp.txt",
+          "exit_code": 0,
+          "output_sha": "38d6e61abcba22242c6b62dd7050f11054c54b2658d602485dcb88a5a93f2ee7"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && .venv/bin/ruff check . ; echo \"RUFF_RC=$?\"; .venv/bin/ruff format --check . ; echo \"RUFF_FMT_RC=$?\"",
+          "exit_code": 0,
+          "output_sha": "5b825b9c6113f0d92bbdab6fc029965390ad801700d15a380d05e62e01823188"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && bash scripts/check-test-count.sh; echo \"COUNT_RC=$?\"; cat scripts/test-count.txt",
+          "exit_code": 0,
+          "output_sha": "bb827f411eeb08a4c71e4e76f74f2e045f916a3531ad5399feda1c675010c674"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && PYTHONPATH=docs/qa/evidence/run-QA-LORE-RELENG-2 .venv/bin/python -c \"\nimport netblock_plugin, socket\ntry:\n    socket.getaddrinfo('example.com', 443)\n    print('NOT BLOCKED')\nexcept netblock_plugin.OfflineSuiteViolation as e:\n    print('BLOCKED:', e)\ntry:\n    socket.create_connection(('1.1.1.1', 80), timeout=1)\n    print('CONNECT NOT BLOCKED')\nexcept netblock_plugin.OfflineSuiteViolation as e:\n    print('CONNECT BLOCKED:', e)\n\"",
+          "exit_code": 0,
+          "output_sha": "b8a539fe167f43b5bc8f96d606739e0d77e151c1639682092b3668f9ec0a98e5"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && PYTHONPATH=docs/qa/evidence/run-QA-LORE-RELENG-2 .venv/bin/python -c \"\nimport netblock_plugin, socket, urllib.request\ntry:\n    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\n    s.connect(('1.1.1.1', 80))\n    print('RAW CONNECT NOT BLOCKED')\nexcept netblock_plugin.OfflineSuiteViolation as e:\n    print('RAW CONNECT BLOCKED:', e)\nexcept Exception as e:\n    print('other:', type(e).__name__, e)\ntry:\n    urllib.request.urlopen('http://example.com', timeout=2)\n    print('URLOPEN NOT BLOCKED')\nexcept netblock_plugin.OfflineSuiteViolation as e:\n    print('URLOPEN BLOCKED:', e)\nexcept Exception as e:\n    print('urlopen other:', type(e).__name__, e)\n\"",
+          "exit_code": 0,
+          "output_sha": "f4647bba2ca84f17a2980a1f0e07b6d51a8baa90858af484d853577019540e95"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git show --stat HEAD | head -20; git ls-files docs/qa/evidence/run-QA-LORE-RELENG-2/; cat .gitignore | grep -n \"log\" ",
+          "exit_code": 0,
+          "output_sha": "ae2ae5a1241fd44c7ceaed05b1796c1aae97b7d916fc85680ca130333ec7b00c"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git cat-file -t 07ef9c9a6c613b9cb7009d383c4d265b453f04cf && git log --oneline -1 07ef9c9a6c613b9cb7009d383c4d265b453f04cf && git rev-parse HEAD~1",
+          "exit_code": 0,
+          "output_sha": "35e4123118bd59bc8587a38ab3491271bc6999ae691dc92fa02d43b639009884"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && PYTHONPATH=docs/qa/evidence/run-QA-LORE-RELENG-2 .venv/bin/python -m pytest tests/ -p netblock_plugin -q --collect-only 2>&1 | tail -2; .venv/bin/python -m pytest tests/ -q --collect-only 2>&1 | tail -2",
+          "exit_code": 0,
+          "output_sha": "fad2dba50f979dd40a982d4e62f8b3541ee136b7a6dd86bfabb090b5efe5bc5a"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: All proof artifacts present and independently reproduced.\\n- docs/qa/evidence/run-QA-LORE-RELENG-2/netblock_plugin.py exists (45 lines, sys.addaudithook over socket.getaddrinfo/gethostbyname/gethostbyaddr/INET socket.connect/http.client.connect/urllib.Request).\\n- Offline full run reproduced: `PYTHONPATH=docs/qa/evidence/run-QA-LORE-RELENG-2 .venv/bin/python -m pytest tests/ -p netblock_plugin -q` -> \\\"572 passed in 6.53s\\\", exit 0. Matches offline-suite.txt (\\\"572 passed in 5.19s\\\").\\n- Red-proof reproduced: `... pytest docs/qa/evidence/run-QA-LORE-RELENG-2/redproof_test_netblock.py -p netblock_plugin -q` -> exit 1, \\\"E netblock_plugin.OfflineSuiteViolation: offline-suite-violation: socket.getaddrinfo((443,))\\\", \\\"1 failed in 0.03s\\\". Matches redproof-dns-blocked.txt + redproof-rc.txt (redproof_rc=1).\\n- Kill switch live in-process: getaddrinfo -> BLOCKED; raw socket.connect -> BLOCKED; urllib.request.urlopen -> BLOCKED.\\n- Unmodified suite: `.venv/bin/python -m pytest tests/ -q` -> \\\"572 passed in 7.96s\\\" exit 0 (matches baseline-suite.txt).\\n- ruff: `.venv/bin/ruff check .` -> \\\"All checks passed!\\\" rc=0; `ruff format --check .` -> \\\"630 files already formatted\\\" rc=0.\\n- Count guard: `bash scripts/check-test-count.sh` -> \\\"PASS: test-count guard: canonical=572 matches live=572\\\" rc=0.\\n- Same 572 collected with and without the plugin (--collect-only both 572), so nothing deselected/skipped.\\n- run-meta.txt commit 07ef9c9a... == HEAD~1, the commit under test; all 11 files tracked (git ls-files).\\nMinor non-blocking: README says \\\"627 files already formatted\\\" while current run reports 630 (count grew after the run; cosmetic).\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "c18fb558edf46f69cba45f85d32b31c76e20aa722c9d6a8e5b770a43e3f57cfa"
+        }
+      ]
+    }
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [
+      {
+        "severity": "high",
+        "file": "docs/qa/evidence/run-QA-LORE-RELENG-2/netblock_plugin.py",
+        "line": 36,
+        "detection": "blocked-event set includes `socket.connect` but the hook's INET filter is inverted relative to its own comment: `_is_inet_address` returns True for any tuple, and the hook returns early (allows) when it is NOT a tuple",
+        "detail": "`_is_inet_address` is documented as 'INET addresses are (host, port) tuples' yet `return isinstance(address, tuple)` combined with `if not _is_inet_address(address): return` means non-tuple (AF_UNIX) addresses are skipped and tuple addresses raise \u2014 the comment claims AF_UNIX is allowed, which holds, but the function name/comment and the README's claim that only INET is blocked are contradicted by the fact that any tuple (including AF_INET6 4-tuples) is blocked while the docstring says 'loopback-free local IPC are allowed'."
+      },
+      {
+        "severity": "medium",
+        "file": "docs/qa/evidence/run-QA-LORE-RELENG-2/netblock_plugin.py",
+        "line": 44,
+        "detection": "dead/no-op statement `mode = sys.argv` exists only to silence a linter, and `sys` is otherwise used, so the assignment is unreachable-by-any-reader",
+        "detail": "`mode = sys.argv  # keep linters quiet about unused import order` assigns a module global that nothing reads; `sys` is already used by `sys.addaudithook`, so the line is dead code."
+      },
+      {
+        "severity": "medium",
+        "file": "docs/qa/evidence/run-QA-LORE-RELENG-2/netblock_plugin.py",
+        "line": 40,
+        "detection": "error message formats `args[1:2]` which drops the host for `socket.getaddrinfo` (args = (host, port, ...)), so the reported violation omits the offending hostname",
+        "detail": "The redproof log shows `socket.getaddrinfo((443,))` \u2014 the host `example.com` is sliced away by `args[1:2]`, making the diagnostic message misleading about what was attempted."
+      },
+      {
+        "severity": "medium",
+        "file": "docs/qa/evidence/run-QA-LORE-RELENG-2/redproof_test_netblock.py",
+        "line": 16,
+        "detection": "red-proof test has no assertion and no failure-path coverage for the other blocked events (socket.connect, http.client.connect, urllib.Request, gethostbyname, gethostbyaddr)",
+        "detail": "Only `socket.getaddrinfo` is exercised; the plugin's `socket.connect` INET-vs-AF_UNIX branch and the other four blocked events have no test proving they fire or that AF_UNIX is correctly allowed."
+      },
+      {
+        "severity": "low",
+        "file": "docs/qa/evidence/run-QA-LORE-RELENG-2/README.md",
+        "line": 30,
+        "detection": "README claims the audit hook 'cannot be bypassed by `from socket import socket` import style', but the hook only intercepts `socket.connect`/`socket.getaddrinfo` audit events, which the C-level socket object still emits regardless of import style \u2014 the claim is true but the stated reason (import style) is not what makes it true",
+        "detail": "The stated justification conflates import style with audit-event coverage; the actual guarantee comes from CPython emitting audit events at the C layer, not from the import form."
+      }
+    ],
+    "summary": "The offline kill-switch plugin is functional but has an inverted/contradictory INET-address predicate, a dead `mode = sys.argv` line, a truncated error message, and red-proof coverage limited to a single blocked event."
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 FAILIF: the suite reaches the network during the offline run, or the kill switch is not proven live (a getaddrinfo call must FAIL under it), or any test fails under it. PROOF: docs/qa/evidence/run-QA-LORE-RELENG-2/ contains netblock_plugin.py plus the raw log of a full pytest run under -p netblock_plugin with 0 failures, and a red-proof log where a deliberate DNS lookup raises OfflineSuiteViolation; the unmodified full suite also passes and ruff is clean: All artifacts present and independently reproduced. (1) docs/qa/evidence/run-QA-LORE-RELENG-2/netblock_plugin.py:44 installs sys.addaudithook(_hook) blocking socket.getaddrinfo/gethostbyname/gethostbyaddr/INET socket.connect/http.client.connect/urllib.Request. (2) Offline full run: `PYTHONPATH=docs/qa/evidence/run-QA-LORE-RELENG-2 .venv/bin/python -m pytest tests/ -p netblock_plugin -q` -> '572 passed in 6.53s', exit 0 (matches offline-suite.txt '572 passed in 5.19s'). (3) Red-proof: `... pytest docs/qa/evidence/run-QA-LORE-RELENG-2/redproof_test_netblock.py -p netblock_plugin -q` -> exit 1, 'E netblock_plugin.OfflineSuiteViolation: offline-suite-violation: socket.getaddrinfo((443,))', '1 failed in 0.03s' (matches redproof-dns-blocked.txt and redproof-rc.txt redproof_rc=1). (4) Kill switch live in-process: getaddrinfo -> BLOCKED, raw socket.connect(('1.1.1.1',80)) -> BLOCKED, urllib.request.urlopen -> BLOCKED. (5) Unmodified suite: `.venv/bin/python -m pytest tests/ -q` -> '572 passed in 7.96s' exit 0 (matches baseline-suite.txt). (6) `.venv/bin/ruff check .` -> 'All checks passed!' rc=0; `ruff format --check .` -> '630 files already formatted' rc=0. (7) `bash scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=572 matches live=572' rc=0. (8) --collect-only yields 572 both with and without the plugin, so nothing was deselected/skipped to make the offline run green. (9) run-meta.txt commit 07ef9c9a6c613b9cb7009d383c4d265b453f04cf == HEAD~1 (the commit under test); all 11 files are tracked (git ls-files). Only cosmetic drift: README quotes '627 files already formatted' vs 630 now (file count grew after the run).\nThe offline-enforced suite run, the red-proven getaddrinfo kill switch, the unmodified baseline suite, ruff and the count guard all reproduce green at the recorded commit, so the network-independency claim is now enforced and falsifiable. [uncovered failure paths: failure mode 0 (A future test that reaches the network via a path the hook does not cover (e.g. a C-level resolver or a subprocess) would pass the offline run unnoticed): detected_by is empty \u2014 uncovered failure path]\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-16T20:49:45.836910",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-16T20:49:45.874172+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 14150,
+        "truncated": false,
+        "source": "git show 258db1c47c44"
+      }
+    ],
+    "task_id": "QA-LORE-RELENG-2"
+  }
+}

@@ -1,0 +1,387 @@
+{
+  "task_id": "LORE-071",
+  "task_title": "Absorb trigger: board-event watcher with persisted cursor + Auger DuckBrain adapter, proposal-only",
+  "task_criteria": [
+    "FAILIF: the trigger re-reads already-seen board events after restart or writes a runbook without operator approval; PROOF: uv run pytest tests/ -q (572 passed) including test_cursor_resume_falsifier_fails_without_persistence (memory-only cursor mutation replays events) and test_board_event_trail_flows_to_proposal_without_runbook_write (no runbook-tree writes), plus uv run lore validate exit 0"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "0e662b1d7d8d6e04dea746582fea2342d1fecfcf",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "32936d9a4dc1d4552efe3d9e40b015077745a43860fff5b7f8d8c375026f8f63",
+  "working_tree_dirty_path_count": 1094,
+  "items": [
+    {
+      "criterion": "FAILIF: the trigger re-reads already-seen board events after restart or writes a runbook without operator approval; PROOF: uv run pytest tests/ -q (572 passed) including test_cursor_resume_falsifier_fails_without_persistence (memory-only cursor mutation replays events) and test_board_event_trail_flows_to_proposal_without_runbook_write (no runbook-tree writes), plus uv run lore validate exit 0",
+      "status": "PASS",
+      "detail": "Cursor resume: lore/trigger.py:88-113 consume() seeks to the persisted offset, refuses a cursor past EOF (lines 96-99), and calls cursor_store.set(board, end) only after the whole suffix parsed (line 112); JsonCursorStore persists per-board offsets atomically via os.replace (lore/trigger.py:33,58-65). Run: `uv run pytest tests/ -q` -> \"572 passed in 4.73s\", exit 0; `uv run pytest tests/test_lore071_trigger.py -v` -> all 6 PASSED including test_cursor_resume_falsifier_fails_without_persistence and test_board_event_trail_flows_to_proposal_without_runbook_write. The falsifier (tests/test_lore071_trigger.py:57-76) now injects MemoryOnlyCursor directly -> replays 3 blocks, then the persisted JsonCursorStore -> 0 blocks, so the mutation is live (the HEAD commit 0e662b1 removed the dead monkeypatch). No runbook write: the only write path in lore/trigger.py is the cursor file (lines 60-65); absorb_sweep is data-only (lore/absorb.py:353-411, docstring 'PROPOSE-NOT-WRITE'); tests/test_lore071_trigger.py:118-130 asserts the runbook tree still contains only the operator-owned marker. `uv run lore validate` -> exit 0. Also `uv run ruff check .` -> \"All checks passed!\" and `bash scripts/check-test-count.sh` -> \"PASS: test-count guard: canonical=572 matches live=572\"."
+    },
+    {
+      "criterion": "The cursor is only advanced after the whole suffix parses successfully, so a malformed/partial trailing board line does not silently skip events on the next run (no event loss / no silent advance).",
+      "status": "PASS",
+      "detail": "lore/trigger.py:104-107 raises ValueError on a bad line before the set() at line 112. Ad-hoc run against a board with a truncated trailing line: \"raised: ValueError invalid board event at byte 190\" and \"cursor after failure: False\"; after completing the line the next consume returned ['board:A', 'board:B'] \u2014 no event lost, no silent advance.",
+      "derived": true
+    },
+    {
+      "criterion": "The persisted cursor is keyed per board path and survives a fresh process (new store instance reading the same file), so two different boards do not clobber each other's offsets.",
+      "status": "PASS",
+      "detail": "JsonCursorStore keys by str(board.resolve()) (lore/trigger.py:33,58) and merges the existing payload (lines 47-58). Ad-hoc run with two boards sharing one cursor file: b1 first ['board:X1'], b2 first ['board:Y1'], b1 second [] and the cursor file held both keys {\"/tmp/l71/b1.jsonl\":142,\"/tmp/l71/b2.jsonl\":142}. Cross-instance persistence is exercised by tests/test_lore071_trigger.py:51-54, which constructs a new JsonCursorStore(cursor) per call.",
+      "derived": true
+    },
+    {
+      "criterion": "The trigger layer is reachable from a documented entrypoint (docs/README) and the documented usage snippet actually runs against the shipped API (no invented symbols/arguments).",
+      "status": "PASS",
+      "detail": "docs/ABSORB-TRIGGER.md:38-50 snippet (BoardEventWatcher + JsonCursorStore + absorb_sweep(source=\"board-event\")) was executed verbatim in an ad-hoc script -> \"snippet ok, proposals: 2 board-event\"; README.md:467 links docs/ABSORB-TRIGGER.md. No CLI subcommand wires the watcher (`uv run lore --help` lists match/consult/compile/validate/gate/absorb/show/audit), but the doc states at lines 52-55 that no timer or service is installed and the owner runs it from a separately managed process, so the documented entrypoint is the Python API and it works.",
+      "derived": true
+    },
+    {
+      "criterion": "The Auger adapter is read-only: reading an export performs no writes to the export file, the DuckBrain store, or any runbook tree.",
+      "status": "PASS",
+      "detail": "AugerDecisionTableAdapter.read() only calls self.export.read_text (lore/trigger.py:218-220); parse_auger_export is pure string parsing (lines 160-215). grep for write_text/open(...,'w')/mkdir/os.replace/shutil across lore/trigger.py, lore/absorb.py and lore/runbook.py returns only the cursor-store writes at lore/trigger.py:60-65. tests/test_lore071_trigger.py:104-116 snapshots tmp_path before/after the adapter read and asserts equality.",
+      "derived": true
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261116T132346.755969Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nscanners: nice=nice -n 10\n8:48AM INF scanned ~11881604 bytes (11.88 MB) in 2.33s\n8:48AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 270 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261116T132346.755969Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.13.5\ncollected 572 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 24%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 27%]\ntests/test_evidence.py ......................                            [ 31%]\ntests/test_lore011_drain_acceptance.py .......                           [ 32%]\ntests/test_lore016_qa_audit.py .....................                     [ 36%]\ntests/test_lore017_gateway_guard.py ........                             [ 37%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 39%]\ntests/test_lore022_freshness_docs.py .....                               [ 40%]\ntests/test_lore030_ux_guard.py ....                                      [ 40%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 42%]\ntests/test_lore041_collision_canonical.py ...........                    [ 44%]\ntests/test_lore043_short_text_threshold.py ....................          [ 48%]\ntests/test_lore045_validate_history.py ....................              [ 51%]\ntests/test_lore046_match_output.py ...........                           [ 53%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 55%]\n\n\u2026 [480 chars omitted \u2014 6 line(s)] \u2026\ntests/test_lore054_match_class_filter.py ....                            [ 64%]\ntests/test_lore055_consult_missing_input.py ......                       [ 65%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 66%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 67%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 68%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 69%]\ntests/test_lore064_audit_wiring.py .............................         [ 74%]\ntests/test_lore066_zero_check_skip.py ...                                [ 75%]\ntests/test_lore067_incident_audit.py ..                                  [ 75%]\ntests/test_lore071_trigger.py ......                                     [ 76%]\ntests/test_near_miss.py ..............                                   [ 79%]\ntests/test_perf2_audit_single_pass.py ........                           [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 81%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 572 passed in 4.84s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261116T132346.755969Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 FAILIF: the trigger re-reads already-seen board events after restart or writes a runbook without operator approval; PROOF: uv run pytest tests/ -q (572 passed) including test_cursor_resume_falsifier_fails_without_persistence (memory-only cursor mutation replays events) and test_board_event_trail_flows_to_proposal_without_runbook_write (no runbook-tree writes), plus uv run lore validate exit 0: Cursor resume: lore/trigger.py:88-113 consume() seeks to the persisted offset, refuses a cursor past EOF (lines 96-99), and calls cursor_store.set(board, end) only after the whole suffix parsed (line 112); JsonCursorStore persists per-board offsets atomically via os.replace (lore/trigger.py:33,58-65). Run: `uv run pytest tests/ -q` -> \"572 passed in 4.73s\", exit 0; `uv run pytest tests/test_lore071_trigger.py -v` -> all 6 PASSED including test_cursor_resume_falsifier_fails_without_persistence and test_board_event_trail_flows_to_proposal_without_runbook_write. The falsifier (tests/test_lore071_trigger.py:57-76) now injects MemoryOnlyCursor directly -> replays 3 blocks, then the persisted JsonCursorStore -> 0 blocks, so the mutation is live (the HEAD commit 0e662b1 removed the dead monkeypatch). No runbook write: the only write path in lore/trigger.py is the cursor file (lines 60-65); absorb_sweep is data-only (lore/absorb.py:353-411, docstring 'PROPOSE-NOT-WRITE'); tests/test_lore071_trigger.py:118-130 asserts the runbook tree still contains only the operator-owned marker. `uv run lore validate` -> exit 0. Also `uv run ruff check .` -> \"All checks passed!\" and `bash scripts/check-test-count.sh` -> \"PASS: test-count guard: canonical=572 matches live=572\".\n  \u2713 The cursor is only advanced after the whole suffix parses successfully, so a malformed/partial trailing board line does not silently skip events on the next run (no event loss / no silent advance).: lore/trigger.py:104-107 raises ValueError on a bad line before the set() at line 112. Ad-hoc run against a board with a truncated trailing line: \"raised: ValueError invalid board event at byte 190\" and \"cursor after failure: False\"; after completing the line the next consume returned ['board:A', 'board:B'] \u2014 no event lost, no silent advance.\n  \u2713 The persisted cursor is keyed per board path and survives a fresh process (new store instance reading the same file), so two different boards do not clobber each other's offsets.: JsonCursorStore keys by str(board.resolve()) (lore/trigger.py:33,58) and merges the existing payload (lines 47-58). Ad-hoc run with two boards sharing one cursor file: b1 first ['board:X1'], b2 first ['board:Y1'], b1 second [] and the cursor file held both keys {\"/tmp/l71/b1.jsonl\":142,\"/tmp/l71/b2.jsonl\":142}. Cross-instance persistence is exercised by tests/test_lore071_trigger.py:51-54, which constructs a new JsonCursorStore(cursor) per call.\n  \u2713 The trigger layer is reachable from a documented entrypoint (docs/README) and the documented usage snippet actually runs against the shipped API (no invented symbols/arguments).: docs/ABSORB-TRIGGER.md:38-50 snippet (BoardEventWatcher + JsonCursorStore + absorb_sweep(source=\"board-event\")) was executed verbatim in an ad-hoc script -> \"snippet ok, proposals: 2 board-event\"; README.md:467 links docs/ABSORB-TRIGGER.md. No CLI subcommand wires the watcher (`uv run lore --help` lists match/consult/compile/validate/gate/absorb/show/audit), but the doc states at lines 52-55 that no timer or service is installed and the owner runs it from a separately managed process, so the documented entrypoint is the Python API and it works.\n  \u2713 The Auger adapter is read-only: reading an export performs no writes to the export file, the DuckBrain store, or any runbook tree.: AugerDecisionTableAdapter.read() only calls self.export.read_text (lore/trigger.py:218-220); parse_auger_export is pure string parsing (lines 160-215). grep for write_text/open(...,'w')/mkdir/os.replace/shutil across lore/trigger.py, lore/absorb.py and lore/runbook.py returns only the cursor-store writes at lore/trigger.py:60-65. tests/test_lore071_trigger.py:104-116 snapshots tmp_path before/after the adapter read and asserts equality.\nThe proposal-only trigger is real and wired: persisted per-board byte cursor resumes without replay (falsifier now genuinely mutates), the Auger adapter is read-only, and the full suite (572 passed), lore validate (exit 0) and ruff all pass. [uncovered failure paths: failure mode 0 (A board line that is valid JSON but not an object raises TypeError mid-suffix, aborting the whole consume and leaving the cursor unadvanced \u2014 the same bad line will abort every subsequent run until an operator edits the board): detected_by is empty \u2014 uncovered failure path]",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 FAILIF: the trigger re-reads already-seen board events after restart or writes a runbook without operator approval; PROOF: uv run pytest tests/ -q (572 passed) including test_cursor_resume_falsifier_fails_without_persistence (memory-only cursor mutation replays events) and test_board_event_trail_flows_to_proposal_without_runbook_write (no runbook-tree writes), plus uv run lore validate exit 0: Cursor resume: lore/trigger.py:88-113 consume() seeks to the persisted offset, refuses a cursor past EOF (lines 96-99), and calls cursor_store.set(board, end) only after the whole suffix parsed (line 112); JsonCursorStore persists per-board offsets atomically via os.replace (lore/trigger.py:33,58-65). Run: `uv run pytest tests/ -q` -> \"572 passed in 4.73s\", exit 0; `uv run pytest tests/test_lore071_trigger.py -v` -> all 6 PASSED including test_cursor_resume_falsifier_fails_without_persistence and test_board_event_trail_flows_to_proposal_without_runbook_write. The falsifier (tests/test_lore071_trigger.py:57-76) now injects MemoryOnlyCursor directly -> replays 3 blocks, then the persisted JsonCursorStore -> 0 blocks, so the mutation is live (the HEAD commit 0e662b1 removed the dead monkeypatch). No runbook write: the only write path in lore/trigger.py is the cursor file (lines 60-65); absorb_sweep is data-only (lore/absorb.py:353-411, docstring 'PROPOSE-NOT-WRITE'); tests/test_lore071_trigger.py:118-130 asserts the runbook tree still contains only the operator-owned marker. `uv run lore validate` -> exit 0. Also `uv run ruff check .` -> \"All checks passed!\" and `bash scripts/check-test-count.sh` -> \"PASS: test-count guard: canonical=572 matches live=572\".\n  \u2713 The cursor is only advanced after the whole suffix parses successfully, so a malformed/partial trailing board line does not silently skip events on the next run (no event loss / no silent advance).: lore/trigger.py:104-107 raises ValueError on a bad line before the set() at line 112. Ad-hoc run against a board with a truncated trailing line: \"raised: ValueError invalid board event at byte 190\" and \"cursor after failure: False\"; after completing the line the next consume returned ['board:A', 'board:B'] \u2014 no event lost, no silent advance.\n\n\u2026 [1368 chars omitted \u2014 2 line(s)] \u2026\n  \u2713 The Auger adapter is read-only: reading an export performs no writes to the export file, the DuckBrain store, or any runbook tree.: AugerDecisionTableAdapter.read() only calls self.export.read_text (lore/trigger.py:218-220); parse_auger_export is pure string parsing (lines 160-215). grep for write_text/open(...,'w')/mkdir/os.replace/shutil across lore/trigger.py, lore/absorb.py and lore/runbook.py returns only the cursor-store writes at lore/trigger.py:60-65. tests/test_lore071_trigger.py:104-116 snapshots tmp_path before/after the adapter read and asserts equality.\nThe proposal-only trigger is real and wired: persisted per-board byte cursor resumes without replay (falsifier now genuinely mutates), the Auger adapter is read-only, and the full suite (572 passed), lore validate (exit 0) and ruff all pass. [uncovered failure paths: failure mode 0 (A board line that is valid JSON but not an object raises TypeError mid-suffix, aborting the whole consume and leaving the cursor unadvanced \u2014 the same bad line will abort every subsequent run until an operator edits the board): detected_by is empty \u2014 uncovered failure path]",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "FAILIF: the trigger re-reads already-seen board events after restart or writes a runbook without operator approval; PROOF: uv run pytest tests/ -q (572 passed) including test_cursor_resume_falsifier_fails_without_persistence (memory-only cursor mutation replays events) and test_board_event_trail_flows_to_proposal_without_runbook_write (no runbook-tree writes), plus uv run lore validate exit 0",
+                "status": "PASS",
+                "detail": "Cursor resume: lore/trigger.py:88-113 consume() seeks to the persisted offset, refuses a cursor past EOF (lines 96-99), and calls cursor_store.set(board, end) only after the whole suffix parsed (line 112); JsonCursorStore persists per-board offsets atomically via os.replace (lore/trigger.py:33,58-65). Run: `uv run pytest tests/ -q` -> \"572 passed in 4.73s\", exit 0; `uv run pytest tests/test_lore071_trigger.py -v` -> all 6 PASSED including test_cursor_resume_falsifier_fails_without_persistence and test_board_event_trail_flows_to_proposal_without_runbook_write. The falsifier (tests/test_lore071_trigger.py:57-76) now injects MemoryOnlyCursor directly -> replays 3 blocks, then the persisted JsonCursorStore -> 0 blocks, so the mutation is live (the HEAD commit 0e662b1 removed the dead monkeypatch). No runbook write: the only write path in lore/trigger.py is the cursor file (lines 60-65); absorb_sweep is data-only (lore/absorb.py:353-411, docstring 'PROPOSE-NOT-WRITE'); tests/test_lore071_trigger.py:118-130 asserts the runbook tree still contains only the operator-owned marker. `uv run lore validate` -> exit 0. Also `uv run ruff check .` -> \"All checks passed!\" and `bash scripts/check-test-count.sh` -> \"PASS: test-count guard: canonical=572 matches live=572\"."
+              },
+              {
+                "criterion": "The cursor is only advanced after the whole suffix parses successfully, so a malformed/partial trailing board line does not silently skip events on the next run (no event loss / no silent advance).",
+                "status": "PASS",
+                "detail": "lore/trigger.py:104-107 raises ValueError on a bad line before the set() at line 112. Ad-hoc run against a board with a truncated trailing line: \"raised: ValueError invalid board event at byte 190\" and \"cursor after failure: False\"; after completing the line the next consume returned ['board:A', 'board:B'] \u2014 no event lost, no silent advance.",
+                "derived": true
+              },
+              {
+                "criterion": "The persisted cursor is keyed per board path and survives a fresh process (new store instance reading the same file), so two different boards do not clobber each other's offsets.",
+                "status": "PASS",
+                "detail": "JsonCursorStore keys by str(board.resolve()) (lore/trigger.py:33,58) and merges the existing payload (lines 47-58). Ad-hoc run with two boards sharing one cursor file: b1 first ['board:X1'], b2 first ['board:Y1'], b1 second [] and the cursor file held both keys {\"/tmp/l71/b1.jsonl\":142,\"/tmp/l71/b2.jsonl\":142}. Cross-instance persistence is exercised by tests/test_lore071_trigger.py:51-54, which constructs a new JsonCursorStore(cursor) per call.",
+                "derived": true
+              },
+              {
+                "criterion": "The trigger layer is reachable from a documented entrypoint (docs/README) and the documented usage snippet actually runs against the shipped API (no invented symbols/arguments).",
+                "status": "PASS",
+                "detail": "docs/ABSORB-TRIGGER.md:38-50 snippet (BoardEventWatcher + JsonCursorStore + absorb_sweep(source=\"board-event\")) was executed verbatim in an ad-hoc script -> \"snippet ok, proposals: 2 board-event\"; README.md:467 links docs/ABSORB-TRIGGER.md. No CLI subcommand wires the watcher (`uv run lore --help` lists match/consult/compile/validate/gate/absorb/show/audit), but the doc states at lines 52-55 that no timer or service is installed and the owner runs it from a separately managed process, so the documented entrypoint is the Python API and it works.",
+                "derived": true
+              },
+              {
+                "criterion": "The Auger adapter is read-only: reading an export performs no writes to the export file, the DuckBrain store, or any runbook tree.",
+                "status": "PASS",
+                "detail": "AugerDecisionTableAdapter.read() only calls self.export.read_text (lore/trigger.py:218-220); parse_auger_export is pure string parsing (lines 160-215). grep for write_text/open(...,'w')/mkdir/os.replace/shutil across lore/trigger.py, lore/absorb.py and lore/runbook.py returns only the cursor-store writes at lore/trigger.py:60-65. tests/test_lore071_trigger.py:104-116 snapshots tmp_path before/after the adapter read and asserts equality.",
+                "derived": true
+              }
+            ],
+            "summary": "The proposal-only trigger is real and wired: persisted per-board byte cursor resumes without replay (falsifier now genuinely mutates), the Auger adapter is read-only, and the full suite (572 passed), lore validate (exit 0) and ruff all pass. [uncovered failure paths: failure mode 0 (A board line that is valid JSON but not an object raises TypeError mid-suffix, aborting the whole consume and leaving the cursor unadvanced \u2014 the same bad line will abort every subsequent run until an operator edits the board): detected_by is empty \u2014 uncovered failure path]",
+            "provenance": {
+              "model": "deepseek-v4-flash",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "deepseek-v4-flash",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"LORE-071\"}",
+          "exit_code": 0,
+          "output_sha": "6d3b9933d5f910f56690499c86dad834f7beaf2f1013aa942aeb6156165bfdde"
+        },
+        {
+          "tool": "run_command",
+          "command": "ls -la && cat .gitreins/config.yaml 2>/dev/null",
+          "exit_code": 0,
+          "output_sha": "69e720652e4ad275da868484a5d25ca20b02f497cbab83280424449b52e41316"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara 2>/dev/null; git log --oneline -5; echo ---; git show --stat HEAD; echo ---; git show HEAD",
+          "exit_code": 128,
+          "output_sha": "0492c4155f2e8696c58c8132cad57b3628a3e3fddf1914ebadb7eb16c62f98d7"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -n \"test_command\" -A3 -B3 .gitreins/config.yaml; echo ---; ls tests/ | head -50; echo ---; ls lore/",
+          "exit_code": 0,
+          "output_sha": "d410600a90f57e71f16048604df2356d3583224385c31d5e77105eb38213cc1d"
+        },
+        {
+          "tool": "run_command",
+          "command": "git log --oneline -5; echo ---; git show --stat HEAD; echo ---; git show HEAD",
+          "exit_code": 0,
+          "output_sha": "56908ad603dd96aae59aa155a56df896c6494843346a3194939b6de2ce817a42"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"lore/trigger.py\"}",
+          "exit_code": 0,
+          "output_sha": "22a41a09b911d53f5ae6fb7d22860a1dd253f88c9e278c99a5d2da93b2defc68"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"tests/test_lore071_trigger.py\"}",
+          "exit_code": 0,
+          "output_sha": "3e51e25e76e3a55a83bdb7e2ec6935a5b9acb05ebd50607783ed3b41a6def333"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show f264edc --stat",
+          "exit_code": 0,
+          "output_sha": "71fef5090081f461fa7bfaa3026f39db863818663781627a1533e57ef4b8d72e"
+        },
+        {
+          "tool": "run_command",
+          "command": "uv run pytest tests/ -q 2>&1 | tail -20",
+          "exit_code": 0,
+          "output_sha": "1ff539c4adc67e6d646f9d6fd561f74b699967ce0420584952f2097d6e70f859"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -rn \"trigger\" --include=*.py lore/ scripts/ | grep -v \"lore/trigger.py\" | head -40; echo ---; grep -rn \"BoardEventWatcher\\|AugerDecisionTableAdapter\\|JsonCursorStore\\|parse_auger_export\" --include=*.py . | grep -v \"\\.venv\" | grep -v \"lore/trigger.py\"",
+          "exit_code": 0,
+          "output_sha": "a874406cf84f073d28ac4868205a525d8dcb2dcad7a5083a861b1b651c344925"
+        },
+        {
+          "tool": "run_command",
+          "command": "cat docs/ABSORB-TRIGGER.md; echo ===; git show f264edc -- README.md CONTRIBUTING.md docs/INSTALL.md skills/lore-usage/SKILL.md scripts/test-count.txt",
+          "exit_code": 0,
+          "output_sha": "64ec212da36ebaf38ca78cc139c3eada1be28a7310508d32615421ee95616a56"
+        },
+        {
+          "tool": "run_command",
+          "command": "uv run lore validate; echo \"exit=$?\"; echo ---; uv run lore --help 2>&1 | head -40",
+          "exit_code": 0,
+          "output_sha": "36d71c1cdd1ebe8ed94b30c64f7c59baa02dcc283c0e719b18931c76463260a9"
+        },
+        {
+          "tool": "run_command",
+          "command": "uv run lore validate >/dev/null 2>&1; echo \"validate exit=$?\"; echo ---; uv run lore absorb --help 2>&1 | head -30",
+          "exit_code": 0,
+          "output_sha": "6ac011de238cbf13861fe67ba7f0fdc7bf93bae702168a6381809fb3600e9880"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -n \"def absorb_sweep\" -A60 lore/absorb.py",
+          "exit_code": 0,
+          "output_sha": "900b4e915ba31fc1bd996b4d109e0d4986fc6dfc1fc46bb8fbdc35d7cc46e795"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -rn \"write_text\\|open(.*[\\\"']w\\|mkdir\\|os.replace\\|shutil\" lore/absorb.py lore/trigger.py lore/runbook.py | head -30",
+          "exit_code": 0,
+          "output_sha": "7b90bcc0de0100b0eb1b0fcc6a1e93fdc97390cfa7f9dc84dcf6ed500a5b0d35"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -rn \"trigger\\|ABSORB-TRIGGER\" README.md CONTRIBUTING.md docs/INSTALL.md | head -20; echo ---; cat tests/fixtures/board-events.jsonl; echo ---; cat tests/fixtures/auger-export.md",
+          "exit_code": 0,
+          "output_sha": "0d262238d856be86b126a5d16987abab7262389539137b4b9567b78a283d95f5"
+        },
+        {
+          "tool": "run_command",
+          "command": "uv run pytest tests/test_lore071_trigger.py -q -v 2>&1 | tail -20",
+          "exit_code": 0,
+          "output_sha": "2477ebf75c3a40fa2b6dc9ec5d8aba2da0d1eac1d5cf386fe5370b5914ddcf86"
+        },
+        {
+          "tool": "run_command",
+          "command": "uv run ruff check . 2>&1 | tail -5; echo ---; uv run ruff format --check . 2>&1 | tail -5",
+          "exit_code": 0,
+          "output_sha": "41372d0c4eb6656eb0ce733064f4dc56aafbb6aaa1ce6743ec3faf7546334dad"
+        },
+        {
+          "tool": "run_command",
+          "command": "uv run pytest tests/test_lore071_trigger.py -v 2>&1 | grep -E \"PASSED|FAILED\"",
+          "exit_code": 0,
+          "output_sha": "174ed6564fc018d495df7abdafc4f4fdbfdca6b6f8644daeb3028e064b82f072"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -rn \"test-count\" --include=*.py tests/ scripts/ | head; echo ---; cat scripts/test-count.txt",
+          "exit_code": 0,
+          "output_sha": "5fa6873075e16a655a37934688fefd8d2ba8aa3fefe721314772c4d81e8222b5"
+        },
+        {
+          "tool": "run_command",
+          "command": "bash scripts/check-test-count.sh; echo \"exit=$?\"",
+          "exit_code": 0,
+          "output_sha": "9f2d8c280b0a5af89de5193be14dc1ca3e8f48c1a50e0c5d4829e83abae10e2a"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -rn \"runbook\" lore/trigger.py; echo \"---(none above means no runbook refs)\"; grep -rn \"def propose\\|def absorb_proposal\" -A25 lore/absorb.py | grep -n \"write\\|open\\|Path\" | head",
+          "exit_code": 0,
+          "output_sha": "78b739707a3b05119082b6880614155f5b5b3ec9a30867dd6cba9ffecd69c910"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"The cursor is only advanced after the whole suffix parses successfully, so a malformed/partial trailing board line does not silently skip events on the next run (no event loss / no silent advance).\", \"key\": \"derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "c79ed21e5e585dba3d2640a301d13c2b93b7d03982e074de20ff4dce2fb96613"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"The persisted cursor is keyed per board path and survives a fresh process (new store instance reading the same file), so two different boards do not clobber each other's offsets.\", \"key\": \"derived_1\"}",
+          "exit_code": 0,
+          "output_sha": "d5c1c8c6396f27c02d8e834f7914dc14137d96fe75c6bf1e1b7943d0aec9caa9"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"The trigger layer is reachable from a documented entrypoint (docs/README) and the documented usage snippet actually runs against the shipped API (no invented symbols/arguments).\", \"key\": \"derived_2\"}",
+          "exit_code": 0,
+          "output_sha": "81180cdc74655f4d00991e28dbabfd26534d676af5593b303c8f928009bf3d8b"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"The Auger adapter is read-only: reading an export performs no writes to the export file, the DuckBrain store, or any runbook tree.\", \"key\": \"derived_3\"}",
+          "exit_code": 0,
+          "output_sha": "f91598110837667ba2383e68dad249bc3395121e8eb4e9fd504dffa7ef90bf96"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /tmp && rm -rf l71 && mkdir l71 && cd l71 && cat > t.py <<'EOF'\nimport json, sys\nfrom pathlib import Path\nsys.path.insert(0, \"/home/kara/get-h3/lore\")\nfrom lore.trigger import BoardEventWatcher, JsonCursorStore\nfrom lore.absorb import absorb_sweep\n\nd = Path(\"/tmp/l71\")\n# 1) partial trailing line: valid event + truncated JSON (no newline)\nboard = d/\"b.jsonl\"\nboard.write_text(json.dumps({\"event_type\":\"task_completed\",\"task_id\":\"A\",\"detail\":json.dumps({\"class_id\":\"gateway-drain-window\",\"lesson\":\"drain before restart\"})})+\"\\n\"+'{\"event_type\":\"task_completed\",\"task_id\":\"B\",\"det', encoding=\"utf-8\")\ncur = d/\"c.json\"\ntry:\n    BoardEventWatcher(board, JsonCursorStore(cur)).consume()\n    print(\"NO ERROR on truncated line\")\nexcept Exception as e:\n    print(\"raised:\", type(e).__name__, e)\nprint(\"cursor after failure:\", cur.exists() and cur.read_text().strip())\n# complete the line, re-run\nwith board.open(\"a\", encoding=\"utf-8\") as h:\n    h.write('ail\":\"{}\"}\\n')\nblocks = BoardEventWatcher(board, JsonCursorStore(cur)).consume()\nprint(\"after completion, blocks:\", [b.source for b in blocks])\n\n# 2) two boards, one cursor file\nb1 = d/\"b1.jsonl\"; b2 = d/\"b2.jsonl\"\nline = lambda tid: json.dumps({\"event_type\":\"task_completed\",\"task_id\":tid,\"detail\":json.dumps({\"class_id\":\"gateway-drain-window\",\"lesson\":\"drain before restart\"})})+\"\\n\"\nb1.write_text(line(\"X1\")); b2.write_text(line(\"Y1\"))\nc2 = d/\"c2.json\"\nprint(\"b1 first:\", [b.source for b in BoardEventWatcher(b1, JsonCursorStore(c2)).consume()])\nprint(\"b2 first:\", [b.source for b in BoardEventWatcher(b2, JsonCursorStore(c2)).consume()])\nprint(\"b1 second (should be []):\", [b.source for b in BoardEventWatcher(b1, JsonCursorStore(c2)).consume()])\nprint(\"cursor file:\", c2.read_text().strip())\n\n# 3) documented snippet\nfrom lore.trigger import AugerDecisionTableAdapter\nblocks = BoardEventWatcher(board, JsonCursorStore(d/\"c3.json\")).consume()\nprops = absorb_sweep(blocks, source=\"board-event\")\nprint(\"snippet ok, proposals:\", len(props), props[0][\"provenance\"][\"source\"] if props else None)\nEOF\nuv run --project /home/kara/get-h3/lore python t.py",
+          "exit_code": 0,
+          "output_sha": "6a09b81bae379a595a0568a8240bed56a42303d65dfc8a627272bd34f1086e8e"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: lore/trigger.py:88-113 consume() reads from cursor offset, seeks to end, raises if start>end, and only calls cursor_store.set(board, end) AFTER the full suffix parsed (line 112). Verified by run: first consume 3 blocks, append 1 event -> second consume 1 block, third consume [] (tests/test_lore071_trigger.py:17-54). Falsifier test (tests/test_lore071_trigger.py:57-76) injects MemoryOnlyCursor -> replays 3, then persisted JsonCursorStore -> 0. No runbook write: lore/trigger.py has no write path except the cursor file (lines 60-65); absorb_sweep is data-only (lore/absorb.py:353-411); test_board_event_trail_flows_to_proposal_without_runbook_write asserts runbook tree unchanged. `uv run pytest tests/ -q` -> \\\"572 passed in 4.73s\\\" exit 0; `uv run lore validate` exit 0.\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "f3ed1773f4cf5dc2a480f27be37d9de71a187527edb46d3d05f9ae66743cb92b"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: lore/trigger.py:112 advances cursor only after the loop completes; a truncated trailing line raises ValueError at lore/trigger.py:104-107 before set(). Ad-hoc run: \\\"raised: ValueError invalid board event at byte 190\\\" and \\\"cursor after failure: False\\\"; after completing the line the next consume returned ['board:A','board:B'] (no loss, no silent skip).\", \"key\": \"verified_derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "cdbeafb0bd0834981500e736da6bda1eb40c401066110c6da23acc5536c23317"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: JsonCursorStore keys offsets by str(board.resolve()) (lore/trigger.py:33, 58) and merges existing payload (lines 47-58). Ad-hoc run with two boards sharing one cursor file: b1 first ['board:X1'], b2 first ['board:Y1'], b1 second [] and cursor file contained both keys {\\\"/tmp/l71/b1.jsonl\\\":142,\\\"/tmp/l71/b2.jsonl\\\":142}. Persistence across instances is exercised by tests/test_lore071_trigger.py:51-54 (new JsonCursorStore(cursor) per call).\", \"key\": \"verified_derived_1\"}",
+          "exit_code": 0,
+          "output_sha": "9ef0cc80e2c8d59bb7fc9f1014206e62bd9a810edb508fa3753ccc34ab29b82f"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: docs/ABSORB-TRIGGER.md:38-50 snippet (BoardEventWatcher + JsonCursorStore + absorb_sweep(source=\\\"board-event\\\")) executed verbatim in an ad-hoc script -> \\\"snippet ok, proposals: 2 board-event\\\". README.md:467 links docs/ABSORB-TRIGGER.md. Note: no CLI subcommand wires the watcher (lore --help lists match/consult/compile/validate/gate/absorb/show/audit); the doc explicitly states no timer/service is installed and the owner runs it from a separately managed process, so the documented entrypoint is the Python API.\", \"key\": \"verified_derived_2\"}",
+          "exit_code": 0,
+          "output_sha": "72507beed757ad0c715624833b29d7589b945e80b75c546ce6d5888b5bd4150d"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: AugerDecisionTableAdapter.read() only calls self.export.read_text (lore/trigger.py:218-220); parse_auger_export is pure string parsing (lines 160-215). grep for write_text/open(...,'w')/mkdir/os.replace/shutil across lore/trigger.py, lore/absorb.py, lore/runbook.py returns only the cursor-store writes at lore/trigger.py:60-65. tests/test_lore071_trigger.py:104-116 snapshots tmp_path before/after and asserts equality.\", \"key\": \"verified_derived_3\"}",
+          "exit_code": 0,
+          "output_sha": "c474e7a412fe5ee4085185a796c36336f6422633c1f8fcbf2460ce3915732ede"
+        },
+        {
+          "tool": "run_command",
+          "command": "rm -rf /tmp/l71; git status --short",
+          "exit_code": 0,
+          "output_sha": "b5fd53cd38131263daa300dfd33d3b66a6a7abe3235727846990ea42207b0d3e"
+        }
+      ]
+    }
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [],
+    "summary": "The diff removes a dead monkeypatch and adds a positive assertion that the persisted cursor resumes correctly, which is consistent with the surrounding test style and introduces no evidenced defect."
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 FAILIF: the trigger re-reads already-seen board events after restart or writes a runbook without operator approval; PROOF: uv run pytest tests/ -q (572 passed) including test_cursor_resume_falsifier_fails_without_persistence (memory-only cursor mutation replays events) and test_board_event_trail_flows_to_proposal_without_runbook_write (no runbook-tree writes), plus uv run lore validate exit 0: Cursor resume: lore/trigger.py:88-113 consume() seeks to the persisted offset, refuses a cursor past EOF (lines 96-99), and calls cursor_store.set(board, end) only after the whole suffix parsed (line 112); JsonCursorStore persists per-board offsets atomically via os.replace (lore/trigger.py:33,58-65). Run: `uv run pytest tests/ -q` -> \"572 passed in 4.73s\", exit 0; `uv run pytest tests/test_lore071_trigger.py -v` -> all 6 PASSED including test_cursor_resume_falsifier_fails_without_persistence and test_board_event_trail_flows_to_proposal_without_runbook_write. The falsifier (tests/test_lore071_trigger.py:57-76) now injects MemoryOnlyCursor directly -> replays 3 blocks, then the persisted JsonCursorStore -> 0 blocks, so the mutation is live (the HEAD commit 0e662b1 removed the dead monkeypatch). No runbook write: the only write path in lore/trigger.py is the cursor file (lines 60-65); absorb_sweep is data-only (lore/absorb.py:353-411, docstring 'PROPOSE-NOT-WRITE'); tests/test_lore071_trigger.py:118-130 asserts the runbook tree still contains only the operator-owned marker. `uv run lore validate` -> exit 0. Also `uv run ruff check .` -> \"All checks passed!\" and `bash scripts/check-test-count.sh` -> \"PASS: test-count guard: canonical=572 matches live=572\".\n  \u2713 The cursor is only advanced after the whole suffix parses successfully, so a malformed/partial trailing board line does not silently skip events on the next run (no event loss / no silent advance).: lore/trigger.py:104-107 raises ValueError on a bad line before the set() at line 112. Ad-hoc run against a board with a truncated trailing line: \"raised: ValueError invalid board event at byte 190\" and \"cursor after failure: False\"; after completing the line the next consume returned ['board:A', 'board:B'] \u2014 no event lost, no silent advance.\n  \u2713 The persisted cursor is keyed per board path and survives a fresh process (new store instance reading the same file), so two different boards do not clobber each other's offsets.: JsonCursorStore keys by str(board.resolve()) (lore/trigger.py:33,58) and merges the existing payload (lines 47-58). Ad-hoc run with two boards sharing one cursor file: b1 first ['board:X1'], b2 first ['board:Y1'], b1 second [] and the cursor file held both keys {\"/tmp/l71/b1.jsonl\":142,\"/tmp/l71/b2.jsonl\":142}. Cross-instance persistence is exercised by tests/test_lore071_trigger.py:51-54, which constructs a new JsonCursorStore(cursor) per call.\n  \u2713 The trigger layer is reachable from a documented entrypoint (docs/README) and the documented usage snippet actually runs against the shipped API (no invented symbols/arguments).: docs/ABSORB-TRIGGER.md:38-50 snippet (BoardEventWatcher + JsonCursorStore + absorb_sweep(source=\"board-event\")) was executed verbatim in an ad-hoc script -> \"snippet ok, proposals: 2 board-event\"; README.md:467 links docs/ABSORB-TRIGGER.md. No CLI subcommand wires the watcher (`uv run lore --help` lists match/consult/compile/validate/gate/absorb/show/audit), but the doc states at lines 52-55 that no timer or service is installed and the owner runs it from a separately managed process, so the documented entrypoint is the Python API and it works.\n  \u2713 The Auger adapter is read-only: reading an export performs no writes to the export file, the DuckBrain store, or any runbook tree.: AugerDecisionTableAdapter.read() only calls self.export.read_text (lore/trigger.py:218-220); parse_auger_export is pure string parsing (lines 160-215). grep for write_text/open(...,'w')/mkdir/os.replace/shutil across lore/trigger.py, lore/absorb.py and lore/runbook.py returns only the cursor-store writes at lore/trigger.py:60-65. tests/test_lore071_trigger.py:104-116 snapshots tmp_path before/after the adapter read and asserts equality.\nThe proposal-only trigger is real and wired: persisted per-board byte cursor resumes without replay (falsifier now genuinely mutates), the Auger adapter is read-only, and the full suite (572 passed), lore validate (exit 0) and ruff all pass. [uncovered failure paths: failure mode 0 (A board line that is valid JSON but not an object raises TypeError mid-suffix, aborting the whole consume and leaving the cursor unadvanced \u2014 the same bad line will abort every subsequent run until an operator edits the board): detected_by is empty \u2014 uncovered failure path]\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-16T13:49:39.318806",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-16T13:49:39.344043+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 2575,
+        "truncated": false,
+        "source": "git show 0e662b1d7d8d"
+      }
+    ],
+    "task_id": "LORE-071"
+  }
+}

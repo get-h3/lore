@@ -1,0 +1,576 @@
+commit f264edc617052db2b930b8247977af506f181ea0
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Mon Nov 16 08:40:09 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Mon Nov 16 08:40:09 2026 -0500
+
+    feat: add proposal-only absorb trigger. Addresses LORE-071.
+---
+ CONTRIBUTING.md                   |   2 +-
+ README.md                         |   6 +-
+ docs/ABSORB-TRIGGER.md            |  53 +++++++++
+ docs/INSTALL.md                   |   4 +-
+ lore/trigger.py                   | 220 ++++++++++++++++++++++++++++++++++++++
+ scripts/test-count.txt            |   2 +-
+ skills/lore-usage/SKILL.md        |   2 +-
+ tests/fixtures/auger-export.md    |  37 +++++++
+ tests/fixtures/board-events.jsonl |   3 +
+ tests/test_lore071_trigger.py     | 128 ++++++++++++++++++++++
+ 10 files changed, 450 insertions(+), 7 deletions(-)
+
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index 4e20030..7359a7f 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
+ Once `.venv` exists, run the full gate from the repository root:
+ 
+ ```sh
+-uv run pytest -q                    # tests (green at 566 passed)
++uv run pytest -q                    # tests (green at 572 passed)
+ uv run ruff check .                 # lint — "All checks passed!"
+ uv run ruff format --check .        # formatting — "N files already formatted"
+ uv run scripts/check-test-count.sh  # test-count sync guard
+diff --git a/README.md b/README.md
+index 54bfdf9..3e81f6c 100644
+--- a/README.md
++++ b/README.md
+@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
+ [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
+ 
+ ```sh
+-uv run pytest -q        # 566 passed
++uv run pytest -q        # 572 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -381,7 +381,7 @@ and what does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
+-  with **566 tests passing** and a clean `ruff check`.
++  with **572 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+   Flags: `match [--class CLASS_ID]` filters results to only the named registry
+   class (ships today; not planned-only).
+@@ -464,6 +464,8 @@ and what does not:
+   `--source` (LORE-020) threads the provenance marker into every per-class
+   proposal payload, same None-rule as the single-proposal path: omitted, the
+   payloads keep their original shape with no `source` key.
++- Absorb trigger design: [docs/ABSORB-TRIGGER.md](docs/ABSORB-TRIGGER.md)
++  (board-event cursor + Auger export adapter; proposal-only, owner-installed).
+ - Install guide: [docs/INSTALL.md](docs/INSTALL.md) (dependency vulnerability
+   scanning: "Dependency vulnerability scanning"). Runbook-store design
+   decision: [docs/RUNBOOK-STORE.md](docs/RUNBOOK-STORE.md).
+diff --git a/docs/ABSORB-TRIGGER.md b/docs/ABSORB-TRIGGER.md
+new file mode 100644
+index 0000000..09228ef
+--- /dev/null
++++ b/docs/ABSORB-TRIGGER.md
+@@ -0,0 +1,53 @@
++# Absorb trigger (LORE-071)
++
++The absorb trigger is a read-only ingestion layer. It converts two machine
++exports into `lore.evidence.EvidenceBlock` values and passes them to the
++existing `absorb_sweep` function. `absorb_sweep` returns in-memory proposal
++objects; it does not publish or modify a runbook.
++
++## Board events
++
++`BoardEventWatcher(board, JsonCursorStore(cursor_path))` reads a board's
++`events.jsonl` by byte offset. It accepts `task_completed` records and any
++other record carrying an explicit `class_id` or lesson. The cursor is written
++only after the complete suffix has been parsed successfully, using an atomic
++replace. A restart therefore resumes at the saved offset and does not replay
++seen records. The board itself is never opened for writing.
++
++The cursor path is owner-managed local state; it is not a board file and should
++not be placed inside `.coding-hermes/` when installing a service.
++
++## Auger export
++
++`AugerDecisionTableAdapter(path)` parses Auger's deterministic Markdown
++`export` output. Decision, assumption, unknown, and break rows become
++`duckbrain-row` evidence. Provenance is explicit, for example:
++
++```text
++source=auger:decisions:D-001
++fields.table=decisions
++fields.row_id=D-001
++```
++
++The adapter reads an export file only. It does not connect to or write a
++DuckBrain store.
++
++## Proposal-only integration
++
++```python
++from lore.absorb import absorb_sweep
++from lore.trigger import BoardEventWatcher, JsonCursorStore
++
++blocks = BoardEventWatcher(
++    "/path/to/.coding-hermes/board/events.jsonl",
++    JsonCursorStore("/var/lib/lore/board-cursor.json"),
++).consume()
++proposals = absorb_sweep(blocks, source="board-event")
++```
++
++The returned `proposals` are for operator review. No timer or service is
++installed by this package. An owner may run the watcher from a separately
++managed process after choosing a cursor location and review workflow.
++
++Fixtures and tests use copies under `tests/fixtures/`; they never read live
++boards or `~/.duckbrain`.
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 003021f..2fbf375 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -82,14 +82,14 @@ Real output on the current tree:
+ ........................................................................ [ 55%]
+ ........................................................................ [ 83%]
+ ........................................................................ [100%]
+-566 passed
++572 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **566 tests** (46 test files: taxonomy, classifier,
++The count to expect is **572 tests** (47 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+diff --git a/lore/trigger.py b/lore/trigger.py
+new file mode 100644
+index 0000000..17edb44
+--- /dev/null
++++ b/lore/trigger.py
+@@ -0,0 +1,220 @@
++"""Read-only absorb triggers for board events and Auger exports.
++
++The trigger layer only turns external records into :class:`EvidenceBlock`
++values.  It never publishes a runbook, writes a board, or talks to DuckBrain.
++The board cursor is the one deliberate local side effect: a JSON file stores
++that board's byte offset so a restarted watcher does not replay old events.
++"""
++
++from __future__ import annotations
++
++import json
++import os
++import re
++from dataclasses import dataclass
++from pathlib import Path
++from typing import Any
++
++from lore.classifier import classify
++from lore.evidence import EvidenceBlock
++
++__all__ = [
++    "AugerDecisionTableAdapter",
++    "BoardEventWatcher",
++    "JsonCursorStore",
++    "parse_auger_export",
++]
++
++
++class JsonCursorStore:
++    """Persist byte offsets keyed by a board's resolved path."""
++
++    def __init__(self, path: str | Path):
++        self.path = Path(path)
++
++    def get(self, board: Path) -> int:
++        if not self.path.exists():
++            return 0
++        try:
++            payload = json.loads(self.path.read_text(encoding="utf-8"))
++        except (OSError, json.JSONDecodeError) as exc:
++            raise ValueError(f"invalid cursor store {self.path}: {exc}") from exc
++        value = payload.get(str(board.resolve()), 0)
++        if not isinstance(value, int) or value < 0:
++            raise ValueError(f"invalid cursor offset for {board}")
++        return value
++
++    def set(self, board: Path, offset: int) -> None:
++        if offset < 0:
++            raise ValueError("cursor offset must be non-negative")
++        payload: dict[str, int] = {}
++        if self.path.exists():
++            try:
++                raw = json.loads(self.path.read_text(encoding="utf-8"))
++                if not isinstance(raw, dict):
++                    raise TypeError("cursor store must contain an object")
++                payload = {str(k): int(v) for k, v in raw.items()}
++            except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
++                raise ValueError(f"invalid cursor store {self.path}: {exc}") from exc
++        payload[str(board.resolve())] = offset
++        self.path.parent.mkdir(parents=True, exist_ok=True)
++        temporary = self.path.with_name(f".{self.path.name}.tmp")
++        temporary.write_text(
++            json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8"
++        )
++        os.replace(temporary, self.path)
++
++
++@dataclass(frozen=True)
++class BoardEventWatcher:
++    """Consume new JSONL board records without modifying the board."""
++
++    board: Path
++    cursor_store: JsonCursorStore
++
++    def __init__(self, board: str | Path, cursor_store: JsonCursorStore):
++        object.__setattr__(self, "board", Path(board))
++        object.__setattr__(self, "cursor_store", cursor_store)
++
++    def consume(self) -> list[EvidenceBlock]:
++        start = self.cursor_store.get(self.board)
++        blocks: list[EvidenceBlock] = []
++        with self.board.open("rb") as stream:
++            stream.seek(0, os.SEEK_END)
++            end = stream.tell()
++            if start > end:
++                raise ValueError(
++                    f"cursor offset {start} is past board size {end}; refusing replay"
++                )
++            stream.seek(start)
++            for raw in stream:
++                offset = stream.tell()
++                if not raw.strip():
++                    continue
++                try:
++                    event = json.loads(raw)
++                except json.JSONDecodeError as exc:
++                    raise ValueError(
++                        f"invalid board event at byte {offset}: {exc}"
++                    ) from exc
++                if not isinstance(event, dict):
++                    raise TypeError(f"board event at byte {offset} is not an object")
++                block = _board_event_block(event)
++                if block is not None:
++                    blocks.append(block)
++        # Advance only after the complete suffix has been read successfully.
++        self.cursor_store.set(self.board, end)
++        return blocks
++
++
++def _detail_mapping(event: dict[str, Any]) -> dict[str, Any]:
++    detail = event.get("detail")
++    if isinstance(detail, dict):
++        return detail
++    if isinstance(detail, str) and detail.strip():
++        try:
++            decoded = json.loads(detail)
++        except json.JSONDecodeError:
++            return {"lesson": detail}
++        return decoded if isinstance(decoded, dict) else {"lesson": str(decoded)}
++    return {}
++
++
++def _board_event_block(event: dict[str, Any]) -> EvidenceBlock | None:
++    event_type = str(event.get("event_type") or "")
++    detail = _detail_mapping(event)
++    # Completion is the normal trigger.  Other event types are accepted only
++    # when they carry an explicit class/lesson, preventing status noise from
++    # becoming fabricated evidence.
++    if event_type != "task_completed" and not (
++        detail.get("class_id") or detail.get("lesson") or event.get("class_id")
++    ):
++        return None
++    task_id = str(event.get("task_id") or event.get("id") or "unknown")
++    class_id = event.get("class_id") or detail.get("class_id")
++    lesson = detail.get("lesson") or detail.get("detail") or detail.get("message")
++    if not lesson:
++        lesson = event.get("detail") or event_type
++    if not isinstance(lesson, str):
++        lesson = json.dumps(lesson, sort_keys=True)
++    if not class_id:
++        candidate = classify(lesson)
++        if candidate.class_id != "unclassified":
++            class_id = candidate.class_id
++    fields = dict(event)
++    fields["detail"] = detail
++    if class_id:
++        fields["class_id"] = class_id
++    return EvidenceBlock(
++        kind="board-event",
++        detail=f"{task_id}: {lesson}",
++        source=f"board:{task_id}",
++        observed_at=event.get("timestamp")
++        if isinstance(event.get("timestamp"), str)
++        else None,
++        fields=fields,
++    )
++
++
++_SECTION_NAMES = {
++    "decisions": "decisions",
++    "assumptions": "assumptions",
++    "unknowns": "unknowns",
++    "break records": "breaks",
++    "breaks": "breaks",
++}
++_SECTION_RE = re.compile(r"^##\s+(.+?)(?:\s+\(\d+ rows?\))?\s*$", re.IGNORECASE)
++_ROW_RE = re.compile(r"^###\s+(\S+)\s*$")
++_FIELD_RE = re.compile(r"^-\s+([^:]+):\s*(.*)$")
++
++
++def parse_auger_export(text: str) -> list[EvidenceBlock]:
++    """Parse Auger's deterministic Markdown export into row evidence blocks."""
++    blocks: list[EvidenceBlock] = []
++    section: str | None = None
++    row_id: str | None = None
++    row: dict[str, str] = {}
++
++    def flush() -> None:
++        nonlocal row_id, row
++        if section in _SECTION_NAMES.values() and row_id and row:
++            table = section
++            parts = [f"{key}={value}" for key, value in row.items() if value != "—"]
++            detail = f"{table} {row_id}: " + "; ".join(parts)
++            blocks.append(
++                EvidenceBlock(
++                    kind="duckbrain-row",
++                    detail=detail,
++                    source=f"auger:{table}:{row_id}",
++                    fields={"table": table, "row_id": row_id, "row": dict(row)},
++                )
++            )
++        row_id, row = None, {}
++
++    for line in text.splitlines():
++        section_match = _SECTION_RE.match(line.strip())
++        if section_match:
++            flush()
++            title = section_match.group(1).strip().lower()
++            section = _SECTION_NAMES.get(title)
++            continue
++        row_match = _ROW_RE.match(line.strip())
++        if row_match:
++            flush()
++            row_id = row_match.group(1)
++            continue
++        field_match = _FIELD_RE.match(line.strip())
++        if field_match and row_id:
++            row[field_match.group(1).strip()] = field_match.group(2).strip()
++    flush()
++    return blocks
++
++
++class AugerDecisionTableAdapter:
++    """Read an Auger export file; no Auger/DuckBrain write path exists here."""
++
++    def __init__(self, export: str | Path):
++        self.export = Path(export)
++
++    def read(self) -> list[EvidenceBlock]:
++        return parse_auger_export(self.export.read_text(encoding="utf-8"))
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index a13be20..0751c1b 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-566
++572
+diff --git a/skills/lore-usage/SKILL.md b/skills/lore-usage/SKILL.md
+index bd4cbda..32e3b4d 100644
+--- a/skills/lore-usage/SKILL.md
++++ b/skills/lore-usage/SKILL.md
+@@ -124,7 +124,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
+ ## Dev loop
+ 
+ ```sh
+-uv run pytest -q    # expect: 566 passed (count synced to scripts/test-count.txt, LORE-029)
++uv run pytest -q    # expect: 572 passed (count synced to scripts/test-count.txt, LORE-029)
+ uv run ruff check . # expect: All checks passed!
+ ```
+ 
+diff --git a/tests/fixtures/auger-export.md b/tests/fixtures/auger-export.md
+new file mode 100644
+index 0000000..fe53024
+--- /dev/null
++++ b/tests/fixtures/auger-export.md
+@@ -0,0 +1,37 @@
++# Auger spec export — namespace golden-ns
++
++Read-only deterministic rendering of every declared table.
++Scope: whole namespace (no rows are written).
++
++## Decisions (2 rows)
++### D-001
++- id: D-001
++- project_id: P-000001
++- chosen: pause before gateway restart
++- why_not: restart immediately breaks in-flight requests
++- confidence: 0.8
++- status: answered
++
++## Assumptions (1 rows)
++### A-001
++- id: A-001
++- project_id: P-000001
++- text: the drain window remains bounded
++- falsifier: 503s continue after 30 minutes
++
++## Unknowns (1 rows)
++### U-001
++- id: U-001
++- project_id: P-000001
++- text: whether queued state survives restart
++- owner: gateway-team
++- trigger: next restart drill
++- containment: pause rollout
++
++## Break records (1 rows)
++### BR-000001
++- id: BR-000001
++- project_id: P-000001
++- decision_id: D-001
++- breaks_what: immediate restart
++- consequence: in-flight requests return 503
+diff --git a/tests/fixtures/board-events.jsonl b/tests/fixtures/board-events.jsonl
+new file mode 100644
+index 0000000..8654929
+--- /dev/null
++++ b/tests/fixtures/board-events.jsonl
+@@ -0,0 +1,3 @@
++{"id":1,"timestamp":"2026-09-23T09:27:24.330288+00:00","event_type":"task_completed","task_id":"LORE-003","actor":"foreman","detail":"{\"status\":\"complete\",\"class_id\":\"gateway-drain-window\",\"lesson\":\"drain before restart\"}","tick_number":null}
++{"id":2,"timestamp":"2026-09-23T09:27:30.094933+00:00","event_type":"task_updated","task_id":"LORE-013","actor":"foreman","detail":"{\"class_id\":\"shared-checkout-collision\",\"lesson\":\"stage explicit paths\"}","tick_number":null}
++{"id":3,"timestamp":"2026-09-23T09:27:36.983465+00:00","event_type":"audit","task_id":"LORE-003","actor":"foreman","detail":"{\"class_id\":\"gateway-drain-window\",\"lesson\":\"drain before restart\"}","tick_number":1}
+diff --git a/tests/test_lore071_trigger.py b/tests/test_lore071_trigger.py
+new file mode 100644
+index 0000000..aaaf59a
+--- /dev/null
++++ b/tests/test_lore071_trigger.py
+@@ -0,0 +1,128 @@
++from __future__ import annotations
++
++import json
++from pathlib import Path
++
++from lore.absorb import absorb_sweep
++from lore.evidence import EvidenceBlock
++from lore.trigger import (
++    AugerDecisionTableAdapter,
++    BoardEventWatcher,
++    JsonCursorStore,
++    parse_auger_export,
++)
++
++FIXTURES = Path(__file__).parent / "fixtures"
++
++
++def test_board_event_watcher_reads_only_new_events_and_resumes(tmp_path):
++    board = tmp_path / "events.jsonl"
++    board.write_text((FIXTURES / "board-events.jsonl").read_text(), encoding="utf-8")
++    cursor = tmp_path / "cursor.json"
++    watcher = BoardEventWatcher(board, JsonCursorStore(cursor))
++
++    first = watcher.consume()
++    assert len(first) == 3
++    assert all(isinstance(block, EvidenceBlock) for block in first)
++    assert first[0].kind == "board-event"
++    assert first[0].source == "board:LORE-003"
++    assert first[0].fields["class_id"] == "gateway-drain-window"
++
++    with board.open("a", encoding="utf-8") as handle:
++        handle.write(
++            json.dumps(
++                {
++                    "id": 4,
++                    "timestamp": "2026-09-23T10:00:00+00:00",
++                    "event_type": "task_completed",
++                    "task_id": "LORE-071",
++                    "actor": "worker",
++                    "detail": json.dumps(
++                        {
++                            "class_id": "gateway-drain-window",
++                            "lesson": "wait for the drain window",
++                        }
++                    ),
++                }
++            )
++            + "\n"
++        )
++
++    second = BoardEventWatcher(board, JsonCursorStore(cursor)).consume()
++    assert len(second) == 1
++    assert second[0].fields["task_id"] == "LORE-071"
++    assert BoardEventWatcher(board, JsonCursorStore(cursor)).consume() == []
++
++
++def test_cursor_resume_falsifier_fails_without_persistence(tmp_path, monkeypatch):
++    board = tmp_path / "events.jsonl"
++    board.write_text((FIXTURES / "board-events.jsonl").read_text(), encoding="utf-8")
++    cursor = tmp_path / "cursor.json"
++    watcher = BoardEventWatcher(board, JsonCursorStore(cursor))
++    assert len(watcher.consume()) == 3
++
++    # Mutation proof: a memory-only cursor stub replays the old suffix after a
++    # restart. The restored persisted store is exercised by the next test.
++    class MemoryOnlyCursor:
++        def get(self, _board):
++            return 0
++
++        def set(self, _board, _offset):
++            return None
++
++    monkeypatch.setattr("lore.trigger.JsonCursorStore", MemoryOnlyCursor)
++    assert len(BoardEventWatcher(board, MemoryOnlyCursor()).consume()) == 3
++
++
++def test_board_event_watcher_ignores_non_class_events(tmp_path):
++    board = tmp_path / "events.jsonl"
++    board.write_text(
++        json.dumps({"event_type": "task_updated", "task_id": "X", "detail": "{}"})
++        + "\n",
++        encoding="utf-8",
++    )
++    assert (
++        BoardEventWatcher(board, JsonCursorStore(tmp_path / "cursor.json")).consume()
++        == []
++    )
++
++
++def test_auger_adapter_provenance_names_table_and_row_id():
++    blocks = parse_auger_export(
++        (FIXTURES / "auger-export.md").read_text(encoding="utf-8")
++    )
++    assert len(blocks) == 4
++    assert blocks[0].kind == "duckbrain-row"
++    assert blocks[0].source == "auger:decisions:D-001"
++    assert "pause before gateway restart" in blocks[0].detail
++    assert blocks[0].fields["table"] == "decisions"
++    assert blocks[0].fields["row_id"] == "D-001"
++
++
++def test_adapter_is_read_only_and_flows_to_absorb_proposal(tmp_path):
++    export = FIXTURES / "auger-export.md"
++    before = sorted(p.relative_to(tmp_path) for p in tmp_path.rglob("*"))
++    blocks = AugerDecisionTableAdapter(export).read()
++    proposals = absorb_sweep(blocks, source="auger")
++    after = sorted(p.relative_to(tmp_path) for p in tmp_path.rglob("*"))
++    assert before == after
++    assert proposals
++    assert all(p["provenance"]["source"] == "auger" for p in proposals)
++    assert any(p["action"] == "update" for p in proposals)
++
++
++def test_board_event_trail_flows_to_proposal_without_runbook_write(tmp_path):
++    board = tmp_path / "events.jsonl"
++    board.write_text((FIXTURES / "board-events.jsonl").read_text(), encoding="utf-8")
++    runbook_tree = tmp_path / "runbooks"
++    runbook_tree.mkdir()
++    marker = runbook_tree / "existing.md"
++    marker.write_text("operator-owned", encoding="utf-8")
++    blocks = BoardEventWatcher(
++        board, JsonCursorStore(tmp_path / "cursor.json")
++    ).consume()
++    proposals = absorb_sweep(blocks, board=str(board), source="board-event")
++    assert proposals
++    assert all(p["provenance"]["kind"] == "absorb-sweep" for p in proposals)
++    assert marker.read_text(encoding="utf-8") == "operator-owned"
++    assert sorted(p.name for p in runbook_tree.iterdir()) == ["existing.md"]
