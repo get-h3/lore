@@ -71,6 +71,17 @@ deselected or skipped to make the offline run green. Zero `OfflineSuiteViolation
 was raised, i.e. no test, fixture, or import path reached for DNS, an HTTP client,
 or an INET socket.
 
+## Known limits of this proof (stated, not glossed)
+
+The audit hook governs the CPython process the tests run in: `socket`,
+`http.client`, `urllib`, and anything built on them (requests/httpx both land on
+`socket.getaddrinfo`). It does NOT see a client spawned as a SUBPROCESS
+(`git push`, `curl`, `pip`), nor a resolver inside a C extension that bypasses
+`socket` — those would need kernel-level isolation instead, and `unshare -rn` is
+refused on this host. So the honest claim is: nothing in-process in the suite
+touches the network; a future subprocess-spawned network call is outside this
+gate's coverage.
+
 ## Result
 
 Resolved as informational-but-enforced: the repo's suite has no external network
