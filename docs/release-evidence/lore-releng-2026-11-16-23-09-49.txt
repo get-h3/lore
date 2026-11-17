@@ -79,3 +79,73 @@ NOT DONE, DELIBERATELY
   out of release scope).
   Major bump not applicable (0 breaking changes); no user confirmation
   needed for a MINOR.
+
+================================================================
+DELTA — REFIRE PASS (second firing of this same tick id)
+measured 2026-11-17T00:16:52Z · DECISION: NO CUT OWED
+================================================================
+
+The scheduler delivered tick lore-releng-2026-11-16-23-09-49 twice. The first
+firing cut and published v0.2.0 at 2026-11-16T23:36:14Z and closed
+RELEASE-LORE-006. A re-fire after the tick's own cut is a post-release sweep,
+not a second cut: re-derive every layer the release wrote, classify the
+commits the tag has never seen, and refuse a new version unless the product
+moved. It did not move.
+
+COMMITS SINCE THE TAG (git log --no-merges v0.2.0..origin/main — 3 commits)
+  fa7852b  board: close RELEASE-LORE-006 — v0.2.0 cut, tagged and verified
+  f73ed6a  board: file QA-LORE-5 (chaos-corruption cell cannot grade lore)
+  7788fb4  board: file RELEASE-LORE-007 — releng lane workdir is not a git
+           work tree
+  Product paths touched: NONE. `git diff --name-only v0.2.0..origin/main`
+  lists exactly .coding-hermes/board/events.jsonl,
+  .coding-hermes/board/tasks.jsonl and this evidence file.
+  Conventional-commit classification of the product range is EMPTY — no feat
+  (minor), no fix (patch), no BREAKING CHANGE / '!' subject (major). There is
+  no semver increment available to propose, so no user confirmation is owed.
+
+SURFACES THAT CAN MOVE AFTER A CUT — cut-time reading vs this sweep
+  surface           fire 1 (cut)                fire 2 (this sweep)
+  tag ref           9f605ba -> 165cc8f          9f605ba -> 165cc8f (identical
+                                                 object and peel; not moved)
+  release object    draft=false, pre=false,     draft=false, pre=false,
+                    published 23:36:14Z,        published 23:36:14Z,
+                    target main                 target main (unchanged)
+  release body      notes 4470 chars            bodyLen 4470 (re-measured)
+  assets            0 (by design)               0 (by design, re-measured)
+  CI @ tag commit   43979715930 success         43979715930 success (no new
+                                                 run on 165cc8f)
+  release-check     43980707824 success         success on push/v0.2.0
+                                                 @165cc8f (tag-gated workflow)
+  CI @ tip          n/a (tip was the tag)       43985750997 success @7788fb4
+  repo gate         scripts/release.sh          scripts/release.sh --dry-run
+                    --dry-run: 5/5 ok           @7788fb4: clean tree / CI
+                                                 success on HEAD sha / version
+                                                 0.2.0 -> tag v0.2.0 / REFUSE
+                                                 tag v0.2.0 already exists
+                                                 (rc=1 — the expected
+                                                 post-cut refusal, not a
+                                                 readiness failure)
+  board             0 open besides REL-006      2 pending, both P3 and
+                                                 dispatchable (QA-LORE-5,
+                                                 RELEASE-LORE-007)
+  deployed CLI      not measured at cut         uv tool get-h3-lore = 0.1.2
+                                                 -> one minor behind v0.2.0
+
+NO READING FLIPPED. Nothing regressed and no layer needs repair. No tag was
+force-moved and force-moving was never considered: the remote refs are
+byte-identical to the cut-time record, which is the discipline every re-fire
+must re-prove rather than trust.
+
+FILED THIS PASS (one row, one event — no duplicate release row)
+  RELEASE-LORE-008  P3  the host's installed `uv tool` copy of get-h3-lore
+                        reports 0.1.2 while the release is 0.2.0: the CLI a
+                        user actually runs is a minor behind the tag. Not a
+                        release defect; a deployed-surface drift.
+  event `audit` on RELEASE-LORE-006 (canonical rolling row) recording this
+                        re-fire, so the row's history carries both firings.
+
+VERDICT
+  The GO was spent on fire 1. Fire 2 = NO CUT OWED. A third firing over an
+  unchanged tree must reach this same answer from these same readings,
+  without minting a new artifact, a new row, or a new tag.
