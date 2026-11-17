@@ -147,10 +147,11 @@ options:
 
 That is the entire shipped CLI today: eight subcommands — `match`, `consult`,
 `compile`, `validate`, `gate`, `absorb`, `show` and `audit`. Anything else you
-may have heard of (runbook-store materialization, the scheduled weekly lint) is
-**planned** — see the README's Status section. `lore validate` runs the lint;
-the weekly *schedule* that would run it for you is not installed (that is a
-separate task).
+may have heard of (runbook-store materialization) is **planned** — see the
+README's Status section. `lore validate` runs the lint, and the weekly
+*schedule* that runs it is operator-armed rather than shipped: the package
+installs no timer or service, so a fresh source install has none until you arm
+one (see "What this tool is NOT" below).
 
 `lore audit` reads its incident evidence from `.coding-hermes/board/events.jsonl`
 (plus tasks.jsonl), resolved against the current working directory (one
@@ -438,9 +439,18 @@ printf 'logsey export --window 2h\n```\n2026-09-24T10:00:00 unit=loreforge gatew
   nothing lands in a registry or on disk. The runbook-store design (central
   registry + materialized per-repo dirs) is decided in
   [RUNBOOK-STORE.md](RUNBOOK-STORE.md) but not implemented.
-- **No scheduled lint / re-validation yet.** The read-only command lint ships
-  today as `lore validate`; what is absent is only the weekly
-  *schedule* that would run it on a calendar — nothing runs on a schedule.
+- **The weekly lint runs on a timer you arm, not one we ship.** The read-only
+  command lint ships today as `lore validate`; the weekly *schedule* around it
+  is a **user** systemd timer, operator-armed. The package installs no timer or
+  service, so a fresh source install has none until you enable one. This fleet
+  runs exactly that arrangement:
+  `~/.config/systemd/user/lore-validate.timer` with
+  `OnCalendar=Mon *-*-* 07:30:00` and `Persistent=true`, plus
+  `~/.config/systemd/user/lore-validate.service` executing
+  `lore validate --execute --format md` from the checkout with stdout appended
+  to `~/.local/share/lore/weekly-validate.log`. Arm it per box with
+  `systemctl --user enable --now lore-validate.timer`; each Monday run appends
+  its records to `.lore/validate-history.jsonl` in the checkout.
 - **Propose-not-write.** The compiler never writes to disk. Publishing anything
   requires an operator's explicit approval, by design.
 - **Not a monitor.** lore classifies and compiles; it does not watch logs,

@@ -128,9 +128,12 @@ and a stored runbook.
   named here as a contract the store must accommodate (`status: stale`
   already exists in the data model). The lint defaults to plan mode — it
   lists what would run and executes nothing; `--execute` opts into the
-  gate-approved read-only checks. Only its weekly schedule is uninstalled:
-  nothing runs the lint on a timer today, so re-validation happens only
-  when an operator invokes it.
+  gate-approved read-only checks. The weekly *schedule* around it is
+  operator-armed rather than shipped: the package installs no timer or service,
+  so a fresh install re-validates only when an operator invokes it. This fleet
+  runs a user systemd timer (`lore-validate.timer`, Mon 07:30,
+  `Persistent=true`) that runs `lore validate --execute --format md` weekly and
+  appends its output to `~/.local/share/lore/weekly-validate.log`.
 - A stale runbook is not deleted: it stays in the registry and dirs with its
   honesty label, because a stale map is still evidence of the terrain.
 
