@@ -472,6 +472,8 @@ does not:
 - Install guide: [docs/INSTALL.md](docs/INSTALL.md) (dependency vulnerability
   scanning: "Dependency vulnerability scanning"). Runbook-store design
   decision: [docs/RUNBOOK-STORE.md](docs/RUNBOOK-STORE.md).
+- Marker grammar: [docs/traceability-doctrine.md](docs/traceability-doctrine.md)
+  (the `ch:trace` fields, witness forms and commit-footer rule).
 
 ### Planned / in flight — named, not promised as runnable
 
