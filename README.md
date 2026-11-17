@@ -409,8 +409,8 @@ does not:
   exit 4 (`unsupported predicate`) and those orders record `error` (the class
   flips `stale` with reason `lint drift: check N (error)`); that signal is index
   drift, not runbook drift — `logsey index rebuild` (then re-run the lint)
-  restores `ok`. No schedule is installed
-  yet (a separate task owns the weekly timer). A real `--execute` run is also
+  restores `ok`. The weekly schedule is operator-armed, not shipped (see the
+  next bullet). A real `--execute` run is also
   PERSISTED locally: one JSONL record per class is appended to
   `.lore/validate-history.jsonl` in the current working directory (git-ignored,
   per-box), and `lore consult` (both modes) plus `lore compile --format md`
@@ -426,6 +426,16 @@ does not:
   per `<placeholder>` slot telling the operator where the value comes from
   (a log path, a health URL, an env key), never a deployment's actual value
   (LORE-050).
+- **Weekly re-validation: the schedule is operator-armed, not shipped.** The
+  release installs no timer and no service, so a fresh source install has none
+  until an operator arms one. The lint is meant to run on a *user* systemd
+  timer, and this fleet runs exactly that:
+  `~/.config/systemd/user/lore-validate.timer` with
+  `OnCalendar=Mon *-*-* 07:30:00` and `Persistent=true`, plus
+  `~/.config/systemd/user/lore-validate.service`, whose `ExecStart` is
+  `lore validate --execute --format md` run from the checkout with stdout
+  appended to `~/.local/share/lore/weekly-validate.log`. Arm it per box with
+  `systemctl --user enable --now lore-validate.timer`.
 - `lore show <class> [--evidence] [--format json|md]` — prints the compiled
   runbook for one class (human-markdown default); `--evidence` adds the class's
   provenance line plus its evidence trail. Unknown class exits 2 (the registry
@@ -491,8 +501,11 @@ lore validate [--class ...]                         # run the read-only command 
 
 All eight shipped subcommands run today — `lore match`, `lore consult`,
 `lore compile`, `lore validate`, `lore gate`, `lore absorb`, `lore show` and
-`lore audit` (see `lore --help`). Still planned: runbook-store materialization
-and the scheduled weekly lint. See [`docs/PRD.md`](docs/PRD.md) for the full
+`lore audit` (see `lore --help`). Still planned: runbook-store materialization.
+The weekly re-validation lint ships, but its schedule does not — the package
+installs no unit files, so a fresh install runs the lint only when an operator
+invokes it, and the weekly timer is armed per box (see the Status section
+above). See [`docs/PRD.md`](docs/PRD.md) for the full
 product requirements, the design authority this repo is judged against. The
 task list lives on the project board at `.coding-hermes/board/tasks.jsonl`.
 
