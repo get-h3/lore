@@ -1,0 +1,43 @@
+{
+  "tick": "lore-foreman-2026-11-17-05-00-08",
+  "project": "lore",
+  "repo": "/home/kara/get-h3/lore",
+  "base": "origin/main",
+  "base_sha": "6bb8c67",
+  "wave_budget": 7,
+  "workers": [
+    {
+      "task_id": "QA-LORE-5",
+      "worktree": "/home/kara/worktrees/lore-QA-LORE-5",
+      "branch": "wt/QA-LORE-5",
+      "model": "openai/gpt-6.1-terra",
+      "provider": "xkiro",
+      "files": [".qa/chaos-probes/corruption.sh"],
+      "independence": "new file only; no shared file with siblings"
+    },
+    {
+      "task_id": "DOC-10",
+      "worktree": "/home/kara/worktrees/lore-DOC-10",
+      "branch": "wt/DOC-10",
+      "model": "openai/gpt-6.1-terra",
+      "provider": "xkiro",
+      "files": ["README.md (Status section only)", "docs/RELEASE.md"],
+      "independence": "README Status lines; DOC-12 touches the docs-link list at README:467 — disjoint hunks"
+    },
+    {
+      "task_id": "DOC-12",
+      "worktree": "/home/kara/worktrees/lore-DOC-12",
+      "branch": "wt/DOC-12",
+      "model": "openai/gpt-6.1-terra",
+      "provider": "xkiro",
+      "files": ["docs/traceability-doctrine.md (new)", "AGENTS.md (Git conventions)", "README.md (docs link list)"],
+      "independence": "new doctrine file + link lines; disjoint from DOC-10 hunks"
+    }
+  ],
+  "deferred": {
+    "DOC-11": "shares the README Status section with DOC-10 — deferring to the next tick avoids a guaranteed README conflict",
+    "RELEASE-LORE-007": "scheduler/lane config change (projects.workdir + prompt line), not repo code — needs a scheduler mutation, not a worker",
+    "RELEASE-LORE-008": "ops work (host uv tool install from the v0.2.0 tag) — foreman-direct in this tick"
+  },
+  "merge_order": ["QA-LORE-5", "DOC-10", "DOC-12"]
+}
