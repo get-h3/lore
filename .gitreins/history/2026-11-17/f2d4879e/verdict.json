@@ -1,0 +1,278 @@
+{
+  "task_id": "RELEASE-LORE-008",
+  "task_title": "Deployed CLI pinned to the released tag and verified live",
+  "task_criteria": [
+    "The host's uv tool install of get-h3-lore resolves from tag v0.2.0 (uv-receipt.toml requirement carries rev=v0.2.0, not a bare default-branch git URL), exactly one dist-info exists and reads get_h3_lore-0.2.0 with METADATA Version: 0.2.0 and lore/__init__.py __version__ 0.2.0, command -v lore resolves inside the uv tool install, three CLI subcommands run live with rc=0, and docs/qa/evidence/run-RELEASE-LORE-008/README.md records the exact install command plus before/after witnesses committed at 3429fbda8eef11dee20d434bc4c8d990c03466dc."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "3429fbda8eef11dee20d434bc4c8d990c03466dc",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "592f009c3dbc9fd9561693f2c75d0c638df95228a32bce824c4845ed6bf7660d",
+  "working_tree_dirty_path_count": 5,
+  "items": [
+    {
+      "criterion": "The host's uv tool install of get-h3-lore resolves from tag v0.2.0 (uv-receipt.toml requirement carries rev=v0.2.0, not a bare default-branch git URL), exactly one dist-info exists and reads get_h3_lore-0.2.0 with METADATA Version: 0.2.0 and lore/__init__.py __version__ 0.2.0, command -v lore resolves inside the uv tool install, three CLI subcommands run live with rc=0, and docs/qa/evidence/run-RELEASE-LORE-008/README.md records the exact install command plus before/after witnesses committed at 3429fbda8eef11dee20d434bc4c8d990c03466dc.",
+      "status": "PASS",
+      "detail": "Every witness verified live on host kara. (1) Receipt: `cat ~/.local/share/uv/tools/get-h3-lore/uv-receipt.toml` -> `requirements = [{ name = \"get-h3-lore\", git = \"https://github.com/get-h3/lore?rev=v0.2.0\" }]`; `grep -c 'rev=v0.2.0'` = 1, so it is pinned, not a bare default-branch URL. (2) Exactly one dist-info: `ls -d .../site-packages/*.dist-info | wc -l` = 1 -> `get_h3_lore-0.2.0.dist-info`; `find ~/.local/share/uv/tools/get-h3-lore -name '*0.1.2*'` returned nothing, so the old 0.1.2 dist is gone with no duplicate. (3) `grep -i '^Version:' .../get_h3_lore-0.2.0.dist-info/METADATA` -> `Version: 0.2.0`. (4) Installed `site-packages/lore/__init__.py:3` -> `__version__ = \"0.2.0\"` (repo lore/__init__.py:3 also 0.2.0). (5) `command -v lore` in a clean login shell (`env -i HOME=/home/kara bash -lc`) -> `/home/kara/.local/bin/lore`, `readlink -f` -> `/home/kara/.local/share/uv/tools/get-h3-lore/bin/lore`, i.e. inside the uv tool install. Caveat investigated and dismissed: the review harness's own PATH prepends `/home/kara/get-h3/lore/.venv/bin`, which shadows the tool install; that entry appears in no shell rc file (`grep -rn 'lore/.venv' ~/.bashrc ~/.profile ~/.bash_profile ~/.zshrc` found nothing) and is absent from the clean login shell, so it is a harness artifact, not a host defect. (6) Three subcommands run live from /tmp in the clean login shell: `lore audit --format json` rc=0 (emits the class registry JSON), `lore match \"tests flaked on a stale toolchain on the shared runner\"` rc=0, `lore consult \"shared runner rebuilt its toolchain mid-wave\" --json` rc=0. (7) Evidence: docs/qa/evidence/run-RELEASE-LORE-008/README.md:20 records the exact command `uv tool install --force \"git+https://github.com/get-h3/lore@v0.2.0\"`; before witnesses at lines 8-16 and after witnesses at lines 36-44; `git show --name-only HEAD` lists exactly that file under commit 3429fbda8eef11dee20d434bc4c8d990c03466dc and `git status --porcelain` on it is empty. The README's residual claim is also accurate: `lore match --json` -> rc=2 `unrecognized arguments: --json`, so the live exercise honestly used flags the installed CLI accepts. Tag resolves as documented: `git rev-parse v0.2.0^{commit}` -> 165cc8f6d354d9ed57d58635c1ad482d0e755cf2. Test suite green: `uv run pytest -x --tb=short` exit_code 0, `572 passed in 8.89s`."
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261117T051900.677490Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nscanners: nice=nice -n 10\n12:20AM INF scanned ~13658776 bytes (13.66 MB) in 5.13s\n12:20AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 284 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261117T051900.677490Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.13.5\ncollected 572 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 24%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 27%]\ntests/test_evidence.py ......................                            [ 31%]\ntests/test_lore011_drain_acceptance.py .......                           [ 32%]\ntests/test_lore016_qa_audit.py .....................                     [ 36%]\ntests/test_lore017_gateway_guard.py ........                             [ 37%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 39%]\ntests/test_lore022_freshness_docs.py .....                               [ 40%]\ntests/test_lore030_ux_guard.py ....                                      [ 40%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 42%]\ntests/test_lore041_collision_canonical.py ...........                    [ 44%]\ntests/test_lore043_short_text_threshold.py ....................          [ 48%]\ntests/test_lore045_validate_history.py ....................              [ 51%]\ntests/test_lore046_match_output.py ...........                           [ 53%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 55%]\n\n\u2026 [480 chars omitted \u2014 6 line(s)] \u2026\ntests/test_lore054_match_class_filter.py ....                            [ 64%]\ntests/test_lore055_consult_missing_input.py ......                       [ 65%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 66%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 67%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 68%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 69%]\ntests/test_lore064_audit_wiring.py .............................         [ 74%]\ntests/test_lore066_zero_check_skip.py ...                                [ 75%]\ntests/test_lore067_incident_audit.py ..                                  [ 75%]\ntests/test_lore071_trigger.py ......                                     [ 76%]\ntests/test_near_miss.py ..............                                   [ 79%]\ntests/test_perf2_audit_single_pass.py ........                           [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 81%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 572 passed in 10.14s =============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261117T051900.677490Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 The host's uv tool install of get-h3-lore resolves from tag v0.2.0 (uv-receipt.toml requirement carries rev=v0.2.0, not a bare default-branch git URL), exactly one dist-info exists and reads get_h3_lore-0.2.0 with METADATA Version: 0.2.0 and lore/__init__.py __version__ 0.2.0, command -v lore resolves inside the uv tool install, three CLI subcommands run live with rc=0, and docs/qa/evidence/run-RELEASE-LORE-008/README.md records the exact install command plus before/after witnesses committed at 3429fbda8eef11dee20d434bc4c8d990c03466dc.: Every witness verified live on host kara. (1) Receipt: `cat ~/.local/share/uv/tools/get-h3-lore/uv-receipt.toml` -> `requirements = [{ name = \"get-h3-lore\", git = \"https://github.com/get-h3/lore?rev=v0.2.0\" }]`; `grep -c 'rev=v0.2.0'` = 1, so it is pinned, not a bare default-branch URL. (2) Exactly one dist-info: `ls -d .../site-packages/*.dist-info | wc -l` = 1 -> `get_h3_lore-0.2.0.dist-info`; `find ~/.local/share/uv/tools/get-h3-lore -name '*0.1.2*'` returned nothing, so the old 0.1.2 dist is gone with no duplicate. (3) `grep -i '^Version:' .../get_h3_lore-0.2.0.dist-info/METADATA` -> `Version: 0.2.0`. (4) Installed `site-packages/lore/__init__.py:3` -> `__version__ = \"0.2.0\"` (repo lore/__init__.py:3 also 0.2.0). (5) `command -v lore` in a clean login shell (`env -i HOME=/home/kara bash -lc`) -> `/home/kara/.local/bin/lore`, `readlink -f` -> `/home/kara/.local/share/uv/tools/get-h3-lore/bin/lore`, i.e. inside the uv tool install. Caveat investigated and dismissed: the review harness's own PATH prepends `/home/kara/get-h3/lore/.venv/bin`, which shadows the tool install; that entry appears in no shell rc file (`grep -rn 'lore/.venv' ~/.bashrc ~/.profile ~/.bash_profile ~/.zshrc` found nothing) and is absent from the clean login shell, so it is a harness artifact, not a host defect. (6) Three subcommands run live from /tmp in the clean login shell: `lore audit --format json` rc=0 (emits the class registry JSON), `lore match \"tests flaked on a stale toolchain on the shared runner\"` rc=0, `lore consult \"shared runner rebuilt its toolchain mid-wave\" --json` rc=0. (7) Evidence: docs/qa/evidence/run-RELEASE-LORE-008/README.md:20 records the exact command `uv tool install --force \"git+https://github.com/get-h3/lore@v0.2.0\"`; before witnesses at lines 8-16 and after witnesses at lines 36-44; `git show --name-only HEAD` lists exactly that file under commit 3429fbda8eef11dee20d434bc4c8d990c03466dc and `git status --porcelain` on it is empty. The README's residual claim is also accurate: `lore match --json` -> rc=2 `unrecognized arguments: --json`, so the live exercise honestly used flags the installed CLI accepts. Tag resolves as documented: `git rev-parse v0.2.0^{commit}` -> 165cc8f6d354d9ed57d58635c1ad482d0e755cf2. Test suite green: `uv run pytest -x --tb=short` exit_code 0, `572 passed in 8.89s`.\nThe host uv tool install is genuinely pinned to tag v0.2.0 and live-verified at 0.2.0 \u2014 receipt carries rev=v0.2.0, a single get_h3_lore-0.2.0 dist-info with METADATA Version: 0.2.0 and __version__ 0.2.0, `command -v lore` resolves into the tool install in a clean login shell, all three subcommands return rc=0, and the evidence README records the exact install command with before/after witnesses at commit 3429fbd.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 The host's uv tool install of get-h3-lore resolves from tag v0.2.0 (uv-receipt.toml requirement carries rev=v0.2.0, not a bare default-branch git URL), exactly one dist-info exists and reads get_h3_lore-0.2.0 with METADATA Version: 0.2.0 and lore/__init__.py __version__ 0.2.0, command -v lore resolves inside the uv tool install, three CLI subcommands run live with rc=0, and docs/qa/evidence/run-RELEASE-LORE-008/README.md records the exact install command plus before/after witnesses committed at 3429fbda8eef11dee20d434bc4c8d990c03466dc.: Every witness verified live on host kara. (1) Receipt: `cat ~/.local/share/uv/tools/get-h3-lore/uv-receipt.toml` -> `requirements = [{ name = \"get-h3-lore\", git = \"https://github.com/get-h3/lore?rev=v0.2.0\" }]`; `grep -c 'rev=v0.2.0'` = 1, so it is pinned, not a bare default-branch URL. (2) Exactly one dist-info: `ls -d .../site-packages/*.dist-info | wc -l` = 1 -> `get_h3_lore-0.2.0.dist-info`; `find ~/.local/share/uv/tools/get-h3-lore -name '*0.1.2*'` returned nothing, so the old 0.1.2 dist is gone with no duplicate. (3) `grep -i '^Version:' .../get_h3_lore-0.2.0.dist-info/METADATA` -> `Version: 0.2.0`. (4) Installed `site-packages/lore/__init__.py:3` -> `__version__ = \"0.2.0\"` (repo lore/__init__.py:3 also 0.2.0). (5) `command -v lore` in a clean login shell (`env -i HOME=/home/kara bash -lc`) -> `/home/kara/.local/bin/lore`, `readlink -f` -> `/home/kara/.local/share/uv/tools/get-h3-lore/bin/lore`, i.e. inside the uv tool install. Caveat investigated and dismissed: the review harness's own PATH prepends `/home/kara/get-h3/lore/.venv/bin`, which shadows the tool install; that entry appears in no shell rc file (`grep -rn 'lore/.venv' ~/.bashrc ~/.profile ~/.bash_profile ~/.zshrc` found nothing) and is absent from the clean login shell, so it is a harness artifact, not a host defect. (6) Three subcommands run live from /tmp in the clean login shell: `lore audit --format json` rc=0 (emits the class registry JSON), `lore match \"tests flaked on a stale toolchain on the shared runner\"` rc=0, `lore consult \"shared runner rebuilt its toolchain mid-wave\" --json` rc=0. (7) Evidence: docs/qa/evidence/run-RELEASE-LORE-008/README.md:20 records the exact command `uv tool install --force \"git+https://github.com/get-h3/lore@v0.2.0\"`; before witnesses at lines 8-16 and after witnesses at lines 36-44; `git show --name-only HEAD` lists exactly that file under commit 3429fbda8eef11dee20d434bc4c8d990c03466dc and `git status --porcelain` on it is empty. The README's residual claim is also accurate: `lore match --json` -> rc=2 `unrecognized arguments: --json`, so the live exercise honestly used flags the installed CLI accepts. Tag resolves as documented: `git rev-parse v0.2.0^{commit}` -> 165cc8f6d354d9ed57d58635c1ad482d0e755cf2. Test suite green: `uv run pytest -x --tb=short` exit_code 0, `572 passed in 8.89s`.\nThe host uv tool install is genuinely pinned to tag v0.2.0 and live-verified at 0.2.0 \u2014 receipt carries rev=v0.2.0, a single get_h3_lore-0.2.0 dist-info with METADATA Version: 0.2.0 and __version__ 0.2.0, `command -v lore` resolves into the tool install in a clean login shell, all three subcommands return rc=0, and the evidence README records the exact install command with before/after witnesses at commit 3429fbd.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "The host's uv tool install of get-h3-lore resolves from tag v0.2.0 (uv-receipt.toml requirement carries rev=v0.2.0, not a bare default-branch git URL), exactly one dist-info exists and reads get_h3_lore-0.2.0 with METADATA Version: 0.2.0 and lore/__init__.py __version__ 0.2.0, command -v lore resolves inside the uv tool install, three CLI subcommands run live with rc=0, and docs/qa/evidence/run-RELEASE-LORE-008/README.md records the exact install command plus before/after witnesses committed at 3429fbda8eef11dee20d434bc4c8d990c03466dc.",
+                "status": "PASS",
+                "detail": "Every witness verified live on host kara. (1) Receipt: `cat ~/.local/share/uv/tools/get-h3-lore/uv-receipt.toml` -> `requirements = [{ name = \"get-h3-lore\", git = \"https://github.com/get-h3/lore?rev=v0.2.0\" }]`; `grep -c 'rev=v0.2.0'` = 1, so it is pinned, not a bare default-branch URL. (2) Exactly one dist-info: `ls -d .../site-packages/*.dist-info | wc -l` = 1 -> `get_h3_lore-0.2.0.dist-info`; `find ~/.local/share/uv/tools/get-h3-lore -name '*0.1.2*'` returned nothing, so the old 0.1.2 dist is gone with no duplicate. (3) `grep -i '^Version:' .../get_h3_lore-0.2.0.dist-info/METADATA` -> `Version: 0.2.0`. (4) Installed `site-packages/lore/__init__.py:3` -> `__version__ = \"0.2.0\"` (repo lore/__init__.py:3 also 0.2.0). (5) `command -v lore` in a clean login shell (`env -i HOME=/home/kara bash -lc`) -> `/home/kara/.local/bin/lore`, `readlink -f` -> `/home/kara/.local/share/uv/tools/get-h3-lore/bin/lore`, i.e. inside the uv tool install. Caveat investigated and dismissed: the review harness's own PATH prepends `/home/kara/get-h3/lore/.venv/bin`, which shadows the tool install; that entry appears in no shell rc file (`grep -rn 'lore/.venv' ~/.bashrc ~/.profile ~/.bash_profile ~/.zshrc` found nothing) and is absent from the clean login shell, so it is a harness artifact, not a host defect. (6) Three subcommands run live from /tmp in the clean login shell: `lore audit --format json` rc=0 (emits the class registry JSON), `lore match \"tests flaked on a stale toolchain on the shared runner\"` rc=0, `lore consult \"shared runner rebuilt its toolchain mid-wave\" --json` rc=0. (7) Evidence: docs/qa/evidence/run-RELEASE-LORE-008/README.md:20 records the exact command `uv tool install --force \"git+https://github.com/get-h3/lore@v0.2.0\"`; before witnesses at lines 8-16 and after witnesses at lines 36-44; `git show --name-only HEAD` lists exactly that file under commit 3429fbda8eef11dee20d434bc4c8d990c03466dc and `git status --porcelain` on it is empty. The README's residual claim is also accurate: `lore match --json` -> rc=2 `unrecognized arguments: --json`, so the live exercise honestly used flags the installed CLI accepts. Tag resolves as documented: `git rev-parse v0.2.0^{commit}` -> 165cc8f6d354d9ed57d58635c1ad482d0e755cf2. Test suite green: `uv run pytest -x --tb=short` exit_code 0, `572 passed in 8.89s`."
+              }
+            ],
+            "summary": "The host uv tool install is genuinely pinned to tag v0.2.0 and live-verified at 0.2.0 \u2014 receipt carries rev=v0.2.0, a single get_h3_lore-0.2.0 dist-info with METADATA Version: 0.2.0 and __version__ 0.2.0, `command -v lore` resolves into the tool install in a clean login shell, all three subcommands return rc=0, and the evidence README records the exact install command with before/after witnesses at commit 3429fbd.",
+            "provenance": {
+              "model": "deepseek-v4-flash",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "deepseek-v4-flash",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"RELEASE-LORE-008\"}",
+          "exit_code": 0,
+          "output_sha": "f9d98aca05b7124943594d884e9b9c9f8b80be3ec6636036a603fae502c20fcf"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /workspace 2>/dev/null || cd .; pwd; git log --oneline -5; git status --short",
+          "exit_code": 0,
+          "output_sha": "f2243a4eebf6588675af813c69283e600e54d53dd41357a18d4b9a9426463967"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"docs/qa/evidence/run-RELEASE-LORE-008/README.md\"}",
+          "exit_code": 0,
+          "output_sha": "3bbf3d4ac106357f8dfe332aeae5197f47f6797a00aa4889b5d112ae7ddab5cd"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore; git show --stat HEAD; echo ---; git rev-parse HEAD",
+          "exit_code": 0,
+          "output_sha": "e4e6292f785c47e7b174e7a86c7d5ffcda3cdee64b5438e910a10c08a28508a0"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore; echo \"=== receipt ===\"; cat ~/.local/share/uv/tools/get-h3-lore/uv-receipt.toml 2>&1; echo \"=== dist-info ===\"; ls -d ~/.local/share/uv/tools/get-h3-lore/lib/python*/site-packages/*.dist-info 2>&1; echo \"=== command -v lore ===\"; command -v lore; ls -l $(command -v lore) 2>&1",
+          "exit_code": 0,
+          "output_sha": "ddfb7444351aad566bf0cc9d505a914f96475895471ddfa1974a1c1b79e6b42b"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore; echo \"=== METADATA ===\"; grep -i '^Version:' ~/.local/share/uv/tools/get-h3-lore/lib/python*/site-packages/get_h3_lore-*.dist-info/METADATA 2>&1; echo \"=== __init__ ===\"; grep -n '__version__' ~/.local/share/uv/tools/get-h3-lore/lib/python*/site-packages/lore/__init__.py 2>&1; echo \"=== repo __init__ ===\"; grep -n '__version__' lore/__init__.py 2>&1; echo \"=== tag ===\"; git rev-parse v0.2.0^{commit} 2>&1; git tag -l 'v0.2*'",
+          "exit_code": 0,
+          "output_sha": "4dd7f7df0c77df2b677d00032ea72c818525121dd984583ab3ee3796c46fce8e"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore; echo \"=== PATH ===\"; echo \"$PATH\" | tr ':' '\\n'; echo \"=== which -a lore ===\"; which -a lore 2>&1; echo \"=== uv tool dir ===\"; ls -l ~/.local/bin/lore 2>&1; echo \"=== uv tool list ===\"; uv tool list 2>&1 | head -20",
+          "exit_code": 0,
+          "output_sha": "5b9a90e6f50bcc9dd2747cfba990758dfa1a07585581ab2a4e933e7961c29c64"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /tmp; echo \"=== from /tmp: command -v lore ===\"; command -v lore; echo \"=== PATH from /tmp ===\"; echo \"$PATH\" | tr ':' '\\n'",
+          "exit_code": 0,
+          "output_sha": "07a2b5e6158fb23766c7f8a2c1bac18ff77b369ff60ec625c582b840ce2b6bf3"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore; echo \"=== bashrc/profile PATH edits ===\"; grep -rn 'get-h3/lore/.venv\\|lore/.venv' ~/.bashrc ~/.profile ~/.bash_profile ~/.zshrc ~/.config/fish/config.fish 2>/dev/null; echo \"=== env VIRTUAL_ENV ===\"; echo \"VIRTUAL_ENV=$VIRTUAL_ENV\"; echo \"=== uv tool list lore ===\"; uv tool list 2>&1 | grep -A3 -i lore",
+          "exit_code": 0,
+          "output_sha": "fc3dce6c028cb6196633b245b4c9a92fb43e8e7e1e2fb1e25ca6113223cea914"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /tmp; echo \"=== uv tool install lore version ===\"; ~/.local/share/uv/tools/get-h3-lore/bin/lore --version 2>&1; echo \"rc=$?\"; echo \"=== audit ===\"; ~/.local/share/uv/tools/get-h3-lore/bin/lore audit --format json >/tmp/a.json 2>/tmp/a.err; echo \"rc=$?\"; head -c 200 /tmp/a.json; echo; echo \"=== match ===\"; ~/.local/share/uv/tools/get-h3-lore/bin/lore match \"tests flaked on a stale toolchain on the shared runner\" >/tmp/m.out 2>&1; echo \"rc=$?\"; head -5 /tmp/m.out; echo \"=== consult ===\"; ~/.local/share/uv/tools/get-h3-lore/bin/lore consult \"shared runner rebuilt its toolchain mid-wave\" --json >/tmp/c.out 2>&1; echo \"rc=$?\"; head -c 200 /tmp/c.out",
+          "exit_code": 0,
+          "output_sha": "878f8c87092aebe3426254c96e91c87207437519abde2ad9d499e9a80c1c8602"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore; echo \"=== login shell PATH (clean) ===\"; env -i HOME=/home/kara bash -lc 'echo \"$PATH\" | tr \":\" \"\\n\" | head -8; echo \"--- command -v lore:\"; command -v lore' 2>&1; echo \"=== non-login interactive ===\"; env -i HOME=/home/kara bash -ic 'command -v lore' 2>&1 | tail -3",
+          "exit_code": 0,
+          "output_sha": "57df2c84781dbcd3f3a6a54ad2d66d6de574d2619576c4185e6b5094c13b5c3d"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore; echo \"=== .venv lore script ===\"; cat .venv/bin/lore; echo \"=== .venv version ===\"; .venv/bin/lore --version 2>&1 | head -2; echo \"=== .venv dist-info ===\"; ls -d .venv/lib/python*/site-packages/*.dist-info 2>/dev/null | head",
+          "exit_code": 0,
+          "output_sha": "94dd1c4b2b1660d491d352759f63f07845fa04a177ee470b368e9ca92e9cf4e5"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /tmp; echo \"=== clean login shell: full witness chain ===\"; env -i HOME=/home/kara bash -lc 'command -v lore; readlink -f \"$(command -v lore)\"; lore audit --format json >/dev/null 2>&1; echo \"audit rc=$?\"; lore match \"tests flaked on a stale toolchain on the shared runner\" >/dev/null 2>&1; echo \"match rc=$?\"; lore consult \"shared runner rebuilt its toolchain mid-wave\" --json >/dev/null 2>&1; echo \"consult rc=$?\"' 2>&1",
+          "exit_code": 0,
+          "output_sha": "8c0bc861ef8fa53c25af9851cfe774a8641b3fd7dfb52b7f3fcbd2897717de8b"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /tmp; echo \"=== match --json (residual claim) ===\"; ~/.local/share/uv/tools/get-h3-lore/bin/lore match \"x\" --json >/dev/null 2>/tmp/mj.err; echo \"rc=$?\"; tail -2 /tmp/mj.err; echo \"=== subcommands in installed CLI ===\"; ~/.local/share/uv/tools/get-h3-lore/bin/lore --help 2>&1 | head -12",
+          "exit_code": 0,
+          "output_sha": "4dcb59ec99c832854b5e3c23c9755a33cfe5161733ce40cba450bb48d9dadc90"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore; echo \"=== count dist-info in uv tool ===\"; ls -d ~/.local/share/uv/tools/get-h3-lore/lib/python*/site-packages/*.dist-info | wc -l; ls -d ~/.local/share/uv/tools/get-h3-lore/lib/python*/site-packages/*.dist-info; echo \"=== any 0.1.2 anywhere in tool dir ===\"; find ~/.local/share/uv/tools/get-h3-lore -name '*0.1.2*' 2>/dev/null | head; echo \"(none above = clean)\"; echo \"=== receipt bare-URL check ===\"; grep -c 'rev=v0.2.0' ~/.local/share/uv/tools/get-h3-lore/uv-receipt.toml",
+          "exit_code": 0,
+          "output_sha": "287464d8614b7f78709efbe33be1a7cef964a348dbb3810b0947cf4a605aa29d"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore; echo \"=== evidence file in commit ===\"; git show --name-only --format='%H' HEAD; echo \"=== file tracked & clean ===\"; git status --porcelain docs/qa/evidence/run-RELEASE-LORE-008/README.md; echo \"(empty = committed clean)\"; echo \"=== install cmd recorded ===\"; grep -n 'uv tool install' docs/qa/evidence/run-RELEASE-LORE-008/README.md",
+          "exit_code": 0,
+          "output_sha": "68dd38aab3dbdb693304cbc9114ff79f9472d4d576581f63f08c71f6f204d285"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: every witness in the single criterion verified live on host kara.\\n- receipt: ~/.local/share/uv/tools/get-h3-lore/uv-receipt.toml -> requirements = [{ name = \\\"get-h3-lore\\\", git = \\\"https://github.com/get-h3/lore?rev=v0.2.0\\\" }] (grep -c 'rev=v0.2.0' = 1; NOT a bare default-branch URL)\\n- exactly one dist-info: `ls -d .../site-packages/*.dist-info | wc -l` = 1 -> get_h3_lore-0.2.0.dist-info; `find ... -name '*0.1.2*'` = empty (old dist gone)\\n- METADATA: `grep -i '^Version:' .../get_h3_lore-0.2.0.dist-info/METADATA` -> \\\"Version: 0.2.0\\\"\\n- installed lore/__init__.py:3 -> __version__ = \\\"0.2.0\\\" (repo lore/__init__.py:3 also 0.2.0)\\n- tag: `git rev-parse v0.2.0^{commit}` -> 165cc8f6d354d9ed57d58635c1ad482d0e755cf2, matching the commit the install resolved to per evidence README\\n- command -v lore: in a CLEAN login shell (`env -i HOME=/home/kara bash -lc`) -> /home/kara/.local/bin/lore, readlink -f -> /home/kara/.local/share/uv/tools/get-h3-lore/bin/lore (inside the uv tool install). NOTE: the review shell's own PATH prepends /home/kara/get-h3/lore/.venv/bin, which shadows it; that entry is NOT in ~/.bashrc/.profile/.zshrc (grep found nothing) and is absent from the clean login shell, so it is a review-harness artifact, not a host defect.\\n- three subcommands live from /tmp in clean login shell: `lore audit --format json` rc=0, `lore match \\\"...\\\"` rc=0, `lore consult \\\"...\\\" --json` rc=0\\n- evidence: docs/qa/evidence/run-RELEASE-LORE-008/README.md:20 records exact command `uv tool install --force \\\"git+https://github.com/get-h3/lore@v0.2.0\\\"`; before/after witness tables at lines 8-16 and 36-44; committed at 3429fbda8eef11dee20d434bc4c8d990c03466dc (git show --name-only HEAD lists exactly that file; git status clean).\\n- residual claim in README verified: `lore match --json` -> rc=2 \\\"unrecognized arguments: --json\\\", so the evidence honestly used accepted flags.\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "fe917e8476c1f51950e1a1ac8b5509834872c1929e822b770ea21533e67cdc41"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore; cat .gitreins/config.yaml 2>/dev/null | head -30",
+          "exit_code": 0,
+          "output_sha": "5770afa9192d392ffdf07b2fe0a0e030873c500463f77a0b8eafb85fa8c37fda"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore; timeout 600 uv run pytest -x --tb=short 2>&1 | tail -15",
+          "exit_code": 0,
+          "output_sha": "d61b31ee1f00f83806c6c1fa7c0acf4562089a21c509984c20c965d13b53c58f"
+        }
+      ]
+    }
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [
+      {
+        "severity": "medium",
+        "file": ".coding-hermes/board/tasks.jsonl",
+        "line": 137,
+        "detection": "task marked status=complete while completed_at is null and worker_status remains pending",
+        "detail": "RELEASE-LORE-008 is flipped to \"status\":\"complete\" but the same row still carries \"completed_at\":null and \"worker_status\":\"pending\", so the row is internally inconsistent about whether the work is actually closed."
+      },
+      {
+        "severity": "low",
+        "file": ".coding-hermes/board/tasks.jsonl",
+        "line": 137,
+        "detection": "completion event recorded without a completed_at timestamp while sibling completed rows set one",
+        "detail": "The LORE-071 row above sets \"completed_at\":\"2026-11-16T09:10:00-05:00\" on completion, but this row's completion leaves completed_at null, drifting from the established completion convention."
+      }
+    ],
+    "summary": "The board update marks RELEASE-LORE-008 complete but leaves completed_at null and worker_status pending, an internally inconsistent and convention-drifting close-out."
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 The host's uv tool install of get-h3-lore resolves from tag v0.2.0 (uv-receipt.toml requirement carries rev=v0.2.0, not a bare default-branch git URL), exactly one dist-info exists and reads get_h3_lore-0.2.0 with METADATA Version: 0.2.0 and lore/__init__.py __version__ 0.2.0, command -v lore resolves inside the uv tool install, three CLI subcommands run live with rc=0, and docs/qa/evidence/run-RELEASE-LORE-008/README.md records the exact install command plus before/after witnesses committed at 3429fbda8eef11dee20d434bc4c8d990c03466dc.: Every witness verified live on host kara. (1) Receipt: `cat ~/.local/share/uv/tools/get-h3-lore/uv-receipt.toml` -> `requirements = [{ name = \"get-h3-lore\", git = \"https://github.com/get-h3/lore?rev=v0.2.0\" }]`; `grep -c 'rev=v0.2.0'` = 1, so it is pinned, not a bare default-branch URL. (2) Exactly one dist-info: `ls -d .../site-packages/*.dist-info | wc -l` = 1 -> `get_h3_lore-0.2.0.dist-info`; `find ~/.local/share/uv/tools/get-h3-lore -name '*0.1.2*'` returned nothing, so the old 0.1.2 dist is gone with no duplicate. (3) `grep -i '^Version:' .../get_h3_lore-0.2.0.dist-info/METADATA` -> `Version: 0.2.0`. (4) Installed `site-packages/lore/__init__.py:3` -> `__version__ = \"0.2.0\"` (repo lore/__init__.py:3 also 0.2.0). (5) `command -v lore` in a clean login shell (`env -i HOME=/home/kara bash -lc`) -> `/home/kara/.local/bin/lore`, `readlink -f` -> `/home/kara/.local/share/uv/tools/get-h3-lore/bin/lore`, i.e. inside the uv tool install. Caveat investigated and dismissed: the review harness's own PATH prepends `/home/kara/get-h3/lore/.venv/bin`, which shadows the tool install; that entry appears in no shell rc file (`grep -rn 'lore/.venv' ~/.bashrc ~/.profile ~/.bash_profile ~/.zshrc` found nothing) and is absent from the clean login shell, so it is a harness artifact, not a host defect. (6) Three subcommands run live from /tmp in the clean login shell: `lore audit --format json` rc=0 (emits the class registry JSON), `lore match \"tests flaked on a stale toolchain on the shared runner\"` rc=0, `lore consult \"shared runner rebuilt its toolchain mid-wave\" --json` rc=0. (7) Evidence: docs/qa/evidence/run-RELEASE-LORE-008/README.md:20 records the exact command `uv tool install --force \"git+https://github.com/get-h3/lore@v0.2.0\"`; before witnesses at lines 8-16 and after witnesses at lines 36-44; `git show --name-only HEAD` lists exactly that file under commit 3429fbda8eef11dee20d434bc4c8d990c03466dc and `git status --porcelain` on it is empty. The README's residual claim is also accurate: `lore match --json` -> rc=2 `unrecognized arguments: --json`, so the live exercise honestly used flags the installed CLI accepts. Tag resolves as documented: `git rev-parse v0.2.0^{commit}` -> 165cc8f6d354d9ed57d58635c1ad482d0e755cf2. Test suite green: `uv run pytest -x --tb=short` exit_code 0, `572 passed in 8.89s`.\nThe host uv tool install is genuinely pinned to tag v0.2.0 and live-verified at 0.2.0 \u2014 receipt carries rev=v0.2.0, a single get_h3_lore-0.2.0 dist-info with METADATA Version: 0.2.0 and __version__ 0.2.0, `command -v lore` resolves into the tool install in a clean login shell, all three subcommands return rc=0, and the evidence README records the exact install command with before/after witnesses at commit 3429fbd.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-17T05:20:53.499242",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-17T05:20:53.551527+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 4346,
+        "truncated": false,
+        "source": "git show 3429fbda8eef"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 28275,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "RELEASE-LORE-008"
+  }
+}

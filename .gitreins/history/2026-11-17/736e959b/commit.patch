@@ -1,0 +1,13 @@
+commit 70229d86b3b137b6bd6f70110075418f14b180e2
+Merge: 514287f d75e18b
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Tue Nov 17 00:39:14 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Tue Nov 17 00:39:14 2026 -0500
+
+    merge wt/DOC-12: docs/traceability-doctrine.md defines the ch:trace grammar (DOC-12)
+
+ README.md                     |   2 +
+ docs/traceability-doctrine.md | 198 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 200 insertions(+)
+
