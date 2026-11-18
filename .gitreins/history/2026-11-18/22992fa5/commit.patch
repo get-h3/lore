@@ -1,0 +1,74 @@
+commit d849a4c37dfb4a19bcc72684a0f3c6239ba058d5
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Nov 18 17:26:21 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Nov 18 17:26:21 2026 -0500
+
+    chore(deps): refresh platformdirs 4.13.5 -> 4.14.7 in uv.lock. Addresses SUP-DEPS-LORE-20261118.
+    
+    Package-scoped refresh only (uv lock --upgrade-package platformdirs); iniconfig
+    and tomli already latest, untouched. Gates: 572 passed (canonical=live), ruff
+    check/format clean, test-count guard PASS, diff = uv.lock + evidence README.
+    
+    ch:trace row=SUP-DEPS-LORE-20261118 spec=none doc=docs/qa/evidence/run-SUP-DEPS-LORE-20261118/README.md witness=live:uv-lock-resolve-4.14.7
+    
+    Co-authored-by: Alexis Okuwa <wojonstech@gmail.com>
+---
+ .../evidence/run-SUP-DEPS-LORE-20261118/README.md  | 29 ++++++++++++++++++++++
+ uv.lock                                            |  6 ++---
+ 2 files changed, 32 insertions(+), 3 deletions(-)
+
+diff --git a/docs/qa/evidence/run-SUP-DEPS-LORE-20261118/README.md b/docs/qa/evidence/run-SUP-DEPS-LORE-20261118/README.md
+new file mode 100644
+index 0000000..b563ec2
+--- /dev/null
++++ b/docs/qa/evidence/run-SUP-DEPS-LORE-20261118/README.md
+@@ -0,0 +1,29 @@
++# SUP-DEPS-LORE-20261118 — platformdirs lock refresh evidence
++
++Tick: lore-foreman-2026-11-18-22-21-56 (foreman-direct; single-file lock chore per map routing "Dependencies").
++
++## Change
++
++`uv lock --upgrade-package platformdirs` (exact command from the row's foreman_note).
++
++- uv.lock: platformdirs 4.13.5 → 4.14.7 (PyPI latest per row's measured intake 2026-11-18)
++- `git diff --stat`: uv.lock only (3 insertions, 3 deletions) + this evidence file
++
++## Gate results (2026-11-18, PATH=<repo>/.venv/bin:$PATH)
++
++| Gate | Result |
++|---|---|
++| `uv run pytest -q` | 572 passed in 6.21s, exit 0 (= recorded canonical baseline, see below) |
++| `uv run ruff check .` | exit 0 |
++| `uv run ruff format --check .` | exit 0 |
++| `bash scripts/check-test-count.sh` | PASS: canonical=572 matches live=572; class-count=13; no stale count literals |
++| `grep -A1 '^name = "platformdirs"' uv.lock` | version = "4.14.7" (> 4.13.5) |
++
++Baseline note: the row asked for the suite at "the recorded baseline" — the recorded canonical in
++`scripts/test-count.txt` at the pre-tick tip was 572 (skill notes of 566 are stale; a sibling
++DOC-12 wave added tests on 11-17). The lock-only diff adds no tests; live=canonical=572 pre and post.
++
++Held pin: none — platformdirs upgraded to latest; iniconfig 2.3.1 and tomli 2.5.0 already latest,
++untouched per the package-scoped selector.
++
++ch:trace row=SUP-DEPS-LORE-20261118 spec=none doc=docs/qa/evidence/run-SUP-DEPS-LORE-20261118/README.md witness=live:uv-lock-resolve-4.14.7
+diff --git a/uv.lock b/uv.lock
+index 74aaef5..cf30976 100644
+--- a/uv.lock
++++ b/uv.lock
+@@ -462,11 +462,11 @@ wheels = [
+ 
+ [[package]]
+ name = "platformdirs"
+-version = "4.13.5"
++version = "4.14.7"
+ source = { registry = "https://pypi.org/simple" }
+-sdist = { url = "https://files.pythonhosted.org/packages/58/e6/d0abbb256b44e6a05748c6942511ff67db8dbb068de0c35b24bf1b395b09/platformdirs-4.13.5.tar.gz", hash = "sha256:05831adf87d392760f4b5c3a0a95579ab5a10b18b9b9bd43680dcb47544788a0", size = 62362, upload-time = "2026-10-19T01:02:11.778Z" }
++sdist = { url = "https://files.pythonhosted.org/packages/a6/2c/ec57eede0db493e61443c76ac7b4d24e94a24050afb3d598bf3678487f75/platformdirs-4.14.7.tar.gz", hash = "sha256:5472257c1cf97a14658af52997011c7e59e4aebf3a24950b973c11b579e1b074", size = 75132, upload-time = "2026-11-17T20:03:32.656Z" }
+ wheels = [
+-    { url = "https://files.pythonhosted.org/packages/6c/8a/1d8cb3842909dc193a73835adedf412e32e18f8ffd59f43983949622fe6f/platformdirs-4.13.5-py3-none-any.whl", hash = "sha256:53d3ec4280b815c1e0b02edad7f9ee8fda1ba9c0865dd9c2e6e63849ce82fc1e", size = 32779, upload-time = "2026-10-19T01:02:10.17Z" },
++    { url = "https://files.pythonhosted.org/packages/f8/46/3737af9f971f3934794103256d7f1ed6200a62be0c7b7ff09ac4cf6b3422/platformdirs-4.14.7-py3-none-any.whl", hash = "sha256:391513b74707c42335fff3ea17eaac657a7ee9ffcadd809634d34ea594d0122c", size = 89658, upload-time = "2026-11-17T20:03:31.16Z" },
+ ]
+ 
+ [[package]]
