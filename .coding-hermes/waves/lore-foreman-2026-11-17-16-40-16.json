@@ -1,0 +1,29 @@
+{
+  "wave_id": "lore-foreman-2026-11-17-16-40-16",
+  "created_at": "2026-11-17T16:40:16-05:00",
+  "project": "lore",
+  "base_sha": "72adb69d57cee674893b6b2a5928b1e9eb493ef1",
+  "budget": 7,
+  "independent_rows": 2,
+  "tasks": [
+    {
+      "row": "DOC-11",
+      "priority": "P4",
+      "track": "worker",
+      "worktree": "/home/kara/worktrees/lore-DOC-11",
+      "branch": "wt/DOC-11",
+      "worker_model": "openai/gpt-6.1-terra",
+      "worker_provider": "xkiro",
+      "files": ["README.md", "docs/INSTALL.md", "docs/RUNBOOK-STORE.md"]
+    },
+    {
+      "row": "RELEASE-LORE-007",
+      "priority": "P3",
+      "track": "foreman-direct",
+      "note": "host-level lane-workdir repair (stand-in dir -> real git worktree of get-h3/lore); no repo code change except committed evidence README",
+      "files": ["docs/qa/evidence/run-RELEASE-LORE-007/README.md"]
+    }
+  ],
+  "merge_order": ["DOC-11", "RELEASE-LORE-007"],
+  "depends_on": []
+}

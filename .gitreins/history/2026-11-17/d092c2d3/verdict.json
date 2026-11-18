@@ -1,0 +1,345 @@
+{
+  "task_id": "RELEASE-LORE-007",
+  "task_title": "releng lane workdir must be a real git worktree",
+  "task_criteria": [
+    "From /home/kara/.hermes/stand-in/releng-lane/lore: git rev-parse --show-toplevel exits 0 and resolves to that path; git remote -v names get-h3/lore; git -C /home/kara/get-h3/lore worktree list registers that exact path on branch lane/releng-workdir; bash scripts/release.sh --dry-run runs from that path and answers from the repository object store (clean tree + CI on HEAD + version/tag rungs; rc=1 at a release-state refusal is acceptable); committed evidence docs/qa/evidence/run-RELEASE-LORE-007/README.md quotes each output and the pre-fix repro."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "bd6a98fb04ac101eb58e002c6540e89fcd025950",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "5cd619fd289429a099e9b594ad15a0df5ac4983b484938bdbdfc92ead8ae3d85",
+  "working_tree_dirty_path_count": 4,
+  "items": [
+    {
+      "criterion": "From /home/kara/.hermes/stand-in/releng-lane/lore: git rev-parse --show-toplevel exits 0 and resolves to that path; git remote -v names get-h3/lore; git -C /home/kara/get-h3/lore worktree list registers that exact path on branch lane/releng-workdir; bash scripts/release.sh --dry-run runs from that path and answers from the repository object store (clean tree + CI on HEAD + version/tag rungs; rc=1 at a release-state refusal is acceptable); committed evidence docs/qa/evidence/run-RELEASE-LORE-007/README.md quotes each output and the pre-fix repro.",
+      "status": "PASS",
+      "detail": "Every sub-claim re-run live. (1) `cd /home/kara/.hermes/stand-in/releng-lane/lore && git rev-parse --show-toplevel` -> `/home/kara/.hermes/stand-in/releng-lane/lore`, rc=0; `.git` is a file containing `gitdir: /home/kara/get-h3/lore/.git/worktrees/lore`. (2) `git remote -v` -> `origin https://github.com/get-h3/lore.git (fetch)` / `(push)`. (3) `git -C /home/kara/get-h3/lore worktree list` -> `/home/kara/.hermes/stand-in/releng-lane/lore  72adb69 [lane/releng-workdir]` \u2014 exact path, exact branch. (4) `bash scripts/release.sh --dry-run` from the lane path -> `ok: working tree clean` / `ok: CI success on HEAD sha 72adb69d57cee674893b6b2a5928b1e9eb493ef1` / `ok: version 0.2.0 -> tag v0.2.0` / `REFUSE: tag v0.2.0 already exists.` rc=1 \u2014 a release-state refusal (scripts/release.sh:73-76), explicitly allowed. (5) Evidence committed: `git ls-files docs/qa/evidence/run-RELEASE-LORE-007/` lists README.md; HEAD bd6a98f adds it (110 lines). README:56-63 quotes AC1, :66-75 quotes AC2, :78-88 quotes AC3 verbatim, and :8-25 quotes the pre-fix repro (`fatal: not a git repository`, rc=128). Test suite: `uv run pytest -x --tb=short -q` -> `572 passed in 5.31s`."
+    },
+    {
+      "criterion": "The lane worktree shares the canonical repository object store (git-common-dir is /home/kara/get-h3/lore/.git), so tags/refs/CI state read from the lane path are the real repo's, not a copy's.",
+      "status": "PASS",
+      "detail": "From the lane path, `git rev-parse --git-dir --git-common-dir` -> `/home/kara/get-h3/lore/.git/worktrees/lore` and `/home/kara/get-h3/lore/.git` \u2014 a linked worktree of the canonical repo, not a copy. `git rev-parse -q --verify refs/tags/v0.2.0` from the lane resolves to 9f605bae671ae0f688847b204db8e4fc3dce22ce, and that is precisely the ref that fired release.sh:73-76's `REFUSE: tag v0.2.0 already exists.` \u2014 proving the lane reads the canonical object store's refs.",
+      "derived": true
+    },
+    {
+      "criterion": "The path the scheduler actually hands the releng lane is the same path that is now a worktree (fleet.toml projects.workdir / DB row), so the fix is reachable from the entrypoint rather than only from a hand-typed cd.",
+      "status": "PASS",
+      "detail": "/home/kara/.hermes/fleet.toml:3108-3116 defines `[[projects]] name = \"lore-releng\"` with `workdir = \"/home/kara/.hermes/stand-in/releng-lane/lore\"` \u2014 the identical string now registered as a worktree on lane/releng-workdir. The scheduler's entrypoint path and the fixed path are the same, so the fix is reachable from the lane's real entrypoint. The lane worktree also carries a readable board (`.coding-hermes/board/tasks.jsonl`, 140 parsed rows), so the lane's board reads are served from the worktree too.",
+      "derived": true
+    },
+    {
+      "criterion": "The evidence README's quoted outputs match what the commands actually produce today (no stale/fabricated transcript), and the pre-fix repro is reproducible.",
+      "status": "PASS",
+      "detail": "Re-ran every quoted command and diffed against the transcript: AC1 (README:56-63), AC2 (:66-75) and AC3 (:78-88) all match, AC3 byte-for-byte including the HEAD sha 72adb69d57cee674893b6b2a5928b1e9eb493ef1 and rc=1. The pre-fix repro is reproducible against the preserved archive: `cd /home/kara/.hermes/stand-in/releng-lane/lore-standin-archive-20261117 && git rev-parse --show-toplevel` -> `fatal: not a git repository (or any of the parent directories): .git`, rc=128, matching README:8-25. The archive dir exists and is board-only (`.coding-hermes` only, no `.git`), exactly as the README describes. No stale or fabricated transcript found.",
+      "derived": true
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261117T165342.407458Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nscanners: nice=nice -n 10\n11:59AM INF scanned ~13749043 bytes (13.75 MB) in 3.17s\n11:59AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 291 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261117T165342.407458Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.1.1, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.13.5\ncollected 572 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 24%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 27%]\ntests/test_evidence.py ......................                            [ 31%]\ntests/test_lore011_drain_acceptance.py .......                           [ 32%]\ntests/test_lore016_qa_audit.py .....................                     [ 36%]\ntests/test_lore017_gateway_guard.py ........                             [ 37%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 39%]\ntests/test_lore022_freshness_docs.py .....                               [ 40%]\ntests/test_lore030_ux_guard.py ....                                      [ 40%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 42%]\ntests/test_lore041_collision_canonical.py ...........                    [ 44%]\ntests/test_lore043_short_text_threshold.py ....................          [ 48%]\ntests/test_lore045_validate_history.py ....................              [ 51%]\ntests/test_lore046_match_output.py ...........                           [ 53%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 55%]\n\n\u2026 [480 chars omitted \u2014 6 line(s)] \u2026\ntests/test_lore054_match_class_filter.py ....                            [ 64%]\ntests/test_lore055_consult_missing_input.py ......                       [ 65%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 66%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 67%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 68%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 69%]\ntests/test_lore064_audit_wiring.py .............................         [ 74%]\ntests/test_lore066_zero_check_skip.py ...                                [ 75%]\ntests/test_lore067_incident_audit.py ..                                  [ 75%]\ntests/test_lore071_trigger.py ......                                     [ 76%]\ntests/test_near_miss.py ..............                                   [ 79%]\ntests/test_perf2_audit_single_pass.py ........                           [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 81%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 572 passed in 5.85s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261117T165342.407458Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 From /home/kara/.hermes/stand-in/releng-lane/lore: git rev-parse --show-toplevel exits 0 and resolves to that path; git remote -v names get-h3/lore; git -C /home/kara/get-h3/lore worktree list registers that exact path on branch lane/releng-workdir; bash scripts/release.sh --dry-run runs from that path and answers from the repository object store (clean tree + CI on HEAD + version/tag rungs; rc=1 at a release-state refusal is acceptable); committed evidence docs/qa/evidence/run-RELEASE-LORE-007/README.md quotes each output and the pre-fix repro.: Every sub-claim re-run live. (1) `cd /home/kara/.hermes/stand-in/releng-lane/lore && git rev-parse --show-toplevel` -> `/home/kara/.hermes/stand-in/releng-lane/lore`, rc=0; `.git` is a file containing `gitdir: /home/kara/get-h3/lore/.git/worktrees/lore`. (2) `git remote -v` -> `origin https://github.com/get-h3/lore.git (fetch)` / `(push)`. (3) `git -C /home/kara/get-h3/lore worktree list` -> `/home/kara/.hermes/stand-in/releng-lane/lore  72adb69 [lane/releng-workdir]` \u2014 exact path, exact branch. (4) `bash scripts/release.sh --dry-run` from the lane path -> `ok: working tree clean` / `ok: CI success on HEAD sha 72adb69d57cee674893b6b2a5928b1e9eb493ef1` / `ok: version 0.2.0 -> tag v0.2.0` / `REFUSE: tag v0.2.0 already exists.` rc=1 \u2014 a release-state refusal (scripts/release.sh:73-76), explicitly allowed. (5) Evidence committed: `git ls-files docs/qa/evidence/run-RELEASE-LORE-007/` lists README.md; HEAD bd6a98f adds it (110 lines). README:56-63 quotes AC1, :66-75 quotes AC2, :78-88 quotes AC3 verbatim, and :8-25 quotes the pre-fix repro (`fatal: not a git repository`, rc=128). Test suite: `uv run pytest -x --tb=short -q` -> `572 passed in 5.31s`.\n  \u2713 The lane worktree shares the canonical repository object store (git-common-dir is /home/kara/get-h3/lore/.git), so tags/refs/CI state read from the lane path are the real repo's, not a copy's.: From the lane path, `git rev-parse --git-dir --git-common-dir` -> `/home/kara/get-h3/lore/.git/worktrees/lore` and `/home/kara/get-h3/lore/.git` \u2014 a linked worktree of the canonical repo, not a copy. `git rev-parse -q --verify refs/tags/v0.2.0` from the lane resolves to 9f605bae671ae0f688847b204db8e4fc3dce22ce, and that is precisely the ref that fired release.sh:73-76's `REFUSE: tag v0.2.0 already exists.` \u2014 proving the lane reads the canonical object store's refs.\n  \u2713 The path the scheduler actually hands the releng lane is the same path that is now a worktree (fleet.toml projects.workdir / DB row), so the fix is reachable from the entrypoint rather than only from a hand-typed cd.: /home/kara/.hermes/fleet.toml:3108-3116 defines `[[projects]] name = \"lore-releng\"` with `workdir = \"/home/kara/.hermes/stand-in/releng-lane/lore\"` \u2014 the identical string now registered as a worktree on lane/releng-workdir. The scheduler's entrypoint path and the fixed path are the same, so the fix is reachable from the lane's real entrypoint. The lane worktree also carries a readable board (`.coding-hermes/board/tasks.jsonl`, 140 parsed rows), so the lane's board reads are served from the worktree too.\n  \u2713 The evidence README's quoted outputs match what the commands actually produce today (no stale/fabricated transcript), and the pre-fix repro is reproducible.: Re-ran every quoted command and diffed against the transcript: AC1 (README:56-63), AC2 (:66-75) and AC3 (:78-88) all match, AC3 byte-for-byte including the HEAD sha 72adb69d57cee674893b6b2a5928b1e9eb493ef1 and rc=1. The pre-fix repro is reproducible against the preserved archive: `cd /home/kara/.hermes/stand-in/releng-lane/lore-standin-archive-20261117 && git rev-parse --show-toplevel` -> `fatal: not a git repository (or any of the parent directories): .git`, rc=128, matching README:8-25. The archive dir exists and is board-only (`.coding-hermes` only, no `.git`), exactly as the README describes. No stale or fabricated transcript found.\nThe releng lane workdir is now a genuine linked git worktree of get-h3/lore on lane/releng-workdir, reachable from the scheduler's own fleet.toml workdir, with release.sh --dry-run answering from the shared object store and committed evidence whose every quoted output I reproduced live. [uncovered failure paths: failure mode 0 (The lane worktree is pinned at 72adb69 and does not auto-follow origin/main, so a releng tick that skips `git fetch && git reset --hard origin/main` probes stale state (e.g. an outdated version stamp or a tag that has since moved).): detected_by is empty \u2014 uncovered failure path; failure mode 1 (The board row RELEASE-LORE-007 still reads status=pending with commit_hash=None and completed_at=None, so the board does not reflect the completed fix.): detected_by is empty \u2014 uncovered failure path]",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 From /home/kara/.hermes/stand-in/releng-lane/lore: git rev-parse --show-toplevel exits 0 and resolves to that path; git remote -v names get-h3/lore; git -C /home/kara/get-h3/lore worktree list registers that exact path on branch lane/releng-workdir; bash scripts/release.sh --dry-run runs from that path and answers from the repository object store (clean tree + CI on HEAD + version/tag rungs; rc=1 at a release-state refusal is acceptable); committed evidence docs/qa/evidence/run-RELEASE-LORE-007/README.md quotes each output and the pre-fix repro.: Every sub-claim re-run live. (1) `cd /home/kara/.hermes/stand-in/releng-lane/lore && git rev-parse --show-toplevel` -> `/home/kara/.hermes/stand-in/releng-lane/lore`, rc=0; `.git` is a file containing `gitdir: /home/kara/get-h3/lore/.git/worktrees/lore`. (2) `git remote -v` -> `origin https://github.com/get-h3/lore.git (fetch)` / `(push)`. (3) `git -C /home/kara/get-h3/lore worktree list` -> `/home/kara/.hermes/stand-in/releng-lane/lore  72adb69 [lane/releng-workdir]` \u2014 exact path, exact branch. (4) `bash scripts/release.sh --dry-run` from the lane path -> `ok: working tree clean` / `ok: CI success on HEAD sha 72adb69d57cee674893b6b2a5928b1e9eb493ef1` / `ok: version 0.2.0 -> tag v0.2.0` / `REFUSE: tag v0.2.0 already exists.` rc=1 \u2014 a release-state refusal (scripts/release.sh:73-76), explicitly allowed. (5) Evidence committed: `git ls-files docs/qa/evidence/run-RELEASE-LORE-007/` lists README.md; HEAD bd6a98f adds it (110 lines). README:56-63 quotes AC1, :66-75 quotes AC2, :78-88 quotes AC3 verbatim, and :8-25 quotes the pre-fix repro (`fatal: not a git repository`, rc=128). Test suite: `uv run pytest -x --tb=short -q` -> `572 passed in 5.31s`.\n\n\u2026 [2206 chars omitted \u2014 3 line(s)] \u2026\nThe releng lane workdir is now a genuine linked git worktree of get-h3/lore on lane/releng-workdir, reachable from the scheduler's own fleet.toml workdir, with release.sh --dry-run answering from the shared object store and committed evidence whose every quoted output I reproduced live. [uncovered failure paths: failure mode 0 (The lane worktree is pinned at 72adb69 and does not auto-follow origin/main, so a releng tick that skips `git fetch && git reset --hard origin/main` probes stale state (e.g. an outdated version stamp or a tag that has since moved).): detected_by is empty \u2014 uncovered failure path; failure mode 1 (The board row RELEASE-LORE-007 still reads status=pending with commit_hash=None and completed_at=None, so the board does not reflect the completed fix.): detected_by is empty \u2014 uncovered failure path]",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "From /home/kara/.hermes/stand-in/releng-lane/lore: git rev-parse --show-toplevel exits 0 and resolves to that path; git remote -v names get-h3/lore; git -C /home/kara/get-h3/lore worktree list registers that exact path on branch lane/releng-workdir; bash scripts/release.sh --dry-run runs from that path and answers from the repository object store (clean tree + CI on HEAD + version/tag rungs; rc=1 at a release-state refusal is acceptable); committed evidence docs/qa/evidence/run-RELEASE-LORE-007/README.md quotes each output and the pre-fix repro.",
+                "status": "PASS",
+                "detail": "Every sub-claim re-run live. (1) `cd /home/kara/.hermes/stand-in/releng-lane/lore && git rev-parse --show-toplevel` -> `/home/kara/.hermes/stand-in/releng-lane/lore`, rc=0; `.git` is a file containing `gitdir: /home/kara/get-h3/lore/.git/worktrees/lore`. (2) `git remote -v` -> `origin https://github.com/get-h3/lore.git (fetch)` / `(push)`. (3) `git -C /home/kara/get-h3/lore worktree list` -> `/home/kara/.hermes/stand-in/releng-lane/lore  72adb69 [lane/releng-workdir]` \u2014 exact path, exact branch. (4) `bash scripts/release.sh --dry-run` from the lane path -> `ok: working tree clean` / `ok: CI success on HEAD sha 72adb69d57cee674893b6b2a5928b1e9eb493ef1` / `ok: version 0.2.0 -> tag v0.2.0` / `REFUSE: tag v0.2.0 already exists.` rc=1 \u2014 a release-state refusal (scripts/release.sh:73-76), explicitly allowed. (5) Evidence committed: `git ls-files docs/qa/evidence/run-RELEASE-LORE-007/` lists README.md; HEAD bd6a98f adds it (110 lines). README:56-63 quotes AC1, :66-75 quotes AC2, :78-88 quotes AC3 verbatim, and :8-25 quotes the pre-fix repro (`fatal: not a git repository`, rc=128). Test suite: `uv run pytest -x --tb=short -q` -> `572 passed in 5.31s`."
+              },
+              {
+                "criterion": "The lane worktree shares the canonical repository object store (git-common-dir is /home/kara/get-h3/lore/.git), so tags/refs/CI state read from the lane path are the real repo's, not a copy's.",
+                "status": "PASS",
+                "detail": "From the lane path, `git rev-parse --git-dir --git-common-dir` -> `/home/kara/get-h3/lore/.git/worktrees/lore` and `/home/kara/get-h3/lore/.git` \u2014 a linked worktree of the canonical repo, not a copy. `git rev-parse -q --verify refs/tags/v0.2.0` from the lane resolves to 9f605bae671ae0f688847b204db8e4fc3dce22ce, and that is precisely the ref that fired release.sh:73-76's `REFUSE: tag v0.2.0 already exists.` \u2014 proving the lane reads the canonical object store's refs.",
+                "derived": true
+              },
+              {
+                "criterion": "The path the scheduler actually hands the releng lane is the same path that is now a worktree (fleet.toml projects.workdir / DB row), so the fix is reachable from the entrypoint rather than only from a hand-typed cd.",
+                "status": "PASS",
+                "detail": "/home/kara/.hermes/fleet.toml:3108-3116 defines `[[projects]] name = \"lore-releng\"` with `workdir = \"/home/kara/.hermes/stand-in/releng-lane/lore\"` \u2014 the identical string now registered as a worktree on lane/releng-workdir. The scheduler's entrypoint path and the fixed path are the same, so the fix is reachable from the lane's real entrypoint. The lane worktree also carries a readable board (`.coding-hermes/board/tasks.jsonl`, 140 parsed rows), so the lane's board reads are served from the worktree too.",
+                "derived": true
+              },
+              {
+                "criterion": "The evidence README's quoted outputs match what the commands actually produce today (no stale/fabricated transcript), and the pre-fix repro is reproducible.",
+                "status": "PASS",
+                "detail": "Re-ran every quoted command and diffed against the transcript: AC1 (README:56-63), AC2 (:66-75) and AC3 (:78-88) all match, AC3 byte-for-byte including the HEAD sha 72adb69d57cee674893b6b2a5928b1e9eb493ef1 and rc=1. The pre-fix repro is reproducible against the preserved archive: `cd /home/kara/.hermes/stand-in/releng-lane/lore-standin-archive-20261117 && git rev-parse --show-toplevel` -> `fatal: not a git repository (or any of the parent directories): .git`, rc=128, matching README:8-25. The archive dir exists and is board-only (`.coding-hermes` only, no `.git`), exactly as the README describes. No stale or fabricated transcript found.",
+                "derived": true
+              }
+            ],
+            "summary": "The releng lane workdir is now a genuine linked git worktree of get-h3/lore on lane/releng-workdir, reachable from the scheduler's own fleet.toml workdir, with release.sh --dry-run answering from the shared object store and committed evidence whose every quoted output I reproduced live. [uncovered failure paths: failure mode 0 (The lane worktree is pinned at 72adb69 and does not auto-follow origin/main, so a releng tick that skips `git fetch && git reset --hard origin/main` probes stale state (e.g. an outdated version stamp or a tag that has since moved).): detected_by is empty \u2014 uncovered failure path; failure mode 1 (The board row RELEASE-LORE-007 still reads status=pending with commit_hash=None and completed_at=None, so the board does not reflect the completed fix.): detected_by is empty \u2014 uncovered failure path]",
+            "provenance": {
+              "model": "deepseek-v4-flash",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "deepseek-v4-flash",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"RELEASE-LORE-007\"}",
+          "exit_code": 0,
+          "output_sha": "e66d622ce3960efdb9babe9c9ffed02a0d97e30eb66517db186a6d9ff5458bc6"
+        },
+        {
+          "tool": "run_command",
+          "command": "pwd; ls -la",
+          "exit_code": 0,
+          "output_sha": "b7578e781a6ed7e0ce1e7c5a154be1de9e74f207b9bfc137032e897a5a236b85"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git log --oneline -5 && git status --short && echo \"---\" && cat docs/qa/evidence/run-RELEASE-LORE-007/README.md",
+          "exit_code": 0,
+          "output_sha": "969ade127feea2586c1fdcb0daec43869c6b755b79a90bfe31837ba09943c961"
+        },
+        {
+          "tool": "run_command",
+          "command": "ls -la /home/kara/.hermes/stand-in/releng-lane/ 2>&1; echo \"=== lore dir ===\"; ls -la /home/kara/.hermes/stand-in/releng-lane/lore 2>&1",
+          "exit_code": 0,
+          "output_sha": "de221e2bb3640380d1a6885b582d24011728094e582709ad8fff1350cea28e46"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/.hermes/stand-in/releng-lane/lore && echo \"=== rev-parse --show-toplevel ===\"; git rev-parse --show-toplevel; echo \"rc=$?\"; echo \"=== remote -v ===\"; git remote -v; echo \"rc=$?\"; echo \"=== .git file ===\"; cat .git; echo \"=== branch ===\"; git rev-parse --abbrev-ref HEAD",
+          "exit_code": 0,
+          "output_sha": "01461a3322d12716a5cdecedc08a029bbcdbec8221f56da25238c560ac8be261"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && echo \"=== worktree list ===\"; git worktree list; echo \"rc=$?\"",
+          "exit_code": 0,
+          "output_sha": "9f1b0b3e1de1ed708ffcf2b152c777cd89837117561241c9f09fc70069884cf1"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/.hermes/stand-in/releng-lane/lore && bash scripts/release.sh --dry-run; echo \"rc=$?\"",
+          "exit_code": 0,
+          "output_sha": "36a0022a683fb17229655b102fd234b4a9df2a3df423ed3b0b77b28bcbe5e1fa"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && cat scripts/release.sh",
+          "exit_code": 0,
+          "output_sha": "8af4aeaa07bfd43140a073232e2f53982bae494080cdc6b7dc50e753d40bc08b"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && sed -n '40,80p' docs/qa/evidence/run-RELEASE-LORE-007/README.md",
+          "exit_code": 0,
+          "output_sha": "2b3c2c77fddca6699efc8db020ba61676d6bc053fc829b51f80b1303642eff8f"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && sed -n '55,80p' scripts/release.sh",
+          "exit_code": 0,
+          "output_sha": "6c394b0431f8a0435eb189cb4eac5c1665ef42444e186656f517e9d1d73f3cdc"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && echo \"=== committed? ===\"; git ls-files docs/qa/evidence/run-RELEASE-LORE-007/; echo \"=== in HEAD commit ===\"; git show --stat --oneline HEAD; echo \"=== archive dir exists? ===\"; ls -d /home/kara/.hermes/stand-in/releng-lane/lore-standin-archive-20261117 2>&1",
+          "exit_code": 0,
+          "output_sha": "bb2cb50c137951ff8f843c9c5595975add619fc8593bd630ef29a8f90d1b2d24"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/.hermes/stand-in/releng-lane/lore && echo \"=== shared object store: same git dir ===\"; git rev-parse --git-dir --git-common-dir; echo \"=== tag visible from lane ===\"; git rev-parse -q --verify refs/tags/v0.2.0; echo \"=== status ===\"; git status --porcelain | head; echo \"(end status)\"",
+          "exit_code": 0,
+          "output_sha": "929ab5d8093b5e0523413eff0e15b57390357b1688ba303994d7e117b4a4e837"
+        },
+        {
+          "tool": "run_command",
+          "command": "ls -la /home/kara/.hermes/stand-in/releng-lane/lore-standin-archive-20261117; echo \"=== pre-fix repro: is archive a git repo? ===\"; cd /home/kara/.hermes/stand-in/releng-lane/lore-standin-archive-20261117 && git rev-parse --show-toplevel; echo \"rc=$?\"",
+          "exit_code": 0,
+          "output_sha": "dbe6f476880fbf86f45ec3498dd45aeed51c163ae350754d7d02b614c546e191"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: all sub-claims verified by live commands.\\n1) `cd /home/kara/.hermes/stand-in/releng-lane/lore && git rev-parse --show-toplevel` -> `/home/kara/.hermes/stand-in/releng-lane/lore`, rc=0.\\n2) `git remote -v` -> `origin https://github.com/get-h3/lore.git (fetch/push)`.\\n3) `git -C /home/kara/get-h3/lore worktree list` -> `/home/kara/.hermes/stand-in/releng-lane/lore  72adb69 [lane/releng-workdir]` (exact path, exact branch).\\n4) `bash scripts/release.sh --dry-run` from lane path -> \\\"ok: working tree clean\\\" / \\\"ok: CI success on HEAD sha 72adb69...\\\" / \\\"ok: version 0.2.0 -> tag v0.2.0\\\" / \\\"REFUSE: tag v0.2.0 already exists.\\\" rc=1 (release-state refusal, allowed).\\n5) Evidence committed: `git ls-files` lists docs/qa/evidence/run-RELEASE-LORE-007/README.md; HEAD bd6a98f adds it (110 lines). README quotes AC1/AC2/AC3 outputs verbatim (lines 56-80) and the pre-fix repro (lines 8-25: `fatal: not a git repository`, rc=128).\\n6) Object store genuinely shared: `git rev-parse --git-common-dir` -> /home/kara/get-h3/lore/.git; tag v0.2.0 resolves from lane (9f605ba).\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "c89a654ac74885f57396bfaec6eef8f3485601eb8e0a2e303cec5293aa3f8bb8"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"derived_0: The lane worktree shares the canonical repository object store (git-common-dir is /home/kara/get-h3/lore/.git), so tags/refs/CI state read from the lane path are the real repo's, not a copy's.\\nderived_1: The path the scheduler actually hands the releng lane is the same path that is now a worktree (fleet.toml projects.workdir / DB row), so the fix is reachable from the entrypoint rather than only from a hand-typed cd.\\nderived_2: The evidence README's quoted outputs match what the commands actually produce today (no stale/fabricated transcript), and the pre-fix repro is reproducible.\", \"key\": \"derived\"}",
+          "exit_code": 0,
+          "output_sha": "78d9defecf69d4d8c9ccfd28bdd66301be1f46842f93c69044b7bb7c06a81d37"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -rn \"releng-lane\" /home/kara/.hermes/fleet.toml 2>&1 | head -20; echo \"=== fleet.toml lore block ===\"; grep -n -A6 -B2 \"lore\" /home/kara/.hermes/fleet.toml 2>&1 | head -60",
+          "exit_code": 0,
+          "output_sha": "675e8b161004686602201c1b684dba7f2a4e9145d742ebb5027b9436d7516a44"
+        },
+        {
+          "tool": "run_command",
+          "command": "sed -n '3105,3130p' /home/kara/.hermes/fleet.toml",
+          "exit_code": 0,
+          "output_sha": "cf5b1bc625e6c2431d130f6f5894f5eb664d45a13294035381ba9261998c2c30"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -rn \"releng-lane/lore\" /home/kara/.hermes/ --include=*.toml --include=*.json --include=*.jsonl 2>/dev/null | grep -v \"lore-standin-archive\" | head -20",
+          "exit_code": 0,
+          "output_sha": "44d0052ece00fc4a7c7192bd8baf2606018a4966fa0611ed788c6dbdf437811f"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: `git rev-parse --git-common-dir` from the lane path -> /home/kara/get-h3/lore/.git (shared object store, not a copy). Tag v0.2.0 resolves from the lane path (9f605ba), and release.sh's `git rev-parse -q --verify refs/tags/v0.2.0` rung fired on it \\u2014 proving the lane reads the canonical repo's refs.\", \"key\": \"verified_derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "6e7d1f5dba7c62004eb7a858850398875ec1a8563a0d06e6d0db3772ae64c927"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: /home/kara/.hermes/fleet.toml:3108-3116 defines project `lore-releng` with workdir = \\\"/home/kara/.hermes/stand-in/releng-lane/lore\\\" \\u2014 the exact path now registered as a worktree on lane/releng-workdir. The scheduler's entrypoint path and the fixed path are the same string, so the fix is reachable from the lane's real entrypoint, not only from a hand-typed cd.\", \"key\": \"verified_derived_1\"}",
+          "exit_code": 0,
+          "output_sha": "0581ef30eb3cbfbb8c57ab4bd441b820caedb8ac6f4c8e3ef70d8ca31dd8c056"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: Re-ran every quoted command live and compared to the README transcript.\\n- README lines 56-63 (AC1) match: show-toplevel -> /home/kara/.hermes/stand-in/releng-lane/lore rc=0; remote -v -> origin https://github.com/get-h3/lore.git.\\n- README lines 66-75 (AC2) match: worktree list shows the path at 72adb69 [lane/releng-workdir].\\n- README lines 78-88 (AC3) match byte-for-byte: \\\"ok: working tree clean\\\" / \\\"ok: CI success on HEAD sha 72adb69d57cee674893b6b2a5928b1e9eb493ef1\\\" / \\\"ok: version 0.2.0 -> tag v0.2.0\\\" / \\\"REFUSE: tag v0.2.0 already exists.\\\" rc=1.\\n- Pre-fix repro (README lines 8-25) is reproducible against the preserved archive: `cd .../lore-standin-archive-20261117 && git rev-parse --show-toplevel` -> \\\"fatal: not a git repository (or any of the parent directories): .git\\\", rc=128. Archive dir exists and is board-only (.coding-hermes only, no .git), matching the README's description.\\nNo stale or fabricated transcript found.\", \"key\": \"verified_derived_2\"}",
+          "exit_code": 0,
+          "output_sha": "e6cd413ac423ae598b092767ad7e1ecbaeb4089c6e745b4c3b29874414ac02a9"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -o '\"id\": \"RELEASE-LORE-007\"[^}]*\"status\": \"[^\"]*\"' .coding-hermes/board/tasks.jsonl 2>/dev/null | head -3; echo \"---\"; python3 -c \"\nimport json\nfor line in open('.coding-hermes/board/tasks.jsonl'):\n    try: d=json.loads(line)\n    except: continue\n    if d.get('id')=='RELEASE-LORE-007':\n        print('status:',d.get('status'),'| commit:',d.get('commit_hash'),'| completed:',d.get('completed_at'))\n\"",
+          "exit_code": 0,
+          "output_sha": "7f56d718a32a6870e2b81c4ee38d21dc710cc0ebaceaf0642e8cd882c9631b47"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"commit_hash\" .coding-hermes/board/tasks.jsonl | head -2 | cut -c1-300; echo \"=== how many rows have commit_hash set ===\"; python3 -c \"\nimport json\ntot=0; done=0; ch=0\nfor line in open('.coding-hermes/board/tasks.jsonl'):\n    try: d=json.loads(line)\n    except: continue\n    tot+=1\n    if d.get('status')=='done': done+=1\n    if d.get('commit_hash'): ch+=1\nprint('total',tot,'done',done,'with commit_hash',ch)\n\"",
+          "exit_code": 0,
+          "output_sha": "dc63f0cd2ae74602def7e3e4bd80550202b30913a49ce60934e7c82255b07261"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && cat AGENTS.md; echo \"=== gitreins config ===\"; cat .gitreins/config.yaml 2>/dev/null | head -40",
+          "exit_code": 0,
+          "output_sha": "95f577b94c6668c730dc7ec19fa300eb7310dc70eac5e0b176bb291b3bc05ceb"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && python3 -c \"\nimport json\nrows=[]\nfor line in open('.coding-hermes/board/tasks.jsonl'):\n    try: d=json.loads(line)\n    except: continue\n    if d.get('id')=='RELEASE-LORE-007': rows.append(d)\nprint('rows for id:',len(rows))\nfor d in rows: print('status:',d.get('status'),'| commit:',d.get('commit_hash'),'| completed:',d.get('completed_at'))\n\"",
+          "exit_code": 0,
+          "output_sha": "09855ce04824cdfcaa209ed16d18df5a377cc74a15fba2e9660233048d4ce455"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && timeout 900 uv run pytest -x --tb=short -q 2>&1 | tail -15; echo \"rc=${PIPESTATUS[0]}\"",
+          "exit_code": 2,
+          "output_sha": "07a58f6ea3028e66c816cb5503ea42175682505459821ddb370135dc2291f439"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/.hermes/stand-in/releng-lane/lore && ls -la .coding-hermes/board/ 2>&1 | head; echo \"=== board readable from lane? ===\"; python3 -c \"\nimport json\nn=0\nfor line in open('.coding-hermes/board/tasks.jsonl'):\n    try: json.loads(line); n+=1\n    except: pass\nprint('parsed rows:',n)\n\" 2>&1",
+          "exit_code": 0,
+          "output_sha": "0803a453dacccd265a71946281bca2b34c674cfa72502736fc4bb6f9aeaf77dc"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"Test suite: `cd /home/kara/get-h3/lore && uv run pytest -x --tb=short -q` -> \\\"572 passed in 5.31s\\\" (exit 0; the trailing \\\"Bad substitution\\\" is only my shell's ${PIPESTATUS} under /bin/sh, not a test failure).\\nNote (not a criterion failure): board row RELEASE-LORE-007 in .coding-hermes/board/tasks.jsonl still reads status=pending, commit_hash=None, completed_at=None. The task's stated criteria do not require a board update, and the board is a separate closeout step (foreman merges/closes), so this is recorded as an observation rather than a FAIL.\", \"key\": \"tests_and_board\"}",
+          "exit_code": 0,
+          "output_sha": "eadad5c543ec19fb9619da312710ada505fd1589ff19953bd8dd10ca1f793077"
+        }
+      ]
+    }
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [],
+    "summary": "This diff only adds a QA evidence README documenting a host-level worktree fix; it contains no executable code, config, or wiring, so there is nothing to flag under the review rules."
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 From /home/kara/.hermes/stand-in/releng-lane/lore: git rev-parse --show-toplevel exits 0 and resolves to that path; git remote -v names get-h3/lore; git -C /home/kara/get-h3/lore worktree list registers that exact path on branch lane/releng-workdir; bash scripts/release.sh --dry-run runs from that path and answers from the repository object store (clean tree + CI on HEAD + version/tag rungs; rc=1 at a release-state refusal is acceptable); committed evidence docs/qa/evidence/run-RELEASE-LORE-007/README.md quotes each output and the pre-fix repro.: Every sub-claim re-run live. (1) `cd /home/kara/.hermes/stand-in/releng-lane/lore && git rev-parse --show-toplevel` -> `/home/kara/.hermes/stand-in/releng-lane/lore`, rc=0; `.git` is a file containing `gitdir: /home/kara/get-h3/lore/.git/worktrees/lore`. (2) `git remote -v` -> `origin https://github.com/get-h3/lore.git (fetch)` / `(push)`. (3) `git -C /home/kara/get-h3/lore worktree list` -> `/home/kara/.hermes/stand-in/releng-lane/lore  72adb69 [lane/releng-workdir]` \u2014 exact path, exact branch. (4) `bash scripts/release.sh --dry-run` from the lane path -> `ok: working tree clean` / `ok: CI success on HEAD sha 72adb69d57cee674893b6b2a5928b1e9eb493ef1` / `ok: version 0.2.0 -> tag v0.2.0` / `REFUSE: tag v0.2.0 already exists.` rc=1 \u2014 a release-state refusal (scripts/release.sh:73-76), explicitly allowed. (5) Evidence committed: `git ls-files docs/qa/evidence/run-RELEASE-LORE-007/` lists README.md; HEAD bd6a98f adds it (110 lines). README:56-63 quotes AC1, :66-75 quotes AC2, :78-88 quotes AC3 verbatim, and :8-25 quotes the pre-fix repro (`fatal: not a git repository`, rc=128). Test suite: `uv run pytest -x --tb=short -q` -> `572 passed in 5.31s`.\n  \u2713 The lane worktree shares the canonical repository object store (git-common-dir is /home/kara/get-h3/lore/.git), so tags/refs/CI state read from the lane path are the real repo's, not a copy's.: From the lane path, `git rev-parse --git-dir --git-common-dir` -> `/home/kara/get-h3/lore/.git/worktrees/lore` and `/home/kara/get-h3/lore/.git` \u2014 a linked worktree of the canonical repo, not a copy. `git rev-parse -q --verify refs/tags/v0.2.0` from the lane resolves to 9f605bae671ae0f688847b204db8e4fc3dce22ce, and that is precisely the ref that fired release.sh:73-76's `REFUSE: tag v0.2.0 already exists.` \u2014 proving the lane reads the canonical object store's refs.\n  \u2713 The path the scheduler actually hands the releng lane is the same path that is now a worktree (fleet.toml projects.workdir / DB row), so the fix is reachable from the entrypoint rather than only from a hand-typed cd.: /home/kara/.hermes/fleet.toml:3108-3116 defines `[[projects]] name = \"lore-releng\"` with `workdir = \"/home/kara/.hermes/stand-in/releng-lane/lore\"` \u2014 the identical string now registered as a worktree on lane/releng-workdir. The scheduler's entrypoint path and the fixed path are the same, so the fix is reachable from the lane's real entrypoint. The lane worktree also carries a readable board (`.coding-hermes/board/tasks.jsonl`, 140 parsed rows), so the lane's board reads are served from the worktree too.\n  \u2713 The evidence README's quoted outputs match what the commands actually produce today (no stale/fabricated transcript), and the pre-fix repro is reproducible.: Re-ran every quoted command and diffed against the transcript: AC1 (README:56-63), AC2 (:66-75) and AC3 (:78-88) all match, AC3 byte-for-byte including the HEAD sha 72adb69d57cee674893b6b2a5928b1e9eb493ef1 and rc=1. The pre-fix repro is reproducible against the preserved archive: `cd /home/kara/.hermes/stand-in/releng-lane/lore-standin-archive-20261117 && git rev-parse --show-toplevel` -> `fatal: not a git repository (or any of the parent directories): .git`, rc=128, matching README:8-25. The archive dir exists and is board-only (`.coding-hermes` only, no `.git`), exactly as the README describes. No stale or fabricated transcript found.\nThe releng lane workdir is now a genuine linked git worktree of get-h3/lore on lane/releng-workdir, reachable from the scheduler's own fleet.toml workdir, with release.sh --dry-run answering from the shared object store and committed evidence whose every quoted output I reproduced live. [uncovered failure paths: failure mode 0 (The lane worktree is pinned at 72adb69 and does not auto-follow origin/main, so a releng tick that skips `git fetch && git reset --hard origin/main` probes stale state (e.g. an outdated version stamp or a tag that has since moved).): detected_by is empty \u2014 uncovered failure path; failure mode 1 (The board row RELEASE-LORE-007 still reads status=pending with commit_hash=None and completed_at=None, so the board does not reflect the completed fix.): detected_by is empty \u2014 uncovered failure path]\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-17T17:01:01.406023",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-17T17:01:01.420994+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 6252,
+        "truncated": false,
+        "source": "git show bd6a98fb04ac"
+      }
+    ],
+    "task_id": "RELEASE-LORE-007"
+  }
+}
