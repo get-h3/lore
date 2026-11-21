@@ -436,6 +436,15 @@ does not:
   `lore validate --execute --format md` run from the checkout with stdout
   appended to `~/.local/share/lore/weekly-validate.log`. Arm it per box with
   `systemctl --user enable --now lore-validate.timer`.
+- **Weekly dependency drift:** `scripts/dep-drift.sh` reports locked packages
+  behind PyPI latest, not vulnerabilities (`scripts/audit-deps.sh` scans those).
+  It is report-only and never changes the lock or environment; failed lookups
+  are marked incomplete. Install the examples in `deploy/systemd/` as
+  `~/.config/systemd/user/lore-dep-drift.service` and
+  `~/.config/systemd/user/lore-dep-drift.timer`, then run
+  `systemctl --user daemon-reload` and
+  `systemctl --user enable --now lore-dep-drift.timer`. The Monday 07:45
+  start is staggered, not an exclusion lock, against validation.
 - `lore show <class> [--evidence] [--format json|md]` — prints the compiled
   runbook for one class (human-markdown default); `--evidence` adds the class's
   provenance line plus its evidence trail. Unknown class exits 2 (the registry
