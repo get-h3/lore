@@ -107,3 +107,33 @@ NOT MUTATED BY THIS PASS BEFORE THE DECISION
 ROLLBACK (if the release proves bad)
   delete the Release object and the remote tag; the previous tag remains the last
   good release. Never move an existing tag.
+
+EXECUTED — LANDED (appended after the cut; the block above is the pre-cut record)
+  prep commit == release commit   c769be4265e74a93b4706c6cc7971fe58a3f3dbd
+                                  ("chore(release): prepare v0.3.0 — version stamps,
+                                  promoted changelog, curated notes"; guard PASS with
+                                  secrets+lint+full tests, not guard-only)
+  hosted CI on prep commit        run 44908707571 "CI" completed/success
+  release-check on tag v0.3.0     run 44908771302 completed/success
+                                  (version stamp == changelog heading == tag)
+  annotated tag                   2d33e57c03f9f1cc6be390513f2fea7eefea5f58
+                                  refs/tags/v0.3.0 peels to c769be4, remote and local agree
+  Release object                  https://github.com/get-h3/lore/releases/tag/v0.3.0
+                                  published 2026-11-21T13:25:16Z, draft=false,
+                                  prerelease=false, assets=[] (git tags are the only
+                                  release artifact by design)
+  release body                    the driver's auto-generated body was replaced with the
+                                  curated notes; sha256 of the published body equals
+                                  sha256 of docs/release-evidence/v0.3.0-notes.md
+                                  (4a79469e264138bfc5b1a51e82aa6bcfc74529a05b22b19b11ad97ba39541b6c),
+                                  and that file is in the tagged tree (blob b5bd6244)
+  version surfaces                pyproject 0.3.0 == lore.__version__ 0.3.0 == uv.lock
+                                  get-h3-lore 0.3.0 == newest numeric CHANGELOG heading
+                                  [0.3.0] == tag v0.3.0
+  driver                          scripts/release.sh: all six gates printed "ok", rc=0,
+                                  mutation phase reached and verified by the driver itself
+  post-cut state                  no tag moved, no package published to any index, no
+                                  branch deleted, no sibling worktree touched; tag v0.2.0
+                                  remains the last-good rollback point
+  board                           RELEASE-LORE-009 carries these receipts
+
