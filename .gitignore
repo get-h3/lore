@@ -43,3 +43,5 @@ get_h3_lore.egg-info/
 # readiness probe reads as dirty for reasons no reviewer can act on.
 .digest/
 .gitreins/rescued-*/
+# single-path mutable last-run judge snapshot; per-run history under .gitreins/history/ stays tracked.
+.gitreins/verdicts/
