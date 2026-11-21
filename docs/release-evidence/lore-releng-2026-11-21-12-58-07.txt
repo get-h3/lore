@@ -160,3 +160,68 @@ DURABILITY AND UNMEASURED LEGS (added after the board carrier landed)
                                   smoke fresh.
 
 
+
+## Pass 2 — post-release sweep of the same tick (measured 2026-11-21T13:49Z)
+
+This is the SECOND fire of tick lore-releng-2026-11-21-12-58-07. Pass 1 cut and
+published v0.3.0; the release-memory family carries exactly one key for this tick
+(`/projects/lore/releases/v0.3.0`, fire `pass-01`), so this pass is `pass-02` and it
+minted NO new cut. The baseline for every number below is the just-cut tag v0.3.0,
+not v0.2.0: a near-empty census against the tag means "nothing since the release",
+which is the opposite of the readiness question pass 1 answered.
+
+DECISION: NO SECOND CUT. The release delivered by pass 1 stands unmodified.
+
+SURFACE TABLE  (pass 1 reading | pass 2 reading — only moves are marked FLIPPED)
+  tag v0.3.0 object        2d33e57c03f9f1cc6be390513f2fea7eefea5f58 | unchanged
+  tag peeled commit        c769be4265e74a93b4706c6cc7971fe58a3f3dbd | unchanged
+  Release object           published, draft=false, prerelease=false, assets=[] | same, re-read
+  published body sha256    4a79469e2641...9541b6c | 4a79469e2641...9541b6c, and it still
+                           equals the sha256 of docs/release-evidence/v0.3.0-notes.md
+                           read out of the TAGGED tree (4a79469e2641...9541b6c) — the
+                           release was not re-uploaded, yanked or rebuilt between fires
+  version surfaces at tag  pyproject 0.3.0 / __version__ 0.3.0 / newest numeric
+                           CHANGELOG heading [0.3.0] | same three, plus [Unreleased]
+                           sits above them as expected
+  certified candidate      ff7f03699b898e3abf680b173180863b43e79d75 | carried
+  candidate -> tip diff     n/a | 4 product paths — CHANGELOG.md, lore/__init__.py,
+                           pyproject.toml, uv.lock — which are exactly the release-prep
+                           commit c769be4's own files, i.e. the documented case of prep
+                           sitting INSIDE the tag range, not product movement after it
+  commits tag -> tip       n/a | 3, with ZERO product paths: the artifact twice and the
+                           board once (ac94c96, 5653f60, b1d5122)
+  CI on durability commit  44909504818 was registered but not yet concluded when pass 1
+  b1d5122                  wrote this file | 44909504818 "CI" completed/success — FLIPPED
+                           PENDING -> GREEN, so every commit this tick pushed now has an
+                           exact-SHA green run, not an inherited one
+  verdict naming the       none (d46cce23 binds eda0c96; product trees identical) | none —
+  candidate                re-probed every verdict.json in the fetched tree: 0 name
+                           ff7f036, unchanged and already disclosed by pass 1
+  board state              146 complete + 1 closed, zero pending | 147 complete + 1 closed
+                           (pass 1's own closed row), still zero pending/blocked/in_progress
+  install smoke from tag   NOT MEASURED (harness refused) | NOT MEASURED AGAIN — the
+                           throwaway-venv install was refused by the harness consent gate
+                           before it executed, second consecutive refusal of this leg.
+                           A refused probe is not retried, so this pass makes NO install
+                           or capability claim for v0.3.0 and files the leg as a row.
+  deployed CLI on this     get-h3-lore 0.2.0 | get-h3-lore 0.2.0, unchanged. That pin is
+  host                     by design (RELEASE-LORE-008's acceptance requires the install to
+                           name a released tag rather than float on the default branch),
+                           so one-release lag is the accepted shape, not a regression and
+                           not a gate on the cut.
+
+WHAT MOVED: exactly one reading — the durability commit's CI concluded green. Everything
+else re-derived to the value pass 1 recorded, so no census was re-run, no artifact was
+rebuilt and no tag, Release object or package was touched.
+
+NOT MUTATED BY THIS PASS
+  no tag created, moved or deleted; no Release object edited; no package published; no
+  branch deleted; no sibling worktree touched. The shared lane checkout is 41 commits
+  behind and was not fast-forwarded; all measurement and writing happened in a detached
+  worktree at b1d5122.
+
+NEW WORK FILED
+  RELEASE-LORE-010 — the v0.3.0 install channel has no verification, because the only two
+  passes that tried were refused by this lane's harness. Acceptance is executable on a
+  host that permits unattended package installs, with a negative arm so the green cannot
+  be tautological.
