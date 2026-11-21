@@ -1,0 +1,11 @@
+# host: karaHermes-mde-7840hs Linux 7.0.0-43-generic
+# date: 2026-11-21T22:56:18Z
+# uv: uv 0.11.17 (x86_64-unknown-linux-gnu)
+# COLD tool env: UV_TOOL_DIR=/tmp/rl010-fresh/tools (empty before this run)
+# command: uv tool install "git+https://github.com/get-h3/lore@v0.3.0"
+Resolved 1 package in 0.72ms
+Installed 1 package in 4ms
+ + get-h3-lore==0.3.0 (from git+https://github.com/get-h3/lore@c769be4265e74a93b4706c6cc7971fe58a3f3dbd)
+Installed 1 executable: lore
+warning: `/tmp/rl010-fresh/bin` is not on your PATH. To use installed tools, run `export PATH="/tmp/rl010-fresh/bin:$PATH"` or `uv tool update-shell`.
+INSTALL_RC=0

@@ -1,0 +1,10 @@
+# dist metadata (fresh env)
+Name: get-h3-lore
+Version: 0.3.0
+# installed lore/__init__.py
+3:__version__ = "0.3.0"
+11:    "__version__",
+# sha256 installed lore/classes.py
+ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b
+# sha256 c769be4:lore/classes.py (tag tree)
+ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b

@@ -1,0 +1,35 @@
+# cwd=/tmp/rl010-fresh/outside — no lore checkout in any ancestor directory
+$ lore --help
+usage: lore [-h] {match,consult,compile,validate,gate,absorb,show,audit} ...
+
+Match symptoms and compile runbooks from fleet incident history.
+
+positional arguments:
+  {match,consult,compile,validate,gate,absorb,show,audit}
+    match               classify a symptom text
+    consult             tick-start consult (LORE-007): attach matching runbook
+                        refs to work context; fail-open (no match = exit 0)
+    compile             compile runbook proposal(s) per failure class (stdout
+                        only)
+    validate            read-only command lint (LORE-006). DEFAULT = plan/dry-
+                        run: lists what WOULD run, executes NOTHING; pass
+                        --execute to run the gate-approved read-only commands
+    gate                closure absorb-gate (LORE-008): machine-check a lesson
+                        decision (absorb or no-new-lesson ack); exports
+                        node_exporter metrics; exit 0 = allowed, 1 = denied or
+                        export failed
+    absorb              build the runbook-update PROPOSAL for an absorb
+                        decision (stdout only — propose-not-write, nothing is
+                        written)
+    show                print the compiled runbook for ONE class (LORE-010);
+                        human-markdown default, --format json optional
+    audit               coverage + freshness matrix over every registry class
+                        (LORE-010, PRD US-3); honest 'no data' freshness —
+                        never fabricated dates
+
+options:
+  -h, --help            show this help message and exit
+HELP_RC=0
+$ lore match "gateway drain window closed and ticks were stranded unpushed"
+gateway-drain-window	confidence=0.90	evidence: signature:gateway drain; keyword:drain; keyword:gateway; keyword:drain window
+MATCH_RC=0

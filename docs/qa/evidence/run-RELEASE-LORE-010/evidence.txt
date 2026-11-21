@@ -1,0 +1,92 @@
+RELEASE-LORE-010 — v0.3.0 install channel, measured
+====================================================
+Row:      RELEASE-LORE-010 (P3) — "v0.3.0 install channel is unverified"
+Tick:     lore-foreman-2026-11-21-22-40-49 (foreman, unattended)
+Date:     2026-11-21T22:56Z .. 22:58Z
+Host:     karaHermes-mde-7840hs / Linux 7.0.0-43-generic / uv 0.11.17
+Tag:      v0.3.0 = annotated tag object 2d33e57c03f9f1cc6be390513f2fea7eefea5f58
+          peels to commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd
+          (witness: gh api repos/get-h3/lore/git/refs/tags/v0.3.0,
+           cross-checked with `git rev-parse v0.3.0^{commit}` in the local checkout)
+
+Result: ALL FOUR ACCEPTANCE ARMS PASS. The install channel is measured, not inferred.
+
+Prior state, for the record
+---------------------------
+Pass 1 and Pass 2 of tick lore-releng-2026-11-21-12-58-07 both had this exact leg
+refused by the lane's harness consent gate BEFORE the probe executed, so the row was
+filed as UNMEASURED (see docs/release-evidence/lore-releng-2026-11-21-12-58-07.txt,
+install smoke line: "NOT MEASURED (harness refused) | NOT MEASURED AGAIN").
+This pass re-ran the probe from a foreman tick, the command executed, and the leg is
+now measured. No rephrasing or workaround was used: the command run is the documented
+install command, verbatim, with the throwaway environment selected by UV_TOOL_DIR /
+UV_TOOL_BIN_DIR (so the host's own tool directory and PATH were never mutated).
+
+A1 — cold install of the published tag, exit 0, version 0.3.0 in its own metadata
+---------------------------------------------------------------------------------
+Tool env: /tmp/rl010-fresh/tools (created empty for this run), UV_LINK_MODE=copy.
+
+  $ UV_TOOL_DIR=/tmp/rl010-fresh/tools UV_TOOL_BIN_DIR=/tmp/rl010-fresh/bin \
+      uv tool install "git+https://github.com/get-h3/lore@v0.3.0"
+  Resolved 1 package in 0.72ms
+  Installed 1 package in 4ms
+   + get-h3-lore==0.3.0 (from git+https://github.com/get-h3/lore@c769be4265e74a93b4706c6cc7971fe58a3f3dbd)
+  Installed 1 executable: lore
+  INSTALL_RC=0                                        -> raw/install.txt
+
+  $ grep -E '^(Name|Version):' .../get_h3_lore-0.3.0.dist-info/METADATA
+  Name: get-h3-lore
+  Version: 0.3.0
+  $ grep -n __version__ .../site-packages/lore/__init__.py
+  3:__version__ = "0.3.0"                              -> raw/metadata.txt
+
+  Byte-provenance of the installed code (guards against a stale-cache install):
+  sha256(installed lore/classes.py)        = ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b
+  sha256(c769be4:lore/classes.py, via git) = ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b
+  Identical: the installed module is the tagged tree's bytes.
+
+A2 — the installed CLI is exercised live, outside any lore checkout
+-------------------------------------------------------------------
+cwd = /tmp/rl010-fresh/outside (no lore checkout in any ancestor directory),
+PATH = /tmp/rl010-fresh/bin:$PATH (the installed shim, not a source checkout).
+
+  $ lore --help                                        HELP_RC=0     -> raw/cli.txt
+    usage: lore [-h] {match,consult,compile,validate,gate,absorb,show,audit} ...
+
+  $ lore match "gateway drain window closed and ticks were stranded unpushed"
+    gateway-drain-window  confidence=0.90  evidence: signature:gateway drain;
+    keyword:drain; keyword:gateway; keyword:drain window
+    MATCH_RC=0
+
+  The second command is a real classification through the installed artefact, not a
+  metadata read: it returns a seed class id and its signature/keyword evidence.
+
+A3 — negative arm: the procedure is not tautological
+----------------------------------------------------
+  $ UV_TOOL_DIR=/tmp/rl010-fresh/tools-neg UV_TOOL_BIN_DIR=/tmp/rl010-fresh/bin-neg \
+      uv tool install "git+https://github.com/get-h3/lore@v9.9.9-nonexistent"
+    error: ... git fetch ... '+refs/tags/v9.9.9-nonexistent:...' (exit status: 128)
+    fatal: couldn't find remote ref refs/tags/v9.9.9-nonexistent
+    NEGATIVE_RC=2                                     -> raw/negative.txt
+
+  A tag that does not exist fails nonzero (rc=2), so the A1 pass is a real resolution
+  of a real ref, not an unconditionally-successful command.
+
+A4 — reproducibility fields
+---------------------------
+  host:      karaHermes-mde-7840hs, Linux 7.0.0-43-generic, uv 0.11.17
+  command:   uv tool install "git+https://github.com/get-h3/lore@v0.3.0"
+  tree:      c769be4265e74a93b4706c6cc7971fe58a3f3dbd (v0.3.0 peels to this commit)
+  raw logs:  docs/qa/evidence/run-RELEASE-LORE-010/raw/{install,cli,metadata,negative}.txt
+  This record: docs/qa/evidence/run-RELEASE-LORE-010/evidence.txt
+
+Limits of this record (stated, not hidden)
+------------------------------------------
+1. Nothing is published to a package index: the channel is the git tag plus a tool
+   install from it, which is exactly what README/INSTALL document. No index claim is
+   made or implied here (publication remains gated by RELEASE-LORE-006 /
+   RELEASE-LORE-001).
+2. The probe ran on this host only; it does not claim other hosts, other uv versions,
+   or a Windows/macOS install path.
+3. The throwaway environments under /tmp are disposable and are not part of the
+   committed evidence; the raw logs above are the durable artefacts.

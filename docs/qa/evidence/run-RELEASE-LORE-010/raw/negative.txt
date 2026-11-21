@@ -1,0 +1,9 @@
+# negative arm: same procedure pinned to a tag that does not exist (cold env: fresh UV_TOOL_DIR)
+   Updating https://github.com/get-h3/lore (v9.9.9-nonexistent)
+error: Git operation failed
+  Caused by: failed to fetch into: /mnt/ssd/caches/hermes-uv/git-v0/db/992f93a19a2e8749
+  Caused by: failed to fetch branch or tag `v9.9.9-nonexistent`
+  Caused by: process didn't exit successfully: `/usr/bin/git fetch --force --update-head-ok 'https://github.com/get-h3/lore' '+refs/tags/v9.9.9-nonexistent:refs/remotes/origin/tags/v9.9.9-nonexistent'` (exit status: 128)
+--- stderr
+fatal: couldn't find remote ref refs/tags/v9.9.9-nonexistent
+NEGATIVE_RC=2
