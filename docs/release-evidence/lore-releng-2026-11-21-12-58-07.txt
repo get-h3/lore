@@ -137,3 +137,26 @@ EXECUTED — LANDED (appended after the cut; the block above is the pre-cut reco
                                   remains the last-good rollback point
   board                           RELEASE-LORE-009 carries these receipts
 
+DURABILITY AND UNMEASURED LEGS (added after the board carrier landed)
+  board carrier                   5653f60bfe39ecc2eb0bdcd151c619abb4710092 — RELEASE-LORE-009
+                                  row + events 469/470; carrier CI run 44908968338
+                                  completed/success; row re-read from origin/main:
+                                  status=complete, guard_result=PASS, ci_result=GREEN,
+                                  commit_hash=c769be4..., detail.evidence[0].run_id=d46cce23
+  release memory                  DuckBrain namespace lore, key
+                                  /projects/lore/releases/v0.3.0, confirmed by reading the
+                                  store partition event/2026-11/current.jsonl (one line).
+  install smoke                   NOT MEASURED this pass. The scratch-venv install of
+                                  git+https://github.com/get-h3/lore@v0.3.0 was refused by
+                                  the harness before it executed, and a refused probe is not
+                                  retried. No install or capability claim is made for v0.3.0;
+                                  the closest standing evidence is RELEASE-LORE-008, which
+                                  live-verified a uv tool install pinned to the v0.2.0 tag on
+                                  this host. The channel itself is unchanged: git tags are
+                                  the only artifact, the project is not on any package index,
+                                  and pyproject's entry point and dependency set are
+                                  untouched by this release (only the version string moved).
+                                  Next pass that touches the channel should run the install
+                                  smoke fresh.
+
+
