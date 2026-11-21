@@ -12,6 +12,17 @@ guards:
   # uv-based repo (uv sync --extra dev provisions pytest); bare `pytest` would
   # exit 127 inside the guard subprocess until uv creates .venv (GR-GAP-064).
   test_command: uv run pytest -x --tb=short
+  # 2026-10-03: a 180s test budget was exhausted under host load. The old
+  # evaluator.test_timeout: 600 was ignored: GitReins 0.21 warns it is unknown.
+  # A 2026-11-21 guard reported 300s hook <= 1200s tests and auto-raised
+  # the hook to 1200 + 120 = 1320s; another run reported only the unknown key.
+  # The installed guard's UNSET default is tests 1200s / hook 300s
+  # (guard_manager.py:1783/1790) - exactly the 300<=1200 pair the row quoted.
+  # Explicitly preserve the observed 1200s test budget and its 120s margin;
+  # the hook budget also covers other guard lanes, so this is not a guarantee
+  # that the complete battery always finishes within the overall budget.
+  test_timeout: 1200
+  hook_timeout: 1320
   # Board-only commits (no code changed) rely on this: lanes with nothing to
   # grade skip instead of false-DEGRADED-blocking the commit.
   allow_skips: true
@@ -33,11 +44,7 @@ evaluator:
   # schema template's own commented example — no starvation recorded at this
   # rung on a repo this size (iterations are the binding knob, see above).
   max_time: "30m"
-  # 2026-10-03 releng: full test suite exceeds the default 180s under box load
-  # (load ~29; guard log shows pytest reaching 100% pass before the timeout
-  # kills it). Raised per the guard's own error hint. Board-only commits were
-  # failing to commit as a result.
-  test_timeout: 600
+
 # defaults.model — the judge model. deepseek-v4-flash is the canonical cheap
 # judge (env GITREINS_LLM_MODEL agrees); api_key_env omitted because
 # GITREINS_LLM_API_KEY is provided by the environment.
