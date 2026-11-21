@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 572 passed
+uv run pytest -q        # 579 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -273,12 +273,20 @@ a provenance marker instead of a separate flow:
    APPENDS one JSONL audit record to PATH so the approval can be audited
    later (`decided_at`, `decision`, `class_id`, `lesson`, `reason`,
    `ack_ref`, `source`, `allowed`, `errors`, `tool_version` — grep-stable,
-   one JSON object per line, appended per invocation). Without `--record`
-   the gate still writes nothing anywhere. A DENY never writes, even with
-   `--record` (it prints its errors and exits 1).
-3. The registry stays closed either way: an unknown class is still denied,
-   and nothing is ever written by the gate itself (propose-not-write holds
-   for QA/dogfood exactly as it holds for incidents).
+   one JSON object per line, appended per invocation). Denials do not write
+   audit records, but both verdicts export metrics (see Observability).
+3. The registry stays closed either way: an unknown class is still denied;
+   the gate does not publish or modify runbooks.
+
+## Observability
+
+Every gate verdict updates `h3_lore.prom` atomically in the node_exporter
+textfile directory, `/var/lib/node_exporter/textfile` by default. Set
+`H3_LORE_TEXTFILE_DIR` to an existing writable directory to override it.
+`lore_gate_runs_total` counts exported verdicts; `lore_gate_last_success` is
+1 for ALLOW and 0 for DENY. Export failure is reported on stderr and exits
+non-zero. An optional ALLOW audit record may already have been appended when
+an export fails; do not treat that failure as a denial.
 
 ## Tick-start consult (title mode)
 
@@ -384,7 +392,7 @@ does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **572 tests passing** and a clean `ruff check`.
+  with **579 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
   Flags: `match [--class CLASS_ID]` filters results to only the named registry
   class (ships today; not planned-only).

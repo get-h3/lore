@@ -36,6 +36,7 @@ ALLOWLISTED_PATTERNS: tuple[str, ...] = (
     ".gitreins/*",
     ".coding-hermes/*",
     "docs/acceptance/*",
+    "docs/qa/evidence/*",
 )
 
 # A line quoting the canonical count file itself is a sync instruction, not

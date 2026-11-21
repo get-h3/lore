@@ -46,6 +46,7 @@ from lore.evidence import (
     parse_logsey_export,
 )
 from lore.placeholders import placeholder_hints
+from lore.prom_export import export_gate_verdict
 from lore.runbook import STATUS_PROPOSAL, STATUS_STALE, STATUS_VALIDATED, Runbook
 from lore.validate import (
     DRIFT_OUTCOMES,
@@ -386,11 +387,9 @@ def _cmd_validate(args: argparse.Namespace) -> int:
 def _cmd_gate(args: argparse.Namespace) -> int:
     """LORE-008: machine-checked closure gate. Prints the verdict + errors.
 
-    Exit 0 when allowed, 1 when denied. The gate NEVER writes anything —
-    EXCEPT under the explicit opt-in ``--record PATH`` (REVIEW-LORE-001):
-    then one JSONL audit record is APPENDED, and only for an ALLOWED
-    verdict. A denied gate still writes nothing (denials are not recorded
-    unless that is asked for later as a separate capability).
+    Exit 0 when allowed, 1 when denied or metrics export fails. Every verdict
+    is exported to the node_exporter textfile directory. With ``--record PATH``
+    one JSONL audit record is also appended, only for an allowed verdict.
 
     Record shape (grep-stable, one JSON object per line): decided_at,
     decision, class_id, lesson, reason, ack_ref, source, allowed, errors[],
@@ -418,6 +417,11 @@ def _cmd_gate(args: argparse.Namespace) -> int:
             parent_dir.mkdir(parents=True, exist_ok=True)
         with open(record_path, "a", encoding="utf-8") as f:
             f.write(json.dumps(rec, sort_keys=True) + "\n")
+    try:
+        export_gate_verdict(verdict.allowed)
+    except OSError as exc:
+        print(f"error: cannot export gate metrics: {exc}", file=sys.stderr)
+        return 1
     return 0 if verdict.allowed else 1
 
 
@@ -897,7 +901,12 @@ def build_parser() -> argparse.ArgumentParser:
         "gate",
         help=(
             "closure absorb-gate (LORE-008): machine-check a lesson decision "
-            "(absorb or no-new-lesson ack); exit 0 = allowed, 1 = denied"
+            "(absorb or no-new-lesson ack); exports node_exporter metrics; "
+            "exit 0 = allowed, 1 = denied or export failed"
+        ),
+        description=(
+            "Export each gate verdict to h3_lore.prom in H3_LORE_TEXTFILE_DIR "
+            "(default: /var/lib/node_exporter/textfile). Export errors fail the command."
         ),
     )
     gate_p.add_argument(
@@ -925,8 +934,8 @@ def build_parser() -> argparse.ArgumentParser:
             "REVIEW-LORE-001 OPT-IN: append one durable JSONL audit record "
             "to PATH for an ALLOWED verdict (decided_at, decision, "
             "class_id, lesson, reason, ack_ref, source, allowed, errors, "
-            "tool_version). Denials NEVER write, even with --record. "
-            "Without this flag the gate writes nothing anywhere."
+            "tool_version). Denials do not write audit records; metrics "
+            "are exported for both verdicts."
         ),
     )
     gate_p.add_argument(

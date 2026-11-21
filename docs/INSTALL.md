@@ -82,14 +82,14 @@ Real output on the current tree:
 ........................................................................ [ 55%]
 ........................................................................ [ 83%]
 ........................................................................ [100%]
-572 passed
+579 passed
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **572 tests** (47 test files: taxonomy, classifier,
+The count to expect is **579 tests** (48 test files: taxonomy, classifier,
 compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
 your run says something else, you are on a different revision — check
 `git log` before trusting this document.
@@ -413,11 +413,18 @@ parse_logsey_export` — a header line plus a fenced block of log lines), then:
 2. with `--source <marker>`, every per-class proposal carries that provenance
    marker (omitted, the payloads keep their shape with no `source` key);
 3. an empty trail is an explicit empty result — exit 0, not an error; and
-4. **propose-not-write**: nothing is ever written, stdout is the only side
-   effect — with one explicit, documented exception: `lore gate --record
-   PATH` (opt-in) APPENDS one JSONL audit record per ALLOWED verdict so a
-   closure approval can be audited later. Without that flag, and for every
-   DENY, the gate writes nothing anywhere.
+4. **propose-not-write**: absorb writes nothing; stdout is its only side
+   effect. Separately, `lore gate --record PATH` (opt-in) appends a JSONL
+   audit record for an ALLOWED verdict; gate metrics are always exported.
+
+### Observability
+
+Each gate verdict atomically updates `h3_lore.prom` in
+`/var/lib/node_exporter/textfile`, or the existing writable directory set by
+`H3_LORE_TEXTFILE_DIR`. `lore_gate_runs_total` counts exported runs and
+`lore_gate_last_success` records 1 for ALLOW or 0 for DENY. An export error is
+reported on stderr and exits non-zero. An ALLOW audit record requested with
+`--record` may already have been appended before an export error.
 
 ````sh
 printf 'logsey export --window 2h\n```\n2026-09-24T10:00:00 unit=loreforge gateway drain 503 while restart\n```\n' \

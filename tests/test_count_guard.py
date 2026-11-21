@@ -262,6 +262,7 @@ def test_sweep_allowlists_dated_records(tmp_path: Path) -> None:
     stale = "2 failure classes and 7 curated classes were true when written.\n"
     _write(root, "CHANGELOG.md", stale)
     _write(root, "docs/acceptance/report.md", stale)
+    _write(root, "docs/qa/evidence/run-example/README.md", stale)
     _write(root, "docs/dogfood/log.md", stale)
     _write(root, ".gitreins/history/verdict.md", stale)
     _write(root, ".coding-hermes/board.md", stale)
@@ -269,6 +270,7 @@ def test_sweep_allowlists_dated_records(tmp_path: Path) -> None:
     tracked = [
         "CHANGELOG.md",
         "docs/acceptance/report.md",
+        "docs/qa/evidence/run-example/README.md",
         "docs/dogfood/log.md",
         ".gitreins/history/verdict.md",
         ".coding-hermes/board.md",

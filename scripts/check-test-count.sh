@@ -8,7 +8,7 @@
 #   - CHANGELOG.md and docs/dogfood/**
 #   - .gitreins/history/** and .coding-hermes/dogfood-log.md (dated judge
 #     verdicts / dogfood log, tracked but historical)
-#   - docs/acceptance/** (dated acceptance records)
+#   - docs/acceptance/** and docs/qa/evidence/** (historical evidence)
 # Lines quoting the canonical file itself are also ignored (self-reference).
 # The guard's own files and *.sh are excluded from the sweep (self-match).
 

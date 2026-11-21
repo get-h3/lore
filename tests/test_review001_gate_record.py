@@ -1,9 +1,7 @@
 """REVIEW-LORE-001: durable gate approval records (opt-in `--record PATH`).
 
-The gate stays propose-not-write by DEFAULT: without --record it creates no
-file anywhere. With --record it APPENDS one JSONL audit record per invocation,
-and only for an ALLOWED verdict — a denied gate writes nothing even when
---record is given.
+The gate exports metrics for every verdict. With --record it also appends one
+JSONL audit record per invocation, and only for an ALLOWED verdict.
 """
 
 import json

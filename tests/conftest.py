@@ -17,6 +17,16 @@ from __future__ import annotations
 
 import pytest
 
+
+@pytest.fixture(autouse=True)
+def isolate_gate_metrics(
+    monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    """Keep gate subprocesses and in-process calls away from the host collector."""
+    directory = tmp_path_factory.mktemp("gate-metrics")
+    monkeypatch.setenv("H3_LORE_TEXTFILE_DIR", str(directory))
+
+
 #: Shown verbatim when the guard fires. Must name the exact fix command.
 _FIX_MESSAGE = (
     "pytest could not import the 'lore' package from this checkout, so the "
