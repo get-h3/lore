@@ -223,5 +223,65 @@ NOT MUTATED BY THIS PASS
 NEW WORK FILED
   RELEASE-LORE-010 — the v0.3.0 install channel has no verification, because the only two
   passes that tried were refused by this lane's harness. Acceptance is executable on a
-  host that permits unattended package installs, with a negative arm so the green cannot
-  be tautological.
+  host that permits unattended package installs, with a negative arm so the green cannot be
+  tautological.
+
+## Pass 3 — third fire of the same tick (measured 2026-11-21T14:11Z)
+
+Ordinal from the ledger, before measuring: the tick's release-memory family carries
+`/projects/lore/releases/v0.3.0` (fire pass-01) and
+`/projects/lore/releases/v0.3.0-postrelease-sweep` (fire pass-02) in namespace lore, and
+`grep -c` of the raw tick id over the board's tasks.jsonl returns 5 rows — one fire's row
+batch, not five fires. This fire is `pass-03`, recorded at
+`/projects/lore/releases/v0.3.0-postrelease-sweep-2`.
+
+DECISION: NO CUT. v0.3.0 was published by pass 1 and the product tree has not moved since;
+this pass re-derives the surfaces that can move and mints no tag, no Release object, no
+package and no row.
+
+SURFACE TABLE  (pass 2 reading | pass 3 reading)
+  tag v0.3.0 object          2d33e57c03f9f1cc6be390513f2fea7eefea5f58 | unchanged; remote
+                             refs/tags/v0.3.0 and its peeled ref agree with the local tag
+  peeled commit              c769be4265e74a93b4706c6cc7971fe58a3f3dbd | unchanged
+  Release object             published, draft=false, prerelease=false, assets=[] | same,
+                             re-read live from the forge
+  published body sha256      4a79469e2641...9541b6c | 4a79469e2641...9541b6c, still equal to
+                             `git show v0.3.0:docs/release-evidence/v0.3.0-notes.md` and to
+                             the same blob at tip — the body was not rebuilt or re-uploaded
+  version surfaces at tip    pyproject 0.3.0 / __version__ 0.3.0 / [0.3.0] heading | same
+                             three, with [Unreleased] still above [0.3.0]
+  commits tag -> tip         3, zero product paths | 5, still ZERO product paths — the board
+                             twice (.coding-hermes/board/{tasks,events}.jsonl) and this
+                             artifact three times; `git diff --name-only v0.3.0 HEAD` is
+                             exactly those three paths
+  exact-tip CI               n/a (tip was b1d5122; 5f239fc had not been pushed or registered)
+                             | run 44912359871 "CI" completed/success on 5f239fc — FLIPPED
+                             unregistered -> GREEN. Every commit this tick pushed now carries
+                             its own exact-SHA run: 5f239fc 44912359871, 740c5d9 44912210238,
+                             b1d5122 44909504818, 5653f60 44908968338, c769be4 44908707571,
+                             plus release-check 44908771302 on the tag
+  board state                147 complete + 1 closed, zero pending | 147 complete + 1 closed
+                             + 1 pending, and the pending row is RELEASE-LORE-010 itself —
+                             pass 2's own filing for the open install leg, not new debt
+  deployed CLI on this host  get-h3-lore 0.2.0 | get-h3-lore 0.2.0, unchanged; the one-release
+                             lag RELEASE-LORE-008 accepted by design
+  install smoke from tag     NOT MEASURED (harness refused) | NOT MEASURED AGAIN — third
+                             consecutive refusal, below
+
+INSTALL LEG — third refusal, the row stands unchanged
+  Attempted fresh this pass because a new fire may run the identical read again: scratch
+  `uv venv` plus `uv pip install "git+https://github.com/get-h3/lore@v0.3.0"`. The harness
+  consent gate refused the command before it executed (no answer, silence is not consent),
+  and a refused probe is not retried inside one fire. So no install or capability claim is
+  made for v0.3.0 for a third pass. The leg stays owned by RELEASE-LORE-010 with its
+  multi-part acceptance and its negative arm; this pass neither duplicates the row nor
+  weakens it. The channel is unchanged by the release (git tags only, no package index), so
+  the refusal costs evidence, not correctness of the cut.
+
+NOT MUTATED BY THIS PASS
+  no tag created, moved or deleted; no Release object edited; no package published; no
+  branch deleted; no sibling worktree touched. The lane worktree at
+  /home/kara/.hermes/stand-in/releng-lane/lore was clean and ZERO commits ahead, and was
+  fast-forwarded 43 commits from lane/releng-workdir to the fetched origin/main tip
+  (5f239fc) so this pass measured the real tip in place instead of a detached worktree;
+  that fast-forward is a pointer move with no commit, no push and no tree change.
