@@ -1,0 +1,748 @@
+{
+  "task_id": "RELEASE-LORE-010",
+  "task_title": "verify the v0.3.0 install channel",
+  "task_criteria": [
+    "docs/qa/evidence/run-RELEASE-LORE-010/evidence.txt plus raw/{install,cli,metadata,negative}.txt record a COLD uv tool install of git+https://github.com/get-h3/lore@v0.3.0 exiting 0 with dist metadata and installed lore/__init__.py both at 0.3.0, the installed CLI run from a cwd outside any checkout exiting 0 and returning a classified match, and a nonexistent-tag negative arm exiting nonzero; the record names host, exact command, uv version and tag commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd."
+  ],
+  "passed": false,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "cd225bc556eff083f908771b7dfe0c27c3bbfbdd",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "43de6597d28bc35d142b15cec190d724e522c1668ffb8e10ad338a2bd178fad6",
+  "working_tree_dirty_path_count": 0,
+  "items": [
+    {
+      "criterion": "docs/qa/evidence/run-RELEASE-LORE-010/evidence.txt plus raw/{install,cli,metadata,negative}.txt record a COLD uv tool install of git+https://github.com/get-h3/lore@v0.3.0 exiting 0 with dist metadata and installed lore/__init__.py both at 0.3.0, the installed CLI run from a cwd outside any checkout exiting 0 and returning a classified match, and a nonexistent-tag negative arm exiting nonzero; the record names host, exact command, uv version and tag commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd.",
+      "status": "UNVERIFIED",
+      "detail": "Not examined \u2014 evaluation ended before this criterion was reached (no judgement was made about it)"
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nsecrets: gitleaks bound=timeout 600s (0=off)\nscanners: nice=nice -n 10\n5:57PM INF scanned ~14233850 bytes (14.23 MB) in 3.71s\n5:57PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 309 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.14.7\ncollected 579 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 24%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 26%]\ntests/test_evidence.py ......................                            [ 30%]\ntests/test_lore011_drain_acceptance.py .......                           [ 31%]\ntests/test_lore016_qa_audit.py .....................                     [ 35%]\ntests/test_lore017_gateway_guard.py ........                             [ 36%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 38%]\ntests/test_lore022_freshness_docs.py .....                               [ 39%]\ntests/test_lore030_ux_guard.py ....                                      [ 40%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 42%]\ntests/test_lore041_collision_canonical.py ...........                    [ 44%]\ntests/test_lore043_short_text_threshold.py ....................          [ 47%]\ntests/test_lore045_validate_history.py ....................              [ 51%]\ntests/test_lore046_match_output.py ...........                           [ 53%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 54%]\n\n\u2026 [560 chars omitted \u2014 7 line(s)] \u2026\ntests/test_lore055_consult_missing_input.py ......                       [ 64%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 65%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 66%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 67%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 68%]\ntests/test_lore064_audit_wiring.py .............................         [ 73%]\ntests/test_lore066_zero_check_skip.py ...                                [ 74%]\ntests/test_lore067_incident_audit.py ..                                  [ 74%]\ntests/test_lore071_trigger.py ......                                     [ 75%]\ntests/test_near_miss.py ..............                                   [ 78%]\ntests/test_perf2_audit_single_pass.py ........                           [ 79%]\ntests/test_prom_export.py .......                                        [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 82%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 579 passed in 7.14s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            }
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": false,
+      "any_failed": true,
+      "summary": "INCOMPLETE\n  \u2014 docs/qa/evidence/run-RELEASE-LORE-010/evidence.txt plus raw/{install,cli,metadata,negative}.txt record a COLD uv tool install of git+https://github.com/get-h3/lore@v0.3.0 exiting 0 with dist metadata and installed lore/__init__.py both at 0.3.0, the installed CLI run from a cwd outside any checkout exiting 0 and returning a classified match, and a nonexistent-tag negative arm exiting nonzero; the record names host, exact command, uv version and tag commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd.: Not examined \u2014 evaluation ended before this criterion was reached (no judgement was made about it)\n  \u2717 Coverage FAILED \u2014 not passing: docs/qa/evidence/run-RELEASE-LORE-010/evidence.txt plus raw/{install,cli,metadata,negative}.txt record a COLD uv tool install of git+https://github.com/get-h3/lore@v0.3.0 exiting 0 with dist metadata and installed lore/__init__.py both at 0.3.0, the installed CLI run from a cwd outside any checkout exiting 0 and returning a classified match, and a nonexistent-tag negative arm exiting nonzero; the record names host, exact command, uv version and tag commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd.\nCap exceeded: Iteration cap (100) reached (100.1 used). Increase max_iterations or split criteria. Partial verdict \u2014 0 of 1 criteria graded, 1 ungraded. The run spent 3,703,101 in / 12,101 out over 100.1 iterations.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": false,
+          "output": "INCOMPLETE\n  \u2014 docs/qa/evidence/run-RELEASE-LORE-010/evidence.txt plus raw/{install,cli,metadata,negative}.txt record a COLD uv tool install of git+https://github.com/get-h3/lore@v0.3.0 exiting 0 with dist metadata and installed lore/__init__.py both at 0.3.0, the installed CLI run from a cwd outside any checkout exiting 0 and returning a classified match, and a nonexistent-tag negative arm exiting nonzero; the record names host, exact command, uv version and tag commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd.: Not examined \u2014 evaluation ended before this criterion was reached (no judgement was made about it)\n  \u2717 Coverage FAILED \u2014 not passing: docs/qa/evidence/run-RELEASE-LORE-010/evidence.txt plus raw/{install,cli,metadata,negative}.txt record a COLD uv tool install of git+https://github.com/get-h3/lore@v0.3.0 exiting 0 with dist metadata and installed lore/__init__.py both at 0.3.0, the installed CLI run from a cwd outside any checkout exiting 0 and returning a classified match, and a nonexistent-tag negative arm exiting nonzero; the record names host, exact command, uv version and tag commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd.\nCap exceeded: Iteration cap (100) reached (100.1 used). Increase max_iterations or split criteria. Partial verdict \u2014 0 of 1 criteria graded, 1 ungraded. The run spent 3,703,101 in / 12,101 out over 100.1 iterations.",
+          "error": "",
+          "data": {
+            "verdict": "INCOMPLETE",
+            "items": [
+              {
+                "criterion": "docs/qa/evidence/run-RELEASE-LORE-010/evidence.txt plus raw/{install,cli,metadata,negative}.txt record a COLD uv tool install of git+https://github.com/get-h3/lore@v0.3.0 exiting 0 with dist metadata and installed lore/__init__.py both at 0.3.0, the installed CLI run from a cwd outside any checkout exiting 0 and returning a classified match, and a nonexistent-tag negative arm exiting nonzero; the record names host, exact command, uv version and tag commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd.",
+                "status": "UNVERIFIED",
+                "detail": "Not examined \u2014 evaluation ended before this criterion was reached (no judgement was made about it)"
+              }
+            ],
+            "summary": "Cap exceeded: Iteration cap (100) reached (100.1 used). Increase max_iterations or split criteria. Partial verdict \u2014 0 of 1 criteria graded, 1 ungraded. The run spent 3,703,101 in / 12,101 out over 100.1 iterations.",
+            "provenance": {
+              "model": "accounts/fireworks/models/kimi-k3",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "accounts/fireworks/models/kimi-k3",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"RELEASE-LORE-010\"}",
+          "exit_code": 0,
+          "output_sha": "5df6f1e5f3517f7d37674f61cfe408999a97fa05d662ccff46118324b6163e37"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"docs/qa/evidence/run-RELEASE-LORE-010/evidence.txt\"}",
+          "exit_code": 0,
+          "output_sha": "fdaec6729b28dc68e3e4bc0d37b31477dd16dd27aa8f0fa52f5c278fc953e794"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"docs/qa/evidence/run-RELEASE-LORE-010/raw/install.txt\"}",
+          "exit_code": 0,
+          "output_sha": "6eb9cf212a020d044d7dc004b44c0c3eb4732b8f647460941a76e7de5f4c635d"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"docs/qa/evidence/run-RELEASE-LORE-010/raw/cli.txt\"}",
+          "exit_code": 0,
+          "output_sha": "b4f5c807b9387b1062b9ea3decf9824c965880970007174774fed173e4961477"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"docs/qa/evidence/run-RELEASE-LORE-010/raw/metadata.txt\"}",
+          "exit_code": 0,
+          "output_sha": "2044b7659c20187b441746d6151d23eff974bd8e9f2412da2c7938996fdc324f"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"docs/qa/evidence/run-RELEASE-LORE-010/raw/negative.txt\"}",
+          "exit_code": 0,
+          "output_sha": "72a40671c1d0e35872eadb222affe0ac13e61bcd578b881283ab3c1fd69e3011"
+        },
+        {
+          "tool": "run_command",
+          "command": "git rev-parse v0.3.0^{commit} 2>&1; git rev-parse v0.3.0 2>&1; git cat-file -t c769be4265e74a93b4706c6cc7971fe58a3f3dbd 2>&1",
+          "exit_code": 0,
+          "output_sha": "8262c68e575b093f12b0caf12414c84e94097d29f9c2f0e445a8dded30cf0b9a"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py 2>/dev/null | sha256sum; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/__init__.py 2>/dev/null | grep -n __version__",
+          "exit_code": 0,
+          "output_sha": "99f4e7278940d0bbe343d9cc40eb7824a05218145d5e81e9c4662e599a5b5f39"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:pyproject.toml | grep -E '^(name|version)' ; echo ---; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/cli.py | grep -n 'usage\\|prog\\|add_parser' | head -20",
+          "exit_code": 0,
+          "output_sha": "ef9273571996394dbf94b4fd24a9b772259ea5642a681fc5a19b7ffe4e89cfd7"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | grep -n 'gateway-drain-window' | head -5; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | grep -n 'gateway drain' | head -5",
+          "exit_code": 0,
+          "output_sha": "85c324b6f9f1f1abc79020b17ae43f6ac3cb06f08f415d5ecd78a36c3606731a"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '30,60p'",
+          "exit_code": 0,
+          "output_sha": "784246c2b9583a7f3a9c4580c5a82567f557bbd43eb55ac6b68002058449787d"
+        },
+        {
+          "tool": "run_command",
+          "command": "git ls-tree --name-only c769be4265e74a93b4706c6cc7971fe58a3f3dbd lore/ | head -30",
+          "exit_code": 0,
+          "output_sha": "06abb044eece27f0217f01301c812b5dfc96210bd38137d96ff60237e290b278"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | grep -n 'confidence\\|evidence\\|signature:\\|keyword:' | head -20",
+          "exit_code": 0,
+          "output_sha": "d8851115b6c8364e91868cbeb61788648cabfc9eae01b269dbd3ce9a50f95cb6"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/__main__.py | grep -n 'match\\|confidence\\|evidence' | head -30",
+          "exit_code": 0,
+          "output_sha": "4226e48a6f4e7b1b589957de61457c8960f46e807aeee666c01662abca8dabe6"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | sed -n '160,230p'",
+          "exit_code": 0,
+          "output_sha": "7e16633859ec89db2c2f6c0c3b04408e39f1f5ceedb1937f08ad23d5a4a78aef"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | grep -n 'def _keyword_hits' ; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | sed -n \"$(git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | grep -n 'def _keyword_hits' | cut -d: -f1),+20p\"",
+          "exit_code": 0,
+          "output_sha": "6ea2b3bfe074831a0af23faa1f791b4ba9ba09215b56f3c1577d28fba0562f78"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/__main__.py | grep -n 'Match symptoms\\|compile runbooks\\|classify a symptom\\|tick-start consult\\|read-only command lint\\|closure absorb-gate\\|build the runbook-update\\|print the compiled runbook\\|coverage + freshness' | head -20",
+          "exit_code": 0,
+          "output_sha": "d131c1dc4aca5ca021c694bf439f972da4a7274262874a2bcc053f39a4d9cb0d"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/__main__.py | grep -n 'add_parser\\|ArgumentParser\\|description=' | head -30",
+          "exit_code": 0,
+          "output_sha": "514fffbb479d636ef76433b26c5ddaba6c9e79bc28a410e00db21dc0b572422f"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/__main__.py | sed -n '817,830p;850,866p;867,880p;900,915p;959,975p;1020,1035p;1041,1055p'",
+          "exit_code": 0,
+          "output_sha": "169ed0cd53f5618a324d8706a59512c94c90d49dc7495eaea179a5130fd94346"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/__main__.py | sed -n '793,800p'",
+          "exit_code": 0,
+          "output_sha": "ccdef85ded3c654860446533557044dfc28701353e0ba3b1a0a4d71915c0c144"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:pyproject.toml | grep -A5 'scripts\\|entry'",
+          "exit_code": 0,
+          "output_sha": "c379b1dd1bbdece1c32ec0502d2de60390df75ab19cda135815f0547c4d36897"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:README.md 2>/dev/null | grep -n -B2 -A4 'uv tool install' | head -30; echo ===; git ls-tree --name-only c769be4265e74a93b4706c6cc7971fe58a3f3dbd | grep -i -E 'install|readme'",
+          "exit_code": 0,
+          "output_sha": "905cc1599ab1b92290ca6f1df50f07a25d5f15d1032598b6dba22de6000e8929"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | grep -n 'SIGNATURE_CONFIDENCE\\s*=\\|KEYWORD_CONFIDENCE_MAX\\s*='",
+          "exit_code": 0,
+          "output_sha": "8d7ebf7204f79bf9354c75b5f37ed123b217064fa685458cd41896f89e5b9866"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/__main__.py | sed -n '93,130p'",
+          "exit_code": 0,
+          "output_sha": "3bba15369f0b9956ef68200e91870267876e9d86e28113801a1d87d8321eefe3"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | grep -n 'def classify_all' ; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | sed -n \"$(git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | grep -n 'def classify_all' | cut -d: -f1),+25p\"",
+          "exit_code": 0,
+          "output_sha": "1c8d075b5d39a56956513dffe18e8e79d2a6bbcb13d1e6e85078b7fb0a8df285"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | sed -n '275,310p'",
+          "exit_code": 0,
+          "output_sha": "a87b3b2f4740fa969556379bb54205a1cf968c8130d8fe6a76cf3f06ab34f514"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/__main__.py | sed -n '130,160p'",
+          "exit_code": 0,
+          "output_sha": "f41482d13b3690f3e13770c5eaadce652c57208262286ea8f51d0f05ff461e95"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | grep -n 're.compile\\|IGNORECASE\\|def _compiled' | head; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | sed -n \"$(git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | grep -n 'def _compiled' | cut -d: -f1),+15p\"",
+          "exit_code": 0,
+          "output_sha": "ecc7e4b2bb7567d9ba9a718ea138e2ea0798aa18882552795d02866d78848cd1"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | sed -n '100,131p'",
+          "exit_code": 0,
+          "output_sha": "61022301e98f6752c9d3b61486c091c0d0925c78caf013cd16cdb20527d4ec9b"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | grep -n 'def all_classes\\|def get_registry' ; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n \"$(git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | grep -n 'def all_classes' | cut -d: -f1),+12p\"",
+          "exit_code": 0,
+          "output_sha": "b0b7a052caa948151d7e77a147d73daa9364b22e6fd7dd476a1f4c614b580db5"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | grep -n 'signature_patterns=' | head -20",
+          "exit_code": 0,
+          "output_sha": "a59816e96d3fa74c7478c6bbf768f2cd0089a472808f8a73a6b3b64d54a53817"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '60,80p;125,145p;165,180p;190,220p;230,245p;255,265p;270,285p;295,310p;360,380p;405,425p;445,460p;480,495p' | grep -E 'id=|r\"' | head -80",
+          "exit_code": 0,
+          "output_sha": "32c75cf53cb09e5bca39101da63d20685c5be0e1a0a1c2beea4588bb3e9fe14a"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | grep -n 'id=\"' ",
+          "exit_code": 0,
+          "output_sha": "6c4e663baa0b20bee145fe56745f5c2716c0303a8c65c0da983524ac69809194"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '293,357p' | grep -E 'r\"' ",
+          "exit_code": 0,
+          "output_sha": "4a022733bc722738c047c71cb5d64d6e6465ee9d6aaff21420f658bfa2d5c7f2"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '64,119p' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "fe5dc194de4af6242805d6365a750f833b8bb369626215dfbc64766a98a7cf00"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '120,164p;165,187p;188,204p;205,227p;228,251p;252,268p;269,292p;358,397p;398,438p;439,487p' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "b9788b781fa4b6635b328cafd49ec0f537d8bf9cd119b1bec7e4aa91323f6723"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '188,204p'",
+          "exit_code": 0,
+          "output_sha": "5b345bce9e0f33bd68fbd78168acbf2b25ca964461604b83d05efef85da71137"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '228,251p'",
+          "exit_code": 0,
+          "output_sha": "7d8aa5637f1da19b110b099c59b8f989b77047f4f15bfd814c6b9cbc8c61af3d"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '252,268p;269,292p'",
+          "exit_code": 0,
+          "output_sha": "aaeae26c6cb9cb0049cd509197523d21e44d5a294454156b6a52fbadbdbb7297"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '358,397p;398,438p;439,487p'",
+          "exit_code": 0,
+          "output_sha": "d18347232b4f2cdcc63524c2b1c38559df59d225090592cfba98a725f124bae6"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '398,438p'",
+          "exit_code": 0,
+          "output_sha": "983eea70afa24294899dca4b3814ca99ca65ba84232a0f59b695957b49b8ea40"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '64,119p'",
+          "exit_code": 0,
+          "output_sha": "f0d0a2c6f5915d99f7850f787a70434b937272b4f8732dcf8adcea944289582b"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '120,164p;165,187p;205,227p'",
+          "exit_code": 0,
+          "output_sha": "34a59f527b9ead2cd5c5333dc89d42c92a9d130521c0bb6edc46cdbedfcc850d"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '293,357p'",
+          "exit_code": 0,
+          "output_sha": "c010397a5b20169e6b2032bc8cd8b7d7176303d3f12bd266472d3e417251834b"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | grep -n 'KEYWORD_THRESHOLD\\s*=\\|SHORT_KEYWORD_THRESHOLD\\s*=\\|SHORT_TEXT_WORD_LIMIT\\s*='",
+          "exit_code": 0,
+          "output_sha": "aeb55e2d218ca3e8b23053ec362f3b03a7f3c136055f0422f5f249a0112fa0a4"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classifier.py | sed -n '30,60p'",
+          "exit_code": 0,
+          "output_sha": "f86d3a1531b4f9d7d463a857c1d715d23631c64c3282665e608c9b97ac32d6d1"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '40,63p'",
+          "exit_code": 0,
+          "output_sha": "db9e43badb8f53a2e47c29cff61c16cd68d83656e0c80731f217b32a0e6205f2"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '439,487p'",
+          "exit_code": 0,
+          "output_sha": "d9c4e4bf9d494b10336bf33fb8cf1a6d361a7ea2623f38831d3f3fd2fe9e312c"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '358,397p'",
+          "exit_code": 0,
+          "output_sha": "72bf8c7dc3ad2153aea78387027e734bb8563c7059e4fa38fd6b79def71fb17d"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '165,187p'",
+          "exit_code": 0,
+          "output_sha": "48416e2e5343c3b8705bac1596013fb2554acdd2c8c8d2dcfacbb186e2e28224"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '205,227p'",
+          "exit_code": 0,
+          "output_sha": "caa09e94207b23f2d81d446f9df2161b4d11b411478b4f3cca84f443096a869c"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '120,164p'",
+          "exit_code": 0,
+          "output_sha": "884d662787e3695e6cf24ab2f9863fdf874edc5d4fba96a3800b98a979e6c17d"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '64,119p' | grep -n 'keywords' ",
+          "exit_code": 0,
+          "output_sha": "35e4b3466d44070c5e4c58e23b8a8dfd184fa52f2b199fd74155e802de5ad496"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '105,119p'",
+          "exit_code": 0,
+          "output_sha": "07894943238b4b6a583c50102b6ecc9d8f3fb6562390791ecf0132015fcf7687"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '188,204p' | grep -A8 'keywords'",
+          "exit_code": 0,
+          "output_sha": "0865de92ba8aba6cc4734318c2952a85a594c3d919ace7215b75b4674471ce60"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '228,251p' | grep -A10 'keywords'",
+          "exit_code": 0,
+          "output_sha": "8d5351711fb9d28a54b79cc3b8585c61112404381f35743df25d1a7120ca9e7b"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '252,268p' | grep -A3 'keywords'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '269,292p' | grep -A9 'keywords'",
+          "exit_code": 0,
+          "output_sha": "ce243bd9d4457633c1d7752c00518ddb7af1b9378ae6b017209ecba42a7bc5ab"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '293,357p' | grep -A16 'keywords'",
+          "exit_code": 0,
+          "output_sha": "0a60d0b10d19c442ff337bf02fd90aabcaa16015cd73c017e8495f3688ac521b"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '358,397p' | grep -A9 'keywords'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '398,438p' | grep -A11 'keywords'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '439,487p' | grep -A10 'keywords'",
+          "exit_code": 0,
+          "output_sha": "43099bb62033396a1cf660ca9933518cd74bb844d86f26e812a7bb28c129bb14"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '64,119p' | grep -B2 -A12 'signature_patterns'",
+          "exit_code": 0,
+          "output_sha": "8ce98e49044ceb9a0bdc6a54b2b61e1a09fb8cfd1e783a193ce6b0e7159e2ec4"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '64,119p' | grep -A30 'signature_patterns'",
+          "exit_code": 0,
+          "output_sha": "780c9c6e08bee18314e8739afb3a73bc7fcd0a779e4aa4d378ae4c4a7db8e922"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '64,119p' | grep -A35 'signature_patterns' | tail -8",
+          "exit_code": 0,
+          "output_sha": "ab25be32252d63bcd54e4da1c14557d10dd440545a0616d8bec3e78a067c98ba"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '120,164p' | grep -A10 'signature_patterns'",
+          "exit_code": 0,
+          "output_sha": "00d5437a2832d2212964e2d9e0f6ad6f6cc9d07481bbef2c5f865ff4fa330963"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '165,187p' | grep -A6 'signature_patterns'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '188,204p' | grep -A6 'signature_patterns'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '205,227p' | grep -A6 'signature_patterns'",
+          "exit_code": 0,
+          "output_sha": "1b78722179ed35e3fe818d2abf8199551e8cae331d1afb17e84880b0f3f70b9e"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '228,251p' | grep -A6 'signature_patterns'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '252,268p' | grep -A6 'signature_patterns'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '269,292p' | grep -A6 'signature_patterns'",
+          "exit_code": 0,
+          "output_sha": "eb90bf0e6de365c4ba372b665d6a5fbd4d60d3e8992cd2251c3130a658fbdfc6"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '293,357p' | grep -A25 'signature_patterns'",
+          "exit_code": 0,
+          "output_sha": "89e7a33c15fc4674196d20d91670e7a18631098b8e92f16dac446259e9443ab4"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '293,357p' | grep -A35 'signature_patterns' | tail -12",
+          "exit_code": 0,
+          "output_sha": "e9bb733e63f59d4bf5057a1b0b2c1e354d64c36443b36b605d2903a3440d6528"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '358,397p' | grep -A20 'signature_patterns'",
+          "exit_code": 0,
+          "output_sha": "1910aa513800058cd2689cfef7dc051f9a2f3be84c2e4787d345829d18abc1a2"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '398,438p' | grep -A15 'signature_patterns'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '439,487p' | grep -A8 'signature_patterns'",
+          "exit_code": 0,
+          "output_sha": "8b91caa6646c1932fcbf15803b915c86700388d34b545075f788c9ab9bcddb0c"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '40,63p' | grep -A10 'signature_patterns'",
+          "exit_code": 0,
+          "output_sha": "0e0cd35718411a316812df3bc1ece0f688691de1c49f1f3f2b3f0fb69f1dd803"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '40,63p' | grep -A12 'signature_patterns' | tail -3",
+          "exit_code": 0,
+          "output_sha": "a37f0d56fb9cfd7f68daf02905e63ee5bb005d1f7f63103bdf8a64372fba8f8a"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '64,119p' | grep -A40 'signature_patterns' | grep -E 'r\"' ",
+          "exit_code": 0,
+          "output_sha": "4dd08f64a3f3d839d3f02114f611382c27cef331b6b75fb5c8f5e75240cac68d"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '120,164p' | grep -A15 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "97f00beac2a61b80a4eae56446aa7f137b294b69832fa802513c0a0c8431fb9a"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '165,187p' | grep -A8 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '188,204p' | grep -A8 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '205,227p' | grep -A8 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "91f9c24e7e8f6c293e7f310fc254c5ff866905953770cfc1e4eab21dd29a0635"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '228,251p' | grep -A8 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '252,268p' | grep -A8 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '269,292p' | grep -A8 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "06dd4142edf5ece49b0c4b59d3d39b40ed9234a2688f8918d0dc903f62e2b0bf"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '293,357p' | grep -A40 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "ad0747ed3bfeaff4b8563d1aa8aae6991421c8c9ce672886b38eb89a5a7e5673"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '358,397p' | grep -A25 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '398,438p' | grep -A20 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '439,487p' | grep -A10 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "6c5e125a8cb082c28fa6800dcc8b76cb9d41d127ce94a2047dac66639ccd01c8"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '40,63p' | grep -A15 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "f4bd86e15770887a0a77100efe76ce28ea95340d2d87fc369b2d75c35aedc57b"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '64,119p' | grep -A45 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "12b635b7c80f01e55b01de66cdebd7cb64d7af415f1e1ab2c5ff213fb872ef76"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '120,164p' | grep -A20 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "901596d8d3ceaa40920b598789e530d700569912c421b57f2006c3ab8761e8c4"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '165,187p' | grep -A10 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '188,204p' | grep -A10 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '205,227p' | grep -A10 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "03474467b0b528572b2d87b90638c05c02668196b985dc0dd54cce9426ee05a0"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '228,251p' | grep -A10 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '252,268p' | grep -A10 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '269,292p' | grep -A10 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "868f2bd88e5421f06734fcaf9a922ee3696ea7b0b400f58ee609fd73161f937e"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '293,357p' | grep -A45 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "45ea07c3e2fe5d721453b0392d3d85ed2c6f515ffecae3906f1f92257c3c4966"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '358,397p' | grep -A30 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '398,438p' | grep -A25 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '439,487p' | grep -A15 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "304d6cf504eeffc6b0d1d8ffe914a1f6fbcd621937d0b402decf11be28eb1f70"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '40,63p' | grep -A20 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "23a5623f45f52cef95bc00fe799f775335b1ba62010a21e8fd4d5a5e32725902"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '64,119p' | grep -A50 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "f2c88477efb58ace655dcd55de4b41c110418b340fb0d5dbbd394671c635982c"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '120,164p' | grep -A25 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "0c08250c3be06ce83dd1bfd5f33d3724f7c4856fe77bb275a04ee07bf7179e37"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '165,187p' | grep -A12 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '188,204p' | grep -A12 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '205,227p' | grep -A12 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "ceecad536fe043960f1540e4a10bed6c1f64a7cfad1c26c3be544555cfcc9ca2"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '228,251p' | grep -A12 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '252,268p' | grep -A12 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '269,292p' | grep -A12 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "f04419d87f98b12e4f9fc43e3801b605194ecf4e817a99be5d988c021b2c1239"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '293,357p' | grep -A50 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "6f81bb1b736183c398a47deb8f5bc7ec0a0e4fb7552eac827f8d9f4d96cfc19e"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '358,397p' | grep -A35 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '398,438p' | grep -A30 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '439,487p' | grep -A20 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "cd9ee1d22cbb9dddeb8e3fa42b0ba79e7a9cca19870431cffb0a715bd21278c6"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '40,63p' | grep -A25 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "38c3ab847dcc7ecbed72081b19c7106b4cbf7b62fd394be1cfd4631b453b291a"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '64,119p' | grep -A55 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "b1f5969e4ea606efa60ed11caf4477247db196aec3fc46de0309231b626101c5"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '120,164p' | grep -A30 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "cf619da71dedcd8f6ee7803d5ddc0974ac7d9f642a76b2bd48b214138f450dca"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '165,187p' | grep -A15 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '188,204p' | grep -A15 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '205,227p' | grep -A15 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "352dd7083a546fc01b06d524dff4df98e9adb0e70f2a70b8bb8c99f70cd60bd0"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '228,251p' | grep -A15 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '252,268p' | grep -A15 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '269,292p' | grep -A15 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "c88e99497d3c91f6d70628ea31dd0e91d5e5ec40e5d80001b1700acfae944a32"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '293,357p' | grep -A55 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "3df1e4f52f8f21a71513fc6f1c7034bc4b29db4d4f709fc8d2ccf2f6d51c210d"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '358,397p' | grep -A40 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '398,438p' | grep -A35 'signature_patterns' | grep -E 'r\"'; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '439,487p' | grep -A25 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "48c5866515cf47440a9268a20e15c117992e4bbeb65825a1cd99177a1b54553a"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '40,63p' | grep -A30 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "f9ba86778f59b065c91c7382617de869dfaa6d0c1c0161cf63dba2779198775c"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '64,119p' | grep -A60 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "24465379745c633755d2e394fc01383a21dfe394d0274afbeef99d37d413b18e"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sed -n '120,164p' | grep -A35 'signature_patterns' | grep -E 'r\"'",
+          "exit_code": 0,
+          "output_sha": "f93e82a198e58f657c00d46c62082fb1d974e49650021645e7cd72c3503fb97c"
+        }
+      ]
+    }
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [],
+    "summary": "Documentation-only QA evidence record; the four raw log files referenced in evidence.txt all exist in the diff, and the tag/commit SHAs, version strings, hashes, and exit codes are internally consistent across the narrative and raw logs.",
+    "review_state": {
+      "emitted": [],
+      "carried": []
+    }
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: FAIL\n  INCOMPLETE\n  \u2014 docs/qa/evidence/run-RELEASE-LORE-010/evidence.txt plus raw/{install,cli,metadata,negative}.txt record a COLD uv tool install of git+https://github.com/get-h3/lore@v0.3.0 exiting 0 with dist metadata and installed lore/__init__.py both at 0.3.0, the installed CLI run from a cwd outside any checkout exiting 0 and returning a classified match, and a nonexistent-tag negative arm exiting nonzero; the record names host, exact command, uv version and tag commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd.: Not examined \u2014 evaluation ended before this criterion was reached (no judgement was made about it)\n  \u2717 Coverage FAILED \u2014 not passing: docs/qa/evidence/run-RELEASE-LORE-010/evidence.txt plus raw/{install,cli,metadata,negative}.txt record a COLD uv tool install of git+https://github.com/get-h3/lore@v0.3.0 exiting 0 with dist metadata and installed lore/__init__.py both at 0.3.0, the installed CLI run from a cwd outside any checkout exiting 0 and returning a classified match, and a nonexistent-tag negative arm exiting nonzero; the record names host, exact command, uv version and tag commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd.\nCap exceeded: Iteration cap (100) reached (100.1 used). Increase max_iterations or split criteria. Partial verdict \u2014 0 of 1 criteria graded, 1 ungraded. The run spent 3,703,101 in / 12,101 out over 100.1 iterations.\n\nOverall: FAIL \u2717",
+  "evaluated_at": "2026-11-21T23:03:24.197732",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-21T23:03:24.215066+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 12054,
+        "truncated": false,
+        "source": "git show cd225bc556ef"
+      }
+    ],
+    "task_id": "RELEASE-LORE-010"
+  }
+}
