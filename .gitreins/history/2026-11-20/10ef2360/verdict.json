@@ -1,0 +1,348 @@
+{
+  "task_id": "LORE-HYGIENE-20261120",
+  "task_title": "gitreins lifecycle plane reconciliation: three phantom in_progress tasks",
+  "task_criteria": [
+    "After the reconciliation, grep -c 'status: in_progress' /home/kara/get-h3/lore/.gitreins/tasks.yaml prints 0; LORE-051 and LORE-057 closed lifecycle-only (--force --skip-tier2) with their board rows still complete and commit_hash unchanged (c1ac048, 7621609); SUP-DEPS-LORE-20261008 closed with a note naming superseding scan rows SUP-DEPS-20261013-LORE and SUP-DEPS-20261020-LORE; no product-code churn."
+  ],
+  "passed": false,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "d835b48cfe47c9835614ebb2f2180d00b0aab93d",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "0edd87a0e3ed50a54e5f25272d3df68f2c28018e40a7c581c6a92ea69b6a271b",
+  "working_tree_dirty_path_count": 9,
+  "items": [
+    {
+      "criterion": "After the reconciliation, grep -c 'status: in_progress' /home/kara/get-h3/lore/.gitreins/tasks.yaml prints 0; LORE-051 and LORE-057 closed lifecycle-only (--force --skip-tier2) with their board rows still complete and commit_hash unchanged (c1ac048, 7621609); SUP-DEPS-LORE-20261008 closed with a note naming superseding scan rows SUP-DEPS-20261013-LORE and SUP-DEPS-20261020-LORE; no product-code churn.",
+      "status": "FAIL",
+      "detail": "Gate arm FAILS: `grep -c 'status: in_progress' /home/kara/get-h3/lore/.gitreins/tasks.yaml` printed `1` (exit 0), not 0. The match is tasks.yaml:896 \u2014 the literal needle embedded in LORE-HYGIENE-20261120's own criteria text, and that task entry still exists at tasks.yaml:893-900 even though the board foreman_note (tasks.jsonl:143) asserts 'The hygiene gitreins task itself is deleted after completion... Final gate arm: grep -c ... = 0'. The deletion the close record relies on was never applied to the lifecycle plane. Sub-parts that DO hold: (a) LORE-051 (tasks.yaml:538-546) and LORE-057 (566-576) are status complete with completed_at 2026-11-20T14:56, and history verdicts .gitreins/history/2026-11-20/{27734495,541ba63c}/verdict.json show passed=true, pass_class=tier1-only, tier2_skipped=true \u2014 consistent with --force --skip-tier2; (b) board rows LORE-051 (tasks.jsonl:77, commit_hash c1ac048) and LORE-057 (tasks.jsonl:87, commit_hash 7621609ed5873159e4ba4a74296b46f27bb4610b) are complete and HEAD's tasks.jsonl diff changed only the LORE-HYGIENE-20261120 row (verified by parsing the +/- lines of `git show HEAD`), so both commit_hashes are unchanged; (c) SUP-DEPS-LORE-20261008 is closed complete (tasks.yaml:494-501, verdict 978c25a1 tier1-only PASS) and the note naming SUP-DEPS-20261013-LORE and SUP-DEPS-20261020-LORE exists in the LORE-HYGIENE-20261120 board foreman_note and in commit d835b48's message (though not on the SUP-DEPS-LORE-20261008 tasks.yaml entry itself, which carries only status/completed_at); (d) no product-code churn \u2014 HEAD..HEAD~3 touch only .coding-hermes/board/*.jsonl and .gitreins artifacts, and `git status --porcelain` shows only untracked .gitreins/history/2026-11-20/ run dirs."
+    },
+    {
+      "criterion": "Board/lifecycle consistency: the board close record (worker_summary/foreman_note/commit message) must match the actual lifecycle-plane state it claims \u2014 specifically the claimed deletion of the hygiene gitreins task and the claimed final gate arm of 0 must be true in .gitreins/tasks.yaml.",
+      "status": "FAIL",
+      "detail": "tasks.jsonl:143 foreman_note claims 'The hygiene gitreins task itself is deleted after completion (tick-sanctioned; verdict stays under .gitreins/history/2026-11-20/)' and 'Final gate arm: grep -c of the needle on the absolute tasks.yaml path = 0', and commit d835b48 claims the reconciliation 'clears 3 phantom in_progress tasks' \u2014 but .gitreins/tasks.yaml:893-900 still contains the LORE-HYGIENE-20261120 entry, the live gate arm prints 1, and events.jsonl records only task_created (id 457) for this row with no deletion event. The close record asserts a lifecycle state that does not exist.",
+      "derived": true
+    }
+  ],
+  "merge_recommendation": "changes_required",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261120T145835.438476Z.log"
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nscanners: nice=nice -n 10\n10:08AM INF scanned ~13948863 bytes (13.95 MB) in 18.6s\n10:08AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 294 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261120T145835.438476Z.log",
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.14.7\ncollected 572 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 24%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 27%]\ntests/test_evidence.py ......................                            [ 31%]\ntests/test_lore011_drain_acceptance.py .......                           [ 32%]\ntests/test_lore016_qa_audit.py .....................                     [ 36%]\ntests/test_lore017_gateway_guard.py ........                             [ 37%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 39%]\ntests/test_lore022_freshness_docs.py .....                               [ 40%]\ntests/test_lore030_ux_guard.py ....                                      [ 40%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 42%]\ntests/test_lore041_collision_canonical.py ...........                    [ 44%]\ntests/test_lore043_short_text_threshold.py ....................          [ 48%]\ntests/test_lore045_validate_history.py ....................              [ 51%]\ntests/test_lore046_match_output.py ...........                           [ 53%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 55%]\n\n\u2026 [480 chars omitted \u2014 6 line(s)] \u2026\ntests/test_lore054_match_class_filter.py ....                            [ 64%]\ntests/test_lore055_consult_missing_input.py ......                       [ 65%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 66%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 67%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 68%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 69%]\ntests/test_lore064_audit_wiring.py .............................         [ 74%]\ntests/test_lore066_zero_check_skip.py ...                                [ 75%]\ntests/test_lore067_incident_audit.py ..                                  [ 75%]\ntests/test_lore071_trigger.py ......                                     [ 76%]\ntests/test_near_miss.py ..............                                   [ 79%]\ntests/test_perf2_audit_single_pass.py ........                           [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 81%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 572 passed in 30.40s =============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            },
+            "guard_log": "/home/kara/get-h3/lore/.gitreins/logs/guard-20261120T145835.438476Z.log"
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": false,
+      "any_failed": true,
+      "summary": "INCOMPLETE\n  \u2717 After the reconciliation, grep -c 'status: in_progress' /home/kara/get-h3/lore/.gitreins/tasks.yaml prints 0; LORE-051 and LORE-057 closed lifecycle-only (--force --skip-tier2) with their board rows still complete and commit_hash unchanged (c1ac048, 7621609); SUP-DEPS-LORE-20261008 closed with a note naming superseding scan rows SUP-DEPS-20261013-LORE and SUP-DEPS-20261020-LORE; no product-code churn.: Gate arm FAILS: `grep -c 'status: in_progress' /home/kara/get-h3/lore/.gitreins/tasks.yaml` printed `1` (exit 0), not 0. The match is tasks.yaml:896 \u2014 the literal needle embedded in LORE-HYGIENE-20261120's own criteria text, and that task entry still exists at tasks.yaml:893-900 even though the board foreman_note (tasks.jsonl:143) asserts 'The hygiene gitreins task itself is deleted after completion... Final gate arm: grep -c ... = 0'. The deletion the close record relies on was never applied to the lifecycle plane. Sub-parts that DO hold: (a) LORE-051 (tasks.yaml:538-546) and LORE-057 (566-576) are status complete with completed_at 2026-11-20T14:56, and history verdicts .gitreins/history/2026-11-20/{27734495,541ba63c}/verdict.json show passed=true, pass_class=tier1-only, tier2_skipped=true \u2014 consistent with --force --skip-tier2; (b) board rows LORE-051 (tasks.jsonl:77, commit_hash c1ac048) and LORE-057 (tasks.jsonl:87, commit_hash 7621609ed5873159e4ba4a74296b46f27bb4610b) are complete and HEAD's tasks.jsonl diff changed only the LORE-HYGIENE-20261120 row (verified by parsing the +/- lines of `git show HEAD`), so both commit_hashes are unchanged; (c) SUP-DEPS-LORE-20261008 is closed complete (tasks.yaml:494-501, verdict 978c25a1 tier1-only PASS) and the note naming SUP-DEPS-20261013-LORE and SUP-DEPS-20261020-LORE exists in the LORE-HYGIENE-20261120 board foreman_note and in commit d835b48's message (though not on the SUP-DEPS-LORE-20261008 tasks.yaml entry itself, which carries only status/completed_at); (d) no product-code churn \u2014 HEAD..HEAD~3 touch only .coding-hermes/board/*.jsonl and .gitreins artifacts, and `git status --porcelain` shows only untracked .gitreins/history/2026-11-20/ run dirs.\n  \u2717 Board/lifecycle consistency: the board close record (worker_summary/foreman_note/commit message) must match the actual lifecycle-plane state it claims \u2014 specifically the claimed deletion of the hygiene gitreins task and the claimed final gate arm of 0 must be true in .gitreins/tasks.yaml.: tasks.jsonl:143 foreman_note claims 'The hygiene gitreins task itself is deleted after completion (tick-sanctioned; verdict stays under .gitreins/history/2026-11-20/)' and 'Final gate arm: grep -c of the needle on the absolute tasks.yaml path = 0', and commit d835b48 claims the reconciliation 'clears 3 phantom in_progress tasks' \u2014 but .gitreins/tasks.yaml:893-900 still contains the LORE-HYGIENE-20261120 entry, the live gate arm prints 1, and events.jsonl records only task_created (id 457) for this row with no deletion event. The close record asserts a lifecycle state that does not exist.\n  \u2717 Coverage FAILED \u2014 not passing: After the reconciliation, grep -c 'status: in_progress' /home/kara/get-h3/lore/.gitreins/tasks.yaml prints 0; LORE-051 and LORE-057 closed lifecycle-only (--force --skip-tier2) with their board rows still complete and commit_hash unchanged (c1ac048, 7621609); SUP-DEPS-LORE-20261008 closed with a note naming superseding scan rows SUP-DEPS-20261013-LORE and SUP-DEPS-20261020-LORE; no product-code churn.\nThe three phantom in_progress tasks were genuinely closed (tier1-only verdicts, board rows and commit_hashes intact, superseding note recorded, no product-code churn), but the acceptance gate fails as written: grep -c prints 1 because the LORE-HYGIENE-20261120 entry \u2014 whose own criteria embed the grep needle \u2014 was never deleted from .gitreins/tasks.yaml despite the board foreman_note and commit message asserting it was. [uncovered failure paths: failure mode 1 (Board close record claims a lifecycle-plane deletion that never happened, so the board and the gitreins task plane disagree about whether LORE-HYGIENE-20261120 still exists as a task): detected_by is empty \u2014 uncovered failure path]",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": false,
+          "output": "INCOMPLETE\n  \u2717 After the reconciliation, grep -c 'status: in_progress' /home/kara/get-h3/lore/.gitreins/tasks.yaml prints 0; LORE-051 and LORE-057 closed lifecycle-only (--force --skip-tier2) with their board rows still complete and commit_hash unchanged (c1ac048, 7621609); SUP-DEPS-LORE-20261008 closed with a note naming superseding scan rows SUP-DEPS-20261013-LORE and SUP-DEPS-20261020-LORE; no product-code churn.: Gate arm FAILS: `grep -c 'status: in_progress' /home/kara/get-h3/lore/.gitreins/tasks.yaml` printed `1` (exit 0), not 0. The match is tasks.yaml:896 \u2014 the literal needle embedded in LORE-HYGIENE-20261120's own criteria text, and that task entry still exists at tasks.yaml:893-900 even though the board foreman_note (tasks.jsonl:143) asserts 'The hygiene gitreins task itself is deleted after completion... Final gate arm: grep -c ... = 0'. The deletion the close record relies on was never applied to the lifecycle plane. Sub-parts that DO hold: (a) LORE-051 (tasks.yaml:538-546) and LORE-057 (566-576) are status complete with completed_at 2026-11-20T14:56, and history verdicts .gitreins/history/2026-11-20/{27734495,541ba63c}/verdict.json show passed=true, pass_class=tier1-only, tier2_skipped=true \u2014 consistent with --force --skip-tier2; (b) board rows LORE-051 (tasks.jsonl:77, commit_hash c1ac048) and LORE-057 (tasks.jsonl:87, commit_hash 7621609ed5873159e4ba4a74296b46f27bb4610b) are complete and HEAD's tasks.jsonl diff changed only the LORE-HYGIENE-20261120 row (verified by parsing the +/- lines of `git show HEAD`), so both commit_hashes are unchanged; (c) SUP-DEPS-LORE-20261008 is closed complete (tasks.yaml:494-501, verdict 978c25a1 tier1-only PASS) and the note naming SUP-DEPS-20261013-LORE and SUP-DEPS-20261020-LORE exists in the LORE-HYGIENE-20261120 board foreman_note and in commit d835b48's message (though not on the SUP-DEPS-LORE-20261008 tasks.yaml entry itself, which carries only status/completed_at); (d) no product-code churn \u2014 HEAD..HEAD~3 touch only .coding-hermes/board/*.jsonl and .gitreins artifacts, and `git status --porcelain` shows only untracked .gitreins/history/2026-11-20/ run dirs.\n\n\u2026 [890 chars omitted \u2014 1 line(s)] \u2026\n  \u2717 Coverage FAILED \u2014 not passing: After the reconciliation, grep -c 'status: in_progress' /home/kara/get-h3/lore/.gitreins/tasks.yaml prints 0; LORE-051 and LORE-057 closed lifecycle-only (--force --skip-tier2) with their board rows still complete and commit_hash unchanged (c1ac048, 7621609); SUP-DEPS-LORE-20261008 closed with a note naming superseding scan rows SUP-DEPS-20261013-LORE and SUP-DEPS-20261020-LORE; no product-code churn.\nThe three phantom in_progress tasks were genuinely closed (tier1-only verdicts, board rows and commit_hashes intact, superseding note recorded, no product-code churn), but the acceptance gate fails as written: grep -c prints 1 because the LORE-HYGIENE-20261120 entry \u2014 whose own criteria embed the grep needle \u2014 was never deleted from .gitreins/tasks.yaml despite the board foreman_note and commit message asserting it was. [uncovered failure paths: failure mode 1 (Board close record claims a lifecycle-plane deletion that never happened, so the board and the gitreins task plane disagree about whether LORE-HYGIENE-20261120 still exists as a task): detected_by is empty \u2014 uncovered failure path]",
+          "error": "",
+          "data": {
+            "verdict": "INCOMPLETE",
+            "items": [
+              {
+                "criterion": "After the reconciliation, grep -c 'status: in_progress' /home/kara/get-h3/lore/.gitreins/tasks.yaml prints 0; LORE-051 and LORE-057 closed lifecycle-only (--force --skip-tier2) with their board rows still complete and commit_hash unchanged (c1ac048, 7621609); SUP-DEPS-LORE-20261008 closed with a note naming superseding scan rows SUP-DEPS-20261013-LORE and SUP-DEPS-20261020-LORE; no product-code churn.",
+                "status": "FAIL",
+                "detail": "Gate arm FAILS: `grep -c 'status: in_progress' /home/kara/get-h3/lore/.gitreins/tasks.yaml` printed `1` (exit 0), not 0. The match is tasks.yaml:896 \u2014 the literal needle embedded in LORE-HYGIENE-20261120's own criteria text, and that task entry still exists at tasks.yaml:893-900 even though the board foreman_note (tasks.jsonl:143) asserts 'The hygiene gitreins task itself is deleted after completion... Final gate arm: grep -c ... = 0'. The deletion the close record relies on was never applied to the lifecycle plane. Sub-parts that DO hold: (a) LORE-051 (tasks.yaml:538-546) and LORE-057 (566-576) are status complete with completed_at 2026-11-20T14:56, and history verdicts .gitreins/history/2026-11-20/{27734495,541ba63c}/verdict.json show passed=true, pass_class=tier1-only, tier2_skipped=true \u2014 consistent with --force --skip-tier2; (b) board rows LORE-051 (tasks.jsonl:77, commit_hash c1ac048) and LORE-057 (tasks.jsonl:87, commit_hash 7621609ed5873159e4ba4a74296b46f27bb4610b) are complete and HEAD's tasks.jsonl diff changed only the LORE-HYGIENE-20261120 row (verified by parsing the +/- lines of `git show HEAD`), so both commit_hashes are unchanged; (c) SUP-DEPS-LORE-20261008 is closed complete (tasks.yaml:494-501, verdict 978c25a1 tier1-only PASS) and the note naming SUP-DEPS-20261013-LORE and SUP-DEPS-20261020-LORE exists in the LORE-HYGIENE-20261120 board foreman_note and in commit d835b48's message (though not on the SUP-DEPS-LORE-20261008 tasks.yaml entry itself, which carries only status/completed_at); (d) no product-code churn \u2014 HEAD..HEAD~3 touch only .coding-hermes/board/*.jsonl and .gitreins artifacts, and `git status --porcelain` shows only untracked .gitreins/history/2026-11-20/ run dirs."
+              },
+              {
+                "criterion": "Board/lifecycle consistency: the board close record (worker_summary/foreman_note/commit message) must match the actual lifecycle-plane state it claims \u2014 specifically the claimed deletion of the hygiene gitreins task and the claimed final gate arm of 0 must be true in .gitreins/tasks.yaml.",
+                "status": "FAIL",
+                "detail": "tasks.jsonl:143 foreman_note claims 'The hygiene gitreins task itself is deleted after completion (tick-sanctioned; verdict stays under .gitreins/history/2026-11-20/)' and 'Final gate arm: grep -c of the needle on the absolute tasks.yaml path = 0', and commit d835b48 claims the reconciliation 'clears 3 phantom in_progress tasks' \u2014 but .gitreins/tasks.yaml:893-900 still contains the LORE-HYGIENE-20261120 entry, the live gate arm prints 1, and events.jsonl records only task_created (id 457) for this row with no deletion event. The close record asserts a lifecycle state that does not exist.",
+                "derived": true
+              }
+            ],
+            "summary": "The three phantom in_progress tasks were genuinely closed (tier1-only verdicts, board rows and commit_hashes intact, superseding note recorded, no product-code churn), but the acceptance gate fails as written: grep -c prints 1 because the LORE-HYGIENE-20261120 entry \u2014 whose own criteria embed the grep needle \u2014 was never deleted from .gitreins/tasks.yaml despite the board foreman_note and commit message asserting it was. [uncovered failure paths: failure mode 1 (Board close record claims a lifecycle-plane deletion that never happened, so the board and the gitreins task plane disagree about whether LORE-HYGIENE-20261120 still exists as a task): detected_by is empty \u2014 uncovered failure path]",
+            "provenance": {
+              "model": "accounts/fireworks/models/kimi-k3",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "accounts/fireworks/models/kimi-k3",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"LORE-HYGIENE-20261120\"}",
+          "exit_code": 0,
+          "output_sha": "52f6aea7ad768e57db65fd1e3b9c3b0f5390ff19624b4498ebab6dc96cc56d3e"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore 2>/dev/null && pwd && ls -la .gitreins/ 2>/dev/null | head -30",
+          "exit_code": 0,
+          "output_sha": "933dd109a9de8d8621a7e24c9cf83a533018c223cd23b45c5ea32a0f789abd13"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -c 'status: in_progress' .gitreins/tasks.yaml; echo \"exit=$?\"",
+          "exit_code": 0,
+          "output_sha": "91c9911a00d0012d1a52c86b8f0d66e70a575ea30690f18542560f14b2f7fc20"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n -A 20 'id: LORE-051' .gitreins/tasks.yaml | head -40",
+          "exit_code": 0,
+          "output_sha": "ae291de1fb351863502cc2350fd3de30568a293151e15b2854ee4050a454f7e4"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n 'status: in_progress' .gitreins/tasks.yaml && grep -n -B 8 'status: in_progress' .gitreins/tasks.yaml | head -20",
+          "exit_code": 0,
+          "output_sha": "be5017420476921d6b65476f2dd348a1fa006cbb72904cb724cdc201d1271805"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n -A 12 'id: LORE-057' .gitreins/tasks.yaml | head -20; echo ---; grep -n -A 14 'id: SUP-DEPS-LORE-20261008' .gitreins/tasks.yaml | head -25",
+          "exit_code": 0,
+          "output_sha": "255f79227e337a3ab561e8a1ab2dfcbfe49a425fb6af2e06e0bb936f7b7e4569"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && ls .coding-hermes/board/ && grep -c '' .coding-hermes/board/tasks.jsonl",
+          "exit_code": 0,
+          "output_sha": "f18b574e3a52dfa09446874ca9787b78e06fef73bac74071a8cda38c0690cc73"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n 'LORE-051\\|LORE-057\\|SUP-DEPS-LORE-20261008' .coding-hermes/board/tasks.jsonl | cut -c1-400",
+          "exit_code": 0,
+          "output_sha": "f159b6a4e68841394fbd1092d0d3ce7a74c03290ec5f8ed7174294940d740062"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && python3 -c \"\nimport json\nfor line in open('.coding-hermes/board/tasks.jsonl'):\n    r = json.loads(line)\n    if r.get('id') in ('LORE-051','LORE-057','SUP-DEPS-LORE-20261008','LORE-HYGIENE-20261120'):\n        print(r['id'], '| status:', r.get('status'), '| commit_hash:', r.get('commit_hash'), '| keys:', sorted(r.keys()))\n\"",
+          "exit_code": 0,
+          "output_sha": "8bf76fecc6ca874102b86236889ef1cc73218b6703fb60d6f95458454b7ce5b6"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git log --oneline -8 && echo --- && git show --stat HEAD | head -20",
+          "exit_code": 0,
+          "output_sha": "1666ad96974fdf0d99a9a8a12f10f84c65c9afaa90c31202e718be57a927f66e"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n 'SUP-DEPS-20261013-LORE\\|SUP-DEPS-20261020-LORE\\|supersed' .gitreins/tasks.yaml | head -20",
+          "exit_code": 0,
+          "output_sha": "2e3d1ab3b6b5ddc69cd324ade908095f8312f1e211e204ba11aada4d4264041c"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git show --stat HEAD | tail -8; echo ===; git show --stat a2877b6 | tail -8; echo ===; git show --stat b08e118 | tail -8",
+          "exit_code": 0,
+          "output_sha": "abc325960f66dc1ca1104f95eeec0d8f52e239fa326810bdc38931f2e3c14495"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && ls .gitreins/history/ | grep 2026-11-20; echo ===; grep -rl 'LORE-051\\|LORE-057\\|SUP-DEPS-LORE-20261008' .gitreins/history/2026-11-20* 2>/dev/null | head",
+          "exit_code": 0,
+          "output_sha": "237baa6cfa6d32e2b80df99bf4134c7992e0def2afdd58b079e0b50d67f7b518"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && python3 -c \"\nimport json\nfor line in open('.coding-hermes/board/tasks.jsonl'):\n    r = json.loads(line)\n    if r.get('id') == 'LORE-HYGIENE-20261120':\n        print(json.dumps(r, indent=1)[:3000])\n\"",
+          "exit_code": 0,
+          "output_sha": "e800584e9952daaa23886f7d93d1a52c65f88577d5116345156f5ecb0cd5d5ee"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && python3 -c \"\nimport json\nfor line in open('.coding-hermes/board/tasks.jsonl'):\n    r = json.loads(line)\n    if r.get('id') == 'LORE-HYGIENE-20261120':\n        print('FOREMAN_NOTE:', r.get('foreman_note'))\n\"",
+          "exit_code": 0,
+          "output_sha": "4ff8fad55fd309d5ce78b05f5e638397c7409e0553cf330e9799585e656ad326"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && for d in 978c25a1 27734495 541ba63c; do echo \"== $d ==\"; python3 -c \"\nimport json\nv = json.load(open('.gitreins/history/2026-11-20/$d/verdict.json'))\nprint(json.dumps(v, indent=1)[:800])\n\"; done",
+          "exit_code": 0,
+          "output_sha": "d89b4bd2c155dae145ad5535b7ccf1d2afdb184140a697b88270cae62ec972f6"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n 'LORE-HYGIENE' .gitreins/tasks.yaml; echo \"grep-exit=$?\"; echo ===; git status --porcelain; echo \"status-exit=$?\"; echo ===; git check-ignore .gitreins/tasks.yaml && echo IGNORED",
+          "exit_code": 0,
+          "output_sha": "83c8518e868cf1fccc2482f814d3dd70b4ef0a7d06b3bb749fb6aa061b8f7351"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -c 'SUP-DEPS-LORE-20261008' .coding-hermes/board/tasks.jsonl; echo ===; grep -n 'note\\|notes' .gitreins/tasks.yaml | head -5",
+          "exit_code": 0,
+          "output_sha": "ece9798000c62c50524d9ebf005ae62de3cdd7f4f0a39b4394ac3e89ec1b640e"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n 'SUP-DEPS-LORE-20261008' .coding-hermes/board/tasks.jsonl | cut -c1-200; echo ===; grep -n '5780fa3c\\|cc0f3bee\\|a83c52df' -r .gitreins/history/2026-11-20/ .gitreins/logs/ 2>/dev/null | head -6",
+          "exit_code": 0,
+          "output_sha": "a92b7cc2ac0d6363f133d3030171d075e96ca12f78cc725c0148a7c703bdc49f"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && sed -n '325,335p' .gitreins/tasks.yaml; echo ===; grep -n -B3 'note$' .gitreins/tasks.yaml | head -12",
+          "exit_code": 0,
+          "output_sha": "175f77f60e79609f1992a8b5f33bffeecc81ad1978400bf2faee3bf795922f95"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git show HEAD -- .coding-hermes/board/tasks.jsonl | grep '^[-+]' | grep -o 'LORE-HYGIENE-20261120' | head -2; echo ===; git show HEAD | grep -c 'SUP-DEPS-LORE-20261008'; echo ===; git diff --stat HEAD~3..HEAD",
+          "exit_code": 0,
+          "output_sha": "06aaaedf432226431197d8d13fda342f8e0d1b6e558384c974cc1bf2f8248c13"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git show HEAD -- .coding-hermes/board/tasks.jsonl | grep '^+' | grep -o 'SUP-DEPS-LORE-20261008[^\"]*' | head -5; echo ===; git show HEAD -- .coding-hermes/board/tasks.jsonl | grep '^+' | cut -c1-120 | head -5",
+          "exit_code": 0,
+          "output_sha": "e6b77dabd75ad3b821269bf62838fe08a8c223350d14757ffb9ae5f27e1e7e00"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n 'test_command' .gitreins/config.yaml; echo ===; git show HEAD~1 --stat | tail -4; echo ===; git show HEAD~1 | grep '^[+-]' | grep -c 'LORE-051\\|LORE-057' ",
+          "exit_code": 0,
+          "output_sha": "69eea783a6972d5b24e89ecf02f5c3fd72bf28df9f9a282a594cc39ade3f23af"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git show HEAD~1 -- .coding-hermes/board/tasks.jsonl | grep '^[+-]' | grep -o 'LORE-051[^,\"]*\\|LORE-057[^,\"]*' | head -6",
+          "exit_code": 0,
+          "output_sha": "469fc798a28a13db31c11593ced49774c48c6973e882b3c96e5973d606272a1a"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git show HEAD~1 -- .coding-hermes/board/tasks.jsonl | python3 -c \"\nimport sys, json\nold = new = None\nfor line in sys.stdin:\n    if line.startswith('-{') or line.startswith('+{'):\n        r = json.loads(line[1:])\n        if r.get('id') == 'LORE-HYGIENE-20261120':\n            if line.startswith('-'): old = r\n            else: new = r\nprint('OLD keys:', sorted(old.keys()) if old else None)\nprint('NEW keys:', sorted(new.keys()) if new else None)\nif old and new:\n    for k in sorted(set(old) | set(new)):\n        if old.get(k) != new.get(k):\n            print('CHANGED', k, ':', repr(old.get(k))[:80], '->', repr(new.get(k))[:80])\n\"",
+          "exit_code": 0,
+          "output_sha": "ade891828c479c98ec8790140ae39ee6fc0c89ac190c6a5d31d663f5796dd277"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git show HEAD -- .coding-hermes/board/tasks.jsonl | python3 -c \"\nimport sys, json\nold = new = None\nfor line in sys.stdin:\n    if line.startswith('-{') or line.startswith('+{'):\n        r = json.loads(line[1:])\n        if r.get('id') == 'LORE-HYGIENE-20261120':\n            if line.startswith('-'): old = r\n            else: new = r\nfor k in sorted(set(old) | set(new)):\n    if old.get(k) != new.get(k):\n        print('CHANGED', k, ':', repr(old.get(k))[:100], '->', repr(new.get(k))[:100])\n\"",
+          "exit_code": 0,
+          "output_sha": "5f93b9e1ddce703d2fe1681b47f76731be61196aac76a3229755ea459e9a8e91"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n 'LORE-HYGIENE-20261120' .coding-hermes/board/events.jsonl | tail -3 | cut -c1-300",
+          "exit_code": 0,
+          "output_sha": "aeedc7bdd7bde863a198a1102423493873ed0372872dfc68facfc0d64034d750"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"FAIL: `grep -c 'status: in_progress' /home/kara/get-h3/lore/.gitreins/tasks.yaml` prints 1, not 0 (run_command exit 0, output \\\"1\\\"). The match is tasks.yaml:896 \\u2014 the literal needle inside LORE-HYGIENE-20261120's own criteria text, which was NOT deleted from tasks.yaml (grep -n 'LORE-HYGIENE' tasks.yaml \\u2192 line 893 present) despite the board foreman_note asserting \\\"The hygiene gitreins task itself is deleted after completion... Final gate arm: grep -c ... = 0\\\". Sub-parts that DO hold: LORE-051 (tasks.yaml:538-546) and LORE-057 (566-576) status complete with completed_at 2026-11-20T14:56, tier1-only verdicts 27734495/541ba63c with tier2_skipped=true; board rows complete with commit_hash c1ac048 (LORE-051) and 7621609ed... (LORE-057) untouched by HEAD diff (only LORE-HYGIENE row changed); SUP-DEPS-LORE-20261008 closed complete (tasks.yaml:494-501) with the note naming SUP-DEPS-20261013-LORE and SUP-DEPS-20261020-LORE recorded in the board foreman_note of LORE-HYGIENE-20261120 (tasks.jsonl:143) and in commit d835b48 message; no product-code churn (HEAD..HEAD~3 touch only board jsonl + .gitreins artifacts; git status shows only untracked history run dirs).\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "9aec17d830ca0b2e3a38ada00a1952b71434b459619804195772502848a61eed"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"Board/lifecycle consistency: the board close record (worker_summary/foreman_note/commit message) must match the actual lifecycle-plane state it claims \\u2014 specifically the claimed deletion of the hygiene gitreins task and the claimed final gate arm of 0 must be true in .gitreins/tasks.yaml.\", \"key\": \"derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "7388c6d0bf3e6d3a290ab939599f78840658fe8a43847c14b1e3f289f5a14c95"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"FAIL: board row LORE-HYGIENE-20261120 (tasks.jsonl:143) foreman_note claims \\\"The hygiene gitreins task itself is deleted after completion (tick-sanctioned...)\\\" and \\\"Final gate arm: grep -c of the needle on the absolute tasks.yaml path = 0\\\", and commit d835b48 message claims the reconciliation \\\"clears 3 phantom in_progress tasks\\\" \\u2014 but .gitreins/tasks.yaml:893-900 still contains the LORE-HYGIENE-20261120 entry and the live gate arm prints 1. The close record asserts a lifecycle state that does not exist; no events.jsonl entry records the deletion (only task_created id 457).\", \"key\": \"verified_derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "c01a47beaf0fe6581a11eb09be737ef7a083d09a85ba11793a8f2e7627c1c8c0"
+        }
+      ]
+    }
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [
+      {
+        "severity": "low",
+        "file": ".coding-hermes/board/tasks.jsonl",
+        "line": 143,
+        "detection": "completed row leaves guard_result and ci_result null while its worker_summary claims tier1 PASS verdicts were recorded",
+        "detail": "The row closes with \"guard_result\":null,\"ci_result\":null yet worker_summary asserts 'all three tier1-only PASS (verdicts cc0f3bee, a83c52df, 5780fa3c)'; the sibling foreman-direct close SUP-DEPS-LORE-20261120 on the line above records exactly that class of result in guard_result ('tier1 PASS ... verdict 17deae8c'), so the structured field is left unwired against the established pattern."
+      },
+      {
+        "severity": "observation",
+        "file": ".coding-hermes/board/tasks.jsonl",
+        "line": 143,
+        "detection": "worker_status value 'foreman-direct' is not used by any other visible board row",
+        "detail": "Sibling rows in the same file use worker_status 'pending' or 'complete' (DOC-12, SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120); this row introduces 'foreman-direct' as a new enum value with no visible schema or consumer in the diff."
+      }
+    ],
+    "summary": "Bookkeeping-only status flip of one board row to complete; the close-out is internally consistent but drifts from sibling-row conventions by leaving guard_result/ci_result null despite claimed tier1 verdicts and by introducing a novel worker_status value."
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: FAIL\n  INCOMPLETE\n  \u2717 After the reconciliation, grep -c 'status: in_progress' /home/kara/get-h3/lore/.gitreins/tasks.yaml prints 0; LORE-051 and LORE-057 closed lifecycle-only (--force --skip-tier2) with their board rows still complete and commit_hash unchanged (c1ac048, 7621609); SUP-DEPS-LORE-20261008 closed with a note naming superseding scan rows SUP-DEPS-20261013-LORE and SUP-DEPS-20261020-LORE; no product-code churn.: Gate arm FAILS: `grep -c 'status: in_progress' /home/kara/get-h3/lore/.gitreins/tasks.yaml` printed `1` (exit 0), not 0. The match is tasks.yaml:896 \u2014 the literal needle embedded in LORE-HYGIENE-20261120's own criteria text, and that task entry still exists at tasks.yaml:893-900 even though the board foreman_note (tasks.jsonl:143) asserts 'The hygiene gitreins task itself is deleted after completion... Final gate arm: grep -c ... = 0'. The deletion the close record relies on was never applied to the lifecycle plane. Sub-parts that DO hold: (a) LORE-051 (tasks.yaml:538-546) and LORE-057 (566-576) are status complete with completed_at 2026-11-20T14:56, and history verdicts .gitreins/history/2026-11-20/{27734495,541ba63c}/verdict.json show passed=true, pass_class=tier1-only, tier2_skipped=true \u2014 consistent with --force --skip-tier2; (b) board rows LORE-051 (tasks.jsonl:77, commit_hash c1ac048) and LORE-057 (tasks.jsonl:87, commit_hash 7621609ed5873159e4ba4a74296b46f27bb4610b) are complete and HEAD's tasks.jsonl diff changed only the LORE-HYGIENE-20261120 row (verified by parsing the +/- lines of `git show HEAD`), so both commit_hashes are unchanged; (c) SUP-DEPS-LORE-20261008 is closed complete (tasks.yaml:494-501, verdict 978c25a1 tier1-only PASS) and the note naming SUP-DEPS-20261013-LORE and SUP-DEPS-20261020-LORE exists in the LORE-HYGIENE-20261120 board foreman_note and in commit d835b48's message (though not on the SUP-DEPS-LORE-20261008 tasks.yaml entry itself, which carries only status/completed_at); (d) no product-code churn \u2014 HEAD..HEAD~3 touch only .coding-hermes/board/*.jsonl and .gitreins artifacts, and `git status --porcelain` shows only untracked .gitreins/history/2026-11-20/ run dirs.\n  \u2717 Board/lifecycle consistency: the board close record (worker_summary/foreman_note/commit message) must match the actual lifecycle-plane state it claims \u2014 specifically the claimed deletion of the hygiene gitreins task and the claimed final gate arm of 0 must be true in .gitreins/tasks.yaml.: tasks.jsonl:143 foreman_note claims 'The hygiene gitreins task itself is deleted after completion (tick-sanctioned; verdict stays under .gitreins/history/2026-11-20/)' and 'Final gate arm: grep -c of the needle on the absolute tasks.yaml path = 0', and commit d835b48 claims the reconciliation 'clears 3 phantom in_progress tasks' \u2014 but .gitreins/tasks.yaml:893-900 still contains the LORE-HYGIENE-20261120 entry, the live gate arm prints 1, and events.jsonl records only task_created (id 457) for this row with no deletion event. The close record asserts a lifecycle state that does not exist.\n  \u2717 Coverage FAILED \u2014 not passing: After the reconciliation, grep -c 'status: in_progress' /home/kara/get-h3/lore/.gitreins/tasks.yaml prints 0; LORE-051 and LORE-057 closed lifecycle-only (--force --skip-tier2) with their board rows still complete and commit_hash unchanged (c1ac048, 7621609); SUP-DEPS-LORE-20261008 closed with a note naming superseding scan rows SUP-DEPS-20261013-LORE and SUP-DEPS-20261020-LORE; no product-code churn.\nThe three phantom in_progress tasks were genuinely closed (tier1-only verdicts, board rows and commit_hashes intact, superseding note recorded, no product-code churn), but the acceptance gate fails as written: grep -c prints 1 because the LORE-HYGIENE-20261120 entry \u2014 whose own criteria embed the grep needle \u2014 was never deleted from .gitreins/tasks.yaml despite the board foreman_note and commit message asserting it was. [uncovered failure paths: failure mode 1 (Board close record claims a lifecycle-plane deletion that never happened, so the board and the gitreins task plane disagree about whether LORE-HYGIENE-20261120 still exists as a task): detected_by is empty \u2014 uncovered failure path]\n\nOverall: FAIL \u2717",
+  "evaluated_at": "2026-11-20T15:11:27.333141",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-20T15:11:27.353736+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 20985,
+        "truncated": false,
+        "source": "git show d835b48cfe47"
+      }
+    ],
+    "task_id": "LORE-HYGIENE-20261120"
+  }
+}
