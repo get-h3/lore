@@ -1,0 +1,221 @@
+{
+  "task_id": "LORE-EXPORT-1",
+  "task_title": "Export lore gate runs as Prometheus textfile gauge",
+  "task_criteria": [
+    "python -m lore gate atomically writes h3_lore.prom with lore_gate_runs_total counter (increments per run), a verdict series flipping to 0 on gate failure, and loud non-zero exit when the textfile dir is unwritable"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "eda0c96f9a09a37361b4eebd11356300fcd66699",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "ec487549c5de5d91e59a5351cba3c03431baa895409256ebe00f67f0493d5697",
+  "working_tree_dirty_path_count": 3,
+  "items": [
+    {
+      "criterion": "python -m lore gate atomically writes h3_lore.prom with lore_gate_runs_total counter (increments per run), a verdict series flipping to 0 on gate failure, and loud non-zero exit when the textfile dir is unwritable",
+      "status": "PASS",
+      "detail": "lore/prom_export.py:15-55: atomic write via flock-serialized read/increment/write with NamedTemporaryFile(dir=directory)+os.replace (lines 18, 40-52); lore_gate_runs_total counter incremented per run (lines 27-28); lore_gate_last_success gauge = int(allowed) flips to 0 on deny (line 35). Reachable from entrypoint: lore/__main__.py:421 _cmd_gate calls export_gate_verdict(verdict.allowed); OSError caught at lines 422-424 prints 'error: cannot export gate metrics: ...' to stderr and returns 1. Live verification: allow run exit=0, h3_lore.prom shows 'lore_gate_runs_total 1' and 'lore_gate_last_success 1'; subsequent deny run exit=1, counter=2, gauge=0; chmod 555 dir -> exit=1 with stderr 'error: cannot export gate metrics: [Errno 13] Permission denied'; missing dir -> exit=1 '[Errno 2] No such file or directory'. Tests: tests/test_prom_export.py 7/7 PASSED (fresh write+increment, corrupt recovery, denied verdict exported, unwritable/missing dir loud failure, failed replace preserves previous file, concurrent processes no lost updates); full suite '579 passed in 8.60s' exit_code=0."
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nsecrets: gitleaks bound=timeout 600s (0=off)\nscanners: nice=nice -n 10\n7:15AM INF scanned ~14147891 bytes (14.15 MB) in 3.35s\n7:15AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 302 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.14.7\ncollected 579 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 24%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 26%]\ntests/test_evidence.py ......................                            [ 30%]\ntests/test_lore011_drain_acceptance.py .......                           [ 31%]\ntests/test_lore016_qa_audit.py .....................                     [ 35%]\ntests/test_lore017_gateway_guard.py ........                             [ 36%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 38%]\ntests/test_lore022_freshness_docs.py .....                               [ 39%]\ntests/test_lore030_ux_guard.py ....                                      [ 40%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 42%]\ntests/test_lore041_collision_canonical.py ...........                    [ 44%]\ntests/test_lore043_short_text_threshold.py ....................          [ 47%]\ntests/test_lore045_validate_history.py ....................              [ 51%]\ntests/test_lore046_match_output.py ...........                           [ 53%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 54%]\n\n\u2026 [560 chars omitted \u2014 7 line(s)] \u2026\ntests/test_lore055_consult_missing_input.py ......                       [ 64%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 65%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 66%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 67%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 68%]\ntests/test_lore064_audit_wiring.py .............................         [ 73%]\ntests/test_lore066_zero_check_skip.py ...                                [ 74%]\ntests/test_lore067_incident_audit.py ..                                  [ 74%]\ntests/test_lore071_trigger.py ......                                     [ 75%]\ntests/test_near_miss.py ..............                                   [ 78%]\ntests/test_perf2_audit_single_pass.py ........                           [ 79%]\ntests/test_prom_export.py .......                                        [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 82%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 579 passed in 9.04s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            }
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 python -m lore gate atomically writes h3_lore.prom with lore_gate_runs_total counter (increments per run), a verdict series flipping to 0 on gate failure, and loud non-zero exit when the textfile dir is unwritable: lore/prom_export.py:15-55: atomic write via flock-serialized read/increment/write with NamedTemporaryFile(dir=directory)+os.replace (lines 18, 40-52); lore_gate_runs_total counter incremented per run (lines 27-28); lore_gate_last_success gauge = int(allowed) flips to 0 on deny (line 35). Reachable from entrypoint: lore/__main__.py:421 _cmd_gate calls export_gate_verdict(verdict.allowed); OSError caught at lines 422-424 prints 'error: cannot export gate metrics: ...' to stderr and returns 1. Live verification: allow run exit=0, h3_lore.prom shows 'lore_gate_runs_total 1' and 'lore_gate_last_success 1'; subsequent deny run exit=1, counter=2, gauge=0; chmod 555 dir -> exit=1 with stderr 'error: cannot export gate metrics: [Errno 13] Permission denied'; missing dir -> exit=1 '[Errno 2] No such file or directory'. Tests: tests/test_prom_export.py 7/7 PASSED (fresh write+increment, corrupt recovery, denied verdict exported, unwritable/missing dir loud failure, failed replace preserves previous file, concurrent processes no lost updates); full suite '579 passed in 8.60s' exit_code=0.\nLORE-EXPORT-1 delivers: lore gate atomically exports h3_lore.prom with an incrementing lore_gate_runs_total counter and a lore_gate_last_success gauge that flips to 0 on denial, and export failures (unwritable/missing textfile dir) produce a loud stderr message with exit 1 \u2014 verified by live CLI runs and a 7-test suite, with the full 579-test suite green.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 python -m lore gate atomically writes h3_lore.prom with lore_gate_runs_total counter (increments per run), a verdict series flipping to 0 on gate failure, and loud non-zero exit when the textfile dir is unwritable: lore/prom_export.py:15-55: atomic write via flock-serialized read/increment/write with NamedTemporaryFile(dir=directory)+os.replace (lines 18, 40-52); lore_gate_runs_total counter incremented per run (lines 27-28); lore_gate_last_success gauge = int(allowed) flips to 0 on deny (line 35). Reachable from entrypoint: lore/__main__.py:421 _cmd_gate calls export_gate_verdict(verdict.allowed); OSError caught at lines 422-424 prints 'error: cannot export gate metrics: ...' to stderr and returns 1. Live verification: allow run exit=0, h3_lore.prom shows 'lore_gate_runs_total 1' and 'lore_gate_last_success 1'; subsequent deny run exit=1, counter=2, gauge=0; chmod 555 dir -> exit=1 with stderr 'error: cannot export gate metrics: [Errno 13] Permission denied'; missing dir -> exit=1 '[Errno 2] No such file or directory'. Tests: tests/test_prom_export.py 7/7 PASSED (fresh write+increment, corrupt recovery, denied verdict exported, unwritable/missing dir loud failure, failed replace preserves previous file, concurrent processes no lost updates); full suite '579 passed in 8.60s' exit_code=0.\nLORE-EXPORT-1 delivers: lore gate atomically exports h3_lore.prom with an incrementing lore_gate_runs_total counter and a lore_gate_last_success gauge that flips to 0 on denial, and export failures (unwritable/missing textfile dir) produce a loud stderr message with exit 1 \u2014 verified by live CLI runs and a 7-test suite, with the full 579-test suite green.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "python -m lore gate atomically writes h3_lore.prom with lore_gate_runs_total counter (increments per run), a verdict series flipping to 0 on gate failure, and loud non-zero exit when the textfile dir is unwritable",
+                "status": "PASS",
+                "detail": "lore/prom_export.py:15-55: atomic write via flock-serialized read/increment/write with NamedTemporaryFile(dir=directory)+os.replace (lines 18, 40-52); lore_gate_runs_total counter incremented per run (lines 27-28); lore_gate_last_success gauge = int(allowed) flips to 0 on deny (line 35). Reachable from entrypoint: lore/__main__.py:421 _cmd_gate calls export_gate_verdict(verdict.allowed); OSError caught at lines 422-424 prints 'error: cannot export gate metrics: ...' to stderr and returns 1. Live verification: allow run exit=0, h3_lore.prom shows 'lore_gate_runs_total 1' and 'lore_gate_last_success 1'; subsequent deny run exit=1, counter=2, gauge=0; chmod 555 dir -> exit=1 with stderr 'error: cannot export gate metrics: [Errno 13] Permission denied'; missing dir -> exit=1 '[Errno 2] No such file or directory'. Tests: tests/test_prom_export.py 7/7 PASSED (fresh write+increment, corrupt recovery, denied verdict exported, unwritable/missing dir loud failure, failed replace preserves previous file, concurrent processes no lost updates); full suite '579 passed in 8.60s' exit_code=0."
+              }
+            ],
+            "summary": "LORE-EXPORT-1 delivers: lore gate atomically exports h3_lore.prom with an incrementing lore_gate_runs_total counter and a lore_gate_last_success gauge that flips to 0 on denial, and export failures (unwritable/missing textfile dir) produce a loud stderr message with exit 1 \u2014 verified by live CLI runs and a 7-test suite, with the full 579-test suite green.",
+            "provenance": {
+              "model": "accounts/fireworks/models/kimi-k3",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "accounts/fireworks/models/kimi-k3",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"LORE-EXPORT-1\"}",
+          "exit_code": 0,
+          "output_sha": "ccf40cf706284b0a3a30177fb24d11c1171e5cf48731ca408ee3b975c5bf8d58"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"lore/prom_export.py\"}",
+          "exit_code": 0,
+          "output_sha": "93bcca4620afc94304790511a712b05561ece0f546e0db8ad3c811b8794ec745"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"lore/__main__.py\"}",
+          "exit_code": 0,
+          "output_sha": "cb845f2488d3b2813c7845b87b398942769cdfe329469870dd85f118c484e45c"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"tests/test_prom_export.py\"}",
+          "exit_code": 0,
+          "output_sha": "b49a9b672a0afbf65175a17d02909e3fa461bad32fa3603f2ef00237315e8077"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"limit\": 120, \"offset\": 330, \"path\": \"lore/__main__.py\"}",
+          "exit_code": 0,
+          "output_sha": "20119b0fbc11031921966ccaff9e08a3599bf7d568520ab3e221f7dc70c6535e"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && python -m pytest tests/test_prom_export.py -v 2>&1 | tail -20",
+          "exit_code": 0,
+          "output_sha": "574c5cbca39f049aa2e93acefc17f5836b52125eaf5c674096b2e771f1aea25e"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"tests/conftest.py\"}",
+          "exit_code": 0,
+          "output_sha": "5750527210826cab23fd1111fdd184c208f88a8dc81b2a3cdd5bafbd50fc32ae"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && D=$(mktemp -d) && H3_LORE_TEXTFILE_DIR=$D python -m lore gate --decision no-new-lesson --reason covered --ref T-1; echo \"exit=$?\"; cat $D/h3_lore.prom; H3_LORE_TEXTFILE_DIR=$D python -m lore gate --decision no-new-lesson --reason \"\"; echo \"exit=$?\"; cat $D/h3_lore.prom; ls -la $D",
+          "exit_code": 0,
+          "output_sha": "ef6583e91d3451bd1696b631079bc576b2c9f15b2b3964bcf744fe08ec2ba08b"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && D=$(mktemp -d) && chmod 555 $D && H3_LORE_TEXTFILE_DIR=$D python -m lore gate --decision no-new-lesson --reason covered --ref T-1; echo \"exit=$?\"; chmod 700 $D; H3_LORE_TEXTFILE_DIR=/nonexistent-dir-xyz python -m lore gate --decision no-new-lesson --reason covered --ref T-1; echo \"exit=$?\"",
+          "exit_code": 0,
+          "output_sha": "e3ff0eb8d542e3fa8cc1977a57350946b1a466c5fb05672b75c2208131711221"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && python -m pytest 2>&1 | tail -3",
+          "exit_code": 0,
+          "output_sha": "d9d814e3bb69785cd6245322c23d82ba9e9228b7dba7a068422081eb6dde6db3"
+        },
+        {
+          "tool": "search_pattern",
+          "command": "search_pattern {\"regex\": \"export_gate_verdict|H3_LORE_TEXTFILE_DIR\"}",
+          "exit_code": 0,
+          "output_sha": "f6651c8e7bdb50452ae9b47dce8d8f83d9588cdd061ed7c6c1c5d0bc4fbfb8f4"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"limit\": 30, \"offset\": 895, \"path\": \"lore/__main__.py\"}",
+          "exit_code": 0,
+          "output_sha": "c10dc2ca773da4cb51223c77be96f8db86a2945304992e58f418c17e57b7fe8c"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: lore/prom_export.py:15-55 implements atomic write (flock + NamedTemporaryFile in dir + os.replace), lore_gate_runs_total counter incremented per run (regex read + +1), lore_gate_last_success gauge = int(allowed) flips to 0 on deny. Wired in lore/__main__.py:421 _cmd_gate; OSError -> stderr message + return 1 (lines 420-424). Verified live: allow run exit=0 counter=1 gauge=1; deny run exit=1 counter=2 gauge=0; chmod 555 dir -> exit=1 with 'Permission denied' on stderr; missing dir -> exit=1 'No such file or directory'. tests/test_prom_export.py 7/7 passed; full suite 579 passed in 8.60s.\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "941bfeb53ded59a0542d28a7221ef8db35b63c6a8564024105db2adb52c0b9fd"
+        }
+      ]
+    }
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [],
+    "summary": "",
+    "error": "unparseable reviewer reply: no parseable JSON object in reply: ''",
+    "review_state": {
+      "emitted": [],
+      "carried": []
+    }
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 python -m lore gate atomically writes h3_lore.prom with lore_gate_runs_total counter (increments per run), a verdict series flipping to 0 on gate failure, and loud non-zero exit when the textfile dir is unwritable: lore/prom_export.py:15-55: atomic write via flock-serialized read/increment/write with NamedTemporaryFile(dir=directory)+os.replace (lines 18, 40-52); lore_gate_runs_total counter incremented per run (lines 27-28); lore_gate_last_success gauge = int(allowed) flips to 0 on deny (line 35). Reachable from entrypoint: lore/__main__.py:421 _cmd_gate calls export_gate_verdict(verdict.allowed); OSError caught at lines 422-424 prints 'error: cannot export gate metrics: ...' to stderr and returns 1. Live verification: allow run exit=0, h3_lore.prom shows 'lore_gate_runs_total 1' and 'lore_gate_last_success 1'; subsequent deny run exit=1, counter=2, gauge=0; chmod 555 dir -> exit=1 with stderr 'error: cannot export gate metrics: [Errno 13] Permission denied'; missing dir -> exit=1 '[Errno 2] No such file or directory'. Tests: tests/test_prom_export.py 7/7 PASSED (fresh write+increment, corrupt recovery, denied verdict exported, unwritable/missing dir loud failure, failed replace preserves previous file, concurrent processes no lost updates); full suite '579 passed in 8.60s' exit_code=0.\nLORE-EXPORT-1 delivers: lore gate atomically exports h3_lore.prom with an incrementing lore_gate_runs_total counter and a lore_gate_last_success gauge that flips to 0 on denial, and export failures (unwritable/missing textfile dir) produce a loud stderr message with exit 1 \u2014 verified by live CLI runs and a 7-test suite, with the full 579-test suite green.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-21T12:16:55.198065",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-21T12:16:55.250716+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 20027,
+        "truncated": false,
+        "source": "git show eda0c96f9a09"
+      }
+    ],
+    "task_id": "LORE-EXPORT-1"
+  }
+}

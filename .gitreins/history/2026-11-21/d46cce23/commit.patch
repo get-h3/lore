@@ -1,0 +1,476 @@
+commit eda0c96f9a09a37361b4eebd11356300fcd66699
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Sat Nov 21 06:58:47 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Sat Nov 21 06:58:47 2026 -0500
+
+    feat(gate): export gate runs as Prometheus textfile (LORE-EXPORT-1)
+    
+    Co-authored-by: Alexis Okuwa <wojonstech@gmail.com>
+---
+ CONTRIBUTING.md                     |   2 +-
+ README.md                           |  24 +++++---
+ docs/INSTALL.md                     |  21 ++++---
+ lore/__main__.py                    |  25 +++++---
+ lore/prom_export.py                 |  55 ++++++++++++++++++
+ scripts/check-test-count.sh         |   2 +-
+ scripts/count_sweep.py              |   1 +
+ scripts/test-count.txt              |   2 +-
+ skills/lore-usage/SKILL.md          |   2 +-
+ tests/conftest.py                   |  10 ++++
+ tests/test_count_guard.py           |   2 +
+ tests/test_prom_export.py           | 111 ++++++++++++++++++++++++++++++++++++
+ tests/test_review001_gate_record.py |   6 +-
+ 13 files changed, 232 insertions(+), 31 deletions(-)
+
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index 7359a7f..2613a87 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
+ Once `.venv` exists, run the full gate from the repository root:
+ 
+ ```sh
+-uv run pytest -q                    # tests (green at 572 passed)
++uv run pytest -q                    # tests (green at 579 passed)
+ uv run ruff check .                 # lint — "All checks passed!"
+ uv run ruff format --check .        # formatting — "N files already formatted"
+ uv run scripts/check-test-count.sh  # test-count sync guard
+diff --git a/README.md b/README.md
+index eed580f..440bf70 100644
+--- a/README.md
++++ b/README.md
+@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
+ [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
+ 
+ ```sh
+-uv run pytest -q        # 572 passed
++uv run pytest -q        # 579 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -273,12 +273,20 @@ a provenance marker instead of a separate flow:
+    APPENDS one JSONL audit record to PATH so the approval can be audited
+    later (`decided_at`, `decision`, `class_id`, `lesson`, `reason`,
+    `ack_ref`, `source`, `allowed`, `errors`, `tool_version` — grep-stable,
+-   one JSON object per line, appended per invocation). Without `--record`
+-   the gate still writes nothing anywhere. A DENY never writes, even with
+-   `--record` (it prints its errors and exits 1).
+-3. The registry stays closed either way: an unknown class is still denied,
+-   and nothing is ever written by the gate itself (propose-not-write holds
+-   for QA/dogfood exactly as it holds for incidents).
++   one JSON object per line, appended per invocation). Denials do not write
++   audit records, but both verdicts export metrics (see Observability).
++3. The registry stays closed either way: an unknown class is still denied;
++   the gate does not publish or modify runbooks.
++
++## Observability
++
++Every gate verdict updates `h3_lore.prom` atomically in the node_exporter
++textfile directory, `/var/lib/node_exporter/textfile` by default. Set
++`H3_LORE_TEXTFILE_DIR` to an existing writable directory to override it.
++`lore_gate_runs_total` counts exported verdicts; `lore_gate_last_success` is
++1 for ALLOW and 0 for DENY. Export failure is reported on stderr and exits
++non-zero. An optional ALLOW audit record may already have been appended when
++an export fails; do not treat that failure as a denial.
+ 
+ ## Tick-start consult (title mode)
+ 
+@@ -384,7 +392,7 @@ does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
+-  with **572 tests passing** and a clean `ruff check`.
++  with **579 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+   Flags: `match [--class CLASS_ID]` filters results to only the named registry
+   class (ships today; not planned-only).
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 01068af..8127cd9 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -82,14 +82,14 @@ Real output on the current tree:
+ ........................................................................ [ 55%]
+ ........................................................................ [ 83%]
+ ........................................................................ [100%]
+-572 passed
++579 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **572 tests** (47 test files: taxonomy, classifier,
++The count to expect is **579 tests** (48 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+@@ -413,11 +413,18 @@ parse_logsey_export` — a header line plus a fenced block of log lines), then:
+ 2. with `--source <marker>`, every per-class proposal carries that provenance
+    marker (omitted, the payloads keep their shape with no `source` key);
+ 3. an empty trail is an explicit empty result — exit 0, not an error; and
+-4. **propose-not-write**: nothing is ever written, stdout is the only side
+-   effect — with one explicit, documented exception: `lore gate --record
+-   PATH` (opt-in) APPENDS one JSONL audit record per ALLOWED verdict so a
+-   closure approval can be audited later. Without that flag, and for every
+-   DENY, the gate writes nothing anywhere.
++4. **propose-not-write**: absorb writes nothing; stdout is its only side
++   effect. Separately, `lore gate --record PATH` (opt-in) appends a JSONL
++   audit record for an ALLOWED verdict; gate metrics are always exported.
++
++### Observability
++
++Each gate verdict atomically updates `h3_lore.prom` in
++`/var/lib/node_exporter/textfile`, or the existing writable directory set by
++`H3_LORE_TEXTFILE_DIR`. `lore_gate_runs_total` counts exported runs and
++`lore_gate_last_success` records 1 for ALLOW or 0 for DENY. An export error is
++reported on stderr and exits non-zero. An ALLOW audit record requested with
++`--record` may already have been appended before an export error.
+ 
+ ````sh
+ printf 'logsey export --window 2h\n```\n2026-09-24T10:00:00 unit=loreforge gateway drain 503 while restart\n```\n' \
+diff --git a/lore/__main__.py b/lore/__main__.py
+index 5a73116..651c354 100644
+--- a/lore/__main__.py
++++ b/lore/__main__.py
+@@ -46,6 +46,7 @@ from lore.evidence import (
+     parse_logsey_export,
+ )
+ from lore.placeholders import placeholder_hints
++from lore.prom_export import export_gate_verdict
+ from lore.runbook import STATUS_PROPOSAL, STATUS_STALE, STATUS_VALIDATED, Runbook
+ from lore.validate import (
+     DRIFT_OUTCOMES,
+@@ -386,11 +387,9 @@ def _cmd_validate(args: argparse.Namespace) -> int:
+ def _cmd_gate(args: argparse.Namespace) -> int:
+     """LORE-008: machine-checked closure gate. Prints the verdict + errors.
+ 
+-    Exit 0 when allowed, 1 when denied. The gate NEVER writes anything —
+-    EXCEPT under the explicit opt-in ``--record PATH`` (REVIEW-LORE-001):
+-    then one JSONL audit record is APPENDED, and only for an ALLOWED
+-    verdict. A denied gate still writes nothing (denials are not recorded
+-    unless that is asked for later as a separate capability).
++    Exit 0 when allowed, 1 when denied or metrics export fails. Every verdict
++    is exported to the node_exporter textfile directory. With ``--record PATH``
++    one JSONL audit record is also appended, only for an allowed verdict.
+ 
+     Record shape (grep-stable, one JSON object per line): decided_at,
+     decision, class_id, lesson, reason, ack_ref, source, allowed, errors[],
+@@ -418,6 +417,11 @@ def _cmd_gate(args: argparse.Namespace) -> int:
+             parent_dir.mkdir(parents=True, exist_ok=True)
+         with open(record_path, "a", encoding="utf-8") as f:
+             f.write(json.dumps(rec, sort_keys=True) + "\n")
++    try:
++        export_gate_verdict(verdict.allowed)
++    except OSError as exc:
++        print(f"error: cannot export gate metrics: {exc}", file=sys.stderr)
++        return 1
+     return 0 if verdict.allowed else 1
+ 
+ 
+@@ -897,7 +901,12 @@ def build_parser() -> argparse.ArgumentParser:
+         "gate",
+         help=(
+             "closure absorb-gate (LORE-008): machine-check a lesson decision "
+-            "(absorb or no-new-lesson ack); exit 0 = allowed, 1 = denied"
++            "(absorb or no-new-lesson ack); exports node_exporter metrics; "
++            "exit 0 = allowed, 1 = denied or export failed"
++        ),
++        description=(
++            "Export each gate verdict to h3_lore.prom in H3_LORE_TEXTFILE_DIR "
++            "(default: /var/lib/node_exporter/textfile). Export errors fail the command."
+         ),
+     )
+     gate_p.add_argument(
+@@ -925,8 +934,8 @@ def build_parser() -> argparse.ArgumentParser:
+             "REVIEW-LORE-001 OPT-IN: append one durable JSONL audit record "
+             "to PATH for an ALLOWED verdict (decided_at, decision, "
+             "class_id, lesson, reason, ack_ref, source, allowed, errors, "
+-            "tool_version). Denials NEVER write, even with --record. "
+-            "Without this flag the gate writes nothing anywhere."
++            "tool_version). Denials do not write audit records; metrics "
++            "are exported for both verdicts."
+         ),
+     )
+     gate_p.add_argument(
+diff --git a/lore/prom_export.py b/lore/prom_export.py
+new file mode 100644
+index 0000000..8a01ec0
+--- /dev/null
++++ b/lore/prom_export.py
+@@ -0,0 +1,55 @@
++"""Publish gate verdicts for the node_exporter textfile collector."""
++
++from __future__ import annotations
++
++import fcntl
++import os
++import re
++import tempfile
++from pathlib import Path
++
++DEFAULT_TEXTFILE_DIR = "/var/lib/node_exporter/textfile"
++_COUNTER = re.compile(r"^lore_gate_runs_total ([0-9]+)$", re.MULTILINE)
++
++
++def export_gate_verdict(allowed: bool) -> None:
++    """Atomically publish a serialized read/increment/write of the gate counter."""
++    directory = Path(os.environ.get("H3_LORE_TEXTFILE_DIR", DEFAULT_TEXTFILE_DIR))
++    target = directory / "h3_lore.prom"
++    # A stable, separate lock serializes concurrent writers across replacements.
++    with (directory / ".h3_lore.lock").open("a", encoding="utf-8") as lock:
++        fcntl.flock(lock, fcntl.LOCK_EX)
++        try:
++            try:
++                previous = target.read_text(encoding="utf-8")
++            except (FileNotFoundError, UnicodeDecodeError):
++                previous = ""
++            matches = _COUNTER.findall(previous)
++            count = int(matches[0]) + 1 if len(matches) == 1 else 1
++            content = (
++                "# HELP lore_gate_runs_total Total gate verdicts exported.\n"
++                "# TYPE lore_gate_runs_total counter\n"
++                f"lore_gate_runs_total {count}\n"
++                "# HELP lore_gate_last_success Whether the last gate allowed closure.\n"
++                "# TYPE lore_gate_last_success gauge\n"
++                f"lore_gate_last_success {int(allowed)}\n"
++            )
++            temp_path = None
++            try:
++                with tempfile.NamedTemporaryFile(
++                    mode="w",
++                    encoding="utf-8",
++                    dir=directory,
++                    prefix=".h3_lore.",
++                    suffix=".tmp",
++                    delete=False,
++                ) as temp:
++                    temp_path = Path(temp.name)
++                    os.fchmod(temp.fileno(), 0o644)
++                    temp.write(content)
++                os.replace(temp_path, target)
++            finally:
++                if temp_path is not None:
++                    temp_path.unlink(missing_ok=True)
++        finally:
++            fcntl.flock(lock, fcntl.LOCK_UN)
+diff --git a/scripts/check-test-count.sh b/scripts/check-test-count.sh
+index ff07b42..027da17 100755
+--- a/scripts/check-test-count.sh
++++ b/scripts/check-test-count.sh
+@@ -8,7 +8,7 @@
+ #   - CHANGELOG.md and docs/dogfood/**
+ #   - .gitreins/history/** and .coding-hermes/dogfood-log.md (dated judge
+ #     verdicts / dogfood log, tracked but historical)
+-#   - docs/acceptance/** (dated acceptance records)
++#   - docs/acceptance/** and docs/qa/evidence/** (historical evidence)
+ # Lines quoting the canonical file itself are also ignored (self-reference).
+ # The guard's own files and *.sh are excluded from the sweep (self-match).
+ 
+diff --git a/scripts/count_sweep.py b/scripts/count_sweep.py
+index 124a477..900d400 100755
+--- a/scripts/count_sweep.py
++++ b/scripts/count_sweep.py
+@@ -36,6 +36,7 @@ ALLOWLISTED_PATTERNS: tuple[str, ...] = (
+     ".gitreins/*",
+     ".coding-hermes/*",
+     "docs/acceptance/*",
++    "docs/qa/evidence/*",
+ )
+ 
+ # A line quoting the canonical count file itself is a sync instruction, not
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index 0751c1b..aa32458 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-572
++579
+diff --git a/skills/lore-usage/SKILL.md b/skills/lore-usage/SKILL.md
+index 32e3b4d..4b7a941 100644
+--- a/skills/lore-usage/SKILL.md
++++ b/skills/lore-usage/SKILL.md
+@@ -124,7 +124,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
+ ## Dev loop
+ 
+ ```sh
+-uv run pytest -q    # expect: 572 passed (count synced to scripts/test-count.txt, LORE-029)
++uv run pytest -q    # expect: 579 passed (count synced to scripts/test-count.txt, LORE-029)
+ uv run ruff check . # expect: All checks passed!
+ ```
+ 
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 1e1ea49..7ad8118 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -17,6 +17,16 @@ from __future__ import annotations
+ 
+ import pytest
+ 
++
++@pytest.fixture(autouse=True)
++def isolate_gate_metrics(
++    monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory
++) -> None:
++    """Keep gate subprocesses and in-process calls away from the host collector."""
++    directory = tmp_path_factory.mktemp("gate-metrics")
++    monkeypatch.setenv("H3_LORE_TEXTFILE_DIR", str(directory))
++
++
+ #: Shown verbatim when the guard fires. Must name the exact fix command.
+ _FIX_MESSAGE = (
+     "pytest could not import the 'lore' package from this checkout, so the "
+diff --git a/tests/test_count_guard.py b/tests/test_count_guard.py
+index b4dc679..dbe3bb0 100644
+--- a/tests/test_count_guard.py
++++ b/tests/test_count_guard.py
+@@ -262,6 +262,7 @@ def test_sweep_allowlists_dated_records(tmp_path: Path) -> None:
+     stale = "2 failure classes and 7 curated classes were true when written.\n"
+     _write(root, "CHANGELOG.md", stale)
+     _write(root, "docs/acceptance/report.md", stale)
++    _write(root, "docs/qa/evidence/run-example/README.md", stale)
+     _write(root, "docs/dogfood/log.md", stale)
+     _write(root, ".gitreins/history/verdict.md", stale)
+     _write(root, ".coding-hermes/board.md", stale)
+@@ -269,6 +270,7 @@ def test_sweep_allowlists_dated_records(tmp_path: Path) -> None:
+     tracked = [
+         "CHANGELOG.md",
+         "docs/acceptance/report.md",
++        "docs/qa/evidence/run-example/README.md",
+         "docs/dogfood/log.md",
+         ".gitreins/history/verdict.md",
+         ".coding-hermes/board.md",
+diff --git a/tests/test_prom_export.py b/tests/test_prom_export.py
+new file mode 100644
+index 0000000..c4ea758
+--- /dev/null
++++ b/tests/test_prom_export.py
+@@ -0,0 +1,111 @@
++"""Gate metrics exercise the CLI and the textfile publication boundary."""
++
++import errno
++import os
++import subprocess
++import sys
++from concurrent.futures import ThreadPoolExecutor
++from pathlib import Path
++
++import pytest
++
++from lore.prom_export import export_gate_verdict
++
++ALLOW = [
++    "gate",
++    "--decision",
++    "no-new-lesson",
++    "--reason",
++    "covered",
++    "--ref",
++    "TEST-1",
++]
++DENY = ["gate", "--decision", "no-new-lesson", "--reason", ""]
++
++
++def run_gate(directory: Path, args: list[str]) -> subprocess.CompletedProcess[str]:
++    env = {**os.environ, "H3_LORE_TEXTFILE_DIR": str(directory)}
++    return subprocess.run(
++        [sys.executable, "-m", "lore", *args],
++        env=env,
++        text=True,
++        capture_output=True,
++        check=False,
++    )
++
++
++def metrics(directory: Path) -> dict[str, int]:
++    lines = (directory / "h3_lore.prom").read_text().splitlines()
++    return {
++        name: int(value)
++        for name, value in (line.split() for line in lines if not line.startswith("#"))
++    }
++
++
++def test_fresh_write_and_increment(tmp_path):
++    assert run_gate(tmp_path, ALLOW).returncode == 0
++    assert metrics(tmp_path) == {"lore_gate_runs_total": 1, "lore_gate_last_success": 1}
++    assert run_gate(tmp_path, ALLOW).returncode == 0
++    assert metrics(tmp_path)["lore_gate_runs_total"] == 2
++    assert not list(tmp_path.glob("*.tmp"))
++    assert (tmp_path / "h3_lore.prom").stat().st_mode & 0o444 == 0o444
++
++
++def test_corrupt_existing_file_recovers(tmp_path):
++    (tmp_path / "h3_lore.prom").write_text("lore_gate_runs_total nonsense\n")
++    assert run_gate(tmp_path, ALLOW).returncode == 0
++    assert metrics(tmp_path)["lore_gate_runs_total"] == 1
++
++
++def test_denied_verdict_is_exported(tmp_path):
++    assert run_gate(tmp_path, ALLOW).returncode == 0
++    assert run_gate(tmp_path, DENY).returncode == 1
++    assert metrics(tmp_path) == {"lore_gate_runs_total": 2, "lore_gate_last_success": 0}
++
++
++def test_unwritable_directory_fails_loudly(tmp_path):
++    directory = tmp_path / "readonly"
++    directory.mkdir()
++    directory.chmod(0o555)
++    try:
++        if os.access(directory, os.W_OK):
++            pytest.skip("current user bypasses directory permissions")
++        result = run_gate(directory, ALLOW)
++        assert result.returncode != 0
++        assert str(directory) in result.stderr
++        assert "Permission denied" in result.stderr
++    finally:
++        directory.chmod(0o700)
++
++
++def test_missing_directory_fails_loudly(tmp_path):
++    directory = tmp_path / "missing"
++    result = run_gate(directory, ALLOW)
++    assert result.returncode != 0
++    assert str(directory) in result.stderr
++    assert "No such file or directory" in result.stderr
++
++
++def test_failed_replace_preserves_previous_file(tmp_path, monkeypatch):
++    monkeypatch.setenv("H3_LORE_TEXTFILE_DIR", str(tmp_path))
++    export_gate_verdict(True)
++    target = tmp_path / "h3_lore.prom"
++    before = target.read_bytes()
++
++    def fail_replace(src, dst):
++        assert Path(src).parent == target.parent
++        assert Path(dst) == target
++        raise OSError(errno.EIO, "injected failure", str(dst))
++
++    monkeypatch.setattr("lore.prom_export.os.replace", fail_replace)
++    with pytest.raises(OSError, match="injected failure"):
++        export_gate_verdict(False)
++    assert target.read_bytes() == before
++    assert not list(tmp_path.glob("*.tmp"))
++
++
++def test_concurrent_processes_do_not_lose_updates(tmp_path):
++    with ThreadPoolExecutor(max_workers=4) as pool:
++        results = list(pool.map(lambda _: run_gate(tmp_path, ALLOW), range(8)))
++    assert all(result.returncode == 0 for result in results)
++    assert metrics(tmp_path)["lore_gate_runs_total"] == len(results)
+diff --git a/tests/test_review001_gate_record.py b/tests/test_review001_gate_record.py
+index dd3d0c7..38c7399 100644
+--- a/tests/test_review001_gate_record.py
++++ b/tests/test_review001_gate_record.py
+@@ -1,9 +1,7 @@
+ """REVIEW-LORE-001: durable gate approval records (opt-in `--record PATH`).
+ 
+-The gate stays propose-not-write by DEFAULT: without --record it creates no
+-file anywhere. With --record it APPENDS one JSONL audit record per invocation,
+-and only for an ALLOWED verdict — a denied gate writes nothing even when
+---record is given.
++The gate exports metrics for every verdict. With --record it also appends one
++JSONL audit record per invocation, and only for an ALLOWED verdict.
+ """
+ 
+ import json
