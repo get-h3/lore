@@ -1,0 +1,297 @@
+{
+  "task_id": "RELEASE-LORE-010",
+  "task_title": "verify the v0.3.0 install channel",
+  "task_criteria": [
+    "raw/install.txt records a COLD uv tool install of git+https://github.com/get-h3/lore@v0.3.0 into an empty UV_TOOL_DIR with INSTALL_RC=0 resolving commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd. FAILIF: file absent, shows only \"Checked 1 package\" (a no-op re-install), or rc nonzero. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/install.txt",
+    "raw/metadata.txt records dist metadata Version: 0.3.0, installed lore/__init__.py __version__ 0.3.0, and the same sha256 for the installed lore/classes.py and c769be4:lore/classes.py. FAILIF: any version differs from 0.3.0 or the hashes differ. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/metadata.txt",
+    "raw/cli.txt shows lore --help HELP_RC=0 and a live lore match returning class gateway-drain-window with MATCH_RC=0 from a cwd outside any lore checkout. FAILIF: no class id returned, or a nonzero rc. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/cli.txt",
+    "raw/negative.txt shows the same install procedure pinned to a nonexistent tag exiting nonzero, and evidence.txt names host, exact command and uv version. FAILIF: negative arm exits 0, or the record omits host/command/uv version. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/negative.txt and evidence.txt"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "a7c7fbc07d7a3d78c12f89c1f9bc840bd54d834c",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "e44340f3378ce1533b89642d427a1c6f9829006e4711419478b78165f80b9cec",
+  "working_tree_dirty_path_count": 4,
+  "items": [
+    {
+      "criterion": "raw/install.txt records a COLD uv tool install of git+https://github.com/get-h3/lore@v0.3.0 into an empty UV_TOOL_DIR with INSTALL_RC=0 resolving commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd. FAILIF: file absent, shows only \"Checked 1 package\" (a no-op re-install), or rc nonzero. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/install.txt",
+      "status": "PASS",
+      "detail": "docs/qa/evidence/run-RELEASE-LORE-010/raw/install.txt:4-10 \u2014 header records empty UV_TOOL_DIR=/tmp/rl010-fresh/tools and command `uv tool install \"git+https://github.com/get-h3/lore@v0.3.0\"`; output shows a real install (\"Installed 1 package in 4ms\", \"+ get-h3-lore==0.3.0 (from git+https://github.com/get-h3/lore@c769be4265e74a93b4706c6cc7971fe58a3f3dbd)\", \"Installed 1 executable: lore\"), not a \"Checked 1 package\" no-op; INSTALL_RC=0 at line 11. Commit cross-checked: `git rev-parse v0.3.0^{commit}` locally = c769be4265e74a93b4706c6cc7971fe58a3f3dbd."
+    },
+    {
+      "criterion": "raw/metadata.txt records dist metadata Version: 0.3.0, installed lore/__init__.py __version__ 0.3.0, and the same sha256 for the installed lore/classes.py and c769be4:lore/classes.py. FAILIF: any version differs from 0.3.0 or the hashes differ. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/metadata.txt",
+      "status": "PASS",
+      "detail": "raw/metadata.txt:2-3 dist metadata \"Name: get-h3-lore / Version: 0.3.0\"; line 5 installed lore/__init__.py `3:__version__ = \"0.3.0\"`; lines 8-10 identical sha256 ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b for installed lore/classes.py and c769be4:lore/classes.py. Independently reproduced: `git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sha256sum` = ea895d64... (matches), and `git show c769be4:lore/__init__.py` line 3 = `__version__ = \"0.3.0\"`."
+    },
+    {
+      "criterion": "raw/cli.txt shows lore --help HELP_RC=0 and a live lore match returning class gateway-drain-window with MATCH_RC=0 from a cwd outside any lore checkout. FAILIF: no class id returned, or a nonzero rc. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/cli.txt",
+      "status": "PASS",
+      "detail": "raw/cli.txt:1 states cwd=/tmp/rl010-fresh/outside (no lore checkout in any ancestor); `lore --help` prints the full usage surface (match/consult/compile/validate/gate/absorb/show/audit) with HELP_RC=0 (line 28); `lore match \"gateway drain window closed and ticks were stranded unpushed\"` returns `gateway-drain-window\\tconfidence=0.90` plus signature/keyword evidence and MATCH_RC=0 (lines 29-35). The class id is real: lore/classes.py:40 `id=\"gateway-drain-window\"`."
+    },
+    {
+      "criterion": "raw/negative.txt shows the same install procedure pinned to a nonexistent tag exiting nonzero, and evidence.txt names host, exact command and uv version. FAILIF: negative arm exits 0, or the record omits host/command/uv version. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/negative.txt and evidence.txt",
+      "status": "PASS",
+      "detail": "raw/negative.txt: same uv tool install procedure pinned to v9.9.9-nonexistent fails \u2014 git fetch exit status 128, \"fatal: couldn't find remote ref refs/tags/v9.9.9-nonexistent\", NEGATIVE_RC=2 (nonzero). evidence.txt names host (\"karaHermes-mde-7840hs / Linux 7.0.0-43-generic / uv 0.11.17\", line 6 and A4 section line 76), exact command (`uv tool install \"git+https://github.com/get-h3/lore@v0.3.0\"`, lines 30 and 77), and uv version 0.11.17."
+    },
+    {
+      "criterion": "Derived: the evidence record's independently checkable claims (tag->commit peel, classes.py sha256, __version__, gateway-drain-window class existence) match the actual repository, and the repo test suite is green",
+      "status": "PASS",
+      "detail": "Local verification: `git rev-parse v0.3.0` = 2d33e57c03f9f1cc6be390513f2fea7eefea5f58 (tag object, as evidence.txt line 8 claims) and `git rev-parse v0.3.0^{commit}` = c769be4265e74a93b4706c6cc7971fe58a3f3dbd; `git show c769be4:lore/classes.py | sha256sum` = ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b matching the recorded installed-file hash; `__version__ = \"0.3.0\"` at that commit; gateway-drain-window at lore/classes.py:40. Test command from .gitreins/config.yaml (`uv run pytest -x --tb=short`) run fresh: exit_code 0, \"579 passed in 9.13s\".",
+      "derived": true
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nsecrets: gitleaks bound=timeout 600s (0=off)\nscanners: nice=nice -n 10\n6:13PM INF scanned ~14251096 bytes (14.25 MB) in 5s\n6:13PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 309 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.14.7\ncollected 579 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 24%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 26%]\ntests/test_evidence.py ......................                            [ 30%]\ntests/test_lore011_drain_acceptance.py .......                           [ 31%]\ntests/test_lore016_qa_audit.py .....................                     [ 35%]\ntests/test_lore017_gateway_guard.py ........                             [ 36%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 38%]\ntests/test_lore022_freshness_docs.py .....                               [ 39%]\ntests/test_lore030_ux_guard.py ....                                      [ 40%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 42%]\ntests/test_lore041_collision_canonical.py ...........                    [ 44%]\ntests/test_lore043_short_text_threshold.py ....................          [ 47%]\ntests/test_lore045_validate_history.py ....................              [ 51%]\ntests/test_lore046_match_output.py ...........                           [ 53%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 54%]\n\n\u2026 [560 chars omitted \u2014 7 line(s)] \u2026\ntests/test_lore055_consult_missing_input.py ......                       [ 64%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 65%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 66%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 67%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 68%]\ntests/test_lore064_audit_wiring.py .............................         [ 73%]\ntests/test_lore066_zero_check_skip.py ...                                [ 74%]\ntests/test_lore067_incident_audit.py ..                                  [ 74%]\ntests/test_lore071_trigger.py ......                                     [ 75%]\ntests/test_near_miss.py ..............                                   [ 78%]\ntests/test_perf2_audit_single_pass.py ........                           [ 79%]\ntests/test_prom_export.py .......                                        [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 82%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 579 passed in 10.38s =============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            }
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 raw/install.txt records a COLD uv tool install of git+https://github.com/get-h3/lore@v0.3.0 into an empty UV_TOOL_DIR with INSTALL_RC=0 resolving commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd. FAILIF: file absent, shows only \"Checked 1 package\" (a no-op re-install), or rc nonzero. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/install.txt: docs/qa/evidence/run-RELEASE-LORE-010/raw/install.txt:4-10 \u2014 header records empty UV_TOOL_DIR=/tmp/rl010-fresh/tools and command `uv tool install \"git+https://github.com/get-h3/lore@v0.3.0\"`; output shows a real install (\"Installed 1 package in 4ms\", \"+ get-h3-lore==0.3.0 (from git+https://github.com/get-h3/lore@c769be4265e74a93b4706c6cc7971fe58a3f3dbd)\", \"Installed 1 executable: lore\"), not a \"Checked 1 package\" no-op; INSTALL_RC=0 at line 11. Commit cross-checked: `git rev-parse v0.3.0^{commit}` locally = c769be4265e74a93b4706c6cc7971fe58a3f3dbd.\n  \u2713 raw/metadata.txt records dist metadata Version: 0.3.0, installed lore/__init__.py __version__ 0.3.0, and the same sha256 for the installed lore/classes.py and c769be4:lore/classes.py. FAILIF: any version differs from 0.3.0 or the hashes differ. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/metadata.txt: raw/metadata.txt:2-3 dist metadata \"Name: get-h3-lore / Version: 0.3.0\"; line 5 installed lore/__init__.py `3:__version__ = \"0.3.0\"`; lines 8-10 identical sha256 ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b for installed lore/classes.py and c769be4:lore/classes.py. Independently reproduced: `git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sha256sum` = ea895d64... (matches), and `git show c769be4:lore/__init__.py` line 3 = `__version__ = \"0.3.0\"`.\n  \u2713 raw/cli.txt shows lore --help HELP_RC=0 and a live lore match returning class gateway-drain-window with MATCH_RC=0 from a cwd outside any lore checkout. FAILIF: no class id returned, or a nonzero rc. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/cli.txt: raw/cli.txt:1 states cwd=/tmp/rl010-fresh/outside (no lore checkout in any ancestor); `lore --help` prints the full usage surface (match/consult/compile/validate/gate/absorb/show/audit) with HELP_RC=0 (line 28); `lore match \"gateway drain window closed and ticks were stranded unpushed\"` returns `gateway-drain-window\\tconfidence=0.90` plus signature/keyword evidence and MATCH_RC=0 (lines 29-35). The class id is real: lore/classes.py:40 `id=\"gateway-drain-window\"`.\n  \u2713 raw/negative.txt shows the same install procedure pinned to a nonexistent tag exiting nonzero, and evidence.txt names host, exact command and uv version. FAILIF: negative arm exits 0, or the record omits host/command/uv version. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/negative.txt and evidence.txt: raw/negative.txt: same uv tool install procedure pinned to v9.9.9-nonexistent fails \u2014 git fetch exit status 128, \"fatal: couldn't find remote ref refs/tags/v9.9.9-nonexistent\", NEGATIVE_RC=2 (nonzero). evidence.txt names host (\"karaHermes-mde-7840hs / Linux 7.0.0-43-generic / uv 0.11.17\", line 6 and A4 section line 76), exact command (`uv tool install \"git+https://github.com/get-h3/lore@v0.3.0\"`, lines 30 and 77), and uv version 0.11.17.\n  \u2713 Derived: the evidence record's independently checkable claims (tag->commit peel, classes.py sha256, __version__, gateway-drain-window class existence) match the actual repository, and the repo test suite is green: Local verification: `git rev-parse v0.3.0` = 2d33e57c03f9f1cc6be390513f2fea7eefea5f58 (tag object, as evidence.txt line 8 claims) and `git rev-parse v0.3.0^{commit}` = c769be4265e74a93b4706c6cc7971fe58a3f3dbd; `git show c769be4:lore/classes.py | sha256sum` = ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b matching the recorded installed-file hash; `__version__ = \"0.3.0\"` at that commit; gateway-drain-window at lore/classes.py:40. Test command from .gitreins/config.yaml (`uv run pytest -x --tb=short`) run fresh: exit_code 0, \"579 passed in 9.13s\".\nAll four acceptance arms are documented in docs/qa/evidence/run-RELEASE-LORE-010/ with raw logs showing a cold uv tool install of v0.3.0 (INSTALL_RC=0, resolving c769be4), matching 0.3.0 metadata and identical classes.py sha256 (independently reproduced against the local tag), a live CLI run returning gateway-drain-window with rc 0, and a nonzero negative arm \u2014 every checkable claim cross-verified against the repo and the suite green (579 passed).",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 raw/install.txt records a COLD uv tool install of git+https://github.com/get-h3/lore@v0.3.0 into an empty UV_TOOL_DIR with INSTALL_RC=0 resolving commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd. FAILIF: file absent, shows only \"Checked 1 package\" (a no-op re-install), or rc nonzero. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/install.txt: docs/qa/evidence/run-RELEASE-LORE-010/raw/install.txt:4-10 \u2014 header records empty UV_TOOL_DIR=/tmp/rl010-fresh/tools and command `uv tool install \"git+https://github.com/get-h3/lore@v0.3.0\"`; output shows a real install (\"Installed 1 package in 4ms\", \"+ get-h3-lore==0.3.0 (from git+https://github.com/get-h3/lore@c769be4265e74a93b4706c6cc7971fe58a3f3dbd)\", \"Installed 1 executable: lore\"), not a \"Checked 1 package\" no-op; INSTALL_RC=0 at line 11. Commit cross-checked: `git rev-parse v0.3.0^{commit}` locally = c769be4265e74a93b4706c6cc7971fe58a3f3dbd.\n  \u2713 raw/metadata.txt records dist metadata Version: 0.3.0, installed lore/__init__.py __version__ 0.3.0, and the same sha256 for the installed lore/classes.py and c769be4:lore/classes.py. FAILIF: any version differs from 0.3.0 or the hashes differ. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/metadata.txt: raw/metadata.txt:2-3 dist metadata \"Name: get-h3-lore / Version: 0.3.0\"; line 5 installed lore/__init__.py `3:__version__ = \"0.3.0\"`; lines 8-10 identical sha256 ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b for installed lore/classes.py and c769be4:lore/classes.py. Independently reproduced: `git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sha256sum` = ea895d64... (matches), and `git show c769be4:lore/__init__.py` line 3 = `__version__ = \"0.3.0\"`.\n\n\u2026 [1493 chars omitted \u2014 2 line(s)] \u2026\n  \u2713 Derived: the evidence record's independently checkable claims (tag->commit peel, classes.py sha256, __version__, gateway-drain-window class existence) match the actual repository, and the repo test suite is green: Local verification: `git rev-parse v0.3.0` = 2d33e57c03f9f1cc6be390513f2fea7eefea5f58 (tag object, as evidence.txt line 8 claims) and `git rev-parse v0.3.0^{commit}` = c769be4265e74a93b4706c6cc7971fe58a3f3dbd; `git show c769be4:lore/classes.py | sha256sum` = ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b matching the recorded installed-file hash; `__version__ = \"0.3.0\"` at that commit; gateway-drain-window at lore/classes.py:40. Test command from .gitreins/config.yaml (`uv run pytest -x --tb=short`) run fresh: exit_code 0, \"579 passed in 9.13s\".\nAll four acceptance arms are documented in docs/qa/evidence/run-RELEASE-LORE-010/ with raw logs showing a cold uv tool install of v0.3.0 (INSTALL_RC=0, resolving c769be4), matching 0.3.0 metadata and identical classes.py sha256 (independently reproduced against the local tag), a live CLI run returning gateway-drain-window with rc 0, and a nonzero negative arm \u2014 every checkable claim cross-verified against the repo and the suite green (579 passed).",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "raw/install.txt records a COLD uv tool install of git+https://github.com/get-h3/lore@v0.3.0 into an empty UV_TOOL_DIR with INSTALL_RC=0 resolving commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd. FAILIF: file absent, shows only \"Checked 1 package\" (a no-op re-install), or rc nonzero. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/install.txt",
+                "status": "PASS",
+                "detail": "docs/qa/evidence/run-RELEASE-LORE-010/raw/install.txt:4-10 \u2014 header records empty UV_TOOL_DIR=/tmp/rl010-fresh/tools and command `uv tool install \"git+https://github.com/get-h3/lore@v0.3.0\"`; output shows a real install (\"Installed 1 package in 4ms\", \"+ get-h3-lore==0.3.0 (from git+https://github.com/get-h3/lore@c769be4265e74a93b4706c6cc7971fe58a3f3dbd)\", \"Installed 1 executable: lore\"), not a \"Checked 1 package\" no-op; INSTALL_RC=0 at line 11. Commit cross-checked: `git rev-parse v0.3.0^{commit}` locally = c769be4265e74a93b4706c6cc7971fe58a3f3dbd."
+              },
+              {
+                "criterion": "raw/metadata.txt records dist metadata Version: 0.3.0, installed lore/__init__.py __version__ 0.3.0, and the same sha256 for the installed lore/classes.py and c769be4:lore/classes.py. FAILIF: any version differs from 0.3.0 or the hashes differ. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/metadata.txt",
+                "status": "PASS",
+                "detail": "raw/metadata.txt:2-3 dist metadata \"Name: get-h3-lore / Version: 0.3.0\"; line 5 installed lore/__init__.py `3:__version__ = \"0.3.0\"`; lines 8-10 identical sha256 ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b for installed lore/classes.py and c769be4:lore/classes.py. Independently reproduced: `git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sha256sum` = ea895d64... (matches), and `git show c769be4:lore/__init__.py` line 3 = `__version__ = \"0.3.0\"`."
+              },
+              {
+                "criterion": "raw/cli.txt shows lore --help HELP_RC=0 and a live lore match returning class gateway-drain-window with MATCH_RC=0 from a cwd outside any lore checkout. FAILIF: no class id returned, or a nonzero rc. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/cli.txt",
+                "status": "PASS",
+                "detail": "raw/cli.txt:1 states cwd=/tmp/rl010-fresh/outside (no lore checkout in any ancestor); `lore --help` prints the full usage surface (match/consult/compile/validate/gate/absorb/show/audit) with HELP_RC=0 (line 28); `lore match \"gateway drain window closed and ticks were stranded unpushed\"` returns `gateway-drain-window\\tconfidence=0.90` plus signature/keyword evidence and MATCH_RC=0 (lines 29-35). The class id is real: lore/classes.py:40 `id=\"gateway-drain-window\"`."
+              },
+              {
+                "criterion": "raw/negative.txt shows the same install procedure pinned to a nonexistent tag exiting nonzero, and evidence.txt names host, exact command and uv version. FAILIF: negative arm exits 0, or the record omits host/command/uv version. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/negative.txt and evidence.txt",
+                "status": "PASS",
+                "detail": "raw/negative.txt: same uv tool install procedure pinned to v9.9.9-nonexistent fails \u2014 git fetch exit status 128, \"fatal: couldn't find remote ref refs/tags/v9.9.9-nonexistent\", NEGATIVE_RC=2 (nonzero). evidence.txt names host (\"karaHermes-mde-7840hs / Linux 7.0.0-43-generic / uv 0.11.17\", line 6 and A4 section line 76), exact command (`uv tool install \"git+https://github.com/get-h3/lore@v0.3.0\"`, lines 30 and 77), and uv version 0.11.17."
+              },
+              {
+                "criterion": "Derived: the evidence record's independently checkable claims (tag->commit peel, classes.py sha256, __version__, gateway-drain-window class existence) match the actual repository, and the repo test suite is green",
+                "status": "PASS",
+                "detail": "Local verification: `git rev-parse v0.3.0` = 2d33e57c03f9f1cc6be390513f2fea7eefea5f58 (tag object, as evidence.txt line 8 claims) and `git rev-parse v0.3.0^{commit}` = c769be4265e74a93b4706c6cc7971fe58a3f3dbd; `git show c769be4:lore/classes.py | sha256sum` = ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b matching the recorded installed-file hash; `__version__ = \"0.3.0\"` at that commit; gateway-drain-window at lore/classes.py:40. Test command from .gitreins/config.yaml (`uv run pytest -x --tb=short`) run fresh: exit_code 0, \"579 passed in 9.13s\".",
+                "derived": true
+              }
+            ],
+            "summary": "All four acceptance arms are documented in docs/qa/evidence/run-RELEASE-LORE-010/ with raw logs showing a cold uv tool install of v0.3.0 (INSTALL_RC=0, resolving c769be4), matching 0.3.0 metadata and identical classes.py sha256 (independently reproduced against the local tag), a live CLI run returning gateway-drain-window with rc 0, and a nonzero negative arm \u2014 every checkable claim cross-verified against the repo and the suite green (579 passed).",
+            "provenance": {
+              "model": "accounts/fireworks/models/kimi-k3",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "accounts/fireworks/models/kimi-k3",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"RELEASE-LORE-010\"}",
+          "exit_code": 0,
+          "output_sha": "5f9bb6ac411e74ae59bc670feb16d1ee3a4c9db8ab53b17463b55a3fd95cec91"
+        },
+        {
+          "tool": "run_command",
+          "command": "ls -la docs/qa/evidence/run-RELEASE-LORE-010/ docs/qa/evidence/run-RELEASE-LORE-010/raw/ 2>&1",
+          "exit_code": 0,
+          "output_sha": "764a43b66c41575cdccb0f3324da7fd3c1e9f23a36a7fb535191c641c6cc59c5"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"docs/qa/evidence/run-RELEASE-LORE-010/raw/install.txt\"}",
+          "exit_code": 0,
+          "output_sha": "6eb9cf212a020d044d7dc004b44c0c3eb4732b8f647460941a76e7de5f4c635d"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"docs/qa/evidence/run-RELEASE-LORE-010/raw/metadata.txt\"}",
+          "exit_code": 0,
+          "output_sha": "2044b7659c20187b441746d6151d23eff974bd8e9f2412da2c7938996fdc324f"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"docs/qa/evidence/run-RELEASE-LORE-010/raw/cli.txt\"}",
+          "exit_code": 0,
+          "output_sha": "b4f5c807b9387b1062b9ea3decf9824c965880970007174774fed173e4961477"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"docs/qa/evidence/run-RELEASE-LORE-010/raw/negative.txt\"}",
+          "exit_code": 0,
+          "output_sha": "72a40671c1d0e35872eadb222affe0ac13e61bcd578b881283ab3c1fd69e3011"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"docs/qa/evidence/run-RELEASE-LORE-010/evidence.txt\"}",
+          "exit_code": 0,
+          "output_sha": "fdaec6729b28dc68e3e4bc0d37b31477dd16dd27aa8f0fa52f5c278fc953e794"
+        },
+        {
+          "tool": "run_command",
+          "command": "git rev-parse v0.3.0^{commit} 2>&1; git rev-parse v0.3.0 2>&1; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py 2>&1 | sha256sum; git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/__init__.py 2>&1 | head -5",
+          "exit_code": 0,
+          "output_sha": "823a05a8c5a5e9f3ac038c42511d5cc7d5f80222cf3d3da05e7cc512104578bd"
+        },
+        {
+          "tool": "search_pattern",
+          "command": "search_pattern {\"file_glob\": \"tests/*.py\", \"regex\": \"RELEASE-LORE-010|run-RELEASE-LORE-010\"}",
+          "exit_code": 0,
+          "output_sha": "bb6cdc377f35371bfaf9396cf1f5dd9348d615cfa418e9a5e600e5925e4253d0"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -n \"gateway-drain-window\" lore/classes.py | head -5; grep -rn \"gateway drain\" lore/classes.py | head -5",
+          "exit_code": 0,
+          "output_sha": "c94d91513166a68dd29507e9de65a269e29a052d9f3ba43ff963a97f9dc39dce"
+        },
+        {
+          "tool": "run_command",
+          "command": "cat .gitreins/config.yaml 2>/dev/null | head -40",
+          "exit_code": 0,
+          "output_sha": "ffa1ca8f16dd628c7fbba390cf914c4efa467dd2903fc76d15e13e7eeffc8e3c"
+        },
+        {
+          "tool": "run_command",
+          "command": "uv run pytest -x --tb=short -q 2>&1 | tail -5",
+          "exit_code": 0,
+          "output_sha": "3389ac09f55c6b13e07b0636f70b562ac93403a26aa3df2bcd94df0af933c32f"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: docs/qa/evidence/run-RELEASE-LORE-010/raw/install.txt exists; header shows empty UV_TOOL_DIR=/tmp/rl010-fresh/tools, command `uv tool install \\\"git+https://github.com/get-h3/lore@v0.3.0\\\"`, output \\\"Installed 1 package in 4ms / + get-h3-lore==0.3.0 (from git+https://github.com/get-h3/lore@c769be4265e74a93b4706c6cc7971fe58a3f3dbd) / Installed 1 executable: lore\\\", INSTALL_RC=0. Not a \\\"Checked 1 package\\\" no-op. Commit cross-checked locally: `git rev-parse v0.3.0^{commit}` = c769be4265e74a93b4706c6cc7971fe58a3f3dbd.\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "2a7e9751083e9829043c8178d9704395ccb78a22433ae1c96f545c53ab7415a0"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: raw/metadata.txt shows dist metadata Version: 0.3.0, installed lore/__init__.py line 3 `__version__ = \\\"0.3.0\\\"`, and identical sha256 ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b for installed lore/classes.py and c769be4:lore/classes.py. Cross-checked locally: `git show c769be4...:lore/classes.py | sha256sum` = ea895d64... (matches), and `git show c769be4:lore/__init__.py` line 3 = `__version__ = \\\"0.3.0\\\"`.\", \"key\": \"verified_1\"}",
+          "exit_code": 0,
+          "output_sha": "dc630eeda8027acf4a26384887406457e74d973eec7f26d17f4695bc305490ac"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: raw/cli.txt header states cwd=/tmp/rl010-fresh/outside (no lore checkout in ancestors); `lore --help` prints full usage and HELP_RC=0; `lore match \\\"gateway drain window closed and ticks were stranded unpushed\\\"` returns `gateway-drain-window\\\\tconfidence=0.90` with evidence line and MATCH_RC=0. Class id gateway-drain-window exists in lore/classes.py:40.\", \"key\": \"verified_2\"}",
+          "exit_code": 0,
+          "output_sha": "95238ee1a8eba41499c4d68ed0fed61306c8a65abbc226cc0b00e2b1477b17f0"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: raw/negative.txt shows same uv tool install procedure pinned to v9.9.9-nonexistent failing with git fetch exit status 128 / \\\"fatal: couldn't find remote ref\\\" and NEGATIVE_RC=2 (nonzero). evidence.txt names host (karaHermes-mde-7840hs / Linux 7.0.0-43-generic), exact command (`uv tool install \\\"git+https://github.com/get-h3/lore@v0.3.0\\\"`), and uv version (uv 0.11.17) in both header and A4 reproducibility section.\", \"key\": \"verified_3\"}",
+          "exit_code": 0,
+          "output_sha": "6a8a40ff1358e85db90a7ea7a3256af842981ec063d31f6ca83bcd7089ac2ed1"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: evidence.txt's independently checkable claims verified against the local repo: v0.3.0 tag object = 2d33e57c03f9f1cc6be390513f2fea7eefea5f58 peeling to commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd (git rev-parse v0.3.0 and v0.3.0^{commit}); sha256 of c769be4:lore/classes.py = ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b matching the recorded installed-file hash; __version__ \\\"0.3.0\\\" at that commit; gateway-drain-window class exists at lore/classes.py:40. Repo test suite green: `uv run pytest -x --tb=short -q` exit 0, \\\"579 passed in 9.13s\\\".\", \"key\": \"verified_derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "4f1360935439afb29247e24fe3ce7833f82dff2e6401213cfa022cd87b84e99f"
+        }
+      ]
+    }
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [],
+    "summary": "Board-only JSONL data update re-binding RELEASE-LORE-010's evidence run and commit hash with an explanatory foreman note; no code, wiring, or test surface changed, and the apparent summary/commit mismatch is explicitly accounted for in the row's own foreman_note.",
+    "review_state": {
+      "emitted": [],
+      "carried": []
+    }
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 raw/install.txt records a COLD uv tool install of git+https://github.com/get-h3/lore@v0.3.0 into an empty UV_TOOL_DIR with INSTALL_RC=0 resolving commit c769be4265e74a93b4706c6cc7971fe58a3f3dbd. FAILIF: file absent, shows only \"Checked 1 package\" (a no-op re-install), or rc nonzero. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/install.txt: docs/qa/evidence/run-RELEASE-LORE-010/raw/install.txt:4-10 \u2014 header records empty UV_TOOL_DIR=/tmp/rl010-fresh/tools and command `uv tool install \"git+https://github.com/get-h3/lore@v0.3.0\"`; output shows a real install (\"Installed 1 package in 4ms\", \"+ get-h3-lore==0.3.0 (from git+https://github.com/get-h3/lore@c769be4265e74a93b4706c6cc7971fe58a3f3dbd)\", \"Installed 1 executable: lore\"), not a \"Checked 1 package\" no-op; INSTALL_RC=0 at line 11. Commit cross-checked: `git rev-parse v0.3.0^{commit}` locally = c769be4265e74a93b4706c6cc7971fe58a3f3dbd.\n  \u2713 raw/metadata.txt records dist metadata Version: 0.3.0, installed lore/__init__.py __version__ 0.3.0, and the same sha256 for the installed lore/classes.py and c769be4:lore/classes.py. FAILIF: any version differs from 0.3.0 or the hashes differ. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/metadata.txt: raw/metadata.txt:2-3 dist metadata \"Name: get-h3-lore / Version: 0.3.0\"; line 5 installed lore/__init__.py `3:__version__ = \"0.3.0\"`; lines 8-10 identical sha256 ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b for installed lore/classes.py and c769be4:lore/classes.py. Independently reproduced: `git show c769be4265e74a93b4706c6cc7971fe58a3f3dbd:lore/classes.py | sha256sum` = ea895d64... (matches), and `git show c769be4:lore/__init__.py` line 3 = `__version__ = \"0.3.0\"`.\n  \u2713 raw/cli.txt shows lore --help HELP_RC=0 and a live lore match returning class gateway-drain-window with MATCH_RC=0 from a cwd outside any lore checkout. FAILIF: no class id returned, or a nonzero rc. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/cli.txt: raw/cli.txt:1 states cwd=/tmp/rl010-fresh/outside (no lore checkout in any ancestor); `lore --help` prints the full usage surface (match/consult/compile/validate/gate/absorb/show/audit) with HELP_RC=0 (line 28); `lore match \"gateway drain window closed and ticks were stranded unpushed\"` returns `gateway-drain-window\\tconfidence=0.90` plus signature/keyword evidence and MATCH_RC=0 (lines 29-35). The class id is real: lore/classes.py:40 `id=\"gateway-drain-window\"`.\n  \u2713 raw/negative.txt shows the same install procedure pinned to a nonexistent tag exiting nonzero, and evidence.txt names host, exact command and uv version. FAILIF: negative arm exits 0, or the record omits host/command/uv version. PROOF: cat docs/qa/evidence/run-RELEASE-LORE-010/raw/negative.txt and evidence.txt: raw/negative.txt: same uv tool install procedure pinned to v9.9.9-nonexistent fails \u2014 git fetch exit status 128, \"fatal: couldn't find remote ref refs/tags/v9.9.9-nonexistent\", NEGATIVE_RC=2 (nonzero). evidence.txt names host (\"karaHermes-mde-7840hs / Linux 7.0.0-43-generic / uv 0.11.17\", line 6 and A4 section line 76), exact command (`uv tool install \"git+https://github.com/get-h3/lore@v0.3.0\"`, lines 30 and 77), and uv version 0.11.17.\n  \u2713 Derived: the evidence record's independently checkable claims (tag->commit peel, classes.py sha256, __version__, gateway-drain-window class existence) match the actual repository, and the repo test suite is green: Local verification: `git rev-parse v0.3.0` = 2d33e57c03f9f1cc6be390513f2fea7eefea5f58 (tag object, as evidence.txt line 8 claims) and `git rev-parse v0.3.0^{commit}` = c769be4265e74a93b4706c6cc7971fe58a3f3dbd; `git show c769be4:lore/classes.py | sha256sum` = ea895d64489eb79685adc15593f6a9afa0cdcaeae34bd1d5a98eac9a36a8bb6b matching the recorded installed-file hash; `__version__ = \"0.3.0\"` at that commit; gateway-drain-window at lore/classes.py:40. Test command from .gitreins/config.yaml (`uv run pytest -x --tb=short`) run fresh: exit_code 0, \"579 passed in 9.13s\".\nAll four acceptance arms are documented in docs/qa/evidence/run-RELEASE-LORE-010/ with raw logs showing a cold uv tool install of v0.3.0 (INSTALL_RC=0, resolving c769be4), matching 0.3.0 metadata and identical classes.py sha256 (independently reproduced against the local tag), a live CLI run returning gateway-drain-window with rc 0, and a nonzero negative arm \u2014 every checkable claim cross-verified against the repo and the suite green (579 passed).\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-21T23:15:06.081844",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-21T23:15:06.128893+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 168561,
+        "truncated": false,
+        "source": "git show a7c7fbc07d7a"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 25949,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "RELEASE-LORE-010"
+  }
+}
