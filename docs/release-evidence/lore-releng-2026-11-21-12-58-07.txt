@@ -285,3 +285,77 @@ NOT MUTATED BY THIS PASS
   fast-forwarded 43 commits from lane/releng-workdir to the fetched origin/main tip
   (5f239fc) so this pass measured the real tip in place instead of a detached worktree;
   that fast-forward is a pointer move with no commit, no push and no tree change.
+
+## Pass 4 — fourth fire of the same tick (measured 2026-11-21T14:40Z)
+
+Ordinal from the ledger, before any mutation: namespace lore carries exactly four keys under
+/projects/lore/releases — v0.3.0 (fire pass-01), v0.3.0-postrelease-sweep (pass-02),
+v0.3.0-postrelease-sweep-2 (pass-03), plus v0.2.0 from the previous release cycle. So this fire
+is pass-04, recorded at /projects/lore/releases/v0.3.0-postrelease-sweep-3. No key was written
+for this tick by a sibling instance while this pass ran.
+
+DECISION: NO CUT. v0.3.0 was published by pass 1; the product tree has not moved since the
+certified candidate, so this pass re-derives only the surfaces that can move and mints no tag,
+no Release object, no package, no readiness row and no new board row.
+
+SURFACE TABLE  (pass 3 reading | pass 4 reading)
+  tag v0.3.0 object          2d33e57c03f9f1cc6be390513f2fea7eefea5f58 | unchanged; ls-remote
+                             returns 2d33e57 for refs/tags/v0.3.0 and c769be4 for its peeled ref,
+                             agreeing with the local annotated tag
+  peeled commit              c769be4265e74a93b4706c6cc7971fe58a3f3dbd | unchanged
+  Release object             published, draft=false, prerelease=false, assets=[] | same, re-read
+                             live: published_at 2026-11-21T13:25:16Z, assets 0, still
+                             https://github.com/get-h3/lore/releases/tag/v0.3.0
+  published body sha256      4a79469e2641...9541b6c | 4a79469e2641...9541b6c — re-hashed from a
+                             freshly fetched release object (jq -j .body, no trailing newline)
+                             and still byte-identical to both docs/release-evidence/v0.3.0-notes.md
+                             at HEAD and the same blob inside the TAGGED tree
+  version surfaces at tip    pyproject 0.3.0 / __version__ 0.3.0 / [0.3.0] heading | same three,
+                             with [Unreleased] still above [0.3.0]
+  commits tag -> tip         5, zero product paths | 6, still ZERO product paths — the board twice
+                             (.coding-hermes/board/{tasks,events}.jsonl) and this artifact four
+                             times; `git diff --name-only v0.3.0 <tip>` names exactly those three
+                             paths
+  certified candidate        ff7f03699b898e3abf680b173180863b43e79d75 | carried; candidate -> tip
+                             still shows 4 product paths (CHANGELOG.md, lore/__init__.py,
+                             pyproject.toml, uv.lock), which are exactly c769be4's own release-prep
+                             files — prep inside the tag range, not post-release movement
+  exact-tip CI               run 44912359871 green on 5f239fc | run 44913662296 "CI"
+                             completed/success on 20b3678 (check-run 136874559318, job "test"),
+                             so the current tip carries its own exact-SHA green and nothing this
+                             tick pushed is certified only by inheritance
+  release-check on tag       44908771302 completed/success | unchanged
+  verdict naming candidate   0 (every verdict.json re-grepped) | still 0 for the full 40-char
+                             candidate SHA, and 0 for the tag commit c769be4 — the release rests
+                             on the exact-SHA hosted CI plus the GitReins verdict bound to eda0c96
+                             (product tree byte-identical), as pass 1 disclosed
+  board state                147 complete + 1 closed + 1 pending (RELEASE-LORE-010) | identical:
+                             147 complete + 1 closed + 1 pending, and the pending row is still
+                             pass 2's install-channel filing, not new debt
+  lane checkout              fast-forwarded to 5f239fc at the end of pass 3 | local HEAD, branch
+                             lane/releng-workdir, and fetched origin/main all at 20b3678 with a
+                             clean tree, 0 ahead / 0 behind — measurement taken in place, and the
+                             43-commit lag the first three passes worked around is gone
+  deployed CLI on this host  get-h3-lore 0.2.0 | get-h3-lore v0.2.0 via uv tool list, unchanged;
+                             the one-release lag RELEASE-LORE-008 accepts by design
+  dogfood                    newest integration record 2026-10-29 | unchanged, still predates
+                             v0.2.0; no dogfood replay at the candidate is claimed
+
+WHAT MOVED: one reading only — the previous pass's tip commit now carries its own green run.
+Every other surface re-derived to the value pass 3 recorded, so no Conventional-Commit census was
+re-run, no artifact was rebuilt and no tag, Release object or package was touched.
+
+INSTALL LEG — fourth refusal, the row stands unchanged
+  Attempted fresh this pass, on the rule that a new fire may run a previously refused read: a
+  scratch `uv venv` in the tick's scratch directory followed by a pip install of the git URL
+  pinned to the published tag. The harness consent gate refused the command before it executed
+  (no answer; silence is not consent), and a refused probe is not retried inside one fire. So no
+  install or capability claim is made for v0.3.0 for a fourth pass. The leg stays owned by
+  RELEASE-LORE-010 with its multi-part acceptance and its negative arm; this pass neither
+  duplicates that row nor weakens it, and the channel is unchanged by the release (git tags only,
+  no package index), so the refusal costs evidence, not correctness of the cut.
+
+NOT MUTATED BY THIS PASS
+  no tag created, moved or deleted; no Release object edited; no package published; no branch
+  deleted; no sibling worktree touched. The only write is this dated section in the tick's
+  evidence artifact.
