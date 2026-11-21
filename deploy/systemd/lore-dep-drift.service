@@ -1,0 +1,11 @@
+[Unit]
+Description=lore weekly dependency drift report
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/kara/get-h3/lore
+ExecStart=/home/kara/get-h3/lore/scripts/dep-drift.sh
+Environment=HOME=/home/kara
+StandardOutput=append:/home/kara/.local/share/lore/dep-drift.log
+StandardError=inherit

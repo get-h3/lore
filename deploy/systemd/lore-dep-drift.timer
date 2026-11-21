@@ -1,0 +1,9 @@
+[Unit]
+Description=lore dependency drift report every Monday 07:45
+
+[Timer]
+OnCalendar=Mon *-*-* 07:45:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

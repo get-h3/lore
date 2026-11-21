@@ -451,6 +451,16 @@ printf 'logsey export --window 2h\n```\n2026-09-24T10:00:00 unit=loreforge gatew
   to `~/.local/share/lore/weekly-validate.log`. Arm it per box with
   `systemctl --user enable --now lore-validate.timer`; each Monday run appends
   its records to `.lore/validate-history.jsonl` in the checkout.
+- **Weekly dependency drift:** `scripts/dep-drift.sh` reports lock pins behind
+  PyPI latest; it does not check vulnerabilities (`scripts/audit-deps.sh` does).
+  The report never mutates the lock or environment, and lookup failures are
+  marked incomplete. Install `deploy/systemd/`'s unit examples per box as
+  `~/.config/systemd/user/lore-dep-drift.service` and
+  `~/.config/systemd/user/lore-dep-drift.timer`; adjust their paths and ensure
+  the main checkout's venv and log directory exist. Run
+  `systemctl --user daemon-reload`, then
+  `systemctl --user enable --now lore-dep-drift.timer`. The Monday 07:45 start
+  is staggered after validation, but does not prevent overlapping long runs.
 - **Propose-not-write.** The compiler never writes to disk. Publishing anything
   requires an operator's explicit approval, by design.
 - **Not a monitor.** lore classifies and compiles; it does not watch logs,
