@@ -1,0 +1,318 @@
+{
+  "task_id": "SUP-DEPS-LORE-20261121",
+  "task_title": "Scheduled lock-versus-PyPI drift sweep (report-only)",
+  "task_criteria": [
+    "scripts/dep-drift.sh reports uv.lock-vs-PyPI drift live and report-only (uv.lock checksum unchanged by a run); lore-dep-drift.timer+service armed and visible in systemctl --user list-timers; README+INSTALL document the arrangement; gates green."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "75c094b91ef8bd5837a7c4f94887c87d7ec4fcb9",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "8652be5991b9e62573eecf98d88f26ca6f374631b37babe43872780e2caa3b78",
+  "working_tree_dirty_path_count": 11,
+  "items": [
+    {
+      "criterion": "scripts/dep-drift.sh reports uv.lock-vs-PyPI drift live and report-only (uv.lock checksum unchanged by a run); lore-dep-drift.timer+service armed and visible in systemctl --user list-timers; README+INSTALL document the arrangement; gates green.",
+      "status": "PASS",
+      "detail": "(a) Live run: sha256sum uv.lock before and after `scripts/dep-drift.sh` both 9b99cbec281d5a47cc327fa7421be1a1465c2b6f87a287799a36f0ee0b6fafe5, script_exit=0, live output 'certifi 2026.10.23 -> 2026.11.20; platformdirs 4.14.7 -> 4.14.8; 2 of 34 locked packages behind PyPI latest'; script is read-only (scripts/dep-drift.sh:1-82, tomllib read + PyPI GET, no writes). (b) `systemctl --user list-timers --all` shows 'Mon 2026-11-23 07:45:00 -05 lore-dep-drift.timer lore-dep-drift.service'; is-enabled=enabled, is-active=active. (c) README.md:439-447 and docs/INSTALL.md:454-463 document the script, its report-only nature, the unit install paths, and `systemctl --user enable --now lore-dep-drift.timer`. (d) Gates: `uv run pytest -x --tb=short` exit 0, '572 passed in 7.40s'; tier1 lint and secrets lanes passed (exit_code 0)."
+    },
+    {
+      "criterion": "Seam: the armed ~/.config/systemd/user units match the repo's deploy/systemd/ examples the docs point at, and the service has actually executed (log sink exists).",
+      "status": "PASS",
+      "detail": "diff deploy/systemd/lore-dep-drift.timer ~/.config/systemd/user/lore-dep-drift.timer -> identical; diff of the .service -> identical; ~/.local/share/lore/dep-drift.log exists (286 bytes, Nov 20 22:52) confirming a real run through the armed unit; `systemctl --user cat lore-dep-drift.service` resolves to the installed unit.",
+      "derived": true
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nsecrets: gitleaks bound=timeout 600s (0=off)\nscanners: nice=nice -n 10\n10:56PM INF scanned ~14030339 bytes (14.03 MB) in 3.74s\n10:56PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 300 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.14.7\ncollected 572 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 24%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 27%]\ntests/test_evidence.py ......................                            [ 31%]\ntests/test_lore011_drain_acceptance.py .......                           [ 32%]\ntests/test_lore016_qa_audit.py .....................                     [ 36%]\ntests/test_lore017_gateway_guard.py ........                             [ 37%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 39%]\ntests/test_lore022_freshness_docs.py .....                               [ 40%]\ntests/test_lore030_ux_guard.py ....                                      [ 40%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 42%]\ntests/test_lore041_collision_canonical.py ...........                    [ 44%]\ntests/test_lore043_short_text_threshold.py ....................          [ 48%]\ntests/test_lore045_validate_history.py ....................              [ 51%]\ntests/test_lore046_match_output.py ...........                           [ 53%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 55%]\n\n\u2026 [480 chars omitted \u2014 6 line(s)] \u2026\ntests/test_lore054_match_class_filter.py ....                            [ 64%]\ntests/test_lore055_consult_missing_input.py ......                       [ 65%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 66%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 67%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 68%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 69%]\ntests/test_lore064_audit_wiring.py .............................         [ 74%]\ntests/test_lore066_zero_check_skip.py ...                                [ 75%]\ntests/test_lore067_incident_audit.py ..                                  [ 75%]\ntests/test_lore071_trigger.py ......                                     [ 76%]\ntests/test_near_miss.py ..............                                   [ 79%]\ntests/test_perf2_audit_single_pass.py ........                           [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 81%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 572 passed in 6.37s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            }
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 scripts/dep-drift.sh reports uv.lock-vs-PyPI drift live and report-only (uv.lock checksum unchanged by a run); lore-dep-drift.timer+service armed and visible in systemctl --user list-timers; README+INSTALL document the arrangement; gates green.: (a) Live run: sha256sum uv.lock before and after `scripts/dep-drift.sh` both 9b99cbec281d5a47cc327fa7421be1a1465c2b6f87a287799a36f0ee0b6fafe5, script_exit=0, live output 'certifi 2026.10.23 -> 2026.11.20; platformdirs 4.14.7 -> 4.14.8; 2 of 34 locked packages behind PyPI latest'; script is read-only (scripts/dep-drift.sh:1-82, tomllib read + PyPI GET, no writes). (b) `systemctl --user list-timers --all` shows 'Mon 2026-11-23 07:45:00 -05 lore-dep-drift.timer lore-dep-drift.service'; is-enabled=enabled, is-active=active. (c) README.md:439-447 and docs/INSTALL.md:454-463 document the script, its report-only nature, the unit install paths, and `systemctl --user enable --now lore-dep-drift.timer`. (d) Gates: `uv run pytest -x --tb=short` exit 0, '572 passed in 7.40s'; tier1 lint and secrets lanes passed (exit_code 0).\n  \u2713 Seam: the armed ~/.config/systemd/user units match the repo's deploy/systemd/ examples the docs point at, and the service has actually executed (log sink exists).: diff deploy/systemd/lore-dep-drift.timer ~/.config/systemd/user/lore-dep-drift.timer -> identical; diff of the .service -> identical; ~/.local/share/lore/dep-drift.log exists (286 bytes, Nov 20 22:52) confirming a real run through the armed unit; `systemctl --user cat lore-dep-drift.service` resolves to the installed unit.\nThe drift sweep is real and verified end-to-end: scripts/dep-drift.sh ran live against PyPI leaving uv.lock byte-identical, the user timer is enabled/active and visible in list-timers with a next elapse of Mon 07:45, README and INSTALL both document the arrangement, and the full gate battery (572 tests, lint, secrets) is green.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 scripts/dep-drift.sh reports uv.lock-vs-PyPI drift live and report-only (uv.lock checksum unchanged by a run); lore-dep-drift.timer+service armed and visible in systemctl --user list-timers; README+INSTALL document the arrangement; gates green.: (a) Live run: sha256sum uv.lock before and after `scripts/dep-drift.sh` both 9b99cbec281d5a47cc327fa7421be1a1465c2b6f87a287799a36f0ee0b6fafe5, script_exit=0, live output 'certifi 2026.10.23 -> 2026.11.20; platformdirs 4.14.7 -> 4.14.8; 2 of 34 locked packages behind PyPI latest'; script is read-only (scripts/dep-drift.sh:1-82, tomllib read + PyPI GET, no writes). (b) `systemctl --user list-timers --all` shows 'Mon 2026-11-23 07:45:00 -05 lore-dep-drift.timer lore-dep-drift.service'; is-enabled=enabled, is-active=active. (c) README.md:439-447 and docs/INSTALL.md:454-463 document the script, its report-only nature, the unit install paths, and `systemctl --user enable --now lore-dep-drift.timer`. (d) Gates: `uv run pytest -x --tb=short` exit 0, '572 passed in 7.40s'; tier1 lint and secrets lanes passed (exit_code 0).\n  \u2713 Seam: the armed ~/.config/systemd/user units match the repo's deploy/systemd/ examples the docs point at, and the service has actually executed (log sink exists).: diff deploy/systemd/lore-dep-drift.timer ~/.config/systemd/user/lore-dep-drift.timer -> identical; diff of the .service -> identical; ~/.local/share/lore/dep-drift.log exists (286 bytes, Nov 20 22:52) confirming a real run through the armed unit; `systemctl --user cat lore-dep-drift.service` resolves to the installed unit.\nThe drift sweep is real and verified end-to-end: scripts/dep-drift.sh ran live against PyPI leaving uv.lock byte-identical, the user timer is enabled/active and visible in list-timers with a next elapse of Mon 07:45, README and INSTALL both document the arrangement, and the full gate battery (572 tests, lint, secrets) is green.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "scripts/dep-drift.sh reports uv.lock-vs-PyPI drift live and report-only (uv.lock checksum unchanged by a run); lore-dep-drift.timer+service armed and visible in systemctl --user list-timers; README+INSTALL document the arrangement; gates green.",
+                "status": "PASS",
+                "detail": "(a) Live run: sha256sum uv.lock before and after `scripts/dep-drift.sh` both 9b99cbec281d5a47cc327fa7421be1a1465c2b6f87a287799a36f0ee0b6fafe5, script_exit=0, live output 'certifi 2026.10.23 -> 2026.11.20; platformdirs 4.14.7 -> 4.14.8; 2 of 34 locked packages behind PyPI latest'; script is read-only (scripts/dep-drift.sh:1-82, tomllib read + PyPI GET, no writes). (b) `systemctl --user list-timers --all` shows 'Mon 2026-11-23 07:45:00 -05 lore-dep-drift.timer lore-dep-drift.service'; is-enabled=enabled, is-active=active. (c) README.md:439-447 and docs/INSTALL.md:454-463 document the script, its report-only nature, the unit install paths, and `systemctl --user enable --now lore-dep-drift.timer`. (d) Gates: `uv run pytest -x --tb=short` exit 0, '572 passed in 7.40s'; tier1 lint and secrets lanes passed (exit_code 0)."
+              },
+              {
+                "criterion": "Seam: the armed ~/.config/systemd/user units match the repo's deploy/systemd/ examples the docs point at, and the service has actually executed (log sink exists).",
+                "status": "PASS",
+                "detail": "diff deploy/systemd/lore-dep-drift.timer ~/.config/systemd/user/lore-dep-drift.timer -> identical; diff of the .service -> identical; ~/.local/share/lore/dep-drift.log exists (286 bytes, Nov 20 22:52) confirming a real run through the armed unit; `systemctl --user cat lore-dep-drift.service` resolves to the installed unit.",
+                "derived": true
+              }
+            ],
+            "summary": "The drift sweep is real and verified end-to-end: scripts/dep-drift.sh ran live against PyPI leaving uv.lock byte-identical, the user timer is enabled/active and visible in list-timers with a next elapse of Mon 07:45, README and INSTALL both document the arrangement, and the full gate battery (572 tests, lint, secrets) is green.",
+            "provenance": {
+              "model": "accounts/fireworks/models/kimi-k3",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "accounts/fireworks/models/kimi-k3",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"SUP-DEPS-LORE-20261121\"}",
+          "exit_code": 0,
+          "output_sha": "2b8d302b2ba59d503381b77df74666f936fdc1f2e1400d29ca3a46f2fb05e8ef"
+        },
+        {
+          "tool": "run_command",
+          "command": "ls -la; ls scripts/ 2>/dev/null; find . -name '*dep-drift*' -not -path './.git/*' 2>/dev/null",
+          "exit_code": 0,
+          "output_sha": "01c7dabd33accdfa760b9e4ee2a2b8cc3acbe3ff9ff40253811003180eaed6cf"
+        },
+        {
+          "tool": "read_diff",
+          "command": "read_diff {}",
+          "exit_code": 0,
+          "output_sha": "9091bee05364fd848dc108626d94d8e93c13d6bdbb222e623be2ce6bc8ed135c"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"scripts/dep-drift.sh\"}",
+          "exit_code": 0,
+          "output_sha": "5495fe18674a5640ab115b5fb9a7caae6c3a5071c63e1f8992c9340ae5f96adc"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"deploy/systemd/lore-dep-drift.timer\"}",
+          "exit_code": 0,
+          "output_sha": "3a3ea35dd55ad428563eec75e717b021808002ce9c5b3ae9f04b558489349e1e"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"deploy/systemd/lore-dep-drift.service\"}",
+          "exit_code": 0,
+          "output_sha": "dd25fcd1db49146f4d110dd387b2e5b4b38008a71b788a5d2fc1053c51d8ec98"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -n -i 'dep-drift\\|dep drift\\|drift' README.md | head -30; echo '---INSTALL---'; ls docs/; find . -iname '*install*' -not -path './.git/*' -not -path './.venv/*' -not -path './node_modules/*' 2>/dev/null",
+          "exit_code": 0,
+          "output_sha": "65a0ac835eb8d1e1792a28475ac0b189d90d5cd63d8fe351130901569d07fe35"
+        },
+        {
+          "tool": "run_command",
+          "command": "systemctl --user list-timers 2>&1 | head -20; echo \"exit=$?\"",
+          "exit_code": 0,
+          "output_sha": "1fc7f46430bf67b7b94693d52f108629245d10561667ce5cd901abc0f44df20e"
+        },
+        {
+          "tool": "run_command",
+          "command": "systemctl --user list-timers --all 2>&1 | grep -i 'lore-dep-drift'; echo \"grep_exit=$?\"; ls -la ~/.config/systemd/user/ 2>/dev/null | grep -i 'dep-drift'; systemctl --user is-enabled lore-dep-drift.timer 2>&1; systemctl --user is-active lore-dep-drift.timer 2>&1",
+          "exit_code": 0,
+          "output_sha": "c3922f2c782099f3162c8a75989c9aaa73be8b80c265c423811a2bf49f701324"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -n -i 'dep-drift\\|dep drift' docs/INSTALL.md | head -20",
+          "exit_code": 0,
+          "output_sha": "ad0fafd7b2a5500315bcc4d4def3949e52ccbff42bcde3677839db2a7d1c9715"
+        },
+        {
+          "tool": "run_command",
+          "command": "sed -n '430,470p' README.md; echo '=====INSTALL====='; sed -n '440,475p' docs/INSTALL.md",
+          "exit_code": 0,
+          "output_sha": "2493aac32e588ca0da622b378c50ff56587cdf1202694ca2785e31824d7a59a2"
+        },
+        {
+          "tool": "run_command",
+          "command": "sha256sum uv.lock; ls scripts/__pycache__/ 2>/dev/null; head -30 scripts/dep_drift_test.py 2>/dev/null",
+          "exit_code": 0,
+          "output_sha": "278625a89fcb9a8f67264c0d2d007a6a1c6d071d13e89d2a74b76f04122be89b"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -rn 'dep_drift\\|dep-drift' tests/ pyproject.toml .gitreins/config.yaml 2>/dev/null | head -20",
+          "exit_code": 0,
+          "output_sha": "193b5864e862a971b9b1fff652bf81725a17b5d2187f12bb9409da3cef71d8af"
+        },
+        {
+          "tool": "run_command",
+          "command": "cat .gitreins/config.yaml",
+          "exit_code": 0,
+          "output_sha": "cce62b5749e282c885df4af24f61c98fa12d11ebab74177f72aab28079b1ff81"
+        },
+        {
+          "tool": "run_command",
+          "command": "git log --oneline -8 -- scripts/dep-drift.sh deploy/systemd/ scripts/dep_drift_test.py; echo '---'; git status --short scripts/dep_drift_test.py scripts/dep-drift.sh deploy/; echo '---'; git ls-files scripts/ | head",
+          "exit_code": 0,
+          "output_sha": "e047b602207d0b20915703f8cdb9c534321f49dfe94795584614b80e470467a3"
+        },
+        {
+          "tool": "run_command",
+          "command": "sha256sum uv.lock && timeout 120 scripts/dep-drift.sh > /tmp/drift-out.txt 2>&1; echo \"script_exit=$?\"; sha256sum uv.lock; tail -15 /tmp/drift-out.txt",
+          "exit_code": 0,
+          "output_sha": "7db6a87399929ec05eb63d20e3bdd17083ec878c85a75414eef78c85d5422ee7"
+        },
+        {
+          "tool": "run_command",
+          "command": "uv run pytest -x --tb=short 2>&1 | tail -5",
+          "exit_code": 0,
+          "output_sha": "4a8eae14f9aaad9441eb48b9a61c2aaca933ac293e1b4565f89cc7fe4ebce9d6"
+        },
+        {
+          "tool": "run_command",
+          "command": "uv run pytest scripts/dep_drift_test.py -v 2>&1 | tail -8",
+          "exit_code": 0,
+          "output_sha": "da939bcf2291d3ed749961c6fabb2b6191aa5caed4b014fef6ae435c42ac5c47"
+        },
+        {
+          "tool": "run_command",
+          "command": "diff deploy/systemd/lore-dep-drift.timer ~/.config/systemd/user/lore-dep-drift.timer && echo TIMER_IDENTICAL; diff deploy/systemd/lore-dep-drift.service ~/.config/systemd/user/lore-dep-drift.service && echo SERVICE_IDENTICAL; ls -la ~/.local/share/lore/dep-drift.log 2>&1; systemctl --user cat lore-dep-drift.service 2>&1 | head -5",
+          "exit_code": 0,
+          "output_sha": "ed12293ce6930df2b62d048f6dbba52747ebb3dffae29d78efcc1dec3f67e886"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: (a) Live run: sha256 uv.lock before=after=9b99cbec281d5a47cc327fa7421be1a1465c2b6f87a287799a36f0ee0b6fafe5, script_exit=0, output 'certifi 2026.10.23 -> 2026.11.20; platformdirs 4.14.7 -> 4.14.8; 2 of 34 locked packages behind PyPI latest'. Script never writes lock (scripts/dep-drift.sh:1-82, read-only tomllib load + PyPI GET). (b) systemctl --user list-timers --all shows 'Mon 2026-11-23 07:45:00 -05 lore-dep-drift.timer lore-dep-drift.service'; is-enabled=enabled, is-active=active. (c) README.md:439-447 and docs/INSTALL.md:454-463 document script, report-only nature, unit install paths, enable command. (d) Gates: 'uv run pytest -x --tb=short' exit 0, '572 passed in 7.40s'; tier1 lint+secrets passed.\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "fec946ec1267d57cb322713aae4b1a4d64dc2ec463f57ea1f5b61082f12e64a0"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"Armed units match repo examples (seam): diff deploy/systemd/lore-dep-drift.timer ~/.config/systemd/user/lore-dep-drift.timer -> TIMER_IDENTICAL; diff service -> SERVICE_IDENTICAL; log file ~/.local/share/lore/dep-drift.log exists (286 bytes, Nov 20 22:52) proving a real run. PASS.\", \"key\": \"derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "ad899b290ec21ec911d8a76a638f6a75da5f92ad61c14967712e3f714bd076a8"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"verified_derived_0: PASS \\u2014 installed ~/.config/systemd/user units byte-identical to deploy/systemd/ examples (diff clean both), log file exists from real run.\", \"key\": \"verified_derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "cbaa41d1b3020c16ee1a25b2c037b8cc86ac2a151c8c929795314ca6662eaa95"
+        }
+      ]
+    }
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [
+      {
+        "severity": "low",
+        "file": ".coding-hermes/board/tasks.jsonl",
+        "line": 144,
+        "detection": "row marked status/worker_status \"complete\" has \"completed_at\":null while every other complete row in the file populates completed_at",
+        "detail": "The updated LORE-HYGIENE-20261121 row sets status=\"complete\", worker_status=\"complete\", guard_result and ci_result, but leaves \"completed_at\":null, whereas the sibling complete rows visible in the same hunk (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) all carry a completed_at timestamp.",
+        "category": "unknown",
+        "fingerprint": "9174b61384af589a695ceb3bd8c6dfcc979392d1fd8d893e834160dba9a37e83",
+        "state": "ACTIVE",
+        "echo": "[low][unknown] .coding-hermes/board/tasks.jsonl:144 \u2014 row marked status/worker_status \"complete\" has \"completed_at\":null while every other complete row in the file populates completed_at\nThe updated LORE-HYGIENE-20261121 row sets status=\"complete\", worker_status=\"complete\", guard_result and ci_result, but leaves \"completed_at\":null, whereas the sibling complete rows visible in the same hunk (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) all carry a completed_at timestamp."
+      }
+    ],
+    "summary": "Board close of LORE-HYGIENE-20261121 is internally consistent (event id sequence, timestamps, evidence run_id all align), with one convention drift: the completed row leaves completed_at null unlike its complete siblings.",
+    "review_state": {
+      "emitted": [
+        {
+          "severity": "low",
+          "file": ".coding-hermes/board/tasks.jsonl",
+          "line": 144,
+          "detection": "row marked status/worker_status \"complete\" has \"completed_at\":null while every other complete row in the file populates completed_at",
+          "detail": "The updated LORE-HYGIENE-20261121 row sets status=\"complete\", worker_status=\"complete\", guard_result and ci_result, but leaves \"completed_at\":null, whereas the sibling complete rows visible in the same hunk (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) all carry a completed_at timestamp.",
+          "category": "unknown",
+          "fingerprint": "9174b61384af589a695ceb3bd8c6dfcc979392d1fd8d893e834160dba9a37e83",
+          "state": "ACTIVE",
+          "echo": "[low][unknown] .coding-hermes/board/tasks.jsonl:144 \u2014 row marked status/worker_status \"complete\" has \"completed_at\":null while every other complete row in the file populates completed_at\nThe updated LORE-HYGIENE-20261121 row sets status=\"complete\", worker_status=\"complete\", guard_result and ci_result, but leaves \"completed_at\":null, whereas the sibling complete rows visible in the same hunk (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) all carry a completed_at timestamp."
+        }
+      ],
+      "carried": []
+    }
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 scripts/dep-drift.sh reports uv.lock-vs-PyPI drift live and report-only (uv.lock checksum unchanged by a run); lore-dep-drift.timer+service armed and visible in systemctl --user list-timers; README+INSTALL document the arrangement; gates green.: (a) Live run: sha256sum uv.lock before and after `scripts/dep-drift.sh` both 9b99cbec281d5a47cc327fa7421be1a1465c2b6f87a287799a36f0ee0b6fafe5, script_exit=0, live output 'certifi 2026.10.23 -> 2026.11.20; platformdirs 4.14.7 -> 4.14.8; 2 of 34 locked packages behind PyPI latest'; script is read-only (scripts/dep-drift.sh:1-82, tomllib read + PyPI GET, no writes). (b) `systemctl --user list-timers --all` shows 'Mon 2026-11-23 07:45:00 -05 lore-dep-drift.timer lore-dep-drift.service'; is-enabled=enabled, is-active=active. (c) README.md:439-447 and docs/INSTALL.md:454-463 document the script, its report-only nature, the unit install paths, and `systemctl --user enable --now lore-dep-drift.timer`. (d) Gates: `uv run pytest -x --tb=short` exit 0, '572 passed in 7.40s'; tier1 lint and secrets lanes passed (exit_code 0).\n  \u2713 Seam: the armed ~/.config/systemd/user units match the repo's deploy/systemd/ examples the docs point at, and the service has actually executed (log sink exists).: diff deploy/systemd/lore-dep-drift.timer ~/.config/systemd/user/lore-dep-drift.timer -> identical; diff of the .service -> identical; ~/.local/share/lore/dep-drift.log exists (286 bytes, Nov 20 22:52) confirming a real run through the armed unit; `systemctl --user cat lore-dep-drift.service` resolves to the installed unit.\nThe drift sweep is real and verified end-to-end: scripts/dep-drift.sh ran live against PyPI leaving uv.lock byte-identical, the user timer is enabled/active and visible in list-timers with a next elapse of Mon 07:45, README and INSTALL both document the arrangement, and the full gate battery (572 tests, lint, secrets) is green.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-21T03:58:38.877659",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-21T03:58:38.908221+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 1068,
+        "truncated": false,
+        "source": "git show 75c094b91ef8"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 25111,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "SUP-DEPS-LORE-20261121"
+  }
+}

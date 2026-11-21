@@ -1,0 +1,370 @@
+{
+  "task_id": "INFRA-LORE-044",
+  "task_title": "Guard hook budget vs effective test timeout gap closed in config",
+  "task_criteria": [
+    "A commit in the repo prints no guard budget warning (neither the hook_timeout<=test_timeout WARN nor the evaluator.test_timeout unknown-key WARN); .gitreins/config.yaml is valid under gitreins 0.21.0 with a declared hook budget above the effective test budget; tier-1 guard PASS on the fixed tree; RED-proven on real commits."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "75c094b91ef8bd5837a7c4f94887c87d7ec4fcb9",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "97d1be3d17edb57ae2b6b9b4bf4306caa7511c3a2f91ea3ccce5a57a55f04795",
+  "working_tree_dirty_path_count": 23,
+  "items": [
+    {
+      "criterion": "A commit in the repo prints no guard budget warning (neither the hook_timeout<=test_timeout WARN nor the evaluator.test_timeout unknown-key WARN); .gitreins/config.yaml is valid under gitreins 0.21.0 with a declared hook budget above the effective test budget; tier-1 guard PASS on the fixed tree; RED-proven on real commits.",
+      "status": "PASS",
+      "detail": "(1) No warnings: ran validate_config() from the installed gitreins 0.21.1 (engine/config_schema.py) on .gitreins/config.yaml \u2014 'issue count: 0'; grep for WARN across all .gitreins/logs/*.log finds none, including the post-merge guard log guard-20261121T035229.151341Z.log (run_utc 03:52:29Z = 22:52:29 -0500, 7s after merge commit 75c094b at 22:52:22) with 'overall: PASS'. (2) Valid + budget: config_schema.py:120-121 accepts guards.test_timeout/hook_timeout as int; the evaluator key list (config_schema.py:139-157) has no test_timeout and the fix removed it (verified: 'evaluator has test_timeout: False'); declared hook_timeout 1320 > test_timeout 1200, both int (verified via venv python). (3) Tier-1 PASS: prior stage tier1 lint/secrets/tests all exit_code 0, plus fresh run of the configured test_command 'uv run pytest -x --tb=short -q' => '572 passed in 4.35s' exit 0. (4) RED-proven: commit a556d76 records RED probe 8faab64 (pre-fix real commit printed 'WARN: evaluator.test_timeout: unknown key \u2014 this key is ignored') and GREEN probe a95845c (post-fix, no warning); both probe commits exist in git history."
+    },
+    {
+      "criterion": "Removing evaluator.test_timeout does not silently reduce the effective test budget below the previously intended 600s",
+      "status": "PASS",
+      "detail": "The removed evaluator.test_timeout: 600 was already ignored by gitreins 0.21 (unknown-key WARN; absent from the evaluator key list at config_schema.py:139-157), so its removal loses no effective behavior; the effective budget is preserved explicitly at guards.test_timeout: 1200 (>= 600) with guards.hook_timeout: 1320 = 1200+120, matching the guard's own derivation at guard_manager.py:1828; evaluator.max_time '30m' retained for LORE-037 (.gitreins/config.yaml:46).",
+      "derived": true
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nsecrets: gitleaks bound=timeout 600s (0=off)\nscanners: nice=nice -n 10\n11:04PM INF scanned ~14062202 bytes (14.06 MB) in 3.39s\n11:04PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 300 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.14.7\ncollected 572 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 24%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 27%]\ntests/test_evidence.py ......................                            [ 31%]\ntests/test_lore011_drain_acceptance.py .......                           [ 32%]\ntests/test_lore016_qa_audit.py .....................                     [ 36%]\ntests/test_lore017_gateway_guard.py ........                             [ 37%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 39%]\ntests/test_lore022_freshness_docs.py .....                               [ 40%]\ntests/test_lore030_ux_guard.py ....                                      [ 40%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 42%]\ntests/test_lore041_collision_canonical.py ...........                    [ 44%]\ntests/test_lore043_short_text_threshold.py ....................          [ 48%]\ntests/test_lore045_validate_history.py ....................              [ 51%]\ntests/test_lore046_match_output.py ...........                           [ 53%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 55%]\n\n\u2026 [480 chars omitted \u2014 6 line(s)] \u2026\ntests/test_lore054_match_class_filter.py ....                            [ 64%]\ntests/test_lore055_consult_missing_input.py ......                       [ 65%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 66%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 67%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 68%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 69%]\ntests/test_lore064_audit_wiring.py .............................         [ 74%]\ntests/test_lore066_zero_check_skip.py ...                                [ 75%]\ntests/test_lore067_incident_audit.py ..                                  [ 75%]\ntests/test_lore071_trigger.py ......                                     [ 76%]\ntests/test_near_miss.py ..............                                   [ 79%]\ntests/test_perf2_audit_single_pass.py ........                           [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 81%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 572 passed in 5.86s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            }
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 A commit in the repo prints no guard budget warning (neither the hook_timeout<=test_timeout WARN nor the evaluator.test_timeout unknown-key WARN); .gitreins/config.yaml is valid under gitreins 0.21.0 with a declared hook budget above the effective test budget; tier-1 guard PASS on the fixed tree; RED-proven on real commits.: (1) No warnings: ran validate_config() from the installed gitreins 0.21.1 (engine/config_schema.py) on .gitreins/config.yaml \u2014 'issue count: 0'; grep for WARN across all .gitreins/logs/*.log finds none, including the post-merge guard log guard-20261121T035229.151341Z.log (run_utc 03:52:29Z = 22:52:29 -0500, 7s after merge commit 75c094b at 22:52:22) with 'overall: PASS'. (2) Valid + budget: config_schema.py:120-121 accepts guards.test_timeout/hook_timeout as int; the evaluator key list (config_schema.py:139-157) has no test_timeout and the fix removed it (verified: 'evaluator has test_timeout: False'); declared hook_timeout 1320 > test_timeout 1200, both int (verified via venv python). (3) Tier-1 PASS: prior stage tier1 lint/secrets/tests all exit_code 0, plus fresh run of the configured test_command 'uv run pytest -x --tb=short -q' => '572 passed in 4.35s' exit 0. (4) RED-proven: commit a556d76 records RED probe 8faab64 (pre-fix real commit printed 'WARN: evaluator.test_timeout: unknown key \u2014 this key is ignored') and GREEN probe a95845c (post-fix, no warning); both probe commits exist in git history.\n  \u2713 Removing evaluator.test_timeout does not silently reduce the effective test budget below the previously intended 600s: The removed evaluator.test_timeout: 600 was already ignored by gitreins 0.21 (unknown-key WARN; absent from the evaluator key list at config_schema.py:139-157), so its removal loses no effective behavior; the effective budget is preserved explicitly at guards.test_timeout: 1200 (>= 600) with guards.hook_timeout: 1320 = 1200+120, matching the guard's own derivation at guard_manager.py:1828; evaluator.max_time '30m' retained for LORE-037 (.gitreins/config.yaml:46).\nThe fix declares guards.test_timeout: 1200 and guards.hook_timeout: 1320 (hook > test) and removes the ignored evaluator.test_timeout key; the installed gitreins 0.21.1 schema validator reports zero issues, no WARN appears in any guard log including the post-merge run, the fresh test run passes 572/572, and RED/GREEN probes on real commits are recorded in commit a556d76.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 A commit in the repo prints no guard budget warning (neither the hook_timeout<=test_timeout WARN nor the evaluator.test_timeout unknown-key WARN); .gitreins/config.yaml is valid under gitreins 0.21.0 with a declared hook budget above the effective test budget; tier-1 guard PASS on the fixed tree; RED-proven on real commits.: (1) No warnings: ran validate_config() from the installed gitreins 0.21.1 (engine/config_schema.py) on .gitreins/config.yaml \u2014 'issue count: 0'; grep for WARN across all .gitreins/logs/*.log finds none, including the post-merge guard log guard-20261121T035229.151341Z.log (run_utc 03:52:29Z = 22:52:29 -0500, 7s after merge commit 75c094b at 22:52:22) with 'overall: PASS'. (2) Valid + budget: config_schema.py:120-121 accepts guards.test_timeout/hook_timeout as int; the evaluator key list (config_schema.py:139-157) has no test_timeout and the fix removed it (verified: 'evaluator has test_timeout: False'); declared hook_timeout 1320 > test_timeout 1200, both int (verified via venv python). (3) Tier-1 PASS: prior stage tier1 lint/secrets/tests all exit_code 0, plus fresh run of the configured test_command 'uv run pytest -x --tb=short -q' => '572 passed in 4.35s' exit 0. (4) RED-proven: commit a556d76 records RED probe 8faab64 (pre-fix real commit printed 'WARN: evaluator.test_timeout: unknown key \u2014 this key is ignored') and GREEN probe a95845c (post-fix, no warning); both probe commits exist in git history.\n  \u2713 Removing evaluator.test_timeout does not silently reduce the effective test budget below the previously intended 600s: The removed evaluator.test_timeout: 600 was already ignored by gitreins 0.21 (unknown-key WARN; absent from the evaluator key list at config_schema.py:139-157), so its removal loses no effective behavior; the effective budget is preserved explicitly at guards.test_timeout: 1200 (>= 600) with guards.hook_timeout: 1320 = 1200+120, matching the guard's own derivation at guard_manager.py:1828; evaluator.max_time '30m' retained for LORE-037 (.gitreins/config.yaml:46).\nThe fix declares guards.test_timeout: 1200 and guards.hook_timeout: 1320 (hook > test) and removes the ignored evaluator.test_timeout key; the installed gitreins 0.21.1 schema validator reports zero issues, no WARN appears in any guard log including the post-merge run, the fresh test run passes 572/572, and RED/GREEN probes on real commits are recorded in commit a556d76.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "A commit in the repo prints no guard budget warning (neither the hook_timeout<=test_timeout WARN nor the evaluator.test_timeout unknown-key WARN); .gitreins/config.yaml is valid under gitreins 0.21.0 with a declared hook budget above the effective test budget; tier-1 guard PASS on the fixed tree; RED-proven on real commits.",
+                "status": "PASS",
+                "detail": "(1) No warnings: ran validate_config() from the installed gitreins 0.21.1 (engine/config_schema.py) on .gitreins/config.yaml \u2014 'issue count: 0'; grep for WARN across all .gitreins/logs/*.log finds none, including the post-merge guard log guard-20261121T035229.151341Z.log (run_utc 03:52:29Z = 22:52:29 -0500, 7s after merge commit 75c094b at 22:52:22) with 'overall: PASS'. (2) Valid + budget: config_schema.py:120-121 accepts guards.test_timeout/hook_timeout as int; the evaluator key list (config_schema.py:139-157) has no test_timeout and the fix removed it (verified: 'evaluator has test_timeout: False'); declared hook_timeout 1320 > test_timeout 1200, both int (verified via venv python). (3) Tier-1 PASS: prior stage tier1 lint/secrets/tests all exit_code 0, plus fresh run of the configured test_command 'uv run pytest -x --tb=short -q' => '572 passed in 4.35s' exit 0. (4) RED-proven: commit a556d76 records RED probe 8faab64 (pre-fix real commit printed 'WARN: evaluator.test_timeout: unknown key \u2014 this key is ignored') and GREEN probe a95845c (post-fix, no warning); both probe commits exist in git history."
+              },
+              {
+                "criterion": "Removing evaluator.test_timeout does not silently reduce the effective test budget below the previously intended 600s",
+                "status": "PASS",
+                "detail": "The removed evaluator.test_timeout: 600 was already ignored by gitreins 0.21 (unknown-key WARN; absent from the evaluator key list at config_schema.py:139-157), so its removal loses no effective behavior; the effective budget is preserved explicitly at guards.test_timeout: 1200 (>= 600) with guards.hook_timeout: 1320 = 1200+120, matching the guard's own derivation at guard_manager.py:1828; evaluator.max_time '30m' retained for LORE-037 (.gitreins/config.yaml:46).",
+                "derived": true
+              }
+            ],
+            "summary": "The fix declares guards.test_timeout: 1200 and guards.hook_timeout: 1320 (hook > test) and removes the ignored evaluator.test_timeout key; the installed gitreins 0.21.1 schema validator reports zero issues, no WARN appears in any guard log including the post-merge run, the fresh test run passes 572/572, and RED/GREEN probes on real commits are recorded in commit a556d76.",
+            "provenance": {
+              "model": "accounts/fireworks/models/kimi-k3",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "accounts/fireworks/models/kimi-k3",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"INFRA-LORE-044\"}",
+          "exit_code": 0,
+          "output_sha": "27c8c951818f5fd0ce5adf35951c89231f12598d56db347d6f0dc0afb74e2b00"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \".gitreins/config.yaml\"}",
+          "exit_code": 0,
+          "output_sha": "dc504fb6d322bed9099de624d5b7ac48a58c94ef60a7ffd94a78e3899f576fc5"
+        },
+        {
+          "tool": "read_diff",
+          "command": "read_diff {}",
+          "exit_code": 0,
+          "output_sha": "e2a66cf89d44409929d79cc10f71001c1d4404dc3530adaafd78e046ff8c3702"
+        },
+        {
+          "tool": "run_command",
+          "command": "git log --oneline -8 && echo --- && git show --stat HEAD | head -30",
+          "exit_code": 0,
+          "output_sha": "f1f864ea0a65d9c1a764dbabaa14f6f6fb59238331d93894e54f7f8da9ce08c9"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show a556d76 --stat && echo === && git show a556d76 -- .gitreins/config.yaml | head -60",
+          "exit_code": 0,
+          "output_sha": "ef1ed5afa1065a39d160eff83e03235a77933c028055b1a921597644274f0eac"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show 8faab64 --stat 2>/dev/null | head -20; echo ===; git show a95845c --stat | head -20; echo ===; git log --oneline --all --grep=\"probe\" | head -10",
+          "exit_code": 0,
+          "output_sha": "ad193c24186580d4bb6ba299df45563cd796a94d9c28a25744537cd1cad0ea0b"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show 3614f44 -- .gitreins/config.yaml | head -40; echo ===; git diff cab3e6e 3614f44 -- .gitreins/config.yaml | head -50",
+          "exit_code": 0,
+          "output_sha": "60e75a41a73d55488b322095cb77e5ae5b9ae4389eff9d4f017cea083b22b5f9"
+        },
+        {
+          "tool": "run_command",
+          "command": "ls .gitreins/logs/ 2>/dev/null | tail -10; echo ===; which gitreins; gitreins --version 2>&1 | head -3",
+          "exit_code": 0,
+          "output_sha": "1e6e1a78578df89d2c8c33b9a0e7968e2aef709bd00eb84a0c4176a4e467eb1e"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -il \"warn\" .gitreins/logs/guard-20261121T0*.log; echo ===; for f in .gitreins/logs/guard-20261121T033428.621356Z.log .gitreins/logs/guard-20261121T035044.421600Z.log .gitreins/logs/guard-20261121T035229.151341Z.log; do echo \"--- $f\"; grep -iE \"warn|unknown key|hook_timeout|test_timeout\" \"$f\" | head -5; done",
+          "exit_code": 0,
+          "output_sha": "699d0d311932f71f9a91ebd7a24608514eb7a64d17cfb6d2aa85e3f4901b8b01"
+        },
+        {
+          "tool": "run_command",
+          "command": "git log --format='%H %ci %s' -3; echo ===; git log --format='%ci' -1 cab3e6e",
+          "exit_code": 0,
+          "output_sha": "836414ff8a14c73ca459d47d5cd0d46911ec65a6426a097720d2fba4c6242b5b"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -rn \"test_timeout\\|hook_timeout\" /home/kara/.local/pipx/venvs/gitreins/lib/python*/site-packages/gitreins/engine/config_schema.py 2>/dev/null | head -20 || find /home/kara/.local -name config_schema.py -path \"*gitreins*\" 2>/dev/null | head -3",
+          "exit_code": 0,
+          "output_sha": "06c9bda0e9c7314a0a948c7e80c304f5e797a6891f6ff781b8c24bfe00028564"
+        },
+        {
+          "tool": "run_command",
+          "command": "head -30 .gitreins/logs/guard-20261121T035229.151341Z.log; echo ===; head -15 .gitreins/logs/guard-20261121T035044.421600Z.log",
+          "exit_code": 0,
+          "output_sha": "91c9c41a7ac0cab640bf1b9d7f818697f5f903bb049e72ee289ff06e26496e42"
+        },
+        {
+          "tool": "run_command",
+          "command": "PY=$(find /home/kara/.local/pipx/venvs/gitreins -name \"python3*\" -type f 2>/dev/null | head -1); echo \"PY=$PY\"; $PY -c \"\nimport yaml, sys\nfrom gitreins.engine import config_schema as cs\ncfg = yaml.safe_load(open('.gitreins/config.yaml'))\nprint('loaded keys:', list(cfg.keys()))\nprint('guards:', {k:v for k,v in cfg['guards'].items()})\n\" 2>&1 | head -20",
+          "exit_code": 0,
+          "output_sha": "e761b5252755570848677b988d7051ff693dcf43c936a651e06ad188f1439f58"
+        },
+        {
+          "tool": "run_command",
+          "command": "find /home/kara/.local/pipx/venvs/gitreins -name \"config_schema.py\" 2>/dev/null; find /home/kara/.local/pipx/venvs/gitreins -name \"guard_manager.py\" 2>/dev/null",
+          "exit_code": 1,
+          "output_sha": "3320d2be7ac898a796b98d4f7df3beffafd8890eebf69ceb7fba315f3058c62b"
+        },
+        {
+          "tool": "run_command",
+          "command": "head -1 /home/kara/.local/bin/gitreins; echo ===; readlink -f /home/kara/.local/bin/gitreins",
+          "exit_code": 0,
+          "output_sha": "2b7fae4e5ba99e812a22d63a7d3830530e61fa1be57a355c474b55016986acd9"
+        },
+        {
+          "tool": "run_command",
+          "command": "V=/home/kara/.local/share/pipx/venvs/gitreins; grep -n \"test_timeout\\|hook_timeout\" $V/lib/python*/site-packages/gitreins/engine/config_schema.py | head -20; echo ===GUARD===; grep -n \"test_timeout\\|hook_timeout\" $V/lib/python*/site-packages/gitreins/engine/guard_manager.py | head -25",
+          "exit_code": 0,
+          "output_sha": "e54ce531e7b25f06c87a7c580913e650e896abac4fde0c9a52349aafb9a52af0"
+        },
+        {
+          "tool": "run_command",
+          "command": "V=/home/kara/.local/share/pipx/venvs/gitreins; ls $V/lib/ 2>/dev/null; find $V -maxdepth 5 -name \"config_schema.py\" 2>/dev/null | head -3; find $V -maxdepth 6 -name \"guard_manager.py\" 2>/dev/null | head -3",
+          "exit_code": 0,
+          "output_sha": "4b9dfd693ad724d36141488214a41dbd51b964aaa1177f84a29da345081af8e0"
+        },
+        {
+          "tool": "run_command",
+          "command": "V=/home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages; grep -n \"test_timeout\\|hook_timeout\\|unknown key\" $V/engine/config_schema.py | head -25; echo ===GUARD===; grep -n \"test_timeout\\|hook_timeout\" $V/engine/guard_manager.py | head -25",
+          "exit_code": 0,
+          "output_sha": "e6dd3c3a15aa40b9a3020ef2e3a3b807819d5fdbf10fec33331babe3ccaf9be5"
+        },
+        {
+          "tool": "run_command",
+          "command": "V=/home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages; sed -n 100,200p $V/engine/config_schema.py",
+          "exit_code": 0,
+          "output_sha": "ff9c8ab05cce845524922412b3bea8638c85177b065d28bf6ca2ea57c91fb708"
+        },
+        {
+          "tool": "run_command",
+          "command": "V=/home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages; grep -n \"history\\|worktree_fleet\" $V/engine/config_schema.py | head -20; echo ===; sed -n 360,440p $V/engine/config_schema.py",
+          "exit_code": 0,
+          "output_sha": "de43ec33addf704069e442a46acc4691e3b2e2d80690334f29d6215feaac7256"
+        },
+        {
+          "tool": "run_command",
+          "command": "/home/kara/.local/share/pipx/venvs/gitreins/bin/python -c \"\nimport yaml\nfrom engine import config_schema as cs\ncfg = yaml.safe_load(open('.gitreins/config.yaml'))\nissues = cs.validate_config(cfg)\nprint('issue count:', len(issues))\nfor i in issues:\n    print(i.severity, i.path, i.message)\n\"",
+          "exit_code": 0,
+          "output_sha": "5ecaeed06bdc07f74c1fa6b06ef23632da0b625d9285f6ae776a8fa18fbe61d0"
+        },
+        {
+          "tool": "run_command",
+          "command": "/home/kara/.local/share/pipx/venvs/gitreins/bin/python -c \"\nimport yaml\nfrom engine import config_schema as cs\ncfg = yaml.safe_load(open('.gitreins/config.yaml'))\ng = cfg['guards']\nprint('test_timeout:', g['test_timeout'], type(g['test_timeout']).__name__)\nprint('hook_timeout:', g['hook_timeout'], type(g['hook_timeout']).__name__)\nprint('hook > test:', g['hook_timeout'] > g['test_timeout'])\nprint('evaluator has test_timeout:', 'test_timeout' in cfg.get('evaluator', {}))\n\"",
+          "exit_code": 0,
+          "output_sha": "ef01d27e5bc9d11badc6c5bc53ee71604e5859731add8590132814d80d337b55"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -c \"unknown key\\|WARN\" .gitreins/logs/guard-20261121T035229.151341Z.log; grep -rn \"WARN\" .gitreins/logs/guard-20261121T010808.584082Z.log .gitreins/logs/guard-20261121T011023.370652Z.log .gitreins/logs/guard-20261121T011142.980972Z.log 2>/dev/null | head -5",
+          "exit_code": 0,
+          "output_sha": "e3e7ad059a96216575e9cc44e3674ec46e57371b64ae5ed3f343f98d9f68aa5e"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -l \"WARN\" .gitreins/logs/*.log 2>/dev/null; echo \"exit=$?\"; echo ===; grep -h \"WARN\" .gitreins/logs/*.log 2>/dev/null | sort -u | head -5",
+          "exit_code": 0,
+          "output_sha": "fa0fbd8fb92b765c425b48e6f330c5acd59498a40c6c393630cbf22184ce52f0"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -n \"test_command\" .gitreins/config.yaml; echo ===; uv run pytest -x --tb=short -q 2>&1 | tail -5",
+          "exit_code": 0,
+          "output_sha": "302e36a0f7ea0779dcc89432f6b580855cd63e5eef68bc9c76f1293e9af323f2"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: (a) No warnings: validate_config() from installed gitreins 0.21.1 engine/config_schema.py on .gitreins/config.yaml returns 0 issues (cmd run in venv python); grep for WARN across all .gitreins/logs/*.log finds none, including post-merge guard log guard-20261121T035229.151341Z.log (run_utc 03:52:29Z = 22:52:29 -0500, 7s after merge commit 75c094b at 22:52:22) showing overall PASS. (b) Config valid under 0.21.x: config_schema.py:120-121 accepts guards.test_timeout/hook_timeout as int; evaluator key list (config_schema.py:139-157) has no test_timeout and the fixed config removed it (verified: 'evaluator has test_timeout: False'). Declared hook 1320 > test 1200 (both int, verified). (c) Tier-1 guard PASS: prior stage tier1 all-pass (lint/secrets/tests exit 0) + fresh run of test_command 'uv run pytest -x --tb=short -q' => 572 passed in 4.35s exit 0; post-merge guard log overall: PASS. (d) RED-proven on real commits: commit a556d76 message records RED probe 8faab64 (pre-fix empty commit printed 'WARN: evaluator.test_timeout: unknown key') and GREEN probe a95845c (post-fix, no warning); both probe commits exist in history.\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "3ffec5e709b7ceda4e2fa9422ed7d3f14e980ea61cc4c623e4e5149db794261a"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: The removed evaluator.test_timeout: 600 was documented as ignored (GitReins 0.21 warns unknown key; config_schema.py evaluator key list lines 139-157 lacks test_timeout), so removing it loses no effective behavior; the effective test budget is preserved explicitly via guards.test_timeout: 1200 (>= old intended 600) and hook 1320 = 1200+120 margin, matching guard_manager.py:1828 derivation. evaluator.max_time '30m' retained for LORE-037 (config.yaml:46).\", \"key\": \"verified_derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "6d48f0db47fd326b867ed657955eb2f6c1af2adcc42093062d4d42d51b700948"
+        }
+      ]
+    }
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [
+      {
+        "severity": "high",
+        "file": ".coding-hermes/board/tasks.jsonl",
+        "line": 145,
+        "detection": "row closed `complete` while its own worker_summary contradicts acceptance criterion 1 and the GATE ARM",
+        "detail": "Criterion 1 and the gate arm require the drift mode to live in the existing scripts/audit-deps.sh ('The project's existing dependency-audit script gains a report-only drift mode... `bash -n scripts/audit-deps.sh`'; GATE ARM: 'Run `bash scripts/audit-deps.sh`; expect ... the drift mode's compared and behind counts printed'), but the worker_summary describes a brand-new standalone scripts/dep-drift.sh and never mentions audit-deps.sh gaining anything.",
+        "category": "unknown",
+        "fingerprint": "b05e8fdfb65816a83441824849c42dff42e3df05b057b82be375a6bcded80ff8",
+        "state": "ACTIVE",
+        "echo": "[high][unknown] .coding-hermes/board/tasks.jsonl:145 \u2014 row closed `complete` while its own worker_summary contradicts acceptance criterion 1 and the GATE ARM\nCriterion 1 and the gate arm require the drift mode to live in the existing scripts/audit-deps.sh ('The project's existing dependency-audit script gains a report-only drift mode... `bash -n scripts/audit-deps.sh`'; GATE ARM: 'Run `bash scripts/audit-deps.sh`; expect ... the drift mode's compared and behind counts printed'), but the worker_summary describes a brand-new standalone scripts/dep-drift.sh and never mentions audit-deps.sh gaining anything."
+      },
+      {
+        "severity": "medium",
+        "file": ".coding-hermes/board/tasks.jsonl",
+        "line": 144,
+        "detection": "status flipped to `complete` but `completed_at` left null, breaking the board's own convention",
+        "detail": "All three newly completed rows (lines 144-146: LORE-HYGIENE-20261121, SUP-DEPS-LORE-20261121, INFRA-LORE-044) carry `\"completed_at\":null`, while every other complete row visible in the file (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) sets completed_at, and the matching task_completed events appended to events.jsonl (ids 465-467) already carry the timestamps that field should hold.",
+        "category": "unknown",
+        "fingerprint": "82d48c76a497fe1b2a7dcc51d6012ffdb334b3b2ab55e311b7e205f4ebbaa1ff",
+        "state": "ACTIVE",
+        "echo": "[medium][unknown] .coding-hermes/board/tasks.jsonl:144 \u2014 status flipped to `complete` but `completed_at` left null, breaking the board's own convention\nAll three newly completed rows (lines 144-146: LORE-HYGIENE-20261121, SUP-DEPS-LORE-20261121, INFRA-LORE-044) carry `\"completed_at\":null`, while every other complete row visible in the file (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) sets completed_at, and the matching task_completed events appended to events.jsonl (ids 465-467) already carry the timestamps that field should hold."
+      }
+    ],
+    "summary": "Board-only close of three tasks; one close (SUP-DEPS-LORE-20261121) records a deliverable shape (new dep-drift.sh) that contradicts its own written criteria (drift mode inside audit-deps.sh), and all three rows leave completed_at null against board convention.",
+    "review_state": {
+      "emitted": [
+        {
+          "severity": "high",
+          "file": ".coding-hermes/board/tasks.jsonl",
+          "line": 145,
+          "detection": "row closed `complete` while its own worker_summary contradicts acceptance criterion 1 and the GATE ARM",
+          "detail": "Criterion 1 and the gate arm require the drift mode to live in the existing scripts/audit-deps.sh ('The project's existing dependency-audit script gains a report-only drift mode... `bash -n scripts/audit-deps.sh`'; GATE ARM: 'Run `bash scripts/audit-deps.sh`; expect ... the drift mode's compared and behind counts printed'), but the worker_summary describes a brand-new standalone scripts/dep-drift.sh and never mentions audit-deps.sh gaining anything.",
+          "category": "unknown",
+          "fingerprint": "b05e8fdfb65816a83441824849c42dff42e3df05b057b82be375a6bcded80ff8",
+          "state": "ACTIVE",
+          "echo": "[high][unknown] .coding-hermes/board/tasks.jsonl:145 \u2014 row closed `complete` while its own worker_summary contradicts acceptance criterion 1 and the GATE ARM\nCriterion 1 and the gate arm require the drift mode to live in the existing scripts/audit-deps.sh ('The project's existing dependency-audit script gains a report-only drift mode... `bash -n scripts/audit-deps.sh`'; GATE ARM: 'Run `bash scripts/audit-deps.sh`; expect ... the drift mode's compared and behind counts printed'), but the worker_summary describes a brand-new standalone scripts/dep-drift.sh and never mentions audit-deps.sh gaining anything."
+        },
+        {
+          "severity": "medium",
+          "file": ".coding-hermes/board/tasks.jsonl",
+          "line": 144,
+          "detection": "status flipped to `complete` but `completed_at` left null, breaking the board's own convention",
+          "detail": "All three newly completed rows (lines 144-146: LORE-HYGIENE-20261121, SUP-DEPS-LORE-20261121, INFRA-LORE-044) carry `\"completed_at\":null`, while every other complete row visible in the file (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) sets completed_at, and the matching task_completed events appended to events.jsonl (ids 465-467) already carry the timestamps that field should hold.",
+          "category": "unknown",
+          "fingerprint": "82d48c76a497fe1b2a7dcc51d6012ffdb334b3b2ab55e311b7e205f4ebbaa1ff",
+          "state": "ACTIVE",
+          "echo": "[medium][unknown] .coding-hermes/board/tasks.jsonl:144 \u2014 status flipped to `complete` but `completed_at` left null, breaking the board's own convention\nAll three newly completed rows (lines 144-146: LORE-HYGIENE-20261121, SUP-DEPS-LORE-20261121, INFRA-LORE-044) carry `\"completed_at\":null`, while every other complete row visible in the file (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) sets completed_at, and the matching task_completed events appended to events.jsonl (ids 465-467) already carry the timestamps that field should hold."
+        }
+      ],
+      "carried": []
+    }
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 A commit in the repo prints no guard budget warning (neither the hook_timeout<=test_timeout WARN nor the evaluator.test_timeout unknown-key WARN); .gitreins/config.yaml is valid under gitreins 0.21.0 with a declared hook budget above the effective test budget; tier-1 guard PASS on the fixed tree; RED-proven on real commits.: (1) No warnings: ran validate_config() from the installed gitreins 0.21.1 (engine/config_schema.py) on .gitreins/config.yaml \u2014 'issue count: 0'; grep for WARN across all .gitreins/logs/*.log finds none, including the post-merge guard log guard-20261121T035229.151341Z.log (run_utc 03:52:29Z = 22:52:29 -0500, 7s after merge commit 75c094b at 22:52:22) with 'overall: PASS'. (2) Valid + budget: config_schema.py:120-121 accepts guards.test_timeout/hook_timeout as int; the evaluator key list (config_schema.py:139-157) has no test_timeout and the fix removed it (verified: 'evaluator has test_timeout: False'); declared hook_timeout 1320 > test_timeout 1200, both int (verified via venv python). (3) Tier-1 PASS: prior stage tier1 lint/secrets/tests all exit_code 0, plus fresh run of the configured test_command 'uv run pytest -x --tb=short -q' => '572 passed in 4.35s' exit 0. (4) RED-proven: commit a556d76 records RED probe 8faab64 (pre-fix real commit printed 'WARN: evaluator.test_timeout: unknown key \u2014 this key is ignored') and GREEN probe a95845c (post-fix, no warning); both probe commits exist in git history.\n  \u2713 Removing evaluator.test_timeout does not silently reduce the effective test budget below the previously intended 600s: The removed evaluator.test_timeout: 600 was already ignored by gitreins 0.21 (unknown-key WARN; absent from the evaluator key list at config_schema.py:139-157), so its removal loses no effective behavior; the effective budget is preserved explicitly at guards.test_timeout: 1200 (>= 600) with guards.hook_timeout: 1320 = 1200+120, matching the guard's own derivation at guard_manager.py:1828; evaluator.max_time '30m' retained for LORE-037 (.gitreins/config.yaml:46).\nThe fix declares guards.test_timeout: 1200 and guards.hook_timeout: 1320 (hook > test) and removes the ignored evaluator.test_timeout key; the installed gitreins 0.21.1 schema validator reports zero issues, no WARN appears in any guard log including the post-merge run, the fresh test run passes 572/572, and RED/GREEN probes on real commits are recorded in commit a556d76.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-21T04:06:57.926797",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-21T04:06:57.959097+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 1068,
+        "truncated": false,
+        "source": "git show 75c094b91ef8"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 32795,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "INFRA-LORE-044"
+  }
+}

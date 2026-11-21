@@ -1,0 +1,316 @@
+{
+  "task_id": "SUP-DEPS-LORE-20261121",
+  "task_title": "Scheduled lock-versus-PyPI drift sweep (report-only)",
+  "task_criteria": [
+    "scripts/dep-drift.sh reports uv.lock-vs-PyPI drift live and report-only (uv.lock checksum unchanged by a run); lore-dep-drift.timer+service armed and visible in systemctl --user list-timers; README+INSTALL document the arrangement; gates green."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "75c094b91ef8bd5837a7c4f94887c87d7ec4fcb9",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "9c98973833b81ab25c00fe534c84fd577a23590d1e1ddb1c81afa8d984de2323",
+  "working_tree_dirty_path_count": 15,
+  "items": [
+    {
+      "criterion": "scripts/dep-drift.sh reports uv.lock-vs-PyPI drift live and report-only (uv.lock checksum unchanged by a run); lore-dep-drift.timer+service armed and visible in systemctl --user list-timers; README+INSTALL document the arrangement; gates green.",
+      "status": "PASS",
+      "detail": "Live run: `bash scripts/dep-drift.sh` queried PyPI and printed 'certifi 2026.10.23 -> 2026.11.20', 'platformdirs 4.14.7 -> 4.14.8', '2 of 34 locked packages behind PyPI latest', exit=0; uv.lock sha256 9b99cbec281d... identical before and after (report-only confirmed; script only reads the lock via tomllib, scripts/dep-drift.sh:36-39). Timer armed: `systemctl --user list-timers --all` shows 'Mon 2026-11-23 07:45:00 lore-dep-drift.timer -> lore-dep-drift.service'; is-enabled=enabled, is-active=active; unit files at deploy/systemd/lore-dep-drift.timer (OnCalendar=Mon *-*-* 07:45:00, Persistent=true) and .service (ExecStart=.../scripts/dep-drift.sh). Docs: README.md:439-447 and docs/INSTALL.md:454-463 describe the report-only arrangement and arming steps; deploy/systemd/README.md covers install. Gates: `uv run pytest -x --tb=short -q` -> '572 passed in 8.16s' (exit 0); tier1 lint and secrets guards passed (exit_code 0, gitleaks+builtin clean)."
+    },
+    {
+      "criterion": "The drift-specific regression test (scripts/dep_drift_test.py, outside the default tests/ collection) actually passes, proving read-only behaviour and failure reporting",
+      "status": "PASS",
+      "detail": "`uv run pytest -q scripts/dep_drift_test.py` -> '1 passed in 0.78s' (exit 0). The test spins a fake PyPI server, asserts the lock bytes are unchanged after a run, that behind packages are reported ('1 of 3 locked packages behind PyPI latest'), non-registry sources noted, and failed lookups flagged 'Incomplete report'. deploy/systemd/README.md:15 documents that it sits outside the default tests/ collection and how to run it.",
+      "derived": true
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nsecrets: gitleaks bound=timeout 600s (0=off)\nscanners: nice=nice -n 10\n10:59PM INF scanned ~14049082 bytes (14.05 MB) in 8.96s\n10:59PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 300 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.14.7\ncollected 572 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 24%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 27%]\ntests/test_evidence.py ......................                            [ 31%]\ntests/test_lore011_drain_acceptance.py .......                           [ 32%]\ntests/test_lore016_qa_audit.py .....................                     [ 36%]\ntests/test_lore017_gateway_guard.py ........                             [ 37%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 39%]\ntests/test_lore022_freshness_docs.py .....                               [ 40%]\ntests/test_lore030_ux_guard.py ....                                      [ 40%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 42%]\ntests/test_lore041_collision_canonical.py ...........                    [ 44%]\ntests/test_lore043_short_text_threshold.py ....................          [ 48%]\ntests/test_lore045_validate_history.py ....................              [ 51%]\ntests/test_lore046_match_output.py ...........                           [ 53%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 55%]\n\n\u2026 [480 chars omitted \u2014 6 line(s)] \u2026\ntests/test_lore054_match_class_filter.py ....                            [ 64%]\ntests/test_lore055_consult_missing_input.py ......                       [ 65%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 66%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 67%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 68%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 69%]\ntests/test_lore064_audit_wiring.py .............................         [ 74%]\ntests/test_lore066_zero_check_skip.py ...                                [ 75%]\ntests/test_lore067_incident_audit.py ..                                  [ 75%]\ntests/test_lore071_trigger.py ......                                     [ 76%]\ntests/test_near_miss.py ..............                                   [ 79%]\ntests/test_perf2_audit_single_pass.py ........                           [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 81%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 572 passed in 12.92s =============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            }
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 scripts/dep-drift.sh reports uv.lock-vs-PyPI drift live and report-only (uv.lock checksum unchanged by a run); lore-dep-drift.timer+service armed and visible in systemctl --user list-timers; README+INSTALL document the arrangement; gates green.: Live run: `bash scripts/dep-drift.sh` queried PyPI and printed 'certifi 2026.10.23 -> 2026.11.20', 'platformdirs 4.14.7 -> 4.14.8', '2 of 34 locked packages behind PyPI latest', exit=0; uv.lock sha256 9b99cbec281d... identical before and after (report-only confirmed; script only reads the lock via tomllib, scripts/dep-drift.sh:36-39). Timer armed: `systemctl --user list-timers --all` shows 'Mon 2026-11-23 07:45:00 lore-dep-drift.timer -> lore-dep-drift.service'; is-enabled=enabled, is-active=active; unit files at deploy/systemd/lore-dep-drift.timer (OnCalendar=Mon *-*-* 07:45:00, Persistent=true) and .service (ExecStart=.../scripts/dep-drift.sh). Docs: README.md:439-447 and docs/INSTALL.md:454-463 describe the report-only arrangement and arming steps; deploy/systemd/README.md covers install. Gates: `uv run pytest -x --tb=short -q` -> '572 passed in 8.16s' (exit 0); tier1 lint and secrets guards passed (exit_code 0, gitleaks+builtin clean).\n  \u2713 The drift-specific regression test (scripts/dep_drift_test.py, outside the default tests/ collection) actually passes, proving read-only behaviour and failure reporting: `uv run pytest -q scripts/dep_drift_test.py` -> '1 passed in 0.78s' (exit 0). The test spins a fake PyPI server, asserts the lock bytes are unchanged after a run, that behind packages are reported ('1 of 3 locked packages behind PyPI latest'), non-registry sources noted, and failed lookups flagged 'Incomplete report'. deploy/systemd/README.md:15 documents that it sits outside the default tests/ collection and how to run it.\ndep-drift.sh verified live against PyPI with uv.lock checksum unchanged, lore-dep-drift.timer enabled+active and listed for Mon 07:45, README/INSTALL/deploy docs in place, and all gates green (572 passed plus the out-of-tree drift regression test passing).",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 scripts/dep-drift.sh reports uv.lock-vs-PyPI drift live and report-only (uv.lock checksum unchanged by a run); lore-dep-drift.timer+service armed and visible in systemctl --user list-timers; README+INSTALL document the arrangement; gates green.: Live run: `bash scripts/dep-drift.sh` queried PyPI and printed 'certifi 2026.10.23 -> 2026.11.20', 'platformdirs 4.14.7 -> 4.14.8', '2 of 34 locked packages behind PyPI latest', exit=0; uv.lock sha256 9b99cbec281d... identical before and after (report-only confirmed; script only reads the lock via tomllib, scripts/dep-drift.sh:36-39). Timer armed: `systemctl --user list-timers --all` shows 'Mon 2026-11-23 07:45:00 lore-dep-drift.timer -> lore-dep-drift.service'; is-enabled=enabled, is-active=active; unit files at deploy/systemd/lore-dep-drift.timer (OnCalendar=Mon *-*-* 07:45:00, Persistent=true) and .service (ExecStart=.../scripts/dep-drift.sh). Docs: README.md:439-447 and docs/INSTALL.md:454-463 describe the report-only arrangement and arming steps; deploy/systemd/README.md covers install. Gates: `uv run pytest -x --tb=short -q` -> '572 passed in 8.16s' (exit 0); tier1 lint and secrets guards passed (exit_code 0, gitleaks+builtin clean).\n  \u2713 The drift-specific regression test (scripts/dep_drift_test.py, outside the default tests/ collection) actually passes, proving read-only behaviour and failure reporting: `uv run pytest -q scripts/dep_drift_test.py` -> '1 passed in 0.78s' (exit 0). The test spins a fake PyPI server, asserts the lock bytes are unchanged after a run, that behind packages are reported ('1 of 3 locked packages behind PyPI latest'), non-registry sources noted, and failed lookups flagged 'Incomplete report'. deploy/systemd/README.md:15 documents that it sits outside the default tests/ collection and how to run it.\ndep-drift.sh verified live against PyPI with uv.lock checksum unchanged, lore-dep-drift.timer enabled+active and listed for Mon 07:45, README/INSTALL/deploy docs in place, and all gates green (572 passed plus the out-of-tree drift regression test passing).",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "scripts/dep-drift.sh reports uv.lock-vs-PyPI drift live and report-only (uv.lock checksum unchanged by a run); lore-dep-drift.timer+service armed and visible in systemctl --user list-timers; README+INSTALL document the arrangement; gates green.",
+                "status": "PASS",
+                "detail": "Live run: `bash scripts/dep-drift.sh` queried PyPI and printed 'certifi 2026.10.23 -> 2026.11.20', 'platformdirs 4.14.7 -> 4.14.8', '2 of 34 locked packages behind PyPI latest', exit=0; uv.lock sha256 9b99cbec281d... identical before and after (report-only confirmed; script only reads the lock via tomllib, scripts/dep-drift.sh:36-39). Timer armed: `systemctl --user list-timers --all` shows 'Mon 2026-11-23 07:45:00 lore-dep-drift.timer -> lore-dep-drift.service'; is-enabled=enabled, is-active=active; unit files at deploy/systemd/lore-dep-drift.timer (OnCalendar=Mon *-*-* 07:45:00, Persistent=true) and .service (ExecStart=.../scripts/dep-drift.sh). Docs: README.md:439-447 and docs/INSTALL.md:454-463 describe the report-only arrangement and arming steps; deploy/systemd/README.md covers install. Gates: `uv run pytest -x --tb=short -q` -> '572 passed in 8.16s' (exit 0); tier1 lint and secrets guards passed (exit_code 0, gitleaks+builtin clean)."
+              },
+              {
+                "criterion": "The drift-specific regression test (scripts/dep_drift_test.py, outside the default tests/ collection) actually passes, proving read-only behaviour and failure reporting",
+                "status": "PASS",
+                "detail": "`uv run pytest -q scripts/dep_drift_test.py` -> '1 passed in 0.78s' (exit 0). The test spins a fake PyPI server, asserts the lock bytes are unchanged after a run, that behind packages are reported ('1 of 3 locked packages behind PyPI latest'), non-registry sources noted, and failed lookups flagged 'Incomplete report'. deploy/systemd/README.md:15 documents that it sits outside the default tests/ collection and how to run it.",
+                "derived": true
+              }
+            ],
+            "summary": "dep-drift.sh verified live against PyPI with uv.lock checksum unchanged, lore-dep-drift.timer enabled+active and listed for Mon 07:45, README/INSTALL/deploy docs in place, and all gates green (572 passed plus the out-of-tree drift regression test passing).",
+            "provenance": {
+              "model": "accounts/fireworks/models/kimi-k3",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "accounts/fireworks/models/kimi-k3",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"SUP-DEPS-LORE-20261121\"}",
+          "exit_code": 0,
+          "output_sha": "56fec694da529461f8ceaf617fb87d79b087cf391ddca52e1c879bc42c715e5c"
+        },
+        {
+          "tool": "read_diff",
+          "command": "read_diff {}",
+          "exit_code": 0,
+          "output_sha": "4d28e5f0019ba5fe190333d1ab85d21cd6195602f828d1ebe0e8d782c10ffec4"
+        },
+        {
+          "tool": "run_command",
+          "command": "ls scripts/ 2>/dev/null; ls systemd* 2>/dev/null; find . -name '*dep-drift*' -not -path './.git/*' 2>/dev/null",
+          "exit_code": 0,
+          "output_sha": "7218836aa4861aaaa81b160ba39ab146b48374abbaf68a7e60629d242c85cafe"
+        },
+        {
+          "tool": "search_pattern",
+          "command": "search_pattern {\"regex\": \"dep-drift\"}",
+          "exit_code": 0,
+          "output_sha": "929c21344d2c1fe510d5859a138518b2fa965645abf21d0274508c919ce505ed"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"scripts/dep-drift.sh\"}",
+          "exit_code": 0,
+          "output_sha": "5495fe18674a5640ab115b5fb9a7caae6c3a5071c63e1f8992c9340ae5f96adc"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"deploy/systemd/lore-dep-drift.timer\"}",
+          "exit_code": 0,
+          "output_sha": "3a3ea35dd55ad428563eec75e717b021808002ce9c5b3ae9f04b558489349e1e"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"deploy/systemd/lore-dep-drift.service\"}",
+          "exit_code": 0,
+          "output_sha": "dd25fcd1db49146f4d110dd387b2e5b4b38008a71b788a5d2fc1053c51d8ec98"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"scripts/dep_drift_test.py\"}",
+          "exit_code": 0,
+          "output_sha": "37ceace7e4ba75d1119f87886fe6e3531d6ccbc738c852696f022a6b622ac46e"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -rn \"dep_drift\" tests/ pyproject.toml .gitreins/config.yaml 2>/dev/null | head -30; echo ---; grep -n \"testpaths\\|python_files\\|test_command\" pyproject.toml .gitreins/config.yaml 2>/dev/null",
+          "exit_code": 0,
+          "output_sha": "ee2d4989572b9035ac9266f14a3d0ceddfc94394a19b5d82d6b4cf865bc7425e"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"limit\": 30, \"offset\": 430, \"path\": \"README.md\"}",
+          "exit_code": 0,
+          "output_sha": "6bacf114e0bfae4e4f17cc7dbc9a1ed5f282018d23507999308000cb6767e931"
+        },
+        {
+          "tool": "run_command",
+          "command": "sha256sum uv.lock && bash scripts/dep-drift.sh; echo \"exit=$?\"; sha256sum uv.lock",
+          "exit_code": 0,
+          "output_sha": "4572558d54dc629f89e23dd146a820c08b36b5a805dd7ec0f640c599b1bd2860"
+        },
+        {
+          "tool": "run_command",
+          "command": "systemctl --user list-timers --all 2>&1 | grep -i \"dep-drift\\|NEXT\\|TIMER\" ; echo \"rc=$?\"; systemctl --user is-enabled lore-dep-drift.timer 2>&1; systemctl --user is-active lore-dep-drift.timer 2>&1",
+          "exit_code": 0,
+          "output_sha": "45f7d6ad31c91bbd0254529a81a74b80977d584e8f29817a3c7b603abce78df5"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"limit\": 25, \"offset\": 445, \"path\": \"docs/INSTALL.md\"}",
+          "exit_code": 0,
+          "output_sha": "790fc6f09013fab454177894fb4bc52f01d8fc26ac53eedc75c44f648fc241ee"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"deploy/systemd/README.md\"}",
+          "exit_code": 0,
+          "output_sha": "1a3eea5de2d6bb2ba8ba19d2081f25ce0725ef14dcd59a36f453999f9f9c9d89"
+        },
+        {
+          "tool": "run_command",
+          "command": "uv run pytest -x --tb=short -q 2>&1 | tail -5",
+          "exit_code": 0,
+          "output_sha": "dcb93bc55d60711439a8d35ddd5249c78653d7d05baa569e228b12a250e1bccb"
+        },
+        {
+          "tool": "run_command",
+          "command": "uv run pytest -q scripts/dep_drift_test.py 2>&1 | tail -3",
+          "exit_code": 0,
+          "output_sha": "b633e0584ab46027529a21e99a9033e3bd9cd9cd6a8f769a9adf9917ac035619"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: scripts/dep-drift.sh ran live against PyPI (reported certifi 2026.10.23->2026.11.20, platformdirs 4.14.7->4.14.8, \\\"2 of 34 locked packages behind PyPI latest\\\", exit=0) and uv.lock sha256 9b99cbec... identical before/after. Timer visible: systemctl --user list-timers shows \\\"Mon 2026-11-23 07:45:00 lore-dep-drift.timer -> lore-dep-drift.service\\\"; is-enabled=enabled, is-active=active. README.md:439-447 and docs/INSTALL.md:454-463 document the arrangement; deploy/systemd/README.md documents install. Gates: uv run pytest -x --tb=short -> 572 passed in 8.16s (exit 0); lint+secrets green in tier1.\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "634b78fa99935ddf6f9bd89bb23a617354d41193f706ea3987733aabaf3ef867"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: uv run pytest -q scripts/dep_drift_test.py -> 1 passed in 0.78s; test asserts read-only (lock bytes unchanged), behind-reporting, non-registry note, and incomplete-failure reporting. deploy/systemd/README.md:15 documents it is outside default tests/ collection.\", \"key\": \"verified_derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "f06aa1e0c4a3f8431645bde25a6389f283b893ee6a926c50a4d147009c951b3f"
+        }
+      ]
+    }
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [
+      {
+        "severity": "low",
+        "file": ".coding-hermes/board/tasks.jsonl",
+        "line": 144,
+        "detection": "row marked status/worker_status complete but completed_at is null, unlike every other complete row in the file",
+        "detail": "The LORE-HYGIENE-20261121 row sets \"status\":\"complete\" and \"worker_status\":\"complete\" yet keeps \"completed_at\":null, while the adjacent complete rows (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) all populate completed_at.",
+        "category": "unknown",
+        "fingerprint": "c6ae599245964ed9bd018a4a1b2439766d232c58b46b3db83beeb9204ebd908e",
+        "state": "ACTIVE",
+        "echo": "[low][unknown] .coding-hermes/board/tasks.jsonl:144 \u2014 row marked status/worker_status complete but completed_at is null, unlike every other complete row in the file\nThe LORE-HYGIENE-20261121 row sets \"status\":\"complete\" and \"worker_status\":\"complete\" yet keeps \"completed_at\":null, while the adjacent complete rows (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) all populate completed_at."
+      },
+      {
+        "severity": "low",
+        "file": ".coding-hermes/board/tasks.jsonl",
+        "line": 145,
+        "detection": "row marked status/worker_status complete but completed_at is null, unlike every other complete row in the file",
+        "detail": "The SUP-DEPS-LORE-20261121 row sets \"status\":\"complete\" and \"worker_status\":\"complete\" yet keeps \"completed_at\":null, breaking the board convention that completed rows carry a completion timestamp.",
+        "category": "unknown",
+        "fingerprint": "25ce8f810a697c17a83bab8a4f81af65ed5a24a37b3f46bb25e91c30cca6759c",
+        "state": "ACTIVE",
+        "echo": "[low][unknown] .coding-hermes/board/tasks.jsonl:145 \u2014 row marked status/worker_status complete but completed_at is null, unlike every other complete row in the file\nThe SUP-DEPS-LORE-20261121 row sets \"status\":\"complete\" and \"worker_status\":\"complete\" yet keeps \"completed_at\":null, breaking the board convention that completed rows carry a completion timestamp."
+      }
+    ],
+    "summary": "Two board rows are flipped to complete with guard/CI results and evidence, but both leave completed_at null, drifting from the populated completed_at on every other complete row.",
+    "review_state": {
+      "emitted": [
+        {
+          "severity": "low",
+          "file": ".coding-hermes/board/tasks.jsonl",
+          "line": 144,
+          "detection": "row marked status/worker_status complete but completed_at is null, unlike every other complete row in the file",
+          "detail": "The LORE-HYGIENE-20261121 row sets \"status\":\"complete\" and \"worker_status\":\"complete\" yet keeps \"completed_at\":null, while the adjacent complete rows (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) all populate completed_at.",
+          "category": "unknown",
+          "fingerprint": "c6ae599245964ed9bd018a4a1b2439766d232c58b46b3db83beeb9204ebd908e",
+          "state": "ACTIVE",
+          "echo": "[low][unknown] .coding-hermes/board/tasks.jsonl:144 \u2014 row marked status/worker_status complete but completed_at is null, unlike every other complete row in the file\nThe LORE-HYGIENE-20261121 row sets \"status\":\"complete\" and \"worker_status\":\"complete\" yet keeps \"completed_at\":null, while the adjacent complete rows (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) all populate completed_at."
+        },
+        {
+          "severity": "low",
+          "file": ".coding-hermes/board/tasks.jsonl",
+          "line": 145,
+          "detection": "row marked status/worker_status complete but completed_at is null, unlike every other complete row in the file",
+          "detail": "The SUP-DEPS-LORE-20261121 row sets \"status\":\"complete\" and \"worker_status\":\"complete\" yet keeps \"completed_at\":null, breaking the board convention that completed rows carry a completion timestamp.",
+          "category": "unknown",
+          "fingerprint": "25ce8f810a697c17a83bab8a4f81af65ed5a24a37b3f46bb25e91c30cca6759c",
+          "state": "ACTIVE",
+          "echo": "[low][unknown] .coding-hermes/board/tasks.jsonl:145 \u2014 row marked status/worker_status complete but completed_at is null, unlike every other complete row in the file\nThe SUP-DEPS-LORE-20261121 row sets \"status\":\"complete\" and \"worker_status\":\"complete\" yet keeps \"completed_at\":null, breaking the board convention that completed rows carry a completion timestamp."
+        }
+      ],
+      "carried": []
+    }
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 scripts/dep-drift.sh reports uv.lock-vs-PyPI drift live and report-only (uv.lock checksum unchanged by a run); lore-dep-drift.timer+service armed and visible in systemctl --user list-timers; README+INSTALL document the arrangement; gates green.: Live run: `bash scripts/dep-drift.sh` queried PyPI and printed 'certifi 2026.10.23 -> 2026.11.20', 'platformdirs 4.14.7 -> 4.14.8', '2 of 34 locked packages behind PyPI latest', exit=0; uv.lock sha256 9b99cbec281d... identical before and after (report-only confirmed; script only reads the lock via tomllib, scripts/dep-drift.sh:36-39). Timer armed: `systemctl --user list-timers --all` shows 'Mon 2026-11-23 07:45:00 lore-dep-drift.timer -> lore-dep-drift.service'; is-enabled=enabled, is-active=active; unit files at deploy/systemd/lore-dep-drift.timer (OnCalendar=Mon *-*-* 07:45:00, Persistent=true) and .service (ExecStart=.../scripts/dep-drift.sh). Docs: README.md:439-447 and docs/INSTALL.md:454-463 describe the report-only arrangement and arming steps; deploy/systemd/README.md covers install. Gates: `uv run pytest -x --tb=short -q` -> '572 passed in 8.16s' (exit 0); tier1 lint and secrets guards passed (exit_code 0, gitleaks+builtin clean).\n  \u2713 The drift-specific regression test (scripts/dep_drift_test.py, outside the default tests/ collection) actually passes, proving read-only behaviour and failure reporting: `uv run pytest -q scripts/dep_drift_test.py` -> '1 passed in 0.78s' (exit 0). The test spins a fake PyPI server, asserts the lock bytes are unchanged after a run, that behind packages are reported ('1 of 3 locked packages behind PyPI latest'), non-registry sources noted, and failed lookups flagged 'Incomplete report'. deploy/systemd/README.md:15 documents that it sits outside the default tests/ collection and how to run it.\ndep-drift.sh verified live against PyPI with uv.lock checksum unchanged, lore-dep-drift.timer enabled+active and listed for Mon 07:45, README/INSTALL/deploy docs in place, and all gates green (572 passed plus the out-of-tree drift regression test passing).\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-21T04:00:30.270646",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-21T04:00:30.290381+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 1068,
+        "truncated": false,
+        "source": "git show 75c094b91ef8"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 29004,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "SUP-DEPS-LORE-20261121"
+  }
+}

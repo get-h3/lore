@@ -1,0 +1,524 @@
+{
+  "task_id": "INFRA-LORE-044",
+  "task_title": "Guard hook budget vs effective test timeout gap closed in config",
+  "task_criteria": [
+    "A commit in the repo prints no guard budget warning (neither the hook_timeout<=test_timeout WARN nor the evaluator.test_timeout unknown-key WARN); .gitreins/config.yaml is valid under gitreins 0.21.0 with a declared hook budget above the effective test budget; tier-1 guard PASS on the fixed tree; RED-proven on real commits."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "75c094b91ef8bd5837a7c4f94887c87d7ec4fcb9",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "80659292d812be5a5bf17365c2fba427f7a45f46c9f2cc39cd7a9d9cb66350d9",
+  "working_tree_dirty_path_count": 19,
+  "items": [
+    {
+      "criterion": "A commit in the repo prints no guard budget warning (neither the hook_timeout<=test_timeout WARN nor the evaluator.test_timeout unknown-key WARN); .gitreins/config.yaml is valid under gitreins 0.21.0 with a declared hook budget above the effective test budget; tier-1 guard PASS on the fixed tree; RED-proven on real commits.",
+      "status": "PASS",
+      "detail": "Composite, all four legs evidenced. (1) No-warning commit: merge 75c094b (2026-11-20 22:52:22 -0500) is HEAD; post-merge guard logs .gitreins/logs/guard-20261121T035044.421600Z.log and T035229.151341Z.log (workdir /home/kara/get-h3/lore) show 'overall: PASS' and grep -i 'warn|unknown key|hook_timeout' across all 2026-11-21 logs returns nothing (rc=1); live GuardManager init on the fixed tree under installed gitreins 0.21.1 emitted EMPTY stderr. (2) Valid config + budget: validate_config_file('.gitreins/config.yaml') -> 'issue count: 0'; engine/config_schema.py:117-118 declares guards.test_timeout/hook_timeout as int keys while _EVALUATOR_KEYS (:145-161) has no test_timeout and the fixed evaluator block no longer carries it (removed by a556d76); config.yaml:24-25 sets test_timeout: 1200, hook_timeout: 1320, and live resolution gave test_timeout=1200, hook_timeout=1320, hook>test True. (3) Tier-1 PASS on fixed tree: prior-stage tier1 all-pass (lint rc=0, secrets clean, '572 passed in 9.37s'), guard log T035044 contains '572 passed', and fresh runs in this review: 'uv run pytest -x --tb=short -q' -> '572 passed in 5.07s' rc=0, 'uv run ruff check . --quiet' rc=0. (4) RED-proven on real commits: pre-fix probe 8faab64 (tree 9ec6fda, evaluator.test_timeout: 600, no guards timeout keys) is a real commit whose guard run printed 'WARN: evaluator.test_timeout: unknown key' (quoted in a556d76 message; worktree log /home/kara/worktrees/lore-INFRA-LORE-044/.gitreins/logs/guard-20261121T034124.365419Z.log exists); the warning mechanism itself was re-verified live (implicit 300<=1200 pair prints the exact WARN and derives 1320; explicit-equal pair prints the honoring WARN). Caveat: the a95845c 'post-fix' probe shares tree 9ec6fda with the pre-fix probe (git diff 8faab64..a95845c is empty), so that GREEN probe ran on the pre-fix config; the actual fix landed in a556d76 (22:45) whose guard log guard-20261121T034517.975733Z.log and all subsequent post-merge main logs are warning-free, so the RED->GREEN transition on real commits is still demonstrated."
+    },
+    {
+      "criterion": "derived: .gitreins/config.yaml parses and validates clean under the installed gitreins 0.21.x schema (no unknown-key or type issues)",
+      "status": "PASS",
+      "detail": "validate_config_file('/home/kara/get-h3/lore/.gitreins/config.yaml') via the installed 0.21.1 venv printed 'issue count: 0'; guards.test_timeout and guards.hook_timeout are declared KeySpec('int') at engine/config_schema.py:117-118; evaluator keys (:145-161) exclude test_timeout and the fixed config's evaluator block holds only max_iterations/max_time (config.yaml:30-46).",
+      "derived": true
+    },
+    {
+      "criterion": "derived: the hook<=test warning path is live in the installed guard and the fixed config stays clear of it",
+      "status": "PASS",
+      "detail": "guard_manager.py:1817 fires WARN when hook_timeout <= test_timeout; live GuardManager with config {'guards': {'test_timeout': 1200}} printed 'WARN: hook_timeout=300s <= test_timeout=1200s ... Raising this run's budget to 1320s' and derived hook=1320; explicit equal pair 1200/1200 printed the honoring WARN; with the repo's real config stderr was EMPTY and hook_timeout=1320 > test_timeout=1200.",
+      "derived": true
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nsecrets: gitleaks bound=timeout 600s (0=off)\nscanners: nice=nice -n 10\n11:00PM INF scanned ~14052992 bytes (14.05 MB) in 5.04s\n11:00PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 300 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.14.7\ncollected 572 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 24%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 27%]\ntests/test_evidence.py ......................                            [ 31%]\ntests/test_lore011_drain_acceptance.py .......                           [ 32%]\ntests/test_lore016_qa_audit.py .....................                     [ 36%]\ntests/test_lore017_gateway_guard.py ........                             [ 37%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 39%]\ntests/test_lore022_freshness_docs.py .....                               [ 40%]\ntests/test_lore030_ux_guard.py ....                                      [ 40%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 42%]\ntests/test_lore041_collision_canonical.py ...........                    [ 44%]\ntests/test_lore043_short_text_threshold.py ....................          [ 48%]\ntests/test_lore045_validate_history.py ....................              [ 51%]\ntests/test_lore046_match_output.py ...........                           [ 53%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 55%]\n\n\u2026 [480 chars omitted \u2014 6 line(s)] \u2026\ntests/test_lore054_match_class_filter.py ....                            [ 64%]\ntests/test_lore055_consult_missing_input.py ......                       [ 65%]\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 66%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 67%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 68%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 69%]\ntests/test_lore064_audit_wiring.py .............................         [ 74%]\ntests/test_lore066_zero_check_skip.py ...                                [ 75%]\ntests/test_lore067_incident_audit.py ..                                  [ 75%]\ntests/test_lore071_trigger.py ......                                     [ 76%]\ntests/test_near_miss.py ..............                                   [ 79%]\ntests/test_perf2_audit_single_pass.py ........                           [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 81%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 572 passed in 9.37s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            }
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 A commit in the repo prints no guard budget warning (neither the hook_timeout<=test_timeout WARN nor the evaluator.test_timeout unknown-key WARN); .gitreins/config.yaml is valid under gitreins 0.21.0 with a declared hook budget above the effective test budget; tier-1 guard PASS on the fixed tree; RED-proven on real commits.: Composite, all four legs evidenced. (1) No-warning commit: merge 75c094b (2026-11-20 22:52:22 -0500) is HEAD; post-merge guard logs .gitreins/logs/guard-20261121T035044.421600Z.log and T035229.151341Z.log (workdir /home/kara/get-h3/lore) show 'overall: PASS' and grep -i 'warn|unknown key|hook_timeout' across all 2026-11-21 logs returns nothing (rc=1); live GuardManager init on the fixed tree under installed gitreins 0.21.1 emitted EMPTY stderr. (2) Valid config + budget: validate_config_file('.gitreins/config.yaml') -> 'issue count: 0'; engine/config_schema.py:117-118 declares guards.test_timeout/hook_timeout as int keys while _EVALUATOR_KEYS (:145-161) has no test_timeout and the fixed evaluator block no longer carries it (removed by a556d76); config.yaml:24-25 sets test_timeout: 1200, hook_timeout: 1320, and live resolution gave test_timeout=1200, hook_timeout=1320, hook>test True. (3) Tier-1 PASS on fixed tree: prior-stage tier1 all-pass (lint rc=0, secrets clean, '572 passed in 9.37s'), guard log T035044 contains '572 passed', and fresh runs in this review: 'uv run pytest -x --tb=short -q' -> '572 passed in 5.07s' rc=0, 'uv run ruff check . --quiet' rc=0. (4) RED-proven on real commits: pre-fix probe 8faab64 (tree 9ec6fda, evaluator.test_timeout: 600, no guards timeout keys) is a real commit whose guard run printed 'WARN: evaluator.test_timeout: unknown key' (quoted in a556d76 message; worktree log /home/kara/worktrees/lore-INFRA-LORE-044/.gitreins/logs/guard-20261121T034124.365419Z.log exists); the warning mechanism itself was re-verified live (implicit 300<=1200 pair prints the exact WARN and derives 1320; explicit-equal pair prints the honoring WARN). Caveat: the a95845c 'post-fix' probe shares tree 9ec6fda with the pre-fix probe (git diff 8faab64..a95845c is empty), so that GREEN probe ran on the pre-fix config; the actual fix landed in a556d76 (22:45) whose guard log guard-20261121T034517.975733Z.log and all subsequent post-merge main logs are warning-free, so the RED->GREEN transition on real commits is still demonstrated.\n  \u2713 derived: .gitreins/config.yaml parses and validates clean under the installed gitreins 0.21.x schema (no unknown-key or type issues): validate_config_file('/home/kara/get-h3/lore/.gitreins/config.yaml') via the installed 0.21.1 venv printed 'issue count: 0'; guards.test_timeout and guards.hook_timeout are declared KeySpec('int') at engine/config_schema.py:117-118; evaluator keys (:145-161) exclude test_timeout and the fixed config's evaluator block holds only max_iterations/max_time (config.yaml:30-46).\n  \u2713 derived: the hook<=test warning path is live in the installed guard and the fixed config stays clear of it: guard_manager.py:1817 fires WARN when hook_timeout <= test_timeout; live GuardManager with config {'guards': {'test_timeout': 1200}} printed 'WARN: hook_timeout=300s <= test_timeout=1200s ... Raising this run's budget to 1320s' and derived hook=1320; explicit equal pair 1200/1200 printed the honoring WARN; with the repo's real config stderr was EMPTY and hook_timeout=1320 > test_timeout=1200.\nThe fix is real and verified end-to-end: guards.test_timeout 1200 / hook_timeout 1320 replace the ignored evaluator.test_timeout 600, the config validates with zero issues under installed gitreins 0.21.1, GuardManager emits no budget warning on the fixed tree, tier-1 passes (572 pytest tests, ruff rc=0, guard logs PASS), and the RED warning was demonstrated on a real pre-fix commit \u2014 with the caveat that the branch's 'post-fix' probe commit actually ran on the pre-fix tree, though later real commits on the fixed config are warning-free.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 A commit in the repo prints no guard budget warning (neither the hook_timeout<=test_timeout WARN nor the evaluator.test_timeout unknown-key WARN); .gitreins/config.yaml is valid under gitreins 0.21.0 with a declared hook budget above the effective test budget; tier-1 guard PASS on the fixed tree; RED-proven on real commits.: Composite, all four legs evidenced. (1) No-warning commit: merge 75c094b (2026-11-20 22:52:22 -0500) is HEAD; post-merge guard logs .gitreins/logs/guard-20261121T035044.421600Z.log and T035229.151341Z.log (workdir /home/kara/get-h3/lore) show 'overall: PASS' and grep -i 'warn|unknown key|hook_timeout' across all 2026-11-21 logs returns nothing (rc=1); live GuardManager init on the fixed tree under installed gitreins 0.21.1 emitted EMPTY stderr. (2) Valid config + budget: validate_config_file('.gitreins/config.yaml') -> 'issue count: 0'; engine/config_schema.py:117-118 declares guards.test_timeout/hook_timeout as int keys while _EVALUATOR_KEYS (:145-161) has no test_timeout and the fixed evaluator block no longer carries it (removed by a556d76); config.yaml:24-25 sets test_timeout: 1200, hook_timeout: 1320, and live resolution gave test_timeout=1200, hook_timeout=1320, hook>test True. (3) Tier-1 PASS on fixed tree: prior-stage tier1 all-pass (lint rc=0, secrets clean, '572 passed in 9.37s'), guard log T035044 contains '572 passed', and fresh runs in this review: 'uv run pytest -x --tb=short -q' -> '572 passed in 5.07s' rc=0, 'uv run ruff check . --quiet' rc=0. (4) RED-proven on real commits: pre-fix probe 8faab64 (tree 9ec6fda, evaluator.test_timeout: 600, no guards timeout keys) is a real commit whose guard run printed 'WARN: evaluator.test_timeout: unknown key' (quoted in a556d76 message; worktree log /home/kara/worktrees/lore-INFRA-LORE-044/.gitreins/logs/guard-20261121T034124.365419Z.log exists); the warning mechanism itself was re-verified live (implicit 300<=1200 pair prints the exact WARN and derives 1320; explicit-equal pair prints the honoring WARN). Caveat: the a95845c 'post-fix' probe shares tree 9ec6fda with the pre-fix probe (git diff 8faab64..a95845c is empty), so that GREEN probe ran on the pre-fix config; the actual fix landed in a556d76 (22:45) whose guard log guard-20261121T034517.975733Z.log and all subsequent post-merge main logs are warning-free, so the RED->GREEN transition on real commits is still demonstrated.\n  \u2713 derived: .gitreins/config.yaml parses and validates clean under the installed gitreins 0.21.x schema (no unknown-key or type issues): validate_config_file('/home/kara/get-h3/lore/.gitreins/config.yaml') via the installed 0.21.1 venv printed 'issue count: 0'; guards.test_timeout and guards.hook_timeout are declared KeySpec('int') at engine/config_schema.py:117-118; evaluator keys (:145-161) exclude test_timeout and the fixed config's evaluator block holds only max_iterations/max_time (config.yaml:30-46).\n  \u2713 derived: the hook<=test warning path is live in the installed guard and the fixed config stays clear of it: guard_manager.py:1817 fires WARN when hook_timeout <= test_timeout; live GuardManager with config {'guards': {'test_timeout': 1200}} printed 'WARN: hook_timeout=300s <= test_timeout=1200s ... Raising this run's budget to 1320s' and derived hook=1320; explicit equal pair 1200/1200 printed the honoring WARN; with the repo's real config stderr was EMPTY and hook_timeout=1320 > test_timeout=1200.\nThe fix is real and verified end-to-end: guards.test_timeout 1200 / hook_timeout 1320 replace the ignored evaluator.test_timeout 600, the config validates with zero issues under installed gitreins 0.21.1, GuardManager emits no budget warning on the fixed tree, tier-1 passes (572 pytest tests, ruff rc=0, guard logs PASS), and the RED warning was demonstrated on a real pre-fix commit \u2014 with the caveat that the branch's 'post-fix' probe commit actually ran on the pre-fix tree, though later real commits on the fixed config are warning-free.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "A commit in the repo prints no guard budget warning (neither the hook_timeout<=test_timeout WARN nor the evaluator.test_timeout unknown-key WARN); .gitreins/config.yaml is valid under gitreins 0.21.0 with a declared hook budget above the effective test budget; tier-1 guard PASS on the fixed tree; RED-proven on real commits.",
+                "status": "PASS",
+                "detail": "Composite, all four legs evidenced. (1) No-warning commit: merge 75c094b (2026-11-20 22:52:22 -0500) is HEAD; post-merge guard logs .gitreins/logs/guard-20261121T035044.421600Z.log and T035229.151341Z.log (workdir /home/kara/get-h3/lore) show 'overall: PASS' and grep -i 'warn|unknown key|hook_timeout' across all 2026-11-21 logs returns nothing (rc=1); live GuardManager init on the fixed tree under installed gitreins 0.21.1 emitted EMPTY stderr. (2) Valid config + budget: validate_config_file('.gitreins/config.yaml') -> 'issue count: 0'; engine/config_schema.py:117-118 declares guards.test_timeout/hook_timeout as int keys while _EVALUATOR_KEYS (:145-161) has no test_timeout and the fixed evaluator block no longer carries it (removed by a556d76); config.yaml:24-25 sets test_timeout: 1200, hook_timeout: 1320, and live resolution gave test_timeout=1200, hook_timeout=1320, hook>test True. (3) Tier-1 PASS on fixed tree: prior-stage tier1 all-pass (lint rc=0, secrets clean, '572 passed in 9.37s'), guard log T035044 contains '572 passed', and fresh runs in this review: 'uv run pytest -x --tb=short -q' -> '572 passed in 5.07s' rc=0, 'uv run ruff check . --quiet' rc=0. (4) RED-proven on real commits: pre-fix probe 8faab64 (tree 9ec6fda, evaluator.test_timeout: 600, no guards timeout keys) is a real commit whose guard run printed 'WARN: evaluator.test_timeout: unknown key' (quoted in a556d76 message; worktree log /home/kara/worktrees/lore-INFRA-LORE-044/.gitreins/logs/guard-20261121T034124.365419Z.log exists); the warning mechanism itself was re-verified live (implicit 300<=1200 pair prints the exact WARN and derives 1320; explicit-equal pair prints the honoring WARN). Caveat: the a95845c 'post-fix' probe shares tree 9ec6fda with the pre-fix probe (git diff 8faab64..a95845c is empty), so that GREEN probe ran on the pre-fix config; the actual fix landed in a556d76 (22:45) whose guard log guard-20261121T034517.975733Z.log and all subsequent post-merge main logs are warning-free, so the RED->GREEN transition on real commits is still demonstrated."
+              },
+              {
+                "criterion": "derived: .gitreins/config.yaml parses and validates clean under the installed gitreins 0.21.x schema (no unknown-key or type issues)",
+                "status": "PASS",
+                "detail": "validate_config_file('/home/kara/get-h3/lore/.gitreins/config.yaml') via the installed 0.21.1 venv printed 'issue count: 0'; guards.test_timeout and guards.hook_timeout are declared KeySpec('int') at engine/config_schema.py:117-118; evaluator keys (:145-161) exclude test_timeout and the fixed config's evaluator block holds only max_iterations/max_time (config.yaml:30-46).",
+                "derived": true
+              },
+              {
+                "criterion": "derived: the hook<=test warning path is live in the installed guard and the fixed config stays clear of it",
+                "status": "PASS",
+                "detail": "guard_manager.py:1817 fires WARN when hook_timeout <= test_timeout; live GuardManager with config {'guards': {'test_timeout': 1200}} printed 'WARN: hook_timeout=300s <= test_timeout=1200s ... Raising this run's budget to 1320s' and derived hook=1320; explicit equal pair 1200/1200 printed the honoring WARN; with the repo's real config stderr was EMPTY and hook_timeout=1320 > test_timeout=1200.",
+                "derived": true
+              }
+            ],
+            "summary": "The fix is real and verified end-to-end: guards.test_timeout 1200 / hook_timeout 1320 replace the ignored evaluator.test_timeout 600, the config validates with zero issues under installed gitreins 0.21.1, GuardManager emits no budget warning on the fixed tree, tier-1 passes (572 pytest tests, ruff rc=0, guard logs PASS), and the RED warning was demonstrated on a real pre-fix commit \u2014 with the caveat that the branch's 'post-fix' probe commit actually ran on the pre-fix tree, though later real commits on the fixed config are warning-free.",
+            "provenance": {
+              "model": "accounts/fireworks/models/kimi-k3",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "accounts/fireworks/models/kimi-k3",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"INFRA-LORE-044\"}",
+          "exit_code": 0,
+          "output_sha": "4d33082a673020dcc06e652df48195003b93f76bfd600c90f8ea10b3393ee2c0"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \".gitreins/config.yaml\"}",
+          "exit_code": 0,
+          "output_sha": "dc504fb6d322bed9099de624d5b7ac48a58c94ef60a7ffd94a78e3899f576fc5"
+        },
+        {
+          "tool": "read_diff",
+          "command": "read_diff {}",
+          "exit_code": 0,
+          "output_sha": "4d28e5f0019ba5fe190333d1ab85d21cd6195602f828d1ebe0e8d782c10ffec4"
+        },
+        {
+          "tool": "run_command",
+          "command": "git log --oneline -5 && git show 75c094b91ef8bd5837a7c4f94887c87d7ec4fcb9 --stat",
+          "exit_code": 0,
+          "output_sha": "7c8e2a67eddb025a58c4858d240ece27d2e2c644616ef9d4d87a591232df0bae"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show 3614f44 -- .gitreins/config.yaml | head -80; echo ===; git log --oneline cab3e6e..3614f44 2>/dev/null || git log --oneline -6 3614f44",
+          "exit_code": 0,
+          "output_sha": "304ace9e47a97a653571e6bca0194852d9e90b34cc2dd902087321c95139e065"
+        },
+        {
+          "tool": "run_command",
+          "command": "which gitreins; gitreins --version 2>&1 | head -3",
+          "exit_code": 0,
+          "output_sha": "d6de558ff6997b3db8924e86e9582998b40a70bd81bf3d51a90ea77fb44c7f20"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show a556d76 -- .gitreins/config.yaml",
+          "exit_code": 0,
+          "output_sha": "064117d1fbb11ab72545fd5f3cc89d870988e2f0ab69d5d853454dc550eb202c"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show 8faab64 --stat; echo ====; git show a95845c --stat",
+          "exit_code": 0,
+          "output_sha": "32ecf355061af18c5a619a7cff76c8d09a15322857cc7e1bee10d04a0b44928c"
+        },
+        {
+          "tool": "run_command",
+          "command": "git status --short; git stash list | head -3",
+          "exit_code": 0,
+          "output_sha": "fff407b02d61585f492da672a6514bdd6791af1af020be42229a050757b4e7a5"
+        },
+        {
+          "tool": "run_command",
+          "command": "ls /home/kara/.local/pipx/venvs/ 2>/dev/null; pipx list 2>/dev/null | head -10",
+          "exit_code": 0,
+          "output_sha": "6d9461ad629eb3b51a2aded0ab9befe7129fe7e9d2df96fa14e4c8d6f16b84b8"
+        },
+        {
+          "tool": "run_command",
+          "command": "ls /home/kara/.local/share/pipx/venvs/ | grep -i reins; GV=$(ls -d /home/kara/.local/share/pipx/venvs/gitreins 2>/dev/null); echo \"GV=$GV\"; ls $GV/lib/*/site-packages/ 2>/dev/null | head -20",
+          "exit_code": 0,
+          "output_sha": "c6d38a0413a505fb8944f6ee96b90f5ca62ef5c3fcee3baec0db64c78077db40"
+        },
+        {
+          "tool": "run_command",
+          "command": "SP=$(ls -d /home/kara/.local/share/pipx/venvs/gitreins/lib/*/site-packages); ls $SP | grep -i -E \"gitreins|engine\"; find $SP -name \"config_schema.py\" -o -name \"guard_manager.py\" 2>/dev/null | head",
+          "exit_code": 0,
+          "output_sha": "dedd5e7e8275fba283ff975335dfa191f818ee3db27b66d6dd22e96616425088"
+        },
+        {
+          "tool": "run_command",
+          "command": "SP=/home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages; sed -n '100,170p' $SP/engine/config_schema.py",
+          "exit_code": 0,
+          "output_sha": "125e8527e1c28724ec2f953298338010823a4e941ab3cedfb5c6272a06bc8464"
+        },
+        {
+          "tool": "run_command",
+          "command": "SP=/home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages; sed -n '1770,1850p' $SP/engine/guard_manager.py",
+          "exit_code": 0,
+          "output_sha": "a02b6aeaedd483a81d2152619162724b997e4fbefcc9bc87fa21e8606f7e8954"
+        },
+        {
+          "tool": "run_command",
+          "command": "SP=/home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages; sed -n '1795,1825p' $SP/engine/guard_manager.py",
+          "exit_code": 0,
+          "output_sha": "4db9f399944770eeeac3126705a4f2e9b8529370ff931ef34f9ed2ced2db3aa6"
+        },
+        {
+          "tool": "run_command",
+          "command": "git log --all --oneline --grep=\"post-merge probe\" ; git log --oneline --all --since=\"2026-11-20\" | head -15",
+          "exit_code": 0,
+          "output_sha": "c8ddc56a3ee8f6128ad4c6c28ffa40339a8b8d7ee6b082cea12f7392e6d75ef3"
+        },
+        {
+          "tool": "run_command",
+          "command": "git log --all --oneline --grep=\"probe\" | head; echo ===; git branch -a | head -20",
+          "exit_code": 0,
+          "output_sha": "8bc8e6a5301326a8a814d9363a36cdaa96294e87ebd28e0671b21273307cea97"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show 8faab64 | head -40; echo =====; git show a95845c | head -40",
+          "exit_code": 0,
+          "output_sha": "7f7d04a5245526618c0059c5a7d2d470158f9a6dc1d23142ec59d1bc4721dcd9"
+        },
+        {
+          "tool": "run_command",
+          "command": "ls .gitreins/logs/ 2>/dev/null | tail -10; echo ===; ls .gitreins/ 2>/dev/null",
+          "exit_code": 0,
+          "output_sha": "f4c3dd333b401a4124a73b04a0f6b0db42093e5024145c6de39cd683cae3c485"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -l -i \"WARN\" .gitreins/logs/guard-20261121T0*.log 2>/dev/null; echo ===; for f in .gitreins/logs/guard-20261121T033428.621356Z.log .gitreins/logs/guard-20261121T035044.421600Z.log .gitreins/logs/guard-20261121T035229.151341Z.log; do echo \"--- $f\"; head -30 \"$f\"; done",
+          "exit_code": 0,
+          "output_sha": "f1399b440791fbe340edf5e7d75c5ec4c1d0a25158eb81e75752eaf055836cd8"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -c \"572 passed\" .gitreins/logs/guard-20261121T035044.421600Z.log .gitreins/logs/guard-20261121T033428.621356Z.log; grep -i -E \"warn|unknown key|hook_timeout\" .gitreins/logs/guard-20261121T0*.log | head",
+          "exit_code": 0,
+          "output_sha": "e804b7ee7546a68d53e6ffacaa55e5ab61dad2c8d1acd120c345c54aeab3acd7"
+        },
+        {
+          "tool": "run_command",
+          "command": "git log --format=\"%H %ci %s\" -3; date -u",
+          "exit_code": 0,
+          "output_sha": "ad86be2239050eea3258bc44a6c14d60d0f9bbc69945bc934385613ddc0646e5"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show 8faab64:.gitreins/config.yaml | grep -n -E \"test_timeout|hook_timeout|evaluator\" ",
+          "exit_code": 0,
+          "output_sha": "53439a3f2e99f6ed6559c4e7ed69d6655c3ef427c475730592fc9db3795b0669"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show a95845c:.gitreins/config.yaml | grep -n -E \"test_timeout|hook_timeout\"; echo ===; git show a95845c:.gitreins/config.yaml | sed -n '/^evaluator:/,/^defaults:/p' | grep -n \"test_timeout\" ; echo \"evaluator.test_timeout absent rc=$?\"",
+          "exit_code": 0,
+          "output_sha": "a7fd94c7cc8b0b70546efc34917d66dbbcc0a5c126d3b024c9c166064c66924b"
+        },
+        {
+          "tool": "run_command",
+          "command": "git log --format=\"%h %ci %s\" cab3e6e..3614f44; echo ===; git show a556d76:.gitreins/config.yaml | grep -n -E \"test_timeout|hook_timeout\"; echo ===; git show 3614f44:.gitreins/config.yaml | grep -n -E \"test_timeout|hook_timeout\"",
+          "exit_code": 0,
+          "output_sha": "bae7756176aff2c205d5c688f513c372c1a84e8b578b0c5c23075dc8102266d4"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show a95845c:.gitreins/config.yaml | sed -n '1,30p'",
+          "exit_code": 0,
+          "output_sha": "71339a4d004b07f6419db1f458f5274c681ec5aa271f2b04a3cd7a171582435c"
+        },
+        {
+          "tool": "run_command",
+          "command": "git diff 8faab64 a95845c --stat; echo \"rc=$?\"; git diff 8faab64 a95845c | head -20",
+          "exit_code": 0,
+          "output_sha": "8ec6d344ebecaf20f7ee5adccbcfa2ea2e00d8c98bba3a48cac7c48b6537ffa8"
+        },
+        {
+          "tool": "run_command",
+          "command": "git log --format=\"%h %s\" --all -- .gitreins/config.yaml | head -8",
+          "exit_code": 0,
+          "output_sha": "5975d1d81d45fe483cafdc945d0bedd302f3e54b74a059146df030774a3c360e"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show a556d76 --format=\"%B\" --no-patch | sed -n '1,60p'",
+          "exit_code": 0,
+          "output_sha": "43ebde255a6f1ed62bd5db19008fa2bb69de17bb33238bc822647bd1127e8c0c"
+        },
+        {
+          "tool": "run_command",
+          "command": "git worktree list 2>/dev/null; ls /home/kara/worktrees/lore-INFRA-LORE-044/.gitreins/logs/ 2>/dev/null | tail -5",
+          "exit_code": 0,
+          "output_sha": "cccbe87a0b5929363308716ca6675bfb7910bccb262e88b5f44e7a5b1d35ae72"
+        },
+        {
+          "tool": "run_command",
+          "command": "git show 8faab64 --format=\"%T %P\" --no-patch; git show a95845c --format=\"%T %P\" --no-patch; git show a556d76 --format=\"%T %P\" --no-patch",
+          "exit_code": 0,
+          "output_sha": "3ceaa843e4aab516ab94dcd6cdcb56f3be710226951095881cd91b01f4bbfb72"
+        },
+        {
+          "tool": "run_command",
+          "command": "head -12 /home/kara/worktrees/lore-INFRA-LORE-044/.gitreins/logs/guard-20261121T034124.365419Z.log; echo =====; head -12 /home/kara/worktrees/lore-INFRA-LORE-044/.gitreins/logs/guard-20261121T034242.385924Z.log",
+          "exit_code": 0,
+          "output_sha": "3400427fb90aa5f96e462ad5439b8457c76aebcf186afb7dc25817ae53e7b3b3"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -i -E \"warn|unknown key\" /home/kara/worktrees/lore-INFRA-LORE-044/.gitreins/logs/guard-20261121T034*.log; echo \"grep rc=$? (1 = no warnings found in logs)\"",
+          "exit_code": 0,
+          "output_sha": "1f9593114a87baeabf1905046f4332bf81d5fda39af9d27f2f4bd856b5425a82"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -n -E \"unknown key|WARNING\" /home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages/engine/config_schema.py | head; echo ===; grep -rn \"config_schema\" /home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages/engine/guard_manager.py | head -5",
+          "exit_code": 0,
+          "output_sha": "5a5c6874c88ed1c00b2f7b4b6ccc5b30a744a525b84fa8e15fc2f678b15986f2"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -n -E \"validate|check_config|doctor\" /home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages/gitreins/cli.py 2>/dev/null | head; ls /home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages/gitreins/ 2>/dev/null",
+          "exit_code": 0,
+          "output_sha": "55293a46de763a4f0e32c4895a1df6548ffb9980a2552af0e1887fd2c5d76c55"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /tmp && /home/kara/.local/share/pipx/venvs/gitreins/bin/python -c \"\nimport sys\nsys.path.insert(0, '/home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages')\nfrom engine.config_schema import validate_config_file\nissues = validate_config_file('/home/kara/get-h3/lore/.gitreins/config.yaml')\nprint('issue count:', len(issues))\nfor i in issues:\n    print(i)\n\"",
+          "exit_code": 0,
+          "output_sha": "40d0ce76f97cc9514abd60abf98f8d6d4f97a40575cb19e561803df591500f6f"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -n \"hook_timeout\\|test_timeout\" /home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages/engine/guard_manager.py | head -20",
+          "exit_code": 0,
+          "output_sha": "fb5d52c4407d1c2cf664e2cf52d7fa965165b53d1e33ecbdd4338f87fafbd4c7"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -n \"def __init__\\|def _run\\|def run\\|def check\" /home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages/engine/guard_manager.py | head -15",
+          "exit_code": 0,
+          "output_sha": "4106ae78e5122321367ec562f7ac4b05e07f7e5080e5c4ca0a16d6f6b76a2072"
+        },
+        {
+          "tool": "run_command",
+          "command": "sed -n '1664,1720p' /home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages/engine/guard_manager.py",
+          "exit_code": 0,
+          "output_sha": "1e3706a560e4434aa5d2ce0c158ae828db5dad20763fe5145ad2264e8cf1503a"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && /home/kara/.local/share/pipx/venvs/gitreins/bin/python -c \"\nimport io, sys, contextlib\nsys.path.insert(0, '/home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages')\nfrom engine.guard_manager import GuardManager\nbuf = io.StringIO()\nwith contextlib.redirect_stderr(buf):\n    gm = GuardManager(workdir='/home/kara/get-h3/lore', persist_log=False)\nerr = buf.getvalue()\nprint('STDERR_CAPTURED>>>')\nprint(err if err else '(empty)')\nprint('<<<END')\nprint('test_timeout =', gm._test_timeout)\nprint('hook_timeout =', gm._hook_timeout)\nprint('hook > test:', gm._hook_timeout > gm._test_timeout)\n\"",
+          "exit_code": 0,
+          "output_sha": "ded326c9fafa8fc6390bdae4a28990a0962f38bad1f85e314260ef5c083578fe"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && /home/kara/.local/share/pipx/venvs/gitreins/bin/python -c \"\nimport io, contextlib, sys\nsys.path.insert(0, '/home/kara/.local/share/pipx/venvs/gitreins/lib/python3.14/site-packages')\nfrom engine.guard_manager import GuardManager\nbuf = io.StringIO()\nwith contextlib.redirect_stderr(buf):\n    gm = GuardManager(workdir='/home/kara/get-h3/lore', persist_log=False,\n                      config={'guards': {'test_timeout': 1200}})  # hook unset -> 300 default\nprint('--- implicit-default pair (300<=1200) stderr:')\nprint(buf.getvalue().strip())\nprint('derived hook_timeout =', gm._hook_timeout)\nbuf2 = io.StringIO()\nwith contextlib.redirect_stderr(buf2):\n    gm2 = GuardManager(workdir='/home/kara/get-h3/lore', persist_log=False,\n                       config={'guards': {'test_timeout': 1200, 'hook_timeout': 1200}})\nprint('--- explicit-equal pair stderr:')\nprint(buf2.getvalue().strip())\n\"",
+          "exit_code": 0,
+          "output_sha": "d8b743ccf3b168851f33f9eeb014b88545690c5fe83a82d4cbfcf2e26b5e85ae"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && uv run pytest -x --tb=short -q 2>&1 | tail -4",
+          "exit_code": 0,
+          "output_sha": "a33dfc62f4c6d5bf8a763e8acbb2a71d2de1edd28dba260ac68395b8dd69c3f6"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && uv run ruff check . --quiet; echo \"ruff rc=$?\"",
+          "exit_code": 0,
+          "output_sha": "48a9dfcbea39e74412ca49b0fbd7ca573444dd5cc47fa9224791bb1d9f4adf10"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -rn \"hook_timeout\\|test_timeout\" /home/kara/get-h3/lore/tests/ 2>/dev/null | head; echo \"rc=$?\"",
+          "exit_code": 0,
+          "output_sha": "5301d17fad616661d6d2b03295701717023bd88919a2175144a608891a51e67f"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS (composite): (a) No-warning commit: merge 75c094b (2026-11-20 22:52:22 -0500) is in the repo; post-merge guard logs .gitreins/logs/guard-20261121T035044.421600Z.log and T035229.151341Z.log (workdir /home/kara/get-h3/lore) show overall PASS with zero WARN/unknown-key lines (grep rc=1). Live proof: GuardManager init on the fixed tree under gitreins 0.21.1 emitted EMPTY stderr; validate_config_file(.gitreins/config.yaml) returned 0 issues. (b) Config valid under 0.21.x: config_schema.py:117-118 accepts guards.test_timeout/hook_timeout; evaluator block no longer carries test_timeout (removed by a556d76). (c) Budget: guards.test_timeout: 1200, guards.hook_timeout: 1320 (config.yaml:24-25); live GuardManager resolved test_timeout=1200, hook_timeout=1320, hook>test True. (d) Tier-1 PASS on fixed tree: prior-stage tier1 all-pass (lint rc=0, secrets clean, 572 passed in 9.37s) + guard log T035044 'overall: PASS' with '572 passed' + fresh runs: 'uv run pytest -x --tb=short -q' -> 572 passed in 5.07s rc=0; 'uv run ruff check . --quiet' rc=0. (e) RED-proven on real commits: pre-fix probe 8faab64 (tree 9ec6fda, evaluator.test_timeout:600, no guards timeouts) is a real empty commit whose guard run printed the unknown-key WARN (quoted in a556d76 message; worktree log guard-20261121T034124.365419Z.log exists); warning mechanism re-verified live (implicit 300<=1200 pair prints exact WARN and derives 1320; explicit-equal pair prints honoring WARN). Caveat recorded: the a95845c 'post-fix' probe shares tree 9ec6fda with the pre-fix probe (git diff 8faab64..a95845c empty), so the GREEN probe commit itself ran on the pre-fix config; the actual fix landed in a556d76 (22:45) and its guard log guard-20261121T034517.975733Z.log plus all post-merge main logs are warning-free.\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "9272eb8d51e109184d74223d9941f5bd025d5b4afd5e0e7fdd064cd245ee5277"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: .gitreins/config.yaml parses and validates clean under the installed gitreins 0.21.1 schema: validate_config_file('/home/kara/get-h3/lore/.gitreins/config.yaml') -> 'issue count: 0'; guards.test_timeout and guards.hook_timeout are declared KeySpec('int') at engine/config_schema.py:117-118; evaluator._EVALUATOR_KEYS (config_schema.py:145-161) contains no test_timeout, and the fixed config's evaluator block holds only max_iterations/max_time (config.yaml:30-46).\", \"key\": \"verified_derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "20afc6893b2b736600e8bf55a621aae7cd41faed3bcb05ee9965cc79529d491a"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: The warning path is live and the fixed config stays clear of it: guard_manager.py:1817 fires WARN when hook_timeout <= test_timeout; live GuardManager with config {'guards': {'test_timeout': 1200}} (hook unset) printed 'WARN: hook_timeout=300s <= test_timeout=1200s ... Raising this run's budget to 1320s' and derived hook=1320; with explicit equal pair 1200/1200 printed the honoring WARN; with the repo's real config stderr was EMPTY and hook_timeout=1320 > test_timeout=1200.\", \"key\": \"verified_derived_1\"}",
+          "exit_code": 0,
+          "output_sha": "44e3dcd3a5ad2df08b88db44937322c81c29882aef8d82acbcfe519598177a67"
+        }
+      ]
+    }
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [
+      {
+        "severity": "medium",
+        "file": ".coding-hermes/board/tasks.jsonl",
+        "line": 145,
+        "detection": "row's own acceptance_criteria requires the existing scripts/audit-deps.sh to gain a drift mode, but the recorded worker_summary closes it via a new standalone scripts/dep-drift.sh",
+        "detail": "Criterion 1 and the GATE ARM both name `bash scripts/audit-deps.sh` ('existing dependency-audit script gains a report-only drift mode... documented in the script header comment'; gate arm expects audit-deps.sh to print the drift counts), while worker_summary describes 'scripts/dep-drift.sh: report-only lock-vs-PyPI sweep' \u2014 the close record contradicts the row's stated gate.",
+        "category": "unknown",
+        "fingerprint": "437a730cbaf1509ba074e07e4e458e94b379c5da08cfecaf49edb81462ec7b96",
+        "state": "ACTIVE",
+        "echo": "[medium][unknown] .coding-hermes/board/tasks.jsonl:145 \u2014 row's own acceptance_criteria requires the existing scripts/audit-deps.sh to gain a drift mode, but the recorded worker_summary closes it via a new standalone scripts/dep-drift.sh\nCriterion 1 and the GATE ARM both name `bash scripts/audit-deps.sh` ('existing dependency-audit script gains a report-only drift mode... documented in the script header comment'; gate arm expects audit-deps.sh to print the drift counts), while worker_summary describes 'scripts/dep-drift.sh: report-only lock-vs-PyPI sweep' \u2014 the close record contradicts the row's stated gate."
+      },
+      {
+        "severity": "low",
+        "file": ".coding-hermes/board/tasks.jsonl",
+        "line": 144,
+        "detection": "row flipped to status \"complete\" with completed_at left null, unlike every sibling complete row",
+        "detail": "LORE-HYGIENE-20261121 now has \"status\":\"complete\",\"worker_status\":\"complete\" but \"completed_at\":null, while the adjacent complete rows (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) all carry a populated completed_at timestamp.",
+        "category": "unknown",
+        "fingerprint": "4dc04b436faad94247837f7462dfa95ad9676314f0e51623593381295d7e61bf",
+        "state": "ACTIVE",
+        "echo": "[low][unknown] .coding-hermes/board/tasks.jsonl:144 \u2014 row flipped to status \"complete\" with completed_at left null, unlike every sibling complete row\nLORE-HYGIENE-20261121 now has \"status\":\"complete\",\"worker_status\":\"complete\" but \"completed_at\":null, while the adjacent complete rows (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) all carry a populated completed_at timestamp."
+      },
+      {
+        "severity": "low",
+        "file": ".coding-hermes/board/tasks.jsonl",
+        "line": 145,
+        "detection": "row flipped to status \"complete\" with completed_at left null, unlike every sibling complete row",
+        "detail": "SUP-DEPS-LORE-20261121 now has \"status\":\"complete\",\"worker_status\":\"complete\" but \"completed_at\":null, breaking the board convention visible in the three complete rows directly above it.",
+        "category": "unknown",
+        "fingerprint": "3008183d65f10838ac3e353a04c06dfe4ee9357a9d3d41ebc1b334badb8fae0d",
+        "state": "ACTIVE",
+        "echo": "[low][unknown] .coding-hermes/board/tasks.jsonl:145 \u2014 row flipped to status \"complete\" with completed_at left null, unlike every sibling complete row\nSUP-DEPS-LORE-20261121 now has \"status\":\"complete\",\"worker_status\":\"complete\" but \"completed_at\":null, breaking the board convention visible in the three complete rows directly above it."
+      }
+    ],
+    "summary": "Board-only change closing two tasks; one close record contradicts its own acceptance criteria (new dep-drift.sh vs required drift mode in audit-deps.sh) and both closed rows leave completed_at null against board convention.",
+    "review_state": {
+      "emitted": [
+        {
+          "severity": "medium",
+          "file": ".coding-hermes/board/tasks.jsonl",
+          "line": 145,
+          "detection": "row's own acceptance_criteria requires the existing scripts/audit-deps.sh to gain a drift mode, but the recorded worker_summary closes it via a new standalone scripts/dep-drift.sh",
+          "detail": "Criterion 1 and the GATE ARM both name `bash scripts/audit-deps.sh` ('existing dependency-audit script gains a report-only drift mode... documented in the script header comment'; gate arm expects audit-deps.sh to print the drift counts), while worker_summary describes 'scripts/dep-drift.sh: report-only lock-vs-PyPI sweep' \u2014 the close record contradicts the row's stated gate.",
+          "category": "unknown",
+          "fingerprint": "437a730cbaf1509ba074e07e4e458e94b379c5da08cfecaf49edb81462ec7b96",
+          "state": "ACTIVE",
+          "echo": "[medium][unknown] .coding-hermes/board/tasks.jsonl:145 \u2014 row's own acceptance_criteria requires the existing scripts/audit-deps.sh to gain a drift mode, but the recorded worker_summary closes it via a new standalone scripts/dep-drift.sh\nCriterion 1 and the GATE ARM both name `bash scripts/audit-deps.sh` ('existing dependency-audit script gains a report-only drift mode... documented in the script header comment'; gate arm expects audit-deps.sh to print the drift counts), while worker_summary describes 'scripts/dep-drift.sh: report-only lock-vs-PyPI sweep' \u2014 the close record contradicts the row's stated gate."
+        },
+        {
+          "severity": "low",
+          "file": ".coding-hermes/board/tasks.jsonl",
+          "line": 144,
+          "detection": "row flipped to status \"complete\" with completed_at left null, unlike every sibling complete row",
+          "detail": "LORE-HYGIENE-20261121 now has \"status\":\"complete\",\"worker_status\":\"complete\" but \"completed_at\":null, while the adjacent complete rows (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) all carry a populated completed_at timestamp.",
+          "category": "unknown",
+          "fingerprint": "4dc04b436faad94247837f7462dfa95ad9676314f0e51623593381295d7e61bf",
+          "state": "ACTIVE",
+          "echo": "[low][unknown] .coding-hermes/board/tasks.jsonl:144 \u2014 row flipped to status \"complete\" with completed_at left null, unlike every sibling complete row\nLORE-HYGIENE-20261121 now has \"status\":\"complete\",\"worker_status\":\"complete\" but \"completed_at\":null, while the adjacent complete rows (SUP-DEPS-LORE-20261118, SUP-DEPS-LORE-20261120, LORE-HYGIENE-20261120) all carry a populated completed_at timestamp."
+        },
+        {
+          "severity": "low",
+          "file": ".coding-hermes/board/tasks.jsonl",
+          "line": 145,
+          "detection": "row flipped to status \"complete\" with completed_at left null, unlike every sibling complete row",
+          "detail": "SUP-DEPS-LORE-20261121 now has \"status\":\"complete\",\"worker_status\":\"complete\" but \"completed_at\":null, breaking the board convention visible in the three complete rows directly above it.",
+          "category": "unknown",
+          "fingerprint": "3008183d65f10838ac3e353a04c06dfe4ee9357a9d3d41ebc1b334badb8fae0d",
+          "state": "ACTIVE",
+          "echo": "[low][unknown] .coding-hermes/board/tasks.jsonl:145 \u2014 row flipped to status \"complete\" with completed_at left null, unlike every sibling complete row\nSUP-DEPS-LORE-20261121 now has \"status\":\"complete\",\"worker_status\":\"complete\" but \"completed_at\":null, breaking the board convention visible in the three complete rows directly above it."
+        }
+      ],
+      "carried": []
+    }
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 A commit in the repo prints no guard budget warning (neither the hook_timeout<=test_timeout WARN nor the evaluator.test_timeout unknown-key WARN); .gitreins/config.yaml is valid under gitreins 0.21.0 with a declared hook budget above the effective test budget; tier-1 guard PASS on the fixed tree; RED-proven on real commits.: Composite, all four legs evidenced. (1) No-warning commit: merge 75c094b (2026-11-20 22:52:22 -0500) is HEAD; post-merge guard logs .gitreins/logs/guard-20261121T035044.421600Z.log and T035229.151341Z.log (workdir /home/kara/get-h3/lore) show 'overall: PASS' and grep -i 'warn|unknown key|hook_timeout' across all 2026-11-21 logs returns nothing (rc=1); live GuardManager init on the fixed tree under installed gitreins 0.21.1 emitted EMPTY stderr. (2) Valid config + budget: validate_config_file('.gitreins/config.yaml') -> 'issue count: 0'; engine/config_schema.py:117-118 declares guards.test_timeout/hook_timeout as int keys while _EVALUATOR_KEYS (:145-161) has no test_timeout and the fixed evaluator block no longer carries it (removed by a556d76); config.yaml:24-25 sets test_timeout: 1200, hook_timeout: 1320, and live resolution gave test_timeout=1200, hook_timeout=1320, hook>test True. (3) Tier-1 PASS on fixed tree: prior-stage tier1 all-pass (lint rc=0, secrets clean, '572 passed in 9.37s'), guard log T035044 contains '572 passed', and fresh runs in this review: 'uv run pytest -x --tb=short -q' -> '572 passed in 5.07s' rc=0, 'uv run ruff check . --quiet' rc=0. (4) RED-proven on real commits: pre-fix probe 8faab64 (tree 9ec6fda, evaluator.test_timeout: 600, no guards timeout keys) is a real commit whose guard run printed 'WARN: evaluator.test_timeout: unknown key' (quoted in a556d76 message; worktree log /home/kara/worktrees/lore-INFRA-LORE-044/.gitreins/logs/guard-20261121T034124.365419Z.log exists); the warning mechanism itself was re-verified live (implicit 300<=1200 pair prints the exact WARN and derives 1320; explicit-equal pair prints the honoring WARN). Caveat: the a95845c 'post-fix' probe shares tree 9ec6fda with the pre-fix probe (git diff 8faab64..a95845c is empty), so that GREEN probe ran on the pre-fix config; the actual fix landed in a556d76 (22:45) whose guard log guard-20261121T034517.975733Z.log and all subsequent post-merge main logs are warning-free, so the RED->GREEN transition on real commits is still demonstrated.\n  \u2713 derived: .gitreins/config.yaml parses and validates clean under the installed gitreins 0.21.x schema (no unknown-key or type issues): validate_config_file('/home/kara/get-h3/lore/.gitreins/config.yaml') via the installed 0.21.1 venv printed 'issue count: 0'; guards.test_timeout and guards.hook_timeout are declared KeySpec('int') at engine/config_schema.py:117-118; evaluator keys (:145-161) exclude test_timeout and the fixed config's evaluator block holds only max_iterations/max_time (config.yaml:30-46).\n  \u2713 derived: the hook<=test warning path is live in the installed guard and the fixed config stays clear of it: guard_manager.py:1817 fires WARN when hook_timeout <= test_timeout; live GuardManager with config {'guards': {'test_timeout': 1200}} printed 'WARN: hook_timeout=300s <= test_timeout=1200s ... Raising this run's budget to 1320s' and derived hook=1320; explicit equal pair 1200/1200 printed the honoring WARN; with the repo's real config stderr was EMPTY and hook_timeout=1320 > test_timeout=1200.\nThe fix is real and verified end-to-end: guards.test_timeout 1200 / hook_timeout 1320 replace the ignored evaluator.test_timeout 600, the config validates with zero issues under installed gitreins 0.21.1, GuardManager emits no budget warning on the fixed tree, tier-1 passes (572 pytest tests, ruff rc=0, guard logs PASS), and the RED warning was demonstrated on a real pre-fix commit \u2014 with the caveat that the branch's 'post-fix' probe commit actually ran on the pre-fix tree, though later real commits on the fixed config are warning-free.\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-21T04:04:11.092873",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-21T04:04:11.114252+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 1068,
+        "truncated": false,
+        "source": "git show 75c094b91ef8"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 29004,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "INFRA-LORE-044"
+  }
+}

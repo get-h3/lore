@@ -1,0 +1,21 @@
+commit 75c094b91ef8bd5837a7c4f94887c87d7ec4fcb9
+Merge: cab3e6e 3614f44
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Fri Nov 20 22:52:22 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Fri Nov 20 22:52:22 2026 -0500
+
+    Merge wt/INFRA-LORE-044: declare guard budgets above effective test timeout
+    
+    Fixes INFRA-LORE-044. Worker cx/gpt-6.1-terra@9router, worktree
+    lore-INFRA-LORE-044 (commits 8faab64/a95845c probes + a556d76 fix + 3614f44
+    foreman comment correction). guards.test_timeout 1200 + guards.hook_timeout
+    1320 replace the ignored evaluator.test_timeout 600. Source diagnosis:
+    config_schema.py accepts both keys under guards; guard_manager.py defaults
+    tests 1200s / hook 300s when unset. RED/GREEN on real commits in the branch;
+    post-merge probe commit on main prints no warnings.
+    
+    Co-authored-by: Alexis Okuwa <wojonstech@gmail.com>
+
+ .gitreins/config.yaml | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
