@@ -1,0 +1,109 @@
+lore release-engineering satellite — tick lore-releng-2026-11-21-12-58-07
+repo: get-h3/lore   default branch: main   forge: GitHub (gh client)
+candidate measured: ff7f03699b898e3abf680b173180863b43e79d75
+workdir under test: /home/kara/lore-wt-rel-20261121 (detached worktree at origin/main)
+lane workdir /home/kara/.hermes/stand-in/releng-lane/lore is a real work tree as of
+bd6a98f (RELEASE-LORE-007) but sits 37 commits behind origin/main on branch
+lane/releng-workdir, so this pass created a detached worktree at the fetched tip and
+measured there. No evidence was taken from the lagging stand-in checkout.
+
+DECISION: GO — cut v0.3.0 (MINOR).
+
+AUTHORITY
+  Owner ruling 2026-10-27, commit f8ddd4b, closed RELEASE-LORE-003 with:
+  "release GO/NO-GO belongs to the project's release-engineer lane, not the owner."
+  That is a standing delegation recorded on the cut-contract row in this repository,
+  and it is the authority this lane cuts on. A MAJOR or a breaking change would still
+  require explicit owner confirmation; this candidate carries none.
+  Distribution channel is not first-publication: Release objects v0.1.0 (2026-10-03)
+  and v0.2.0 (2026-11-16) already exist, both non-draft, both with no assets (git
+  tags are the only release artifact by design — nothing is published to PyPI).
+
+SEMVER EVIDENCE  (range v0.2.0 -> candidate, agent census)
+  baseline tag v0.2.0 peels to 165cc8f6d354d9ed57d58635c1ad482d0e755cf2, an ancestor
+  of main. Range 165cc8f..ff7f036: 46 non-merge commits.
+  feat 2 / chore 6 / docs 2 / non-conventional 7 / other-conventional 29
+  (board 26, probe 2, deps 1). Buckets sum to 46 = non-merge total.
+  BREAKING CHANGE footers: 0. "type!" subjects: 0. -> MINOR, no major proposed.
+  The two feats are real product movement, judged by changed paths, not subjects:
+    eda0c96 feat(gate): Prometheus textfile exporter — lore/prom_export.py (+55),
+            lore/__main__.py wiring, tests/test_prom_export.py (+111).
+    42dea78 feat: scheduled dependency-drift report — scripts/dep-drift.sh (+82),
+            deploy/systemd/lore-dep-drift.{service,timer}, docs, README.
+  Non-conventional subjects inspected: DOC-10/11/12 (docs), QA-LORE-5 (chaos probe),
+  RELEASE-LORE-007 (lane workdir), RELEASE-LORE-008 (install pin evidence) — all
+  docs/evidence or harness paths except QA-LORE-5's .qa/ probe script.
+
+PRODUCT DIFF  v0.2.0 -> candidate
+  33 changed paths outside the board, harness state and evidence trees:
+  CONTRIBUTING.md, README.md, .gitignore, .qa/chaos-probes/corruption.sh,
+  deploy/systemd/* (3), docs/{INSTALL,RELEASE,RUNBOOK-STORE,traceability-doctrine}.md,
+  docs/qa/evidence/run-*/README.md (8), lore/__main__.py, lore/prom_export.py,
+  scripts/{check-test-count.sh,count_sweep.py,dep-drift.sh,dep_drift_test.py,
+  test-count.txt}, skills/lore-usage/SKILL.md, tests/{conftest.py,
+  test_count_guard.py,test_prom_export.py,test_review001_gate_record.py}, uv.lock.
+
+GATES AT THE CANDIDATE
+  hosted CI            run 44903407055 "CI" completed/success on headSha ff7f036
+                       (job "test" success; uv sync --extra dev, ruff, pytest)
+  release-check        runs only on v* tag pushes; green for v0.2.0, expected for v0.3.0
+  local suite          uv run pytest -q -> 579 passed in 6.33s, exit 0
+  lint                 uv run ruff check . -> All checks passed!, exit 0
+  count guard          bash scripts/check-test-count.sh -> PASS canonical=579 live=579,
+                       class-count=13
+  lock integrity       uv lock --check -> resolved 35 packages, no drift vs pyproject
+  commit guard         GitReins tier1 executed lint+secrets+tests (not guard-only)
+  GitReins verdict     d46cce23 PASS, task LORE-EXPORT-1, bound to
+                       eda0c96f9a09a37361b4eebd11356300fcd66699; tier1 steps
+                       lint PASS / secrets PASS (gitleaks+builtin cross-check, no
+                       leaks) / tests PASS 579; tier2 ai_eval COMPLETE;
+                       pass_class=judged; merge_recommendation=no_concerns_found.
+                       Candidate binding: diff eda0c96..ff7f036 touches ONLY
+                       .coding-hermes/board/* and .gitreins/history/2026-11-21/*
+                       — the product tree at ff7f036 is byte-identical to the
+                       judged commit, so the verdict is candidate-grade.
+                       A second verdict 3c5056b4 also binds eda0c96 PASS.
+  unjudged product commits  42dea78 (dep-drift feature), 7702ce1 (chaos probe),
+                       d75e18b/0992413/4c363f2 (docs), fada9ed (.gitignore),
+                       a556d76 (.gitreins/config) carry no exact-SHA verdict of
+                       their own. Covered by the tip CI run and, for the product
+                       tree they are part of, by 579 green tests at the candidate.
+  board state          146 complete + 1 closed, ZERO pending / blocked / in_progress
+  dogfood              STALE — newest integration record docs/dogfood/
+                       2026-10-29-integration.md predates v0.2.0. No dogfood replay
+                       at the candidate; this pass does not claim one.
+  dependency state     two tracked SUP-DEPS rows closed (platformdirs 11-18,
+                       9-package refresh 11-20); per-package list re-read from
+                       docs/qa/evidence/run-SUP-DEPS-LORE-20261120/README.md;
+                       no major-version jump; gates re-run under new pins.
+
+REPO-OWNED RELEASE TOOLING  (used, not replaced)
+  scripts/release.sh — six in-script gates in this order: (1) clean working tree,
+  (2) CI success on HEAD sha via gh, (3) version stamp -> tag and tag must not
+  exist, (4) promoted CHANGELOG section for the version, (5) explicit
+  authorization flag, (6) mutation phase (annotated tag, tag push, Release
+  object). docs/RELEASE.md documents the two version-stamp files, the changelog
+  promotion rule and the rollback path.
+  .github/workflows/release-check.yml — tag-gated version-consistency check:
+  pyproject version == lore.__version__ == newest numeric CHANGELOG heading == tag.
+  This release swaps the driver's auto-generated Release body for the curated
+  notes file docs/release-evidence/v0.3.0-notes.md (which carries the mandatory
+  Known-issues section) and re-reads the Release object afterwards.
+
+BLOCKERS, IN THE DRIVER'S OWN GATE ORDER
+  1. (closed this pass) version stamp 0.2.0 -> 0.3.0 in pyproject.toml and
+     lore/__init__.py, and the [0.3.0] changelog section — gate 3 and gate 4
+     refuse without them, BEFORE the authorization gate 5. Landing them ahead of
+     the tag is the authorized cut's own prep commit, per docs/RELEASE.md.
+  2. no other mechanical gate is unmet.
+  READINESS vs AUTHORIZATION are separate classes here: nothing is waiting on a
+  permission the lane lacks. The only outstanding gaps are evidence-strength
+  (dogfood stale) and are recorded, not blocking.
+
+NOT MUTATED BY THIS PASS BEFORE THE DECISION
+  no tag created or moved, no Release object touched, no package published, no
+  branch deleted, no sibling worktree touched.
+
+ROLLBACK (if the release proves bad)
+  delete the Release object and the remote tag; the previous tag remains the last
+  good release. Never move an existing tag.

@@ -7,6 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-11-21
+
+### Added
+
+- **LORE-EXPORT-1** — `lore gate` exports its runs as a Prometheus textfile
+  (`lore/prom_export.py`). Each run increments `lore_gate_runs_total` and sets
+  `lore_gate_last_success` to 0 when the verdict is denied, so a gate that has
+  started refusing is visible in a scrape instead of only in an exit code. The
+  write is atomic and serialized: the read/modify/write is guarded by a file
+  lock and published with a temp file in the target directory plus a rename, so
+  concurrent invocations cannot lose an increment and a failed rename leaves
+  the previous metric file intact. An unwritable or missing textfile directory
+  is a loud stderr failure with exit 1, never a silent skip. Seven tests in
+  `tests/test_prom_export.py` pin the counter, the gauge, corrupt-file recovery,
+  concurrent writers, and both failure modes.
+
+- **SUP-DEPS-LORE-20261121** — scheduled dependency-drift reporting.
+  `scripts/dep-drift.sh` compares `uv.lock` against PyPI and reports drifted
+  pins; `deploy/systemd/lore-dep-drift.service` and `.timer` ship **not
+  enabled**, so no schedule or service is installed by this release — an
+  operator arms it deliberately. `deploy/systemd/README.md`, `README.md` and
+  `docs/INSTALL.md` document the unit and the arming step.
+
+### Changed
+
+- Dependency lock refresh, from two tracked supervisor rows: platformdirs
+  4.13.5 → 4.14.7 (SUP-DEPS-LORE-20261118) and nine package-scoped pins to PyPI
+  latest — cachecontrol 0.15.0, certifi 2026.10.23, filelock 4.2.12,
+  markdown-it-py 4.3.0, msgpack 1.2.4, pip 26.3, py-serializable 2.2.0,
+  pytest 9.2.0, ruff 0.17.6 (SUP-DEPS-LORE-20261120). No major-version jump;
+  suite, linter and formatter were re-run under the refreshed pins.
+- `README.md` Status and `docs/RELEASE.md` now describe the v0.2.0 cut rather
+  than v0.1.0 (DOC-10).
+
+### Fixed
+
+- The release clean-tree gate no longer trips on GitReins judge residue:
+  the judge verdict snapshot directory is ignored, so a cut is not refused by
+  harness state the release does not ship (LORE-HYGIENE-20261121).
+- The GitReins hook budget is declared above the effective test timeout, so the
+  commit guard can no longer abandon its own test stage and report a budget
+  failure as the finding (INFRA-LORE-044).
+
+### Documentation
+
+- `docs/traceability-doctrine.md` defines the `ch:trace` marker grammar used on
+  board rows (DOC-12).
+- `README.md`, `docs/INSTALL.md` and `docs/RUNBOOK-STORE.md` describe the
+  operator-armed weekly validate timer instead of implying an installed
+  schedule (DOC-11).
+
+### QA
+
+- `.qa/chaos-probes/corruption.sh` — torn-state chaos probe for the store
+  (QA-LORE-5).
+- Canonical test count 579 (dev-pin refresh plus the new gate-metrics suite).
+
 ## [0.2.0] — 2026-11-16
 
 ### Added
