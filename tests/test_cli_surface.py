@@ -83,10 +83,16 @@ def test_cli_audit_json_all_classes_honest_freshness(capsys):
     assert [r["class_id"] for r in rows] == [c.id for c in get_registry().all_classes()]
     for r in rows:
         # The compiled column is registry-derived, independently of incident
-        # coverage. The catch-all may remain an uncompiled zero-check bucket.
+        # coverage. LORE-072: the catch-all bucket is compiled-by-design
+        # (its runbook object is compiled; zero executable checks is the
+        # design), so it reports True — curated rows still report exactly
+        # check_count > 0.
         assert isinstance(r["runbook_compiled"], bool)
         assert isinstance(r["check_count"], int)
-        assert r["runbook_compiled"] is (r["check_count"] > 0)
+        if r.get("bucket"):
+            assert r["runbook_compiled"] is True
+        else:
+            assert r["runbook_compiled"] is (r["check_count"] > 0)
         assert r["command_count"] <= r["check_count"]
         # HONESTY: no fabricated dates — every class reports 'no data' today.
         assert r["last_validated"] == NO_DATA

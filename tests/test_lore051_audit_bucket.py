@@ -122,14 +122,16 @@ def test_md_rows_unchanged_eight_cell_contract(capsys):
     for ln in out.splitlines():
         if ln.startswith("|") and not ln.startswith("| class_id"):
             assert ln.count("|") == 11, f"row must have 10 cells: {ln}"
-    # the bucket row renders with [bucket] prefix in md (same as table)
+    # The bucket row renders with [bucket] prefix in md (same as table).
     bucket_rows = [
         ln for ln in out.splitlines() if "unclassified" in ln and "[bucket]" in ln
     ]
     assert len(bucket_rows) == 1
-    # Compilation is registry-derived; the bucket remains the only
-    # zero-check row and may therefore render as uncompiled.
-    assert "| False |" in bucket_rows[0]
+    # LORE-072: compilation is registry-derived and the bucket is
+    # compiled-by-design (its runbook object is compiled; the empty
+    # executable-checks list is the design, LORE-051/LORE-066), so the
+    # shared runbook_compiled field it renders like every other row is True.
+    assert "| True |" in bucket_rows[0]
 
 
 # ------------------------------------------------- scripted-consumer contract

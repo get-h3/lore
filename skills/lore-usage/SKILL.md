@@ -124,7 +124,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
 ## Dev loop
 
 ```sh
-uv run pytest -q    # expect: 579 passed (count synced to scripts/test-count.txt, LORE-029)
+uv run pytest -q    # expect: 584 passed (count synced to scripts/test-count.txt, LORE-029)
 uv run ruff check . # expect: All checks passed!
 ```
 
@@ -284,7 +284,11 @@ Incident evidence (LORE-067, corrected by LORE-067-R3) lives beside those rows, 
   directory** and its parent (`lore/incidents.py`). Run audit from a different directory and the incident facts
   change; when no board is found it degrades to "no incidents" with `rc=0` and `coverage_note` says the source was
   unavailable.
-- `runbook_compiled` means **a runbook exists** (`check_count > 0`). It is not an incident flag (that was
+- `runbook_compiled` means **a runbook exists** (`check_count > 0`) for the curated classes. The
+  `unclassified` bucket is the LORE-072 exception: it reports `runbook_compiled: true`
+  **compiled-by-design** (its runbook object is compiled; the zero executable-checks list is the
+  design, LORE-051/LORE-066) and carries a `compile_note`; executability health for it lives in
+  `check_count`/`command_count`. It is not an incident flag (that was
   LORE-067-R2, fixed).
 - A class named by a structured `class_id` in an **in-window** event is reported even when the registry has never
   heard of it: it appears in `summary.uncovered_classes`, and `summary.incident_count` carries the in-window event

@@ -622,7 +622,8 @@ def _audit_rows(
             "class_id": rb.class_id,
             "name": rb.name,
             # The compiled flag describes the registry runbook, not incident
-            # coverage. Incident presence is reported separately below.
+            # coverage. Incident presence is reported separately below. For the
+            # unclassified bucket this is overridden below (LORE-072).
             "runbook_compiled": check_count > 0,
             "check_count": check_count,
             "command_count": len(real_commands),
@@ -643,6 +644,23 @@ def _audit_rows(
         # separate registry classes from the bucket instead of miscounting 14.
         if rb.class_id == UNCLASSIFIED_ID:
             row["bucket"] = True
+            # LORE-072: the bucket row is compiled-by-design. The bucket's
+            # registry runbook object IS compiled (signature, recovery
+            # ladder, guardrails) — only its executable-checks list is empty
+            # BY DESIGN (LORE-051 keeps the bucket in the output; LORE-066
+            # hard-codes checks=[] and skips 0-check classes in the
+            # validate history). Reporting False here made external
+            # consumers (the h3-board PM cadence) read a compile gap that
+            # does not exist and file recurring phantom rows. Executable
+            # check health stays readable from check_count/command_count;
+            # compile_note carries the explanation so no consumer has to
+            # re-derive the meaning.
+            row["runbook_compiled"] = True
+            row["compile_note"] = (
+                "bucket runbook compiled-by-design — no executable checks "
+                "(LORE-051/LORE-066); executable-check health is "
+                "check_count/command_count"
+            )
         rec = history.get(rb.class_id)
         if rec is not None:
             reason = _history_drift_reason(rec)
