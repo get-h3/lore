@@ -1,0 +1,410 @@
+{
+  "task_id": "LORE-072",
+  "task_title": "Resolve audit-matrix gap class Unclassified (uncompiled proposal)",
+  "task_criteria": [
+    "lore audit --format json: every class row in d['classes'] reports runbook_compiled True while the unclassified bucket row keeps its bucket:true marker, check_count 0 and a compile_note; bucket stays in output; registry stays 13 curated + 1 bucket; full pytest suite green"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "f0767ab3d632c1759cceaa55a2bf5dcf00c984cc",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "f2d5979eaaaf014bbfa9fe115c8c408fe13cb87aa87bc4ccf4a4460cdb40c21a",
+  "working_tree_dirty_path_count": 5,
+  "items": [
+    {
+      "criterion": "lore audit --format json: every class row in d['classes'] reports runbook_compiled True while the unclassified bucket row keeps its bucket:true marker, check_count 0 and a compile_note; bucket stays in output; registry stays 13 curated + 1 bucket; full pytest suite green",
+      "status": "PASS",
+      "detail": "Live run in an empty dir (`cd /tmp/lore072-verify && uv run lore audit --format json`, exit 0): d['classes'] has 14 rows and ALL 14 report runbook_compiled true; exactly one bucket row (class_id=unclassified) with bucket=true, check_count=0, command_count=0, last_validated='no data', and compile_note='bucket runbook compiled-by-design \u2014 no executable checks (LORE-051/LORE-066)...'; the 13 curated rows carry neither compile_note nor bucket; summary.total_classes=14. Source: lore/__main__.py:646 (row['bucket']=True), :658 (row['runbook_compiled']=True override), :659-662 (compile_note), inside `if rb.class_id == UNCLASSIFIED_ID`. Full suite fresh run: `uv run pytest -q` exit 0, '584 passed in 11.00s' (matches .gitreins guards.test_command `uv run pytest -x --tb=short` and prior tier1 lane '584 passed in 7.13s'); scripts/check-test-count.sh: 'PASS: test-count guard: canonical=584 matches live=584; class-count=13'. Pinned by tests/test_lore072_bucket_compiled_by_design.py:52-55 (ARM), :60-68 (bucket contract), :71-92 (compile_note only on bucket), :108-111 (14 = 13+1); updated pins tests/test_cli_surface.py:93-95 and tests/test_lore051_audit_bucket.py:133-138 green."
+    },
+    {
+      "criterion": "Derived: the bucket marker/compile_note survive the real CLI JSON seam (not just _audit_rows unit path)",
+      "status": "PASS",
+      "detail": "_cmd_audit's json branch prints {\"classes\": rows} straight from _audit_rows() (lore/__main__.py:688, :704-716); the live `lore audit --format json` stdout parsed above contained bucket=true and compile_note on the unclassified row, proving end-to-end reachability from the CLI entrypoint.",
+      "derived": true
+    },
+    {
+      "criterion": "Derived: table and md renderers render the same flipped field so no format still shows the bucket as uncompiled",
+      "status": "PASS",
+      "detail": "Both renderers read the same rows dict (lore/__main__.py:742-747 md, :778-781 table with str(r['runbook_compiled'])). Live runs: table row `[bucket] unclassified  Unclassified  yes  True  0  0  no data  proposal` and md row `| [bucket] unclassified | Unclassified | True | 0 | 0 | no data | proposal |  | yes |  |` \u2014 both show True/compiled with check columns still 0; also pinned by tests/test_lore072_bucket_compiled_by_design.py:95-109.",
+      "derived": true
+    },
+    {
+      "criterion": "Derived: the change is additive/back-compat \u2014 curated rows keep their exact shape and other d['classes'] consumers keep their behavior",
+      "status": "PASS",
+      "detail": "Only the bucket branch gains compile_note (lore/__main__.py:647-662); live JSON showed 0 of 13 curated rows carrying compile_note or bucket, and tests/test_cli_surface.py:95 still asserts curated rows satisfy runbook_compiled is (check_count > 0). All other consumers of d['classes']/_audit_rows (tests/test_lore064_audit_wiring.py, test_lore061, test_lore067, test_perf2_audit_single_pass.py) pass in the fresh full-suite run (584 passed); docs updated pins (README.md:141, CONTRIBUTING.md:28, docs/INSTALL.md:85, SKILL.md:127) match scripts/test-count.txt=584, and SKILL.md:287-292 now documents the LORE-072 bucket exception beside the runbook_compiled definition.",
+      "derived": true
+    },
+    {
+      "criterion": "Derived: the registry itself stays closed at 13 curated + the unclassified bucket (no class added to fake the fix)",
+      "status": "PASS",
+      "detail": "lore/classes.py:478-493 UNCLASSIFIED_CLASS retains its never-matching signature pattern r\"(?!)\", and ClassRegistry.all_classes() (:515-520) returns curated classes plus the bucket last \u2014 the fix flips only the audit row flag, not the registry. Live audit output: 13 non-bucket rows + 1 bucket row; scripts/check-test-count.sh reports 'class-count=13'; test_registry_size_unchanged_by_compiled_flag (tests/test_lore072_bucket_compiled_by_design.py:104-111) passes.",
+      "derived": true
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nsecrets: gitleaks bound=timeout 600s (0=off)\nscanners: nice=nice -n 10\n2:46PM INF scanned ~14379788 bytes (14.38 MB) in 3.74s\n2:46PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 311 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.14.7\ncollected 584 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 23%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 26%]\ntests/test_evidence.py ......................                            [ 30%]\ntests/test_lore011_drain_acceptance.py .......                           [ 31%]\ntests/test_lore016_qa_audit.py .....................                     [ 35%]\ntests/test_lore017_gateway_guard.py ........                             [ 36%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 38%]\ntests/test_lore022_freshness_docs.py .....                               [ 39%]\ntests/test_lore030_ux_guard.py ....                                      [ 39%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 41%]\ntests/test_lore041_collision_canonical.py ...........                    [ 43%]\ntests/test_lore043_short_text_threshold.py ....................          [ 47%]\ntests/test_lore045_validate_history.py ....................              [ 50%]\ntests/test_lore046_match_output.py ...........                           [ 52%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 54%]\n\n\u2026 [640 chars omitted \u2014 8 line(s)] \u2026\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 64%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 66%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 67%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 68%]\ntests/test_lore064_audit_wiring.py .............................         [ 73%]\ntests/test_lore066_zero_check_skip.py ...                                [ 73%]\ntests/test_lore067_incident_audit.py ..                                  [ 73%]\ntests/test_lore071_trigger.py ......                                     [ 75%]\ntests/test_lore072_bucket_compiled_by_design.py .....                    [ 75%]\ntests/test_near_miss.py ..............                                   [ 78%]\ntests/test_perf2_audit_single_pass.py ........                           [ 79%]\ntests/test_prom_export.py .......                                        [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 82%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 584 passed in 7.13s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            }
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 lore audit --format json: every class row in d['classes'] reports runbook_compiled True while the unclassified bucket row keeps its bucket:true marker, check_count 0 and a compile_note; bucket stays in output; registry stays 13 curated + 1 bucket; full pytest suite green: Live run in an empty dir (`cd /tmp/lore072-verify && uv run lore audit --format json`, exit 0): d['classes'] has 14 rows and ALL 14 report runbook_compiled true; exactly one bucket row (class_id=unclassified) with bucket=true, check_count=0, command_count=0, last_validated='no data', and compile_note='bucket runbook compiled-by-design \u2014 no executable checks (LORE-051/LORE-066)...'; the 13 curated rows carry neither compile_note nor bucket; summary.total_classes=14. Source: lore/__main__.py:646 (row['bucket']=True), :658 (row['runbook_compiled']=True override), :659-662 (compile_note), inside `if rb.class_id == UNCLASSIFIED_ID`. Full suite fresh run: `uv run pytest -q` exit 0, '584 passed in 11.00s' (matches .gitreins guards.test_command `uv run pytest -x --tb=short` and prior tier1 lane '584 passed in 7.13s'); scripts/check-test-count.sh: 'PASS: test-count guard: canonical=584 matches live=584; class-count=13'. Pinned by tests/test_lore072_bucket_compiled_by_design.py:52-55 (ARM), :60-68 (bucket contract), :71-92 (compile_note only on bucket), :108-111 (14 = 13+1); updated pins tests/test_cli_surface.py:93-95 and tests/test_lore051_audit_bucket.py:133-138 green.\n  \u2713 Derived: the bucket marker/compile_note survive the real CLI JSON seam (not just _audit_rows unit path): _cmd_audit's json branch prints {\"classes\": rows} straight from _audit_rows() (lore/__main__.py:688, :704-716); the live `lore audit --format json` stdout parsed above contained bucket=true and compile_note on the unclassified row, proving end-to-end reachability from the CLI entrypoint.\n  \u2713 Derived: table and md renderers render the same flipped field so no format still shows the bucket as uncompiled: Both renderers read the same rows dict (lore/__main__.py:742-747 md, :778-781 table with str(r['runbook_compiled'])). Live runs: table row `[bucket] unclassified  Unclassified  yes  True  0  0  no data  proposal` and md row `| [bucket] unclassified | Unclassified | True | 0 | 0 | no data | proposal |  | yes |  |` \u2014 both show True/compiled with check columns still 0; also pinned by tests/test_lore072_bucket_compiled_by_design.py:95-109.\n  \u2713 Derived: the change is additive/back-compat \u2014 curated rows keep their exact shape and other d['classes'] consumers keep their behavior: Only the bucket branch gains compile_note (lore/__main__.py:647-662); live JSON showed 0 of 13 curated rows carrying compile_note or bucket, and tests/test_cli_surface.py:95 still asserts curated rows satisfy runbook_compiled is (check_count > 0). All other consumers of d['classes']/_audit_rows (tests/test_lore064_audit_wiring.py, test_lore061, test_lore067, test_perf2_audit_single_pass.py) pass in the fresh full-suite run (584 passed); docs updated pins (README.md:141, CONTRIBUTING.md:28, docs/INSTALL.md:85, SKILL.md:127) match scripts/test-count.txt=584, and SKILL.md:287-292 now documents the LORE-072 bucket exception beside the runbook_compiled definition.\n  \u2713 Derived: the registry itself stays closed at 13 curated + the unclassified bucket (no class added to fake the fix): lore/classes.py:478-493 UNCLASSIFIED_CLASS retains its never-matching signature pattern r\"(?!)\", and ClassRegistry.all_classes() (:515-520) returns curated classes plus the bucket last \u2014 the fix flips only the audit row flag, not the registry. Live audit output: 13 non-bucket rows + 1 bucket row; scripts/check-test-count.sh reports 'class-count=13'; test_registry_size_unchanged_by_compiled_flag (tests/test_lore072_bucket_compiled_by_design.py:104-111) passes.\nLORE-072 delivers exactly the pinned contract: a live `lore audit --format json` shows all 14 rows compiled-true with the unclassified bucket keeping bucket:true/check_count 0/compile_note, registry intact at 13+1 across all three render formats, and the fresh full pytest run is green (584 passed).",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 lore audit --format json: every class row in d['classes'] reports runbook_compiled True while the unclassified bucket row keeps its bucket:true marker, check_count 0 and a compile_note; bucket stays in output; registry stays 13 curated + 1 bucket; full pytest suite green: Live run in an empty dir (`cd /tmp/lore072-verify && uv run lore audit --format json`, exit 0): d['classes'] has 14 rows and ALL 14 report runbook_compiled true; exactly one bucket row (class_id=unclassified) with bucket=true, check_count=0, command_count=0, last_validated='no data', and compile_note='bucket runbook compiled-by-design \u2014 no executable checks (LORE-051/LORE-066)...'; the 13 curated rows carry neither compile_note nor bucket; summary.total_classes=14. Source: lore/__main__.py:646 (row['bucket']=True), :658 (row['runbook_compiled']=True override), :659-662 (compile_note), inside `if rb.class_id == UNCLASSIFIED_ID`. Full suite fresh run: `uv run pytest -q` exit 0, '584 passed in 11.00s' (matches .gitreins guards.test_command `uv run pytest -x --tb=short` and prior tier1 lane '584 passed in 7.13s'); scripts/check-test-count.sh: 'PASS: test-count guard: canonical=584 matches live=584; class-count=13'. Pinned by tests/test_lore072_bucket_compiled_by_design.py:52-55 (ARM), :60-68 (bucket contract), :71-92 (compile_note only on bucket), :108-111 (14 = 13+1); updated pins tests/test_cli_surface.py:93-95 and tests/test_lore051_audit_bucket.py:133-138 green.\n  \u2713 Derived: the bucket marker/compile_note survive the real CLI JSON seam (not just _audit_rows unit path): _cmd_audit's json branch prints {\"classes\": rows} straight from _audit_rows() (lore/__main__.py:688, :704-716); the live `lore audit --format json` stdout parsed above contained bucket=true and compile_note on the unclassified row, proving end-to-end reachability from the CLI entrypoint.\n\n\u2026 [1365 chars omitted \u2014 2 line(s)] \u2026\n  \u2713 Derived: the registry itself stays closed at 13 curated + the unclassified bucket (no class added to fake the fix): lore/classes.py:478-493 UNCLASSIFIED_CLASS retains its never-matching signature pattern r\"(?!)\", and ClassRegistry.all_classes() (:515-520) returns curated classes plus the bucket last \u2014 the fix flips only the audit row flag, not the registry. Live audit output: 13 non-bucket rows + 1 bucket row; scripts/check-test-count.sh reports 'class-count=13'; test_registry_size_unchanged_by_compiled_flag (tests/test_lore072_bucket_compiled_by_design.py:104-111) passes.\nLORE-072 delivers exactly the pinned contract: a live `lore audit --format json` shows all 14 rows compiled-true with the unclassified bucket keeping bucket:true/check_count 0/compile_note, registry intact at 13+1 across all three render formats, and the fresh full pytest run is green (584 passed).",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "lore audit --format json: every class row in d['classes'] reports runbook_compiled True while the unclassified bucket row keeps its bucket:true marker, check_count 0 and a compile_note; bucket stays in output; registry stays 13 curated + 1 bucket; full pytest suite green",
+                "status": "PASS",
+                "detail": "Live run in an empty dir (`cd /tmp/lore072-verify && uv run lore audit --format json`, exit 0): d['classes'] has 14 rows and ALL 14 report runbook_compiled true; exactly one bucket row (class_id=unclassified) with bucket=true, check_count=0, command_count=0, last_validated='no data', and compile_note='bucket runbook compiled-by-design \u2014 no executable checks (LORE-051/LORE-066)...'; the 13 curated rows carry neither compile_note nor bucket; summary.total_classes=14. Source: lore/__main__.py:646 (row['bucket']=True), :658 (row['runbook_compiled']=True override), :659-662 (compile_note), inside `if rb.class_id == UNCLASSIFIED_ID`. Full suite fresh run: `uv run pytest -q` exit 0, '584 passed in 11.00s' (matches .gitreins guards.test_command `uv run pytest -x --tb=short` and prior tier1 lane '584 passed in 7.13s'); scripts/check-test-count.sh: 'PASS: test-count guard: canonical=584 matches live=584; class-count=13'. Pinned by tests/test_lore072_bucket_compiled_by_design.py:52-55 (ARM), :60-68 (bucket contract), :71-92 (compile_note only on bucket), :108-111 (14 = 13+1); updated pins tests/test_cli_surface.py:93-95 and tests/test_lore051_audit_bucket.py:133-138 green."
+              },
+              {
+                "criterion": "Derived: the bucket marker/compile_note survive the real CLI JSON seam (not just _audit_rows unit path)",
+                "status": "PASS",
+                "detail": "_cmd_audit's json branch prints {\"classes\": rows} straight from _audit_rows() (lore/__main__.py:688, :704-716); the live `lore audit --format json` stdout parsed above contained bucket=true and compile_note on the unclassified row, proving end-to-end reachability from the CLI entrypoint.",
+                "derived": true
+              },
+              {
+                "criterion": "Derived: table and md renderers render the same flipped field so no format still shows the bucket as uncompiled",
+                "status": "PASS",
+                "detail": "Both renderers read the same rows dict (lore/__main__.py:742-747 md, :778-781 table with str(r['runbook_compiled'])). Live runs: table row `[bucket] unclassified  Unclassified  yes  True  0  0  no data  proposal` and md row `| [bucket] unclassified | Unclassified | True | 0 | 0 | no data | proposal |  | yes |  |` \u2014 both show True/compiled with check columns still 0; also pinned by tests/test_lore072_bucket_compiled_by_design.py:95-109.",
+                "derived": true
+              },
+              {
+                "criterion": "Derived: the change is additive/back-compat \u2014 curated rows keep their exact shape and other d['classes'] consumers keep their behavior",
+                "status": "PASS",
+                "detail": "Only the bucket branch gains compile_note (lore/__main__.py:647-662); live JSON showed 0 of 13 curated rows carrying compile_note or bucket, and tests/test_cli_surface.py:95 still asserts curated rows satisfy runbook_compiled is (check_count > 0). All other consumers of d['classes']/_audit_rows (tests/test_lore064_audit_wiring.py, test_lore061, test_lore067, test_perf2_audit_single_pass.py) pass in the fresh full-suite run (584 passed); docs updated pins (README.md:141, CONTRIBUTING.md:28, docs/INSTALL.md:85, SKILL.md:127) match scripts/test-count.txt=584, and SKILL.md:287-292 now documents the LORE-072 bucket exception beside the runbook_compiled definition.",
+                "derived": true
+              },
+              {
+                "criterion": "Derived: the registry itself stays closed at 13 curated + the unclassified bucket (no class added to fake the fix)",
+                "status": "PASS",
+                "detail": "lore/classes.py:478-493 UNCLASSIFIED_CLASS retains its never-matching signature pattern r\"(?!)\", and ClassRegistry.all_classes() (:515-520) returns curated classes plus the bucket last \u2014 the fix flips only the audit row flag, not the registry. Live audit output: 13 non-bucket rows + 1 bucket row; scripts/check-test-count.sh reports 'class-count=13'; test_registry_size_unchanged_by_compiled_flag (tests/test_lore072_bucket_compiled_by_design.py:104-111) passes.",
+                "derived": true
+              }
+            ],
+            "summary": "LORE-072 delivers exactly the pinned contract: a live `lore audit --format json` shows all 14 rows compiled-true with the unclassified bucket keeping bucket:true/check_count 0/compile_note, registry intact at 13+1 across all three render formats, and the fresh full pytest run is green (584 passed).",
+            "provenance": {
+              "model": "glm-5.3-flash",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "glm-5.3-flash",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"LORE-072\"}",
+          "exit_code": 0,
+          "output_sha": "11a3daf4158147c4d2277b27692238d24d5502b833ad502251c02f00972e60bb"
+        },
+        {
+          "tool": "read_diff",
+          "command": "read_diff {}",
+          "exit_code": 0,
+          "output_sha": "9091bee05364fd848dc108626d94d8e93c13d6bdbb222e623be2ce6bc8ed135c"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore 2>/dev/null || pwd; ls",
+          "exit_code": 0,
+          "output_sha": "7f939c251d68df05b55e8cefce2f1c2ead318140f121388aca7262c61b7b06a8"
+        },
+        {
+          "tool": "run_command",
+          "command": "git -C /home/kara/get-h3/lore show f0767ab3d632c1759cceaa55a2bf5dcf00c984cc --stat",
+          "exit_code": 0,
+          "output_sha": "7841c529b3079f4b941d82023eb28c7323607e055dcd8a794438c6f28d05f80f"
+        },
+        {
+          "tool": "run_command",
+          "command": "git -C /home/kara/get-h3/lore show f0767ab3d632c1759cceaa55a2bf5dcf00c984cc -- lore/__main__.py",
+          "exit_code": 0,
+          "output_sha": "bcf2fd2c5647c742b14395a8a7d2ff5c0e330a914052c6bb37c4d803e32c67bb"
+        },
+        {
+          "tool": "run_command",
+          "command": "git -C /home/kara/get-h3/lore show f0767ab3d632c1759cceaa55a2bf5dcf00c984cc -- tests/test_lore072_bucket_compiled_by_design.py",
+          "exit_code": 0,
+          "output_sha": "9e86b5ca9b96134671db2072ffd9cd07b10ccbbd5e0ecbcd7c5799bcb642c994"
+        },
+        {
+          "tool": "search_pattern",
+          "command": "search_pattern {\"file_glob\": \"*.py\", \"regex\": \"def _audit_rows\"}",
+          "exit_code": 0,
+          "output_sha": "1ca1f8d1a91aac0ad4847a22ba2fb47f6c3662b30878546868711393fd8f4941"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"tests/test_lore072_bucket_compiled_by_design.py\"}",
+          "exit_code": 0,
+          "output_sha": "ce9d403b4a8d2306bf6aa86aa727f746b45af9ef669531020fd6a9d883673786"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"limit\": 160, \"offset\": 540, \"path\": \"lore/__main__.py\"}",
+          "exit_code": 0,
+          "output_sha": "cef722598579f4ffb09cbc1f9ec7fde9cb6e08889bb6c3c9f77d7ada500e4c65"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -n \"UNCLASSIFIED_ID\" lore/classes.py | head -20",
+          "exit_code": 0,
+          "output_sha": "39a77e78dac86803db51cc8a382a3988e0ab0731bc3ca2bc1a29e810eadc9356"
+        },
+        {
+          "tool": "search_pattern",
+          "command": "search_pattern {\"regex\": \"runbook_compiled\"}",
+          "exit_code": 0,
+          "output_sha": "e7f1ab3249ccd1f67c91248fd6f0c3231b5d7933e44584558b13c6ab2dcafceb"
+        },
+        {
+          "tool": "run_command",
+          "command": "sed -n 460,540p lore/classes.py",
+          "exit_code": 0,
+          "output_sha": "2bce485d118b69c142248bd3c266eb2f59adea9758021ba78b1d5b3c787c9267"
+        },
+        {
+          "tool": "run_command",
+          "command": "cat .gitreins/config.yaml 2>/dev/null | head -40; cat scripts/test-count.txt",
+          "exit_code": 0,
+          "output_sha": "7f647742000b7b0dc607a3ba099d24bac5ed4a5e6827e77067d5dc35ff72e0db"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -n \"bucket\\|compile_note\\|LORE-072\" skills/lore-usage/SKILL.md | head; sed -n 280,295p skills/lore-usage/SKILL.md",
+          "exit_code": 0,
+          "output_sha": "a116850de0e8e6de936292c1bef5c4de91a5a5c4448c1626728aa469155e0468"
+        },
+        {
+          "tool": "run_command",
+          "command": "sed -n 55,105p tests/test_cli_surface.py",
+          "exit_code": 0,
+          "output_sha": "acd91eb67550b20dc72837bf631bc632468d1e7e4295bc0ba0d67c1300ebd822"
+        },
+        {
+          "tool": "run_command",
+          "command": "sed -n 120,145p tests/test_lore051_audit_bucket.py; grep -n \"compile_note\\|bucket\" lore/__main__.py | sed -n 1,30p",
+          "exit_code": 0,
+          "output_sha": "9127eeffdf7128af089ebbc5a99197a61a8ca6b996df56a2800cf6d7f68a0bb8"
+        },
+        {
+          "tool": "run_command",
+          "command": "mkdir -p /tmp/lore072-verify/.lore && cd /tmp/lore072-verify && uv run --project /home/kara/get-h3/lore lore audit --format json > /tmp/lore072.json; echo \"exit=$?\"; python3 -c \"\nimport json\nd=json.load(open('/tmp/lore072.json'))\nrows=d['classes']\nprint('total rows:', len(rows))\nprint('all compiled:', all(r['runbook_compiled'] is True for r in rows))\nb=[r for r in rows if r.get('bucket')]\nprint('bucket rows:', len(b))\nbr=b[0]\nprint('bucket:', br['class_id'], 'compiled=',br['runbook_compiled'],'bucket=',br.get('bucket'),'check_count=',br['check_count'],'command_count=',br['command_count'],'last_validated=',br['last_validated'])\nprint('compile_note:', repr(br.get('compile_note'))[:120])\ncur=[r for r in rows if not r.get('bucket')]\nprint('curated count:', len(cur))\nprint('curated all compiled:', all(r['runbook_compiled'] for r in cur))\nprint('curated any compile_note:', any('compile_note' in r for r in cur))\nprint('summary total_classes:', d['summary']['total_classes'])\n\"",
+          "exit_code": 0,
+          "output_sha": "42229691876684645cf7044e2501ffe3f436448eb27a6261329f76628ef0724e"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: Live run of `lore audit --format json` in empty /tmp/lore072-verify dir (exit 0): 14 rows total, ALL 14 report runbook_compiled true; exactly 1 bucket row (class_id=unclassified) with bucket=true, check_count=0, command_count=0, last_validated=\\\"no data\\\", compile_note present; 13 curated rows, none carrying compile_note; summary.total_classes=14. Matches lore/__main__.py:658-662 (row[\\\"runbook_compiled\\\"]=True + compile_note under `if rb.class_id == UNCLASSIFIED_ID`).\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "0ec5705581d913af47164204b1aa9c1ed90005f851cb66b9c2309a2418d4b45d"
+        },
+        {
+          "tool": "run_command",
+          "command": "uv run pytest -q 2>&1 | tail -5",
+          "exit_code": 0,
+          "output_sha": "a8ea20645d79ad866acef7815fadbc4a4c12adaeade1ae96b3c50d3027245c09"
+        },
+        {
+          "tool": "search_pattern",
+          "command": "search_pattern {\"regex\": \"_audit_rows\\\\(\"}",
+          "exit_code": 0,
+          "output_sha": "db57889990a54b11e42efcaa78bee31e12b7e7b7e7b5d75a3270d4205eb2693b"
+        },
+        {
+          "tool": "run_command",
+          "command": "bash scripts/check-test-count.sh 2>&1 | tail -3; grep -rn \"runbook_compiled\" lore/*.py | grep -v __main__",
+          "exit_code": 1,
+          "output_sha": "2d1a22df155691fdb31dbe5b3bebb30bd2462f4bb9abbc6680a9e35638907c54"
+        },
+        {
+          "tool": "run_command",
+          "command": "sed -n 686,800p lore/__main__.py",
+          "exit_code": 0,
+          "output_sha": "fe78c60fc9e00a8fcf9f1140cf71c5439a27163b823106168a0f1988062751b5"
+        },
+        {
+          "tool": "search_pattern",
+          "command": "search_pattern {\"file_glob\": \"*.py\", \"regex\": \"\\\\[\\\"classes\\\"\\\\]|\\\\.get\\\\(\\\"classes\\\"\\\\)|data\\\\[\\\"classes\\\"\\\\]\"}",
+          "exit_code": 0,
+          "output_sha": "756944d5a83f5491d9218f57c648083024e68a7a335057d2d40a9e0202f40494"
+        },
+        {
+          "tool": "run_command",
+          "command": "mkdir -p /tmp/lore072-tbl/.lore && cd /tmp/lore072-tbl && uv run --project /home/kara/get-h3/lore lore audit --format table | grep -i \"bucket\\|unclassified\"; echo \"table_exit=$?\"; uv run --project /home/kara/get-h3/lore lore audit --format md | grep -i \"bucket\"; echo \"md_exit=$?\"",
+          "exit_code": 0,
+          "output_sha": "ed3c2ef6c6965153bf093c2bfa65dcdcbe20d5fd6836aae805c763f16eddfa6f"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: Fresh `uv run pytest -q` (the .gitreins test_command is `uv run pytest -x --tb=short`): exit 0, \\\"584 passed in 11.00s\\\". scripts/check-test-count.sh: \\\"PASS: test-count guard: canonical=584 matches live=584\\\". Prior stage tests lane also 584 passed.\", \"key\": \"verified_0_full\"}",
+          "exit_code": 0,
+          "output_sha": "18a6d82832758c7f832e2ee683138a8ca2ebd3bc86b83a2ec978a881b29b611e"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -rn \"runbook_compiled\" scripts/ e2e-output/ dogfood/ 2>/dev/null | head -10; echo ---; grep -rln \"runbook_compiled\" tests/ | head",
+          "exit_code": 0,
+          "output_sha": "5a1acb4fdd0d53dd6b86fcc4c01e194427d2ed9a12ece0018499afe298609749"
+        },
+        {
+          "tool": "read_lsp_diagnostics",
+          "command": "read_lsp_diagnostics {}",
+          "exit_code": 0,
+          "output_sha": "ef420cbeebd549fc8c5438d6ea41a3e521fa58e29563c4cae80f491b9bfe2143"
+        },
+        {
+          "tool": "run_command",
+          "command": "sed -n 30,60p tests/test_audit_help_docs.py",
+          "exit_code": 0,
+          "output_sha": "e92e1a9693bb39cada895c336ebc0e3209a84daabbe7a3242a3713eb0e9fd410"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"Derived criterion check in progress. Candidate derived criteria:\\n1. Reachability/seam: `_cmd_audit` JSON path emits rows from `_audit_rows()` directly (lore/__main__.py:688, 704-716 \\\"classes\\\": rows) \\u2014 verified by live run showing compile_note/bucket in actual CLI stdout. PASS.\\n2. Back-compat: other consumers of _audit_rows()/d['classes'] (test_lore064, perf2, lore061, lore067) unaffected \\u2014 suite green; bucket dict still gains bucket:true and counts unchanged; extra compile_note key is additive. PASS.\\n3. Renderer consistency: table/md render the same rows dict \\u2014 live run shows \\\"[bucket] unclassified ... True\\\" in table and md. PASS.\\n4. Registry count integrity: check-test-count.sh PASS canonical=584 live=584; registry 13 curated + 1 bucket confirmed by live audit output and lore/classes.py:515-520.\\n\", \"key\": \"derived_plan\"}",
+          "exit_code": 0,
+          "output_sha": "8b4249cc4710a8882574fb83a602d2fb7bf08953a2164c676ef2c0aaf6320f74"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -rn \"audit\" README.md | grep -in \"compiled\\|bucket\" | head; echo ---; grep -n \"584\\|579\" README.md CONTRIBUTING.md docs/INSTALL.md skills/lore-usage/SKILL.md | head",
+          "exit_code": 0,
+          "output_sha": "4c5c9707924e2289f77e8c0bfaa840950ef4291155fe160cd6ebb2f0f24f4bfc"
+        },
+        {
+          "tool": "run_command",
+          "command": "git -C /home/kara/get-h3/lore log --oneline -3; git -C /home/kara/get-h3/lore status --short | head",
+          "exit_code": 0,
+          "output_sha": "fa48569f36806dad3c67dc5f21f081667ff3697eeb0c0a7a4d506b01d91274e1"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"VERIFIED FINDINGS (LORE-072):\\n- verified_0: PASS \\u2014 live `lore audit --format json` (empty tmp dir, exit 0): 14 rows, all runbook_compiled true; bucket row unclassified: bucket=true, check_count=0, command_count=0, last_validated=\\\"no data\\\", compile_note present; 13 curated rows without compile_note/bucket; summary.total_classes=14. Source: lore/__main__.py:646-662 (bucket:true at 646, runbook_compiled=True at 658, compile_note at 659-662).\\n- verified_0_full: PASS \\u2014 fresh `uv run pytest -q`: exit 0, \\\"584 passed in 11.00s\\\" (.gitreins test_command: `uv run pytest -x --tb=short`; prior tier1 lane also 584 passed). scripts/check-test-count.sh: \\\"PASS: canonical=584 matches live=584\\\".\\n- derived_0 (JSON seam reachability): PASS \\u2014 _cmd_audit json path prints {\\\"classes\\\": rows} straight from _audit_rows() (lore/__main__.py:688, 704-716); live CLI stdout contained bucket marker + compile_note.\\n- derived_1 (renderer consistency): PASS \\u2014 same rows dict feeds md/table renderers (lore/__main__.py:738-747, 778-781); live table: \\\"[bucket] unclassified ... yes True 0 0\\\"; live md: \\\"| [bucket] unclassified | Unclassified | True | 0 | 0 |\\\".\\n- derived_2 (back-compat additive key): PASS \\u2014 only bucket rows gain compile_note (13 curated rows verified without it in live JSON); curated compiled still exactly check_count>0 per tests/test_cli_surface.py:95; all other consumers (test_lore064/061/067/perf2) green in full suite.\\n- derived_3 (registry 13+1 preserved): PASS \\u2014 lore/classes.py:478-493 UNCLASSIFIED_CLASS with never-matching pattern r\\\"(?!)\\\"; ClassRegistry.all_classes curated-first + bucket last (:515-520); live audit: 13 curated + 1 bucket; check-test-count.sh also confirms class-count=13.\\n- Derived criterion rejected: \\\"curated rows must keep compile_note-free JSON shape\\\" is already covered by derived_2; no other derived criterion needed.\", \"key\": \"checked\"}",
+          "exit_code": 0,
+          "output_sha": "97bfe68c45157026ad6b9707321b5cb3d3a660bb860a179e6dab02f311f33f9d"
+        }
+      ]
+    },
+    "fix_verification": {
+      "id": "fix_verification",
+      "passed": true,
+      "any_failed": false,
+      "summary": "fix_verification: 0 finding(s) verified",
+      "steps": [
+        {
+          "id": "fix_verification",
+          "type": "fix_verification",
+          "passed": true,
+          "output": "fix_verification: 0 finding(s) verified",
+          "error": "",
+          "data": {
+            "dispositions": [],
+            "counts": {}
+          }
+        }
+      ]
+    }
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [],
+    "summary": "",
+    "error": "unparseable reviewer reply: no parseable JSON object in reply: ''",
+    "review_state": {
+      "emitted": [],
+      "carried": []
+    }
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 lore audit --format json: every class row in d['classes'] reports runbook_compiled True while the unclassified bucket row keeps its bucket:true marker, check_count 0 and a compile_note; bucket stays in output; registry stays 13 curated + 1 bucket; full pytest suite green: Live run in an empty dir (`cd /tmp/lore072-verify && uv run lore audit --format json`, exit 0): d['classes'] has 14 rows and ALL 14 report runbook_compiled true; exactly one bucket row (class_id=unclassified) with bucket=true, check_count=0, command_count=0, last_validated='no data', and compile_note='bucket runbook compiled-by-design \u2014 no executable checks (LORE-051/LORE-066)...'; the 13 curated rows carry neither compile_note nor bucket; summary.total_classes=14. Source: lore/__main__.py:646 (row['bucket']=True), :658 (row['runbook_compiled']=True override), :659-662 (compile_note), inside `if rb.class_id == UNCLASSIFIED_ID`. Full suite fresh run: `uv run pytest -q` exit 0, '584 passed in 11.00s' (matches .gitreins guards.test_command `uv run pytest -x --tb=short` and prior tier1 lane '584 passed in 7.13s'); scripts/check-test-count.sh: 'PASS: test-count guard: canonical=584 matches live=584; class-count=13'. Pinned by tests/test_lore072_bucket_compiled_by_design.py:52-55 (ARM), :60-68 (bucket contract), :71-92 (compile_note only on bucket), :108-111 (14 = 13+1); updated pins tests/test_cli_surface.py:93-95 and tests/test_lore051_audit_bucket.py:133-138 green.\n  \u2713 Derived: the bucket marker/compile_note survive the real CLI JSON seam (not just _audit_rows unit path): _cmd_audit's json branch prints {\"classes\": rows} straight from _audit_rows() (lore/__main__.py:688, :704-716); the live `lore audit --format json` stdout parsed above contained bucket=true and compile_note on the unclassified row, proving end-to-end reachability from the CLI entrypoint.\n  \u2713 Derived: table and md renderers render the same flipped field so no format still shows the bucket as uncompiled: Both renderers read the same rows dict (lore/__main__.py:742-747 md, :778-781 table with str(r['runbook_compiled'])). Live runs: table row `[bucket] unclassified  Unclassified  yes  True  0  0  no data  proposal` and md row `| [bucket] unclassified | Unclassified | True | 0 | 0 | no data | proposal |  | yes |  |` \u2014 both show True/compiled with check columns still 0; also pinned by tests/test_lore072_bucket_compiled_by_design.py:95-109.\n  \u2713 Derived: the change is additive/back-compat \u2014 curated rows keep their exact shape and other d['classes'] consumers keep their behavior: Only the bucket branch gains compile_note (lore/__main__.py:647-662); live JSON showed 0 of 13 curated rows carrying compile_note or bucket, and tests/test_cli_surface.py:95 still asserts curated rows satisfy runbook_compiled is (check_count > 0). All other consumers of d['classes']/_audit_rows (tests/test_lore064_audit_wiring.py, test_lore061, test_lore067, test_perf2_audit_single_pass.py) pass in the fresh full-suite run (584 passed); docs updated pins (README.md:141, CONTRIBUTING.md:28, docs/INSTALL.md:85, SKILL.md:127) match scripts/test-count.txt=584, and SKILL.md:287-292 now documents the LORE-072 bucket exception beside the runbook_compiled definition.\n  \u2713 Derived: the registry itself stays closed at 13 curated + the unclassified bucket (no class added to fake the fix): lore/classes.py:478-493 UNCLASSIFIED_CLASS retains its never-matching signature pattern r\"(?!)\", and ClassRegistry.all_classes() (:515-520) returns curated classes plus the bucket last \u2014 the fix flips only the audit row flag, not the registry. Live audit output: 13 non-bucket rows + 1 bucket row; scripts/check-test-count.sh reports 'class-count=13'; test_registry_size_unchanged_by_compiled_flag (tests/test_lore072_bucket_compiled_by_design.py:104-111) passes.\nLORE-072 delivers exactly the pinned contract: a live `lore audit --format json` shows all 14 rows compiled-true with the unclassified bucket keeping bucket:true/check_count 0/compile_note, registry intact at 13+1 across all three render formats, and the fresh full pytest run is green (584 passed).\n\nStage fix_verification: PASS\n  fix_verification: 0 finding(s) verified\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-22T19:48:52.844214",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-22T19:48:52.873074+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 17009,
+        "truncated": false,
+        "source": "git show f0767ab3d632"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 20681,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "LORE-072"
+  }
+}

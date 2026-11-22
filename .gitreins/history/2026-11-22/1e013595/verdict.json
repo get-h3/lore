@@ -1,0 +1,312 @@
+{
+  "task_id": "LORE-072",
+  "task_title": "Resolve audit-matrix gap class Unclassified (uncompiled proposal)",
+  "task_criteria": [
+    "lore audit --format json: every class row in d['classes'] reports runbook_compiled True while the unclassified bucket row keeps its bucket:true marker, check_count 0 and a compile_note; bucket stays in output; registry stays 13 curated + 1 bucket; full pytest suite green"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "f0767ab3d632c1759cceaa55a2bf5dcf00c984cc",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "042f30882b61d57f413b363400f5eaa03620ca926cfec26c99016ddaf14ab705",
+  "working_tree_dirty_path_count": 0,
+  "items": [
+    {
+      "criterion": "lore audit --format json: every class row in d['classes'] reports runbook_compiled True while the unclassified bucket row keeps its bucket:true marker, check_count 0 and a compile_note; bucket stays in output; registry stays 13 curated + 1 bucket; full pytest suite green",
+      "status": "PASS",
+      "detail": "Live run `python -m lore audit --format json` (exit 0): 14 rows, every row runbook_compiled True (real bool). unclassified row: bucket=True, check_count=0, command_count=0, last_validated='no data', compile_note='bucket runbook compiled-by-design \u2014 no executable checks (LORE-051/LORE-066); executable-check health is check_count/command_count'. The 13 curated rows carry neither compile_note nor bucket and each has check_count>0. lore/__main__.py:627 (curated derived from check_count>0), :646-663 (bucket override: row['bucket']=True, row['runbook_compiled']=True, row['compile_note']=...), :700-717 (JSON output 'classes': rows). Registry unchanged: lore/classes.py:16 UNCLASSIFIED_ID, :477-489 UNCLASSIFIED_CLASS, :513-516 all_classes() returns 14 total / 13 curated. Full pytest suite green via the repo's configured command (.gitreins/config.yaml guards.test_command): `uv run pytest -x --tb=short` \u2192 '584 passed in 10.43s', exit 0 (incl. new tests/test_lore072_bucket_compiled_by_design.py 5 passed); scripts/check-test-count.sh 'PASS: canonical=584 matches live=584'. Note: `python -m pytest` outside uv venv fails 5 subprocess tests on ModuleNotFoundError \u2014 an invocation artifact, not a code defect."
+    },
+    {
+      "criterion": "Docs reach scripted consumers with the new contract (bucket compiled-by-design documented where runbook_compiled is defined)",
+      "status": "PASS",
+      "detail": "skills/lore-usage/SKILL.md:287-291: 'runbook_compiled means a runbook exists ... The unclassified bucket is the LORE-072 exception: it reports runbook_compiled: true compiled-by-design ... and carries a compile_note' \u2014 added in this commit (git show HEAD -- skills/lore-usage/SKILL.md); tests/test_cli_surface.py:83-98 updated to pin bucket rows compiled True while curated rows keep the check_count>0 identity, all 36 tests in the three touched files pass under `uv run pytest`.",
+      "derived": true
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nsecrets: gitleaks bound=timeout 600s (0=off)\nscanners: nice=nice -n 10\n2:43PM INF scanned ~14359396 bytes (14.36 MB) in 7.87s\n2:43PM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 311 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.14.7\ncollected 584 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 23%]\ntests/test_count_guard.py .............                                  [ 26%]\ntests/test_dist_name.py ....                                             [ 26%]\ntests/test_evidence.py ......................                            [ 30%]\ntests/test_lore011_drain_acceptance.py .......                           [ 31%]\ntests/test_lore016_qa_audit.py .....................                     [ 35%]\ntests/test_lore017_gateway_guard.py ........                             [ 36%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 38%]\ntests/test_lore022_freshness_docs.py .....                               [ 39%]\ntests/test_lore030_ux_guard.py ....                                      [ 39%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 41%]\ntests/test_lore041_collision_canonical.py ...........                    [ 43%]\ntests/test_lore043_short_text_threshold.py ....................          [ 47%]\ntests/test_lore045_validate_history.py ....................              [ 50%]\ntests/test_lore046_match_output.py ...........                           [ 52%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 54%]\n\n\u2026 [640 chars omitted \u2014 8 line(s)] \u2026\ntests/test_lore056_gate_record_parent_dir.py ....                        [ 64%]\ntests/test_lore060_logsey_sql_contract.py ........                       [ 66%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 67%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 68%]\ntests/test_lore064_audit_wiring.py .............................         [ 73%]\ntests/test_lore066_zero_check_skip.py ...                                [ 73%]\ntests/test_lore067_incident_audit.py ..                                  [ 73%]\ntests/test_lore071_trigger.py ......                                     [ 75%]\ntests/test_lore072_bucket_compiled_by_design.py .....                    [ 75%]\ntests/test_near_miss.py ..............                                   [ 78%]\ntests/test_perf2_audit_single_pass.py ........                           [ 79%]\ntests/test_prom_export.py .......                                        [ 80%]\ntests/test_readme_links.py .                                             [ 80%]\ntests/test_review001_gate_record.py ........                             [ 82%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 584 passed in 13.15s =============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            }
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 lore audit --format json: every class row in d['classes'] reports runbook_compiled True while the unclassified bucket row keeps its bucket:true marker, check_count 0 and a compile_note; bucket stays in output; registry stays 13 curated + 1 bucket; full pytest suite green: Live run `python -m lore audit --format json` (exit 0): 14 rows, every row runbook_compiled True (real bool). unclassified row: bucket=True, check_count=0, command_count=0, last_validated='no data', compile_note='bucket runbook compiled-by-design \u2014 no executable checks (LORE-051/LORE-066); executable-check health is check_count/command_count'. The 13 curated rows carry neither compile_note nor bucket and each has check_count>0. lore/__main__.py:627 (curated derived from check_count>0), :646-663 (bucket override: row['bucket']=True, row['runbook_compiled']=True, row['compile_note']=...), :700-717 (JSON output 'classes': rows). Registry unchanged: lore/classes.py:16 UNCLASSIFIED_ID, :477-489 UNCLASSIFIED_CLASS, :513-516 all_classes() returns 14 total / 13 curated. Full pytest suite green via the repo's configured command (.gitreins/config.yaml guards.test_command): `uv run pytest -x --tb=short` \u2192 '584 passed in 10.43s', exit 0 (incl. new tests/test_lore072_bucket_compiled_by_design.py 5 passed); scripts/check-test-count.sh 'PASS: canonical=584 matches live=584'. Note: `python -m pytest` outside uv venv fails 5 subprocess tests on ModuleNotFoundError \u2014 an invocation artifact, not a code defect.\n  \u2713 Docs reach scripted consumers with the new contract (bucket compiled-by-design documented where runbook_compiled is defined): skills/lore-usage/SKILL.md:287-291: 'runbook_compiled means a runbook exists ... The unclassified bucket is the LORE-072 exception: it reports runbook_compiled: true compiled-by-design ... and carries a compile_note' \u2014 added in this commit (git show HEAD -- skills/lore-usage/SKILL.md); tests/test_cli_surface.py:83-98 updated to pin bucket rows compiled True while curated rows keep the check_count>0 identity, all 36 tests in the three touched files pass under `uv run pytest`.\nVerified live: all 14 audit JSON rows report runbook_compiled True, the bucket row alone keeps bucket:true/check_count 0/compile_note, registry stays 13 curated + 1 bucket, and the configured `uv run pytest` suite is green at 584 passed. [uncovered failure paths: failure mode 0 (A scripted consumer keys off check_count==0 on the bucket row (executability health) instead of runbook_compiled, misreading the bucket as drifted/unexecuted): detected_by cites tests/test_lore072_bucket_compiled_by_design.py::test_bucket_row_compiled_by_design_with_untouched_counts but no tool result in this run shows it ran \u2014 uncovered failure path; failure mode 1 (Future curated class added with zero executable checks would inherit runbook_compiled=False again (gap class reappears for a non-bucket row)): detected_by cites tests/test_lore072_bucket_compiled_by_design.py::test_arm_every_class_row_reports_compiled but no tool result in this run shows it ran \u2014 uncovered failure path]",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 lore audit --format json: every class row in d['classes'] reports runbook_compiled True while the unclassified bucket row keeps its bucket:true marker, check_count 0 and a compile_note; bucket stays in output; registry stays 13 curated + 1 bucket; full pytest suite green: Live run `python -m lore audit --format json` (exit 0): 14 rows, every row runbook_compiled True (real bool). unclassified row: bucket=True, check_count=0, command_count=0, last_validated='no data', compile_note='bucket runbook compiled-by-design \u2014 no executable checks (LORE-051/LORE-066); executable-check health is check_count/command_count'. The 13 curated rows carry neither compile_note nor bucket and each has check_count>0. lore/__main__.py:627 (curated derived from check_count>0), :646-663 (bucket override: row['bucket']=True, row['runbook_compiled']=True, row['compile_note']=...), :700-717 (JSON output 'classes': rows). Registry unchanged: lore/classes.py:16 UNCLASSIFIED_ID, :477-489 UNCLASSIFIED_CLASS, :513-516 all_classes() returns 14 total / 13 curated. Full pytest suite green via the repo's configured command (.gitreins/config.yaml guards.test_command): `uv run pytest -x --tb=short` \u2192 '584 passed in 10.43s', exit 0 (incl. new tests/test_lore072_bucket_compiled_by_design.py 5 passed); scripts/check-test-count.sh 'PASS: canonical=584 matches live=584'. Note: `python -m pytest` outside uv venv fails 5 subprocess tests on ModuleNotFoundError \u2014 an invocation artifact, not a code defect.\n  \u2713 Docs reach scripted consumers with the new contract (bucket compiled-by-design documented where runbook_compiled is defined): skills/lore-usage/SKILL.md:287-291: 'runbook_compiled means a runbook exists ... The unclassified bucket is the LORE-072 exception: it reports runbook_compiled: true compiled-by-design ... and carries a compile_note' \u2014 added in this commit (git show HEAD -- skills/lore-usage/SKILL.md); tests/test_cli_surface.py:83-98 updated to pin bucket rows compiled True while curated rows keep the check_count>0 identity, all 36 tests in the three touched files pass under `uv run pytest`.\nVerified live: all 14 audit JSON rows report runbook_compiled True, the bucket row alone keeps bucket:true/check_count 0/compile_note, registry stays 13 curated + 1 bucket, and the configured `uv run pytest` suite is green at 584 passed. [uncovered failure paths: failure mode 0 (A scripted consumer keys off check_count==0 on the bucket row (executability health) instead of runbook_compiled, misreading the bucket as drifted/unexecuted): detected_by cites tests/test_lore072_bucket_compiled_by_design.py::test_bucket_row_compiled_by_design_with_untouched_counts but no tool result in this run shows it ran \u2014 uncovered failure path; failure mode 1 (Future curated class added with zero executable checks would inherit runbook_compiled=False again (gap class reappears for a non-bucket row)): detected_by cites tests/test_lore072_bucket_compiled_by_design.py::test_arm_every_class_row_reports_compiled but no tool result in this run shows it ran \u2014 uncovered failure path]",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "lore audit --format json: every class row in d['classes'] reports runbook_compiled True while the unclassified bucket row keeps its bucket:true marker, check_count 0 and a compile_note; bucket stays in output; registry stays 13 curated + 1 bucket; full pytest suite green",
+                "status": "PASS",
+                "detail": "Live run `python -m lore audit --format json` (exit 0): 14 rows, every row runbook_compiled True (real bool). unclassified row: bucket=True, check_count=0, command_count=0, last_validated='no data', compile_note='bucket runbook compiled-by-design \u2014 no executable checks (LORE-051/LORE-066); executable-check health is check_count/command_count'. The 13 curated rows carry neither compile_note nor bucket and each has check_count>0. lore/__main__.py:627 (curated derived from check_count>0), :646-663 (bucket override: row['bucket']=True, row['runbook_compiled']=True, row['compile_note']=...), :700-717 (JSON output 'classes': rows). Registry unchanged: lore/classes.py:16 UNCLASSIFIED_ID, :477-489 UNCLASSIFIED_CLASS, :513-516 all_classes() returns 14 total / 13 curated. Full pytest suite green via the repo's configured command (.gitreins/config.yaml guards.test_command): `uv run pytest -x --tb=short` \u2192 '584 passed in 10.43s', exit 0 (incl. new tests/test_lore072_bucket_compiled_by_design.py 5 passed); scripts/check-test-count.sh 'PASS: canonical=584 matches live=584'. Note: `python -m pytest` outside uv venv fails 5 subprocess tests on ModuleNotFoundError \u2014 an invocation artifact, not a code defect."
+              },
+              {
+                "criterion": "Docs reach scripted consumers with the new contract (bucket compiled-by-design documented where runbook_compiled is defined)",
+                "status": "PASS",
+                "detail": "skills/lore-usage/SKILL.md:287-291: 'runbook_compiled means a runbook exists ... The unclassified bucket is the LORE-072 exception: it reports runbook_compiled: true compiled-by-design ... and carries a compile_note' \u2014 added in this commit (git show HEAD -- skills/lore-usage/SKILL.md); tests/test_cli_surface.py:83-98 updated to pin bucket rows compiled True while curated rows keep the check_count>0 identity, all 36 tests in the three touched files pass under `uv run pytest`.",
+                "derived": true
+              }
+            ],
+            "summary": "Verified live: all 14 audit JSON rows report runbook_compiled True, the bucket row alone keeps bucket:true/check_count 0/compile_note, registry stays 13 curated + 1 bucket, and the configured `uv run pytest` suite is green at 584 passed. [uncovered failure paths: failure mode 0 (A scripted consumer keys off check_count==0 on the bucket row (executability health) instead of runbook_compiled, misreading the bucket as drifted/unexecuted): detected_by cites tests/test_lore072_bucket_compiled_by_design.py::test_bucket_row_compiled_by_design_with_untouched_counts but no tool result in this run shows it ran \u2014 uncovered failure path; failure mode 1 (Future curated class added with zero executable checks would inherit runbook_compiled=False again (gap class reappears for a non-bucket row)): detected_by cites tests/test_lore072_bucket_compiled_by_design.py::test_arm_every_class_row_reports_compiled but no tool result in this run shows it ran \u2014 uncovered failure path]",
+            "provenance": {
+              "model": "glm-5.3-flash",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            }
+          }
+        }
+      ],
+      "model": "glm-5.3-flash",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"LORE-072\"}",
+          "exit_code": 0,
+          "output_sha": "a9b5bbddc3272dbf660fa5a13153ebc7f392bec0da37381ba2e511bd72ea96f4"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git show --stat HEAD && git show HEAD | head -200",
+          "exit_code": 0,
+          "output_sha": "f5d4b8e7f5c909565a501281bb8e1058f1941562742c856e8f39fe21058152bb"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"LORE-072: verify audit json classes runbook_compiled True, bucket row keeps bucket:true + check_count 0 + compile_note, bucket stays in output, registry 13+1, pytest green\", \"key\": \"checked\"}",
+          "exit_code": 0,
+          "output_sha": "14b2b332e79684054571d058f9e36bda559e3a57ba1b8188328dfbb59f90b107"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git show HEAD -- lore/__main__.py tests/test_lore072_bucket_compiled_by_design.py tests/test_lore051_audit_bucket.py | head -350",
+          "exit_code": 0,
+          "output_sha": "4ad34b45904f9eca5023a8f7982c2af7f5c01a0b2181ec5ef0e606a54a289d83"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n \"_audit_rows\\|runbook_compiled\\|compile_note\\|bucket\" lore/__main__.py | head -60",
+          "exit_code": 0,
+          "output_sha": "769f74986652e3d6597820ef7edf84ad467341f6ccfeb870724268575775619c"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"tests/test_lore072_bucket_compiled_by_design.py\"}",
+          "exit_code": 0,
+          "output_sha": "ce9d403b4a8d2306bf6aa86aa727f746b45af9ef669531020fd6a9d883673786"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"limit\": 135, \"offset\": 555, \"path\": \"lore/__main__.py\"}",
+          "exit_code": 0,
+          "output_sha": "29704f9942b36d27b921add07f2083a04c683d5970990449bcc078c6dd998663"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"limit\": 110, \"offset\": 688, \"path\": \"lore/__main__.py\"}",
+          "exit_code": 0,
+          "output_sha": "f5428011a553a861e45b724eb441e890f1ab38280346039973a56d3246fb0378"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n \"UNCLASSIFIED_ID\\|def all_classes\\|def get_registry\\|checks=\\[\\]\" lore/classes.py | head -30",
+          "exit_code": 0,
+          "output_sha": "24bc07bdd136d0ff24be86812da9d8fc0fc22e771cbbccba05101fbca341c1d8"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"limit\": 30, \"offset\": 470, \"path\": \"lore/classes.py\"}",
+          "exit_code": 0,
+          "output_sha": "0a1b638a22f79182c6de2aefab6a903127d1ebb318cba8f92e22d99bc125b894"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && python -c \"\nimport json, subprocess, sys\nout = subprocess.run([sys.executable, '-m', 'lore', 'audit', '--format', 'json'], capture_output=True, text=True)\nprint('exit_code:', out.returncode)\nd = json.loads(out.stdout)\nrows = d['classes']\nprint('total rows:', len(rows))\nfor r in rows:\n    print(r['class_id'], '| compiled:', r['runbook_compiled'], '| checks:', r['check_count'], '| bucket:', r.get('bucket'), '| note:', bool(r.get('compile_note')), '| cmd_count:', r['command_count'], '| last_val:', r['last_validated'])\nbucket = [r for r in rows if r.get('bucket')]\nprint('bucket rows:', len(bucket))\nb = bucket[0]\nprint('bucket compiled:', b['runbook_compiled'], type(b['runbook_compiled']))\nprint('bucket check_count:', b['check_count'])\nprint('compile_note:', b.get('compile_note'))\ncurated = [r for r in rows if not r.get('bucket')]\nprint('curated count:', len(curated))\nprint('all curated compiled:', all(r['runbook_compiled'] for r in curated))\nprint('any curated has compile_note:', any('compile_note' in r for r in curated))\nprint('all compiled:', all(r['runbook_compiled'] for r in rows))\n\"",
+          "exit_code": 0,
+          "output_sha": "64172b266d194c9499ae109b81b374cdc8466b90350dc38b343e6242f9469b6f"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && cat .gitreins/config.yaml 2>/dev/null | head -20; ls scripts/check-test-count.sh 2>/dev/null && nice -n 10 bash scripts/check-test-count.sh; echo \"test-count exit: $?\"",
+          "exit_code": 0,
+          "output_sha": "a53d8e9ec9a8c8c8292b6a71c3b8c4d1e75b57530a43ecd20e5d499599c03e61"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && nice -n 10 python -m pytest -q 2>&1 | tail -5; echo \"pytest exit: $?\"",
+          "exit_code": 0,
+          "output_sha": "ebe1ae028357eb173b45ff3be90a2990bd4274c68390d19b441b6399a601f0ce"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git status --porcelain | head; nice -n 10 python -m pytest -q 2>&1 | grep -E \"^FAILED|failed|passed\" | head -10; echo \"pipeline done\"",
+          "exit_code": 0,
+          "output_sha": "06d0efdab45bcfd55cb49ebbe9e92a23082c34a4508fac3c98dbb7469b74e771"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && nice -n 10 python -m pytest tests/test_bench.py::test_usage_error_is_exit_2_not_a_traceback -q 2>&1 | tail -30",
+          "exit_code": 0,
+          "output_sha": "9a25d782a9a2104466ed6446379238684b3d0ea8f6c044dd0ee7491b44d0c993"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && nice -n 10 uv run pytest -x --tb=short -q 2>&1 | tail -6; echo \"configured pytest exit: $?\"",
+          "exit_code": 0,
+          "output_sha": "9a82bd7bcb2d4901a237de6b1ff818b2c48dc2f06277f7de5c71f8bf365de039"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && nice -n 10 uv run pytest tests/test_lore072_bucket_compiled_by_design.py tests/test_lore051_audit_bucket.py tests/test_cli_surface.py -q 2>&1 | tail -3; echo \"exit: $?\"",
+          "exit_code": 0,
+          "output_sha": "eb4e53dbcbad49bf50114d2705b36fa85185620c715457ffbfaad66f69caf56d"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && python -c \"\nfrom lore.classes import UNCLASSIFIED_ID, get_registry\nreg = get_registry()\nallc = reg.all_classes()\ncur = [c for c in allc if c.id != UNCLASSIFIED_ID]\nprint('all_classes total:', len(allc), 'curated:', len(cur))\nimport lore.classes as lc\nprint('registry tuple len:', len(allc))\n\" && grep -rn \"13 curated\\|14\" README.md skills/lore-usage/SKILL.md docs/INSTALL.md CONTRIBUTING.md 2>/dev/null | grep -i \"class\" | head -8",
+          "exit_code": 0,
+          "output_sha": "68869ce1494ea5e695b5b1314b4febdf79018f9d6b6ef782b9886a82f98fb78a"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && sed -n '160,180p' skills/lore-usage/SKILL.md && grep -n \"compiled\\|compile_note\\|compiled-by-design\\|LORE-072\" skills/lore-usage/SKILL.md | head -12",
+          "exit_code": 0,
+          "output_sha": "8f01d1ed7af954a93e3d7f7b1d02b8b53828fc1cb11447572b94bfa905e7b86a"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"runbook_compiled\\|compile_note\" lore/*.py | grep -v __main__ | head; grep -rn \"compile_note\" docs/ README.md skills/ 2>/dev/null | head -6",
+          "exit_code": 0,
+          "output_sha": "1bd50d8e1f6ce847b7fea697686434802fb7e0533fc7b7971b6e9e2e4443add2"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git log --oneline -2 -- skills/lore-usage/SKILL.md && git show HEAD -- skills/lore-usage/SKILL.md | head -40 && grep -rn \"no flag marks\\|bucket: true\\|bucket:true\" skills/lore-usage/SKILL.md tests/test_lore051_audit_bucket.py | head",
+          "exit_code": 0,
+          "output_sha": "22a381c28fdd01aae33f07156b6becb1be5ca1b967c83dc032be1d2105f7d9d4"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: Live `python -m lore audit --format json` exit 0: 14 rows, ALL runbook_compiled True (bool); unclassified row has bucket=True, check_count=0, command_count=0, last_validated='no data', compile_note='bucket runbook compiled-by-design \\u2014 no executable checks (LORE-051/LORE-066); executable-check health is check_count/command_count'; curated rows (13) carry neither compile_note nor bucket. Registry: lore/classes.py all_classes()=14, curated=13. Full suite green via CONFIGURED command `uv run pytest -x --tb=short` (.gitreins/config.yaml): 584 passed, exit 0. Code: lore/__main__.py:646-663 (bucket override + compile_note), :627 (curated check_count>0).\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "6feb69128fb1ce1b7f0f8d48bf9ab2224a519902b2e157611586d43be8662ebe"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS (derived: docs match new contract for scripted consumers): skills/lore-usage/SKILL.md:287-291 documents the LORE-072 exception \\u2014 'runbook_compiled means a runbook exists... unclassified bucket is the LORE-072 exception: it reports runbook_compiled: true compiled-by-design ... and carries a compile_note'. Line 166-168 still says 14 entries = 13 curated + bucket, consistent.\", \"key\": \"verified_derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "9db11902c850c6a24a99c9ab6666ba19c7a678e033902b8591aa2dbf8a67524a"
+        }
+      ]
+    },
+    "fix_verification": {
+      "id": "fix_verification",
+      "passed": true,
+      "any_failed": false,
+      "summary": "fix_verification: 0 finding(s) verified",
+      "steps": [
+        {
+          "id": "fix_verification",
+          "type": "fix_verification",
+          "passed": true,
+          "output": "fix_verification: 0 finding(s) verified",
+          "error": "",
+          "data": {
+            "dispositions": [],
+            "counts": {}
+          }
+        }
+      ]
+    }
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [],
+    "summary": "",
+    "error": "unparseable reviewer reply: no parseable JSON object in reply: '{\"findings\":[{\"severity\":\"trivial\",\"file\":\"scripts/test-count.txt\",\"line\":1,\"detection\":\"updated text file ends without a trailing newline where the previous version had one (diff shows \\'\\\\\\\\ No newline'",
+    "review_state": {
+      "emitted": [],
+      "carried": []
+    }
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 lore audit --format json: every class row in d['classes'] reports runbook_compiled True while the unclassified bucket row keeps its bucket:true marker, check_count 0 and a compile_note; bucket stays in output; registry stays 13 curated + 1 bucket; full pytest suite green: Live run `python -m lore audit --format json` (exit 0): 14 rows, every row runbook_compiled True (real bool). unclassified row: bucket=True, check_count=0, command_count=0, last_validated='no data', compile_note='bucket runbook compiled-by-design \u2014 no executable checks (LORE-051/LORE-066); executable-check health is check_count/command_count'. The 13 curated rows carry neither compile_note nor bucket and each has check_count>0. lore/__main__.py:627 (curated derived from check_count>0), :646-663 (bucket override: row['bucket']=True, row['runbook_compiled']=True, row['compile_note']=...), :700-717 (JSON output 'classes': rows). Registry unchanged: lore/classes.py:16 UNCLASSIFIED_ID, :477-489 UNCLASSIFIED_CLASS, :513-516 all_classes() returns 14 total / 13 curated. Full pytest suite green via the repo's configured command (.gitreins/config.yaml guards.test_command): `uv run pytest -x --tb=short` \u2192 '584 passed in 10.43s', exit 0 (incl. new tests/test_lore072_bucket_compiled_by_design.py 5 passed); scripts/check-test-count.sh 'PASS: canonical=584 matches live=584'. Note: `python -m pytest` outside uv venv fails 5 subprocess tests on ModuleNotFoundError \u2014 an invocation artifact, not a code defect.\n  \u2713 Docs reach scripted consumers with the new contract (bucket compiled-by-design documented where runbook_compiled is defined): skills/lore-usage/SKILL.md:287-291: 'runbook_compiled means a runbook exists ... The unclassified bucket is the LORE-072 exception: it reports runbook_compiled: true compiled-by-design ... and carries a compile_note' \u2014 added in this commit (git show HEAD -- skills/lore-usage/SKILL.md); tests/test_cli_surface.py:83-98 updated to pin bucket rows compiled True while curated rows keep the check_count>0 identity, all 36 tests in the three touched files pass under `uv run pytest`.\nVerified live: all 14 audit JSON rows report runbook_compiled True, the bucket row alone keeps bucket:true/check_count 0/compile_note, registry stays 13 curated + 1 bucket, and the configured `uv run pytest` suite is green at 584 passed. [uncovered failure paths: failure mode 0 (A scripted consumer keys off check_count==0 on the bucket row (executability health) instead of runbook_compiled, misreading the bucket as drifted/unexecuted): detected_by cites tests/test_lore072_bucket_compiled_by_design.py::test_bucket_row_compiled_by_design_with_untouched_counts but no tool result in this run shows it ran \u2014 uncovered failure path; failure mode 1 (Future curated class added with zero executable checks would inherit runbook_compiled=False again (gap class reappears for a non-bucket row)): detected_by cites tests/test_lore072_bucket_compiled_by_design.py::test_arm_every_class_row_reports_compiled but no tool result in this run shows it ran \u2014 uncovered failure path]\n\nStage fix_verification: PASS\n  fix_verification: 0 finding(s) verified\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-22T19:46:07.691998",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-22T19:46:07.716892+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 17009,
+        "truncated": false,
+        "source": "git show f0767ab3d632"
+      }
+    ],
+    "task_id": "LORE-072"
+  }
+}

@@ -1,0 +1,351 @@
+commit f0767ab3d632c1759cceaa55a2bf5dcf00c984cc
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Sun Nov 22 14:41:47 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Sun Nov 22 14:41:47 2026 -0500
+
+    LORE-072: unclassified bucket compiled-by-design in audit matrix
+    
+    `lore audit` derived runbook_compiled from check_count > 0 for every row,
+    so the unclassified catch-all bucket row reported False — read by external
+    consumers (the h3-board PM cadence) as a compile gap that does not exist,
+    filing recurring phantom rows.
+    
+    Fix in lore/__main__.py _audit_rows(): the bucket row's runbook_compiled
+    becomes True — compiled-by-design. The bucket's registry runbook object IS
+    compiled (signature, recovery ladder, guardrails); only its executable-
+    checks list is empty BY DESIGN (LORE-051 keeps the bucket in the output,
+    LORE-066 hard-codes checks=[] and skips 0-check classes in the validate
+    history). The bucket row keeps bucket: true, check_count 0, command_count
+    0, last_validated 'no data' — executability health stays readable from the
+    counts; a compile_note now carries the explanation on the bucket row only
+    (curated rows carry neither compile_note nor bucket, mirroring the LORE-051
+    marker convention).
+    
+    Pins moved with the contract (the old pins derived from the same flipped
+    field):
+    - tests/test_lore051_audit_bucket.py: the md bucket row now renders
+      '| True |' (shared runbook_compiled field).
+    - tests/test_cli_surface.py: bucket rows assert compiled True; curated rows
+      still assert the exact check_count > 0 identity.
+    - skills/lore-usage/SKILL.md: documented the LORE-072 bucket exception
+      next to the 'means a runbook exists' definition.
+    
+    Count sync (LORE-029): scripts/test-count.txt 579 -> 584; stale 579
+    literals + the test-file count updated in CONTRIBUTING.md, README.md,
+    docs/INSTALL.md, skills/lore-usage/SKILL.md.
+    
+    Verification: full suite 584 passed; ruff check + format clean;
+    scripts/check-test-count.sh PASS (canonical=584, live=584); the LORE-072
+    ARM — every row in `lore audit --format json` reports runbook_compiled
+    true — proven red-first (pre-fix: 13/14, table bucket row rendered False)
+    and green after.
+    
+    Addresses LORE-072.
+    
+    Co-authored-by: Alexis Okuwa <wojonstech@gmail.com>
+---
+ CONTRIBUTING.md                                 |   2 +-
+ README.md                                       |   4 +-
+ docs/INSTALL.md                                 |   4 +-
+ lore/__main__.py                                |  20 ++++-
+ scripts/test-count.txt                          |   2 +-
+ skills/lore-usage/SKILL.md                      |   8 +-
+ tests/test_cli_surface.py                       |  10 ++-
+ tests/test_lore051_audit_bucket.py              |  10 ++-
+ tests/test_lore072_bucket_compiled_by_design.py | 111 ++++++++++++++++++++++++
+ 9 files changed, 156 insertions(+), 15 deletions(-)
+
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index 2613a87..304e653 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -25,7 +25,7 @@ skipped it; the suite fails fast with that reminder.
+ Once `.venv` exists, run the full gate from the repository root:
+ 
+ ```sh
+-uv run pytest -q                    # tests (green at 579 passed)
++uv run pytest -q                    # tests (green at 584 passed)
+ uv run ruff check .                 # lint — "All checks passed!"
+ uv run ruff format --check .        # formatting — "N files already formatted"
+ uv run scripts/check-test-count.sh  # test-count sync guard
+diff --git a/README.md b/README.md
+index 440bf70..7e6bb19 100644
+--- a/README.md
++++ b/README.md
+@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
+ [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
+ 
+ ```sh
+-uv run pytest -q        # 579 passed
++uv run pytest -q        # 584 passed
+ uv run ruff check .     # All checks passed!
+ ```
+ 
+@@ -392,7 +392,7 @@ does not:
+ ### Shipped — runs today, verified on `main`
+ 
+ - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
+-  with **579 tests passing** and a clean `ruff check`.
++  with **584 tests passing** and a clean `ruff check`.
+ - The `lore match "<symptoms>"` command — the responder's entry point.
+   Flags: `match [--class CLASS_ID]` filters results to only the named registry
+   class (ships today; not planned-only).
+diff --git a/docs/INSTALL.md b/docs/INSTALL.md
+index 8127cd9..6a16d15 100644
+--- a/docs/INSTALL.md
++++ b/docs/INSTALL.md
+@@ -82,14 +82,14 @@ Real output on the current tree:
+ ........................................................................ [ 55%]
+ ........................................................................ [ 83%]
+ ........................................................................ [100%]
+-579 passed
++584 passed
+ ```
+ 
+ ```
+ All checks passed!
+ ```
+ 
+-The count to expect is **579 tests** (48 test files: taxonomy, classifier,
++The count to expect is **584 tests** (49 test files: taxonomy, classifier,
+ compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
+ your run says something else, you are on a different revision — check
+ `git log` before trusting this document.
+diff --git a/lore/__main__.py b/lore/__main__.py
+index 651c354..24e2a31 100644
+--- a/lore/__main__.py
++++ b/lore/__main__.py
+@@ -622,7 +622,8 @@ def _audit_rows(
+             "class_id": rb.class_id,
+             "name": rb.name,
+             # The compiled flag describes the registry runbook, not incident
+-            # coverage. Incident presence is reported separately below.
++            # coverage. Incident presence is reported separately below. For the
++            # unclassified bucket this is overridden below (LORE-072).
+             "runbook_compiled": check_count > 0,
+             "check_count": check_count,
+             "command_count": len(real_commands),
+@@ -643,6 +644,23 @@ def _audit_rows(
+         # separate registry classes from the bucket instead of miscounting 14.
+         if rb.class_id == UNCLASSIFIED_ID:
+             row["bucket"] = True
++            # LORE-072: the bucket row is compiled-by-design. The bucket's
++            # registry runbook object IS compiled (signature, recovery
++            # ladder, guardrails) — only its executable-checks list is empty
++            # BY DESIGN (LORE-051 keeps the bucket in the output; LORE-066
++            # hard-codes checks=[] and skips 0-check classes in the
++            # validate history). Reporting False here made external
++            # consumers (the h3-board PM cadence) read a compile gap that
++            # does not exist and file recurring phantom rows. Executable
++            # check health stays readable from check_count/command_count;
++            # compile_note carries the explanation so no consumer has to
++            # re-derive the meaning.
++            row["runbook_compiled"] = True
++            row["compile_note"] = (
++                "bucket runbook compiled-by-design — no executable checks "
++                "(LORE-051/LORE-066); executable-check health is "
++                "check_count/command_count"
++            )
+         rec = history.get(rb.class_id)
+         if rec is not None:
+             reason = _history_drift_reason(rec)
+diff --git a/scripts/test-count.txt b/scripts/test-count.txt
+index aa32458..989ba2b 100644
+--- a/scripts/test-count.txt
++++ b/scripts/test-count.txt
+@@ -1 +1 @@
+-579
++584
+\ No newline at end of file
+diff --git a/skills/lore-usage/SKILL.md b/skills/lore-usage/SKILL.md
+index 4b7a941..d0ca328 100644
+--- a/skills/lore-usage/SKILL.md
++++ b/skills/lore-usage/SKILL.md
+@@ -124,7 +124,7 @@ exist", run `uv tool upgrade lore` before filing a bug.
+ ## Dev loop
+ 
+ ```sh
+-uv run pytest -q    # expect: 579 passed (count synced to scripts/test-count.txt, LORE-029)
++uv run pytest -q    # expect: 584 passed (count synced to scripts/test-count.txt, LORE-029)
+ uv run ruff check . # expect: All checks passed!
+ ```
+ 
+@@ -284,7 +284,11 @@ Incident evidence (LORE-067, corrected by LORE-067-R3) lives beside those rows,
+   directory** and its parent (`lore/incidents.py`). Run audit from a different directory and the incident facts
+   change; when no board is found it degrades to "no incidents" with `rc=0` and `coverage_note` says the source was
+   unavailable.
+-- `runbook_compiled` means **a runbook exists** (`check_count > 0`). It is not an incident flag (that was
++- `runbook_compiled` means **a runbook exists** (`check_count > 0`) for the curated classes. The
++  `unclassified` bucket is the LORE-072 exception: it reports `runbook_compiled: true`
++  **compiled-by-design** (its runbook object is compiled; the zero executable-checks list is the
++  design, LORE-051/LORE-066) and carries a `compile_note`; executability health for it lives in
++  `check_count`/`command_count`. It is not an incident flag (that was
+   LORE-067-R2, fixed).
+ - A class named by a structured `class_id` in an **in-window** event is reported even when the registry has never
+   heard of it: it appears in `summary.uncovered_classes`, and `summary.incident_count` carries the in-window event
+diff --git a/tests/test_cli_surface.py b/tests/test_cli_surface.py
+index eaee1c9..f5c8b1e 100644
+--- a/tests/test_cli_surface.py
++++ b/tests/test_cli_surface.py
+@@ -83,10 +83,16 @@ def test_cli_audit_json_all_classes_honest_freshness(capsys):
+     assert [r["class_id"] for r in rows] == [c.id for c in get_registry().all_classes()]
+     for r in rows:
+         # The compiled column is registry-derived, independently of incident
+-        # coverage. The catch-all may remain an uncompiled zero-check bucket.
++        # coverage. LORE-072: the catch-all bucket is compiled-by-design
++        # (its runbook object is compiled; zero executable checks is the
++        # design), so it reports True — curated rows still report exactly
++        # check_count > 0.
+         assert isinstance(r["runbook_compiled"], bool)
+         assert isinstance(r["check_count"], int)
+-        assert r["runbook_compiled"] is (r["check_count"] > 0)
++        if r.get("bucket"):
++            assert r["runbook_compiled"] is True
++        else:
++            assert r["runbook_compiled"] is (r["check_count"] > 0)
+         assert r["command_count"] <= r["check_count"]
+         # HONESTY: no fabricated dates — every class reports 'no data' today.
+         assert r["last_validated"] == NO_DATA
+diff --git a/tests/test_lore051_audit_bucket.py b/tests/test_lore051_audit_bucket.py
+index 9398df0..f8a59b9 100644
+--- a/tests/test_lore051_audit_bucket.py
++++ b/tests/test_lore051_audit_bucket.py
+@@ -122,14 +122,16 @@ def test_md_rows_unchanged_eight_cell_contract(capsys):
+     for ln in out.splitlines():
+         if ln.startswith("|") and not ln.startswith("| class_id"):
+             assert ln.count("|") == 11, f"row must have 10 cells: {ln}"
+-    # the bucket row renders with [bucket] prefix in md (same as table)
++    # The bucket row renders with [bucket] prefix in md (same as table).
+     bucket_rows = [
+         ln for ln in out.splitlines() if "unclassified" in ln and "[bucket]" in ln
+     ]
+     assert len(bucket_rows) == 1
+-    # Compilation is registry-derived; the bucket remains the only
+-    # zero-check row and may therefore render as uncompiled.
+-    assert "| False |" in bucket_rows[0]
++    # LORE-072: compilation is registry-derived and the bucket is
++    # compiled-by-design (its runbook object is compiled; the empty
++    # executable-checks list is the design, LORE-051/LORE-066), so the
++    # shared runbook_compiled field it renders like every other row is True.
++    assert "| True |" in bucket_rows[0]
+ 
+ 
+ # ------------------------------------------------- scripted-consumer contract
+diff --git a/tests/test_lore072_bucket_compiled_by_design.py b/tests/test_lore072_bucket_compiled_by_design.py
+new file mode 100644
+index 0000000..272af52
+--- /dev/null
++++ b/tests/test_lore072_bucket_compiled_by_design.py
+@@ -0,0 +1,111 @@
++"""LORE-072: the ``unclassified`` bucket row is compiled-by-design in the audit matrix.
++
++The disease: ``_audit_rows()`` derived ``runbook_compiled`` from
++``check_count > 0`` for EVERY row, so the bucket row printed
++``runbook_compiled: false`` (it must keep zero executable checks by
++design — LORE-051/LORE-066). External consumers (the h3-board PM cadence)
++read that False as a compile gap and filed recurring phantom rows.
++
++The fix, pinned here:
++- the bucket row's ``runbook_compiled`` becomes True — compiled-by-design:
++  the bucket's registry runbook object IS compiled (signature, recovery
++  ladder, guardrails); only its executable-checks list is empty BY DESIGN;
++- the bucket row still carries ``bucket: true`` and keeps check_count==0,
++  command_count==0 and ``last_validated: "no data"`` exactly as before —
++  executability health stays readable from the counts;
++- only the bucket row gains a ``compile_note`` — curated rows carry neither
++  ``compile_note`` nor ``bucket`` (mirrors the LORE-051 marker convention);
++- the ARM: every row in the audit ``classes`` output reports
++  ``runbook_compiled`` True (sum == len), so no consumer can ever again
++  read a false "uncompiled" from the matrix.
++
++SAFETY: read-only CLI runs over the static registry. ``monkeypatch.chdir``
++keeps the CWD-relative history/incident lookups in an empty tmp dir (same
++pattern as the LORE-051/LORE-064 CLI tests).
++"""
++
++from __future__ import annotations
++
++import json
++
++from lore.__main__ import main
++from lore.classes import UNCLASSIFIED_ID, get_registry
++
++COMPILE_NOTE_TEXT = "compiled-by-design"
++
++
++def _run_audit_json(monkeypatch, tmp_path, capsys) -> dict:
++    empty = tmp_path / f"cwd-{id(monkeypatch)}"
++    (empty / ".lore").mkdir(parents=True)
++    monkeypatch.chdir(empty)
++    code = main(["audit", "--format", "json"])
++    assert code == 0
++    return json.loads(capsys.readouterr().out)
++
++
++def _rows(data: dict) -> dict:
++    return {r["class_id"]: r for r in data["classes"]}
++
++
++# ------------------------------------------------------------------- THE ARM
++def test_arm_every_class_row_reports_compiled(monkeypatch, tmp_path, capsys):
++    """THE ARM (LORE-072 AC-1): sum(runbook_compiled) == len(classes)."""
++    data = _run_audit_json(monkeypatch, tmp_path, capsys)
++    compiled = sum(1 for c in data["classes"] if c["runbook_compiled"])
++    assert compiled == len(data["classes"]) == 14
++
++
++# ------------------------------------------------------------------ the bucket
++def test_bucket_row_compiled_by_design_with_untouched_counts(
++    monkeypatch, tmp_path, capsys
++):
++    """Bucket row: compiled True, but the zero-check design contract holds."""
++    data = _run_audit_json(monkeypatch, tmp_path, capsys)
++    row = _rows(data)[UNCLASSIFIED_ID]
++    assert row["bucket"] is True
++    assert row["runbook_compiled"] is True
++    assert row["check_count"] == 0
++    assert row["command_count"] == 0
++    assert row["last_validated"] == "no data"
++
++
++def test_bucket_row_carries_compile_note_only(monkeypatch, tmp_path, capsys):
++    """compile_note explains compiled-by-design and lives ONLY on the bucket."""
++    data = _run_audit_json(monkeypatch, tmp_path, capsys)
++    row = _rows(data)[UNCLASSIFIED_ID]
++    assert COMPILE_NOTE_TEXT in row["compile_note"]
++    assert "no executable checks" in row["compile_note"]
++
++    curated = [c for c in get_registry().all_classes() if c.id != UNCLASSIFIED_ID]
++    assert len(curated) == 13, "premise: 13 curated classes in the registry"
++    for cls in curated:
++        crow = _rows(data)[cls.id]
++        assert "compile_note" not in crow, (
++            f"curated class {cls.id} must not carry a compile_note"
++        )
++        assert "bucket" not in crow, (
++            f"curated class {cls.id} must not carry a bucket marker"
++        )
++
++
++# --------------------------------------------------- renderer contract (table)
++def test_table_bucket_row_renders_compiled_true(monkeypatch, tmp_path, capsys):
++    """The table renderer reads the same rows dict — the bucket renders True."""
++    empty = tmp_path / "tbl"
++    (empty / ".lore").mkdir(parents=True)
++    monkeypatch.chdir(empty)
++    assert main(["audit", "--format", "table"]) == 0
++    out = capsys.readouterr().out
++    bucket_rows = [ln for ln in out.splitlines() if ln.startswith("[bucket] ")]
++    assert len(bucket_rows) == 1
++    assert " True " in bucket_rows[0]
++    assert " False " not in bucket_rows[0]
++
++
++# ----------------------------------------------------- registry stays 13+1
++def test_registry_size_unchanged_by_compiled_flag(monkeypatch, tmp_path, capsys):
++    data = _run_audit_json(monkeypatch, tmp_path, capsys)
++    ids = [r["class_id"] for r in data["classes"]]
++    assert len(ids) == 14
++    assert UNCLASSIFIED_ID in ids
++    assert len([i for i in ids if i != UNCLASSIFIED_ID]) == 13
