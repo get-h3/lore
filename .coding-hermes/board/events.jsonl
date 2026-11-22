@@ -314,3 +314,6 @@
 {"id":474,"event_type":"task_completed","event":null,"actor":"foreman","task_id":"INFRA-LORE-045","timestamp":"2026-11-22T10:49:04Z","tick":null,"ch_trace":null,"detail":"{\"status\":\"complete\"}"}
 {"id":475,"event_type":"task_created","event":null,"actor":"foreman","task_id":"LORE-072","timestamp":"2026-11-22T15:45:11Z","tick":null,"ch_trace":null,"detail":"{\"id\":\"LORE-072\",\"status\":\"pending\"}"}
 {"id":476,"event_type":"task_completed","event":null,"actor":"foreman","task_id":"LORE-072","timestamp":"2026-11-22T19:46:11Z","tick":null,"ch_trace":null,"detail":"{\"status\":\"complete\"}"}
+{"id":477,"event_type":"task_created","event":null,"actor":"foreman","task_id":"QA-LORE-6","timestamp":"2026-11-22T20:31:40Z","tick":null,"ch_trace":null,"detail":"{\"id\":\"QA-LORE-6\",\"status\":\"pending\"}"}
+{"id":478,"event_type":"task_created","event":null,"actor":"foreman","task_id":"QA-LORE-7","timestamp":"2026-11-22T20:36:54Z","tick":null,"ch_trace":null,"detail":"{\"id\":\"QA-LORE-7\",\"status\":\"pending\"}"}
+{"id":479,"event_type":"task_created","event":null,"actor":"foreman","task_id":"QA-LORE-8","timestamp":"2026-11-22T20:36:57Z","tick":null,"ch_trace":null,"detail":"{\"id\":\"QA-LORE-8\",\"status\":\"pending\"}"}
