@@ -317,3 +317,4 @@
 {"id":477,"event_type":"task_created","event":null,"actor":"foreman","task_id":"QA-LORE-6","timestamp":"2026-11-22T20:31:40Z","tick":null,"ch_trace":null,"detail":"{\"id\":\"QA-LORE-6\",\"status\":\"pending\"}"}
 {"id":478,"event_type":"task_created","event":null,"actor":"foreman","task_id":"QA-LORE-7","timestamp":"2026-11-22T20:36:54Z","tick":null,"ch_trace":null,"detail":"{\"id\":\"QA-LORE-7\",\"status\":\"pending\"}"}
 {"id":479,"event_type":"task_created","event":null,"actor":"foreman","task_id":"QA-LORE-8","timestamp":"2026-11-22T20:36:57Z","tick":null,"ch_trace":null,"detail":"{\"id\":\"QA-LORE-8\",\"status\":\"pending\"}"}
+{"id":480,"event_type":"task_created","event":null,"actor":"foreman","task_id":"LORE-HYGIENE-20261122","timestamp":"2026-11-22T22:20:27Z","tick":null,"ch_trace":null,"detail":"{\"id\":\"LORE-HYGIENE-20261122\",\"status\":\"pending\"}"}
