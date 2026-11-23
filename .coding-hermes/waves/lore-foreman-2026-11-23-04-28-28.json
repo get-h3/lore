@@ -1,0 +1,48 @@
+{
+  "scheduler_tick": "lore-foreman-2026-11-23-04-28-28",
+  "project": "lore",
+  "workdir": "/home/kara/get-h3/lore",
+  "wave_budget": 3,
+  "composed_at": "2026-11-23T04:45:00-05:00",
+  "rows_picked": ["QA-LORE-6", "QA-LORE-7", "QA-LORE-8"],
+  "rows_left_pending": ["LORE-HYGIENE-20261122"],
+  "left_pending_reason": "LORE-HYGIENE-20261122 edits .gitignore, the same file as QA-LORE-7's fix (untracked-residue ignore entry vs tracked-log negation entry) - not wave-independent from QA-LORE-7; 4th row exceeds nothing but is sequenced behind it to avoid a two-writer .gitignore collision.",
+  "independence_check": "All four pending rows have depends_on:null. QA-LORE-6 and QA-LORE-8 both edit the shared host harness ~/.hermes/scripts/bunker-qa.sh, so they are NOT mutually independent: they run in the same serial_group 'harness' (worker C starts only after worker A exits). QA-LORE-7 is repo-local (worktree wt/QA-LORE-7) and touches no file either harness worker touches.",
+  "max_concurrent_workers": 2,
+  "workers": [
+    {
+      "task_id": "QA-LORE-6",
+      "priority": "P2",
+      "surface": "host-harness",
+      "target": "/home/kara/.hermes/scripts/bunker-qa.sh",
+      "restore_source": "/home/kara/.hermes/scripts/bunker-qa.sh.bak-QA-BUNKER-REVIEW-3-20261102",
+      "serial_group": "harness",
+      "model": "glm-5.3-flash",
+      "provider": "ollama-cloud",
+      "brief_file": "/tmp/lore-wave-QA-LORE-6-brief.txt"
+    },
+    {
+      "task_id": "QA-LORE-7",
+      "priority": "P3",
+      "surface": "repo-worktree",
+      "worktree": "/home/kara/worktrees/lore-QA-LORE-7",
+      "branch": "wt/QA-LORE-7",
+      "base_sha": "09dcf77",
+      "serial_group": "repo",
+      "model": "glm-5.3-flash",
+      "provider": "ollama-cloud",
+      "brief_file": "/tmp/lore-wave-QA-LORE-7-brief.txt"
+    },
+    {
+      "task_id": "QA-LORE-8",
+      "priority": "P3",
+      "surface": "host-harness",
+      "target": "/home/kara/.hermes/scripts/bunker-qa.sh",
+      "serial_group": "harness",
+      "start_after": "QA-LORE-6 worker exits and foreman verifies",
+      "model": "glm-5.3-flash",
+      "provider": "ollama-cloud",
+      "brief_file": "/tmp/lore-wave-QA-LORE-8-brief.txt"
+    }
+  ]
+}
