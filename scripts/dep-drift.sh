@@ -8,6 +8,11 @@ if [ "$#" -ne 0 ]; then
     printf '%s\n' 'Unknown argument; use --help.' >&2
     exit 0
 fi
+# Every real run (including no-op and degraded ones) ends with a dated heartbeat
+# line on stdout, so the appending log's mtime is honest liveness evidence even
+# when the report is empty. Usage-only paths (--help / unknown argument) above
+# deliberately do not emit one. See deploy/systemd/README.md (LORE-20261012).
+trap 'rc=$?; printf "heartbeat: %s dep-drift.sh ran (rc=%s)\n" "$(date +%Y-%m-%dT%H:%M:%S%z)" "$rc"' EXIT
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 python="$root/.venv/bin/python"
 if [ ! -x "$python" ]; then

@@ -1,0 +1,7 @@
+[Unit]
+Description=notice when the lore dependency drift report fails
+
+[Service]
+Type=oneshot
+Environment=HOME=/home/kara
+ExecStart=/home/kara/get-h3/lore/deploy/systemd/dep-drift-failure-notice.sh

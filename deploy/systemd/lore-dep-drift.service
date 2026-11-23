@@ -1,6 +1,11 @@
 [Unit]
 Description=lore weekly dependency drift report
 After=network-online.target
+# Start-level failures (exec missing, user manager problems) append a dated
+# failure-notice line to ~/.local/share/lore/dep-drift-failures.log. The report
+# script itself still exits 0 when degraded, so the heartbeat in the report log
+# remains the primary liveness signal; see deploy/systemd/README.md.
+OnFailure=lore-dep-drift-failure.service
 
 [Service]
 Type=oneshot
