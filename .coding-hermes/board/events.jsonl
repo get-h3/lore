@@ -320,3 +320,4 @@
 {"id":480,"event_type":"task_created","event":null,"actor":"foreman","task_id":"LORE-HYGIENE-20261122","timestamp":"2026-11-22T22:20:27Z","tick":null,"ch_trace":null,"detail":"{\"id\":\"LORE-HYGIENE-20261122\",\"status\":\"pending\"}"}
 {"id":481,"event_type":"task_created","event":null,"actor":"foreman","task_id":"LORE-20261012","timestamp":"2026-11-23T14:51:12Z","tick":null,"ch_trace":null,"detail":"{\"id\":\"LORE-20261012\",\"status\":\"pending\"}"}
 {"id":482,"event_type":"task_created","event":null,"actor":"foreman","task_id":"LORE-20261013","timestamp":"2026-11-23T14:51:23Z","tick":null,"ch_trace":null,"detail":"{\"id\":\"LORE-20261013\",\"status\":\"pending\"}"}
+{"id":483,"event_type":"task_created","event":null,"actor":"foreman","task_id":"INFRA-LORE-046","timestamp":"2026-11-23T22:21:06Z","tick":null,"ch_trace":null,"detail":"{\"id\":\"INFRA-LORE-046\",\"status\":\"pending\"}"}
