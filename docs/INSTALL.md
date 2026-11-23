@@ -82,14 +82,14 @@ Real output on the current tree:
 ........................................................................ [ 55%]
 ........................................................................ [ 83%]
 ........................................................................ [100%]
-584 passed
+586 passed
 ```
 
 ```
 All checks passed!
 ```
 
-The count to expect is **584 tests** (49 test files: taxonomy, classifier,
+The count to expect is **586 tests** (50 test files: taxonomy, classifier,
 compiler, evidence, validate, and the CLI/QA-coverage suites added since). If
 your run says something else, you are on a different revision — check
 `git log` before trusting this document.
