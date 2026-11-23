@@ -1,0 +1,304 @@
+{
+  "task_id": "LORE-20261012",
+  "task_title": "Missed-schedule observability: armed weekly lore timers silently missed their first Monday run",
+  "task_criteria": [
+    "deploy/systemd/README.md documents a post-Monday verification check for each armed timer (report-log mtime or equivalent) with exact paths; a missed run is detectable (dated heartbeat appended by dep-drift.sh even on the no-op path, or an OnFailure/monitor on the units); the run-18 caveat (timer state can say triggered while the service never ran) is present in the systemd arming section"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "5d9eec8dbff402b82d588d7630fe1477e53fc0c8",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "dba047cb5c143d08eb3452160fd51cbe78dedecb1fe2f3e011ddf60596870705",
+  "working_tree_dirty_path_count": 14,
+  "items": [
+    {
+      "criterion": "deploy/systemd/README.md documents a post-Monday verification check for each armed timer (report-log mtime or equivalent) with exact paths; a missed run is detectable (dated heartbeat appended by dep-drift.sh even on the no-op path, or an OnFailure/monitor on the units); the run-18 caveat (timer state can say triggered while the service never ran) is present in the systemd arming section",
+      "status": "PASS",
+      "detail": "deploy/systemd/README.md:52-56 'Post-scheduled-run verification' section gives exact paths and commands (stat -c '%y %n' ~/.local/share/lore/dep-drift.log ~/.local/share/lore/weekly-validate.log; grep -c \"heartbeat: $(date +%Y-%m-%d)\") with expected post-Monday values per log (README.md:60-70). Detectability verified both ways: (a) heartbeat \u2014 scripts/dep-drift.sh:14 EXIT trap emits dated `heartbeat: <ISO-8601> dep-drift.sh ran (rc=<n>)` on every real run; empirical degraded run (34 PyPI lookups forced to fail via LORE_DEP_DRIFT_PYPI=http://127.0.0.1:1/pypi) exited rc=0 with `heartbeat: 2026-11-23T10:33:12-0500 dep-drift.sh ran (rc=0)` as final stdout line; scripts/dep_drift_test.py:79,85 test_noop_run_appends_dated_heartbeat_and_stays_read_only passes (uv run pytest -q scripts/dep_drift_test.py \u2192 exit 0, '2 passed in 1.21s'); unit appends stdout via StandardOutput=append:/home/kara/.local/share/lore/dep-drift.log (deploy/systemd/lore-dep-drift.service:15). (b) OnFailure=lore-dep-drift-failure.service at lore-dep-drift.service:8 with dep-drift-failure-notice.sh:6 appending a dated `failure-notice:` line to dep-drift-failures.log. Run-18 caveat present in the arming README (README.md:31-33, heading 'Run-18 caveat: timer state can say triggered while the service never ran') citing docs/qa/evidence/run18/INDEX.md:28 'Timer-miss evidence (LORE-20261012)' which exists with the LastTriggerUSec-vs-empty-journal evidence. Regression tests land in commit 1f24826 'worker: LORE-20261012 make missed timer runs honest'. Full suite fresh run: uv run pytest -x --tb=short \u2192 exit 0, '586 passed in 5.08s'."
+    },
+    {
+      "criterion": "README documentation claims match the actual unit/script artifacts (no doc drift): heartbeat format, OnFailure unit name, append log paths, and no-heartbeat usage paths are exactly as deployed",
+      "status": "PASS",
+      "detail": "Cross-checked every README claim against artifacts: heartbeat string at scripts/dep-drift.sh:14 matches README:18 verbatim; OnFailure=lore-dep-drift-failure.service (lore-dep-drift.service:8) exists with notice script appending to dep-drift-failures.log (dep-drift-failure-notice.sh:6); StandardOutput=append path (lore-dep-drift.service:15) matches the stat/README paths; --help and unknown-arg branches (dep-drift.sh:3-9) exit before the trap and emit no heartbeat, matching README:25 'Usage-only invocations (--help, unknown argument) emit no heartbeat' \u2014 confirmed empirically (help run produced no heartbeat line); the primary-signal caveat (script exits 0 when degraded, so heartbeat not OnFailure is the liveness signal) matches dep-drift.sh:82-84 which always exits 0.",
+      "derived": true
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nsecrets: gitleaks bound=timeout 600s (0=off)\nscanners: nice=nice -n 10\n10:32AM INF scanned ~14763673 bytes (14.76 MB) in 3.05s\n10:32AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 388 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.14.7\ncollected 586 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 23%]\ntests/test_count_guard.py .............                                  [ 25%]\ntests/test_dist_name.py ....                                             [ 26%]\ntests/test_evidence.py ......................                            [ 30%]\ntests/test_lore011_drain_acceptance.py .......                           [ 31%]\ntests/test_lore016_qa_audit.py .....................                     [ 35%]\ntests/test_lore017_gateway_guard.py ........                             [ 36%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 38%]\ntests/test_lore022_freshness_docs.py .....                               [ 39%]\ntests/test_lore030_ux_guard.py ....                                      [ 39%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 41%]\ntests/test_lore041_collision_canonical.py ...........                    [ 43%]\ntests/test_lore043_short_text_threshold.py ....................          [ 47%]\ntests/test_lore045_validate_history.py ....................              [ 50%]\ntests/test_lore046_match_output.py ...........                           [ 52%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 54%]\n\n\u2026 [720 chars omitted \u2014 9 line(s)] \u2026\ntests/test_lore060_logsey_sql_contract.py ........                       [ 65%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 67%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 67%]\ntests/test_lore064_audit_wiring.py .............................         [ 72%]\ntests/test_lore066_zero_check_skip.py ...                                [ 73%]\ntests/test_lore067_incident_audit.py ..                                  [ 73%]\ntests/test_lore071_trigger.py ......                                     [ 74%]\ntests/test_lore072_bucket_compiled_by_design.py .....                    [ 75%]\ntests/test_near_miss.py ..............                                   [ 77%]\ntests/test_perf2_audit_single_pass.py ........                           [ 79%]\ntests/test_prom_export.py .......                                        [ 80%]\ntests/test_qalore7_gitignore_evidence.py ..                              [ 80%]\ntests/test_readme_links.py .                                             [ 81%]\ntests/test_review001_gate_record.py ........                             [ 82%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 586 passed in 6.20s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            }
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 deploy/systemd/README.md documents a post-Monday verification check for each armed timer (report-log mtime or equivalent) with exact paths; a missed run is detectable (dated heartbeat appended by dep-drift.sh even on the no-op path, or an OnFailure/monitor on the units); the run-18 caveat (timer state can say triggered while the service never ran) is present in the systemd arming section: deploy/systemd/README.md:52-56 'Post-scheduled-run verification' section gives exact paths and commands (stat -c '%y %n' ~/.local/share/lore/dep-drift.log ~/.local/share/lore/weekly-validate.log; grep -c \"heartbeat: $(date +%Y-%m-%d)\") with expected post-Monday values per log (README.md:60-70). Detectability verified both ways: (a) heartbeat \u2014 scripts/dep-drift.sh:14 EXIT trap emits dated `heartbeat: <ISO-8601> dep-drift.sh ran (rc=<n>)` on every real run; empirical degraded run (34 PyPI lookups forced to fail via LORE_DEP_DRIFT_PYPI=http://127.0.0.1:1/pypi) exited rc=0 with `heartbeat: 2026-11-23T10:33:12-0500 dep-drift.sh ran (rc=0)` as final stdout line; scripts/dep_drift_test.py:79,85 test_noop_run_appends_dated_heartbeat_and_stays_read_only passes (uv run pytest -q scripts/dep_drift_test.py \u2192 exit 0, '2 passed in 1.21s'); unit appends stdout via StandardOutput=append:/home/kara/.local/share/lore/dep-drift.log (deploy/systemd/lore-dep-drift.service:15). (b) OnFailure=lore-dep-drift-failure.service at lore-dep-drift.service:8 with dep-drift-failure-notice.sh:6 appending a dated `failure-notice:` line to dep-drift-failures.log. Run-18 caveat present in the arming README (README.md:31-33, heading 'Run-18 caveat: timer state can say triggered while the service never ran') citing docs/qa/evidence/run18/INDEX.md:28 'Timer-miss evidence (LORE-20261012)' which exists with the LastTriggerUSec-vs-empty-journal evidence. Regression tests land in commit 1f24826 'worker: LORE-20261012 make missed timer runs honest'. Full suite fresh run: uv run pytest -x --tb=short \u2192 exit 0, '586 passed in 5.08s'.\n  \u2713 README documentation claims match the actual unit/script artifacts (no doc drift): heartbeat format, OnFailure unit name, append log paths, and no-heartbeat usage paths are exactly as deployed: Cross-checked every README claim against artifacts: heartbeat string at scripts/dep-drift.sh:14 matches README:18 verbatim; OnFailure=lore-dep-drift-failure.service (lore-dep-drift.service:8) exists with notice script appending to dep-drift-failures.log (dep-drift-failure-notice.sh:6); StandardOutput=append path (lore-dep-drift.service:15) matches the stat/README paths; --help and unknown-arg branches (dep-drift.sh:3-9) exit before the trap and emit no heartbeat, matching README:25 'Usage-only invocations (--help, unknown argument) emit no heartbeat' \u2014 confirmed empirically (help run produced no heartbeat line); the primary-signal caveat (script exits 0 when degraded, so heartbeat not OnFailure is the liveness signal) matches dep-drift.sh:82-84 which always exits 0.\nThe given criterion passes with both detectability mechanisms verified empirically (degraded heartbeat run rc=0 with dated line; noop regression test passing; OnFailure unit wired) and the run-18 caveat present in the arming README citing real evidence; the full suite (586 passed) and the drift regression (2 passed) were run fresh in this review.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 deploy/systemd/README.md documents a post-Monday verification check for each armed timer (report-log mtime or equivalent) with exact paths; a missed run is detectable (dated heartbeat appended by dep-drift.sh even on the no-op path, or an OnFailure/monitor on the units); the run-18 caveat (timer state can say triggered while the service never ran) is present in the systemd arming section: deploy/systemd/README.md:52-56 'Post-scheduled-run verification' section gives exact paths and commands (stat -c '%y %n' ~/.local/share/lore/dep-drift.log ~/.local/share/lore/weekly-validate.log; grep -c \"heartbeat: $(date +%Y-%m-%d)\") with expected post-Monday values per log (README.md:60-70). Detectability verified both ways: (a) heartbeat \u2014 scripts/dep-drift.sh:14 EXIT trap emits dated `heartbeat: <ISO-8601> dep-drift.sh ran (rc=<n>)` on every real run; empirical degraded run (34 PyPI lookups forced to fail via LORE_DEP_DRIFT_PYPI=http://127.0.0.1:1/pypi) exited rc=0 with `heartbeat: 2026-11-23T10:33:12-0500 dep-drift.sh ran (rc=0)` as final stdout line; scripts/dep_drift_test.py:79,85 test_noop_run_appends_dated_heartbeat_and_stays_read_only passes (uv run pytest -q scripts/dep_drift_test.py \u2192 exit 0, '2 passed in 1.21s'); unit appends stdout via StandardOutput=append:/home/kara/.local/share/lore/dep-drift.log (deploy/systemd/lore-dep-drift.service:15). (b) OnFailure=lore-dep-drift-failure.service at lore-dep-drift.service:8 with dep-drift-failure-notice.sh:6 appending a dated `failure-notice:` line to dep-drift-failures.log. Run-18 caveat present in the arming README (README.md:31-33, heading 'Run-18 caveat: timer state can say triggered while the service never ran') citing docs/qa/evidence/run18/INDEX.md:28 'Timer-miss evidence (LORE-20261012)' which exists with the LastTriggerUSec-vs-empty-journal evidence. Regression tests land in commit 1f24826 'worker: LORE-20261012 make missed timer runs honest'. Full suite fresh run: uv run pytest -x --tb=short \u2192 exit 0, '586 passed in 5.08s'.\n  \u2713 README documentation claims match the actual unit/script artifacts (no doc drift): heartbeat format, OnFailure unit name, append log paths, and no-heartbeat usage paths are exactly as deployed: Cross-checked every README claim against artifacts: heartbeat string at scripts/dep-drift.sh:14 matches README:18 verbatim; OnFailure=lore-dep-drift-failure.service (lore-dep-drift.service:8) exists with notice script appending to dep-drift-failures.log (dep-drift-failure-notice.sh:6); StandardOutput=append path (lore-dep-drift.service:15) matches the stat/README paths; --help and unknown-arg branches (dep-drift.sh:3-9) exit before the trap and emit no heartbeat, matching README:25 'Usage-only invocations (--help, unknown argument) emit no heartbeat' \u2014 confirmed empirically (help run produced no heartbeat line); the primary-signal caveat (script exits 0 when degraded, so heartbeat not OnFailure is the liveness signal) matches dep-drift.sh:82-84 which always exits 0.\nThe given criterion passes with both detectability mechanisms verified empirically (degraded heartbeat run rc=0 with dated line; noop regression test passing; OnFailure unit wired) and the run-18 caveat present in the arming README citing real evidence; the full suite (586 passed) and the drift regression (2 passed) were run fresh in this review.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "deploy/systemd/README.md documents a post-Monday verification check for each armed timer (report-log mtime or equivalent) with exact paths; a missed run is detectable (dated heartbeat appended by dep-drift.sh even on the no-op path, or an OnFailure/monitor on the units); the run-18 caveat (timer state can say triggered while the service never ran) is present in the systemd arming section",
+                "status": "PASS",
+                "detail": "deploy/systemd/README.md:52-56 'Post-scheduled-run verification' section gives exact paths and commands (stat -c '%y %n' ~/.local/share/lore/dep-drift.log ~/.local/share/lore/weekly-validate.log; grep -c \"heartbeat: $(date +%Y-%m-%d)\") with expected post-Monday values per log (README.md:60-70). Detectability verified both ways: (a) heartbeat \u2014 scripts/dep-drift.sh:14 EXIT trap emits dated `heartbeat: <ISO-8601> dep-drift.sh ran (rc=<n>)` on every real run; empirical degraded run (34 PyPI lookups forced to fail via LORE_DEP_DRIFT_PYPI=http://127.0.0.1:1/pypi) exited rc=0 with `heartbeat: 2026-11-23T10:33:12-0500 dep-drift.sh ran (rc=0)` as final stdout line; scripts/dep_drift_test.py:79,85 test_noop_run_appends_dated_heartbeat_and_stays_read_only passes (uv run pytest -q scripts/dep_drift_test.py \u2192 exit 0, '2 passed in 1.21s'); unit appends stdout via StandardOutput=append:/home/kara/.local/share/lore/dep-drift.log (deploy/systemd/lore-dep-drift.service:15). (b) OnFailure=lore-dep-drift-failure.service at lore-dep-drift.service:8 with dep-drift-failure-notice.sh:6 appending a dated `failure-notice:` line to dep-drift-failures.log. Run-18 caveat present in the arming README (README.md:31-33, heading 'Run-18 caveat: timer state can say triggered while the service never ran') citing docs/qa/evidence/run18/INDEX.md:28 'Timer-miss evidence (LORE-20261012)' which exists with the LastTriggerUSec-vs-empty-journal evidence. Regression tests land in commit 1f24826 'worker: LORE-20261012 make missed timer runs honest'. Full suite fresh run: uv run pytest -x --tb=short \u2192 exit 0, '586 passed in 5.08s'."
+              },
+              {
+                "criterion": "README documentation claims match the actual unit/script artifacts (no doc drift): heartbeat format, OnFailure unit name, append log paths, and no-heartbeat usage paths are exactly as deployed",
+                "status": "PASS",
+                "detail": "Cross-checked every README claim against artifacts: heartbeat string at scripts/dep-drift.sh:14 matches README:18 verbatim; OnFailure=lore-dep-drift-failure.service (lore-dep-drift.service:8) exists with notice script appending to dep-drift-failures.log (dep-drift-failure-notice.sh:6); StandardOutput=append path (lore-dep-drift.service:15) matches the stat/README paths; --help and unknown-arg branches (dep-drift.sh:3-9) exit before the trap and emit no heartbeat, matching README:25 'Usage-only invocations (--help, unknown argument) emit no heartbeat' \u2014 confirmed empirically (help run produced no heartbeat line); the primary-signal caveat (script exits 0 when degraded, so heartbeat not OnFailure is the liveness signal) matches dep-drift.sh:82-84 which always exits 0.",
+                "derived": true
+              }
+            ],
+            "summary": "The given criterion passes with both detectability mechanisms verified empirically (degraded heartbeat run rc=0 with dated line; noop regression test passing; OnFailure unit wired) and the run-18 caveat present in the arming README citing real evidence; the full suite (586 passed) and the drift regression (2 passed) were run fresh in this review.",
+            "provenance": {
+              "model": "glm-5.3-flash",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            },
+            "context_stats": {
+              "diff_source": "working-tree",
+              "diff_bytes": 0,
+              "prompt_bytes": 6112
+            }
+          }
+        }
+      ],
+      "model": "glm-5.3-flash",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "context_stats": {
+        "diff_source": "working-tree",
+        "diff_bytes": 0,
+        "prompt_bytes": 6112
+      },
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"LORE-20261012\"}",
+          "exit_code": 0,
+          "output_sha": "a8e5b6084bd6ac7dceaf9717e44389d6bc718375f48ef35c5fe39c356c2cbaf4"
+        },
+        {
+          "tool": "run_command",
+          "command": "find /home/kara/get-h3/lore/deploy -type f | head -50; echo ---; ls /home/kara/get-h3/lore",
+          "exit_code": 0,
+          "output_sha": "548610a9fda6091cc5b997b75e34a526a6c823412ddd6ad151b7cf09e5dd7090"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"deploy/systemd/README.md\"}",
+          "exit_code": 0,
+          "output_sha": "3d5437795cc2996094bf9180a8d8ba1ef5098457838547c3aa2c13c2e07a0491"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -rn \"dep-drift\" /home/kara/get-h3/lore --include=\"*.sh\" --include=\"*.md\" --include=\"*.timer\" --include=\"*.service\" -l | head -20; echo ---; find /home/kara/get-h3/lore -name \"*dep*drift*\" -not -path \"*/.git/*\" | head",
+          "exit_code": 0,
+          "output_sha": "0488fef64548e0bbcfb490576fd2b01900c97e0764d1b10d37a1e8ddc2951954"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"deploy/systemd/lore-dep-drift.service\"}",
+          "exit_code": 0,
+          "output_sha": "c795e856b1d33e691992292899068b048cc20422950e34d0da77898e530fc5e3"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"deploy/systemd/lore-dep-drift.timer\"}",
+          "exit_code": 0,
+          "output_sha": "3a3ea35dd55ad428563eec75e717b021808002ce9c5b3ae9f04b558489349e1e"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"deploy/systemd/lore-dep-drift-failure.service\"}",
+          "exit_code": 0,
+          "output_sha": "ebc09cfd7f9d1762fbdb2abf8089210d32285bcbe73502f7db3865459a25c826"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"scripts/dep-drift.sh\"}",
+          "exit_code": 0,
+          "output_sha": "fddff5fcd155be07c2384749b888e9a077536207c763362b3a31773d1feb67fc"
+        },
+        {
+          "tool": "run_command",
+          "command": "grep -n \"LORE-20261012\\|Timer-miss\" /home/kara/get-h3/lore/docs/qa/evidence/run18/INDEX.md | head; echo ---; cat /home/kara/get-h3/lore/.gitreins/config.yaml 2>/dev/null | head -30",
+          "exit_code": 0,
+          "output_sha": "8e8c4fdae2cf3bcf1869b443990d8dce90ef5ba0f99e5619e07970aed8d99de3"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && bash scripts/dep-drift.sh --help; echo \"help_rc=$?\"; echo ---; LORE_DEP_DRIFT_PYPI=http://127.0.0.1:1/pypi timeout 60 bash scripts/dep-drift.sh >/tmp/dd.out 2>/tmp/dd.err; echo \"rc=$?\"; echo \"--- stdout tail:\"; tail -3 /tmp/dd.out; echo \"--- stderr:\"; cat /tmp/dd.err",
+          "exit_code": 0,
+          "output_sha": "534c8afce2c7d95520eeecdb829717a09dc79f4293a2b64b443414fba179ca84"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && timeout 600 uv run pytest -q scripts/dep_drift_test.py 2>&1 | tail -5; echo \"exit=$?\"",
+          "exit_code": 0,
+          "output_sha": "b8e61c2f874003b352e3fce2fab041139c5a0d20bbe69430689ba0466783cb7f"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"heartbeat\" scripts/dep_drift_test.py tests/ 2>/dev/null | head -10",
+          "exit_code": 0,
+          "output_sha": "57d84e43e2dac7483acd3a36c51042ecfd2dd9df5db99673941461812fad8702"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"deploy/systemd/dep-drift-failure-notice.sh\"}",
+          "exit_code": 0,
+          "output_sha": "694dc5671003d1e983f3dd19a982eaa76287fc391a2f6c54a0b7a18113ac4df2"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && sed -n 70,110p scripts/dep_drift_test.py; echo ===; sed -n 28,45p docs/qa/evidence/run18/INDEX.md",
+          "exit_code": 0,
+          "output_sha": "6ba9949f39bba701887a2f525822f9fcc515dba9009b191c9b75dbbaf0cca487"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git log --oneline -5 -- deploy/systemd/README.md scripts/dep-drift.sh; echo ---; git status --porcelain | head; echo ---; grep -c \"heartbeat\\|run-18\\|Run-18\\|OnFailure\" deploy/systemd/README.md",
+          "exit_code": 0,
+          "output_sha": "3ece5e23771862b497a7a48d9ad3ab5aa9cfcf8ad9a0f0e85af8db32199946c7"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && timeout 1200 uv run pytest -x --tb=short 2>&1 | tail -3",
+          "exit_code": 0,
+          "output_sha": "ff85def84783dd688498b87619fa31c101325b7f1a0be498ec33bed53dc023dd"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: deploy/systemd/README.md:35-73 (post-Monday verification section with exact paths `~/.local/share/lore/dep-drift.log`, `weekly-validate.log`, `dep-drift-failures.log` and expected values); run-18 caveat section README.md:31-33 citing docs/qa/evidence/run18/INDEX.md:28 \\\"Timer-miss evidence (LORE-20261012)\\\" which exists. Detectability verified both ways: (a) heartbeat \\u2014 scripts/dep-drift.sh:14 trap appends dated heartbeat on EXIT incl. no-op/degraded paths; empirical run with 34 failing PyPI lookups exited rc=0 with `heartbeat: 2026-11-23T10:33:12-0500 dep-drift.sh ran (rc=0)` as final line; test_noop_run_appends_dated_heartbeat_and_stays_read_only passes (uv run pytest -q scripts/dep_drift_test.py \\u2192 2 passed); unit appends stdout via StandardOutput=append:~/.local/share/lore/dep-drift.log (lore-dep-drift.service:15). (b) OnFailure=lore-dep-drift-failure.service in lore-dep-drift.service:8, notice script appends dated failure-notice line (dep-drift-failure-notice.sh:6). Full suite fresh: uv run pytest -x \\u2192 exit 0, 586 passed in 5.08s.\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "35a5a7943b2ea34adf9b5761a769c4c8da05d4b54a2b9deb65fd025ec987c94e"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: README claims are consistent with the actual artifacts (no doc drift): OnFailure=lore-dep-drift-failure.service confirmed at deploy/systemd/lore-dep-drift.service:8; StandardOutput=append:/home/kara/.local/share/lore/dep-drift.log at lore-dep-drift.service:15; heartbeat format `heartbeat: <ISO8601> dep-drift.sh ran (rc=<n>)` at scripts/dep-drift.sh:14 matches README verbatim; failure-notice line format at dep-drift-failure-notice.sh:6 matches; --help/unknown-arg paths (dep-drift.sh:3-9) exit before trap with no heartbeat, matching the README's \\\"Usage-only invocations emit no heartbeat\\\"; weekly-validate caveat (host-local unit, mtime-only check) matches the arming section.\", \"key\": \"verified_derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "824b8144042cee60c4d0e51543e56aa259bd921a734eccd0ff97d60a27271d6b"
+        }
+      ]
+    },
+    "fix_verification": {
+      "id": "fix_verification",
+      "passed": true,
+      "any_failed": false,
+      "summary": "fix_verification: 0 finding(s) verified",
+      "steps": [
+        {
+          "id": "fix_verification",
+          "type": "fix_verification",
+          "passed": true,
+          "output": "fix_verification: 0 finding(s) verified",
+          "error": "",
+          "data": {
+            "dispositions": [],
+            "counts": {}
+          }
+        }
+      ]
+    }
+  },
+  "context_stats": {
+    "diff_source": "working-tree",
+    "diff_bytes": 0,
+    "prompt_bytes": 6112
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [],
+    "summary": "The diff is a self-consistent JSONL bookkeeping edit to the LORE-20261012 row (commit_hash repointed to the graded tip, updated_at bumped, repoint documented in foreman_note, all other fields and surrounding rows unchanged) with no code, wiring, or failure-path surface to defect against.",
+    "review_state": {
+      "emitted": [],
+      "carried": []
+    }
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 deploy/systemd/README.md documents a post-Monday verification check for each armed timer (report-log mtime or equivalent) with exact paths; a missed run is detectable (dated heartbeat appended by dep-drift.sh even on the no-op path, or an OnFailure/monitor on the units); the run-18 caveat (timer state can say triggered while the service never ran) is present in the systemd arming section: deploy/systemd/README.md:52-56 'Post-scheduled-run verification' section gives exact paths and commands (stat -c '%y %n' ~/.local/share/lore/dep-drift.log ~/.local/share/lore/weekly-validate.log; grep -c \"heartbeat: $(date +%Y-%m-%d)\") with expected post-Monday values per log (README.md:60-70). Detectability verified both ways: (a) heartbeat \u2014 scripts/dep-drift.sh:14 EXIT trap emits dated `heartbeat: <ISO-8601> dep-drift.sh ran (rc=<n>)` on every real run; empirical degraded run (34 PyPI lookups forced to fail via LORE_DEP_DRIFT_PYPI=http://127.0.0.1:1/pypi) exited rc=0 with `heartbeat: 2026-11-23T10:33:12-0500 dep-drift.sh ran (rc=0)` as final stdout line; scripts/dep_drift_test.py:79,85 test_noop_run_appends_dated_heartbeat_and_stays_read_only passes (uv run pytest -q scripts/dep_drift_test.py \u2192 exit 0, '2 passed in 1.21s'); unit appends stdout via StandardOutput=append:/home/kara/.local/share/lore/dep-drift.log (deploy/systemd/lore-dep-drift.service:15). (b) OnFailure=lore-dep-drift-failure.service at lore-dep-drift.service:8 with dep-drift-failure-notice.sh:6 appending a dated `failure-notice:` line to dep-drift-failures.log. Run-18 caveat present in the arming README (README.md:31-33, heading 'Run-18 caveat: timer state can say triggered while the service never ran') citing docs/qa/evidence/run18/INDEX.md:28 'Timer-miss evidence (LORE-20261012)' which exists with the LastTriggerUSec-vs-empty-journal evidence. Regression tests land in commit 1f24826 'worker: LORE-20261012 make missed timer runs honest'. Full suite fresh run: uv run pytest -x --tb=short \u2192 exit 0, '586 passed in 5.08s'.\n  \u2713 README documentation claims match the actual unit/script artifacts (no doc drift): heartbeat format, OnFailure unit name, append log paths, and no-heartbeat usage paths are exactly as deployed: Cross-checked every README claim against artifacts: heartbeat string at scripts/dep-drift.sh:14 matches README:18 verbatim; OnFailure=lore-dep-drift-failure.service (lore-dep-drift.service:8) exists with notice script appending to dep-drift-failures.log (dep-drift-failure-notice.sh:6); StandardOutput=append path (lore-dep-drift.service:15) matches the stat/README paths; --help and unknown-arg branches (dep-drift.sh:3-9) exit before the trap and emit no heartbeat, matching README:25 'Usage-only invocations (--help, unknown argument) emit no heartbeat' \u2014 confirmed empirically (help run produced no heartbeat line); the primary-signal caveat (script exits 0 when degraded, so heartbeat not OnFailure is the liveness signal) matches dep-drift.sh:82-84 which always exits 0.\nThe given criterion passes with both detectability mechanisms verified empirically (degraded heartbeat run rc=0 with dated line; noop regression test passing; OnFailure unit wired) and the run-18 caveat present in the arming README citing real evidence; the full suite (586 passed) and the drift regression (2 passed) were run fresh in this review.\n\nStage fix_verification: PASS\n  fix_verification: 0 finding(s) verified\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-23T15:34:37.047298",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-23T15:34:37.074553+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 14792,
+        "truncated": false,
+        "source": "git show 5d9eec8dbff4"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 15260,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "LORE-20261012"
+  }
+}
