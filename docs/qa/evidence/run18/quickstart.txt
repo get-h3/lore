@@ -1,0 +1,10 @@
+=== match drain 503 ===
+gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain
+rc=0
+=== match secret .env clobber ===
+secret-env-clobber	confidence=0.90	evidence: signature:.env clobber; keyword:.env; keyword:clobber
+rc=0
+=== consult title ===
+usage: lore [-h] {match,consult,compile,validate,gate,absorb,show,audit} ...
+lore: error: unrecognized arguments: --title
+rc=0

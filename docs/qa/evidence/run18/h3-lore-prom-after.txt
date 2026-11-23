@@ -1,0 +1,6 @@
+# HELP lore_gate_runs_total Total gate verdicts exported.
+# TYPE lore_gate_runs_total counter
+lore_gate_runs_total 7
+# HELP lore_gate_last_success Whether the last gate allowed closure.
+# TYPE lore_gate_last_success gauge
+lore_gate_last_success 0

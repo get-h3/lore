@@ -373,3 +373,38 @@ runbook top-to-bottom.
 At HEAD `a92b577`, the complete CLI path was re-proven: `match`, `match --explain`, `consult --failure`, `compile`, `show`, `validate` plan/execute, `audit`, `absorb` single/window, and `gate`. `compile --format json` returns a one-element JSON list; `show --format json` returns one object. The audit JSON contains `.classes` and `.summary`; a known-plus-novel event control yielded `incident_seen` for the known class and `summary.uncovered_classes` for the novel class. A fresh bunker agent installed `get-h3-lore-0.2.0` and passed the applicable install, CI, upgrade, disconnect, resource, and error-path cells; compose, UI, and persistent-state cells were inapplicable.
 
 The PRD responder example remains intentionally tracked by LORE-070: `match "spawn 503"` is an unclassified near miss, while `consult --failure "spawn 503 while restarting"` returns the gateway-drain-window runbook. Warm timings were 52.5ms for match and 74.7ms for audit over 12 hyperfine runs; cold match was 40–50ms. These are not user-noticeable, so no PERF row was filed.
+
+## Dogfood run 18 (2026-11-23, HEAD 23f800b, v0.3.0 surfaces)
+
+New surfaces, verified in real use:
+
+- **Gate metrics export (LORE-EXPORT-1).** Every `lore gate` verdict writes
+  `h3_lore.prom` into the textfile dir (default `/var/lib/node_exporter/textfile`;
+  override with `H3_LORE_TEXTFILE_DIR`). `lore_gate_runs_total` is DURABLE across
+  invocations (a QA battery's 5 verdicts were already in the counter before the
+  first dogfood gate), and DENY exits 1 while still exporting. On this host the
+  default dir is group-writable; on a host where it is not, the gate fails loudly
+  (stderr + rc 1) — that is the documented contract, not a bug.
+- **Absorb trigger (LORE-071).** `BoardEventWatcher(board, JsonCursorStore(cursor))`
+  consumes a board's `events.jsonl` read-only; the cursor is owner-managed state
+  OUTSIDE `.coding-hermes/`. A restart re-consume returns nothing (no replay).
+  `AugerDecisionTableAdapter(path).read()` — note the method is **read()**, the
+  doc page never names it (LORE-20261013) — yields `duckbrain-row` blocks with
+  `source=auger:<table>:<row_id>` provenance. Both feed `absorb_sweep(blocks,
+  source=...)` → in-memory proposals with the proposal-only note; nothing is
+  written anywhere.
+- **Dependency drift.** `scripts/dep-drift.sh` is a 1.5 s read-only compare of
+  `uv.lock` against PyPI ("N of M locked packages behind PyPI latest"; the local
+  `get-h3-lore X.Y.Z` line is the version stamp). The systemd user units
+  (`lore-dep-drift.timer/.service`, `lore-validate.timer/.service`) ship NOT
+  enabled and are armed deliberately. **Caveat learned live (LORE-20261012):** a
+  missed schedule is silent — the timer records `LastTrigger`/`Result=success`
+  even when the service never ran, and user-service journal entries may not
+  exist at all. The only honest check is the report log's mtime
+  (`~/.local/share/lore/dep-drift.log`, `weekly-validate.log`); check it after
+  every scheduled Monday before trusting the surface.
+
+Numbers at HEAD 23f800b (loadavg 16.4 / 16 cores): warm match 102.3±12.3 ms
+documented (`uv run`) / 98.6±14.0 raw venv, gate verdict+export 54.7±5.6 ms,
+cold match 0.05–0.07 s; fresh-box battery 24 rows, applicable cells all OK/PASS
+(docker-deploy/chaos-shutdown SKIPPED = live-host safety gate, not product).

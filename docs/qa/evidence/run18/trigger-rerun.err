@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/kara/.hermes/cache/scratch/lore-df-20261123-tick/trigger_consumer.py", line 36, in <module>
+    ablocks = a.parse()
+              ^^^^^^^
+AttributeError: 'AugerDecisionTableAdapter' object has no attribute 'parse'

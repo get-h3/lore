@@ -878,3 +878,43 @@ At HEAD a92b577, the real CLI workflow was driven end to end: match, explain, co
 The fresh bunker leg was gradeable on agent 400bc545 at bunker-mvp. `bunker-qa.sh collect` pulled 21 agent evidence rows, including fresh-install OK for get-h3-lore-0.2.0, CI OK, upgrade OK, disconnect OK with a network-cut summary, resource PASS, and clean missing-config rc=2. Docker/UI/state cells were N/A by project shape. The agent was destroyed and post-collect info returned not_found; unrelated agents were left alone.
 
 Performance was user-invisible: warm match 52.5ms ±5.6ms over 12 runs, warm audit 74.7ms ±9.6ms over 12 runs, and cold match 40–50ms across three fresh processes. No PERF row or profile was justified.
+
+## Run 18 — v0.3.0 new surfaces: gate metrics, absorb trigger, dep-drift schedule (2026-11-23)
+
+Run 18 drove the three surfaces no earlier run had touched, all at HEAD 23f800b
+(== origin/main). The gate→Prometheus export behaved exactly as the README's
+Observability section promises: first run ALLOW rc 0 into the default
+`/var/lib/node_exporter/textfile` (group-writable here), `runs_total` durable
+across invocations (6 = 5 QA-battery verdicts + this one), DENY rc 1 flipping
+`lore_gate_last_success` to 0, and 15 rapid-fire invocations ending at exactly
+17 increments — the serialized atomic write held under repetition, corroborating
+the test-pinned concurrency story live. The LORE-071 absorb trigger was driven
+as a real consumer over this repo's OWN board (read-only watcher, scratch
+cursor): 117 blocks from the 151 KB `events.jsonl` classified into 4 update
+proposals, zero replay on a restart re-consume, and the Auger adapter produced
+`duckbrain-row` blocks with the exact documented `auger:<table>:<row_id>`
+provenance. `dep-drift.sh` run by hand answered in 1.45 s with an honest fresh
+report (4 of 34 pins behind, two new since the 11-20 run) and a version stamp
+matching pyproject.
+
+The run's real finding is operational: the armed weekly schedules silently
+missed their first Monday run. Both lore user timers are enabled on this host,
+but this morning's 07:30/07:45 schedules appended nothing (`dep-drift.log`
+mtime 2026-11-20 22:52, `weekly-validate.log` mtime 2026-11-16 07:30), while
+the timer records `LastTriggerUSec=Mon 2026-11-23 07:56:59, Result=success`
+and the bound service has zero journal entries ever. Host context in the same
+window: earlyoom SIGKILL storm at 07:47 (mem 1.57%, swap 0.01%), journald
+dropping 226 messages, user manager restarting twice at 08:22. The timer's own
+state says "triggered"; the log mtime is the only honest signal, and nothing
+documents checking it (filed LORE-20261012). Second, smaller: the
+ABSORB-TRIGGER doc never names the adapter method — a verbatim consumer calls
+`.parse()` and gets AttributeError (the real method is `.read()`; filed
+LORE-20261013).
+
+Fresh-box leg: agent 955837c0 on bunker-mvp, 24-row battery — fresh-install OK,
+lint OK, tests OK, upgrade OK, ci-pass OK, chaos-resource PASS,
+chaos-corruption OK, chaos-errorpath OK, disconnect INFO; docker-deploy and
+chaos-shutdown SKIPPED by the live-host safety gate; compose/ui N/A by shape.
+Agent destroyed, list re-check 0 hits. Perf at loadavg 16.4/16 cores: warm
+match 102.3±12.3 ms documented / 98.6±14.0 raw, gate+export 54.7±5.6 ms, cold
+0.05–0.07 s — interpreter floor, no PERF row.
