@@ -138,7 +138,7 @@ Run the tests and lint that gate every change (see
 [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow):
 
 ```sh
-uv run pytest -q        # 584 passed
+uv run pytest -q        # 586 passed
 uv run ruff check .     # All checks passed!
 ```
 
@@ -392,7 +392,7 @@ does not:
 ### Shipped — runs today, verified on `main`
 
 - The failure-class taxonomy + classifier (13 curated classes + `unclassified`),
-  with **584 tests passing** and a clean `ruff check`.
+  with **586 tests passing** and a clean `ruff check`.
 - The `lore match "<symptoms>"` command — the responder's entry point.
   Flags: `match [--class CLASS_ID]` filters results to only the named registry
   class (ships today; not planned-only).

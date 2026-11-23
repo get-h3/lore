@@ -20,6 +20,8 @@ node_modules/
 # local scratch
 /tmp/
 *.log
+# tracked QA evidence logs are product evidence, not scratch (QA-LORE-7)
+!docs/qa/evidence/**/*.log
 .env
 .env.*
 !.env.example
