@@ -1,0 +1,129 @@
+QA-LORE-6 closure evidence — lore foreman tick lore-foreman-2026-11-24-20-42-52
+================================================================================
+
+Row: QA-LORE-6 [P2] "QA harness: pip upgrade arm installs from an index that never
+existed — DETECT_UP_PREV_DIR tree arm unwired for pyproject repos (recurring:
+v0.1.0 on 11-03, v0.2.0 today)"
+
+AC (verbatim): bunker-qa.sh detect_upgrade_inputs classifies a deliberately-
+unpublished pyproject repo (or any repo with an in-repo upgrade-path check) onto
+the tree-upgrade arm instead of the index-install arm; a re-run of the lore
+battery grades upgrade via the supported channel and emits no false product FAIL.
+
+1. ROOT CAUSE (measured this tick)
+----------------------------------
+The 2026-11-22 lore battery (tick lore-qa-2026-11-22-20-12-17, harvest
+~/.hermes/qa/lore-qa-2026-11-22-20-12-17-harvest) emitted a generated script
+whose pip upgrade branch was the pre-QA-TERMINAL-JAIL-19 shape: it carried an npm
+QA_UP_PREV_DIR branch (generated line 1941) but NO pip equivalent, and baked
+QA_UP_PREV_DIR='' (generated line 1877). The cell therefore fell through to the
+index arm:
+
+  upgrade FAIL "previous release get-h3-lore==0.2.0 would not install (tag
+  v0.2.0): rc=1 cmd=[pip install get-h3-lore==0.2.0] — ERROR: Could not find a
+  version that satisfies the requirement get-h3-lore==0.2.0 (from versions:
+  none)|ERROR: No matching distribution found for get-h3-lore==0.2.0|"
+
+A harness premise failure graded as a product verdict: get-h3-lore is
+deliberately absent from PyPI (git-install only, RELEASE-LORE-006: "NO PACKAGE
+PUBLISHED, by design ... no index channel exists under any name"), so the index
+arm can never succeed for this repo.
+
+2. FIX PROVENANCE (landed by a sibling, verified this tick — no code written by
+   this tick)
+----------------------------------
+- Canonical repo: coding-hermes/coding-hermes-tools, commit
+  311dd8f82a3e957434056cb5ce18b61471b2f56b ("fix: reconcile bunker-qa.sh fork —
+  land stranded QA-060/GUARD-008/MUSTER-13-R2/MUSTER-046-R2 fixes ... CHT-189",
+  2026-11-23). Contains the pip tree arm: detect_upgrade_inputs sets
+  DETECT_UP_PREV_DIR=~/qa-up-prev-pip when the PyPI project probe fails
+  (deployed template line 3852 cell branch + 1649-1654 detect branch);
+  ship_prev_tag_tree streams the previous tag's tree (git archive) to
+  ~/qa-up-prev-pip, verified by pyproject.toml.
+- Pushed: git fetch origin master; rev-list origin/master..HEAD = 0 AND
+  HEAD..origin/master = 0 (both directions zero, verified 2026-11-24).
+- Deployed copy: /home/kara/.hermes/scripts/bunker-qa.sh sha256
+  17c3d4124aa4a3b5d1e7131c07cf692bea9bd68abfa5f3cc5fe6b2366a48cc76 (mtime
+  2026-11-23 04:47 local; sibling baks ~/.hermes/scripts/bunker-qa.sh.bak-
+  QA-LORE-6-20261123 [pre-fix, 0 qa-up-prev-pip matches] and .bak-QA-LORE-8-
+  20261123 [post-fix, 4 matches] document the deploy).
+
+3. AC CLAUSE (a) — CLASSIFICATION ONTO THE TREE ARM (live)
+----------------------------------
+Battery re-run fired by this tick:
+  bash ~/.hermes/qa/launch-lore-foreman-2026-11-24-20-42-52.sh
+  (CODING_HERMES_PROJECT=lore-qa CODING_HERMES_QA_TARGET=lore
+   CODING_HERMES_TICK=lore-foreman-2026-11-24-20-42-52)
+Launch log (~/.hermes/qa/lore-foreman-2026-11-24-20-42-52-launch.log):
+  TARGET-BINDING repo=/home/kara/get-h3/lore ... verdict=bound
+  → QA LAUNCH project: lore — detached battery on bunker-mvp (ttl 4h)
+  → agent=4a7eb07a @ bunker-mvp (tailscale)
+  → CELL fresh-install: sync repo → ~/qa-lore
+  → CELL upgrade-prep: previous release tree v0.2.0 -> ~/qa-up-prev-pip
+The "upgrade-prep: previous release tree v0.2.0 -> ~/qa-up-prev-pip" line is the
+host classifying lore onto the TREE-UPGRADE ARM (no index install attempted).
+EVIDENCE_SHA256 (launch)=12e935a122cffe0d5b9710b65684a2761176e8b872bd4d1119fecc5b8c2f65ec
+Inputs witnessed: lore tags v0.1.0/v0.2.0/v0.3.0 (prev=v0.2.0), pyproject.toml
+name="get-h3-lore" version="0.3.0", PyPI probe
+witness=http:404+https://pypi.org/pypi/get-h3-lore/json (re-witnessed live
+2026-11-24; instacart's unrelated "lore" package is 200 — the rename collision
+from QA-LORE-2).
+
+4. AC CLAUSE (b) — BATTERY RE-RUN VIA THE SUPPORTED CHANNEL (live, this tick)
+----------------------------------
+Cell verdict (evidence jsonl, verbatim):
+  upgrade OK "previous release v0.2.0 (tree via git archive) → HEAD reinstall
+  clean"
+Full cell table (collect 2026-11-24T21:06Z, agent 4a7eb07a, rows=24/28):
+  fresh-install OK · tests OK · lint OK · ci-pass OK (act: 1 jobs green) ·
+  upgrade OK · chaos-corruption OK · chaos-errorpath OK · chaos-resource PASS ·
+  chaos-disconnect INFO (passes with network cut; no network dep) ·
+  chaos-shutdown SKIPPED (safety gate: controller is the live Hermes host) ·
+  docker-deploy SKIPPED (same safety gate) · compose_config N/A · docker_build
+  N/A · ui-probe N/A · toolchain-bootstrap OK · target-binding OK · launch OK ·
+  collect OK · evidence-outside-repo WARN (collect evidence lives outside the
+  repo; in-repo copy below).
+NO product FAIL in any cell. The 11-22 false FAIL did not reproduce.
+Artifacts:
+  /home/kara/.hermes/qa/evidence/lore-foreman-2026-11-24-20-42-52.jsonl
+    sha256 80be93d20f0c5fef300c279cbd735ba4e2371ef0afbfdd36da8f999430bef4c4 (28 rows)
+  In-repo harness copy (tracked-residue caveat = LORE-HYGIENE-20261122):
+    .coding-hermes/evidence/qa-20261124T210609Z/manifest.json sha256
+    c3c9d0af6ff617cea71ba51fd282ba8bb8fcc7bf1624584d5a766f8b1f5c0242
+Corroboration (sibling collect after the same fix, 2026-11-23T14:46:37Z):
+  .coding-hermes/evidence/qa-20261123T144739Z/evidence.jsonl sha256
+  5c708e5cbac9afef157bbb978bb6307d683d25615f02b26adf25995916b561e3
+  → upgrade OK "previous release v0.2.0 (tree via git archive) → HEAD reinstall
+  clean" (identical verdict, independent run).
+
+5. ABSORB GATE (live, this tick)
+----------------------------------
+  uv run lore gate --decision no-new-lesson --reason 'QA-LORE-6 harness premise
+  failure owned by the deployed battery: fix landed in canonical repo
+  coding-hermes-tools 311dd8f (pip tree arm for unpublished pyproject repos,
+  QA-TERMINAL-JAIL-19 shape) and is deployed; battery re-run
+  lore-foreman-2026-11-24-20-42-52 streams v0.2.0 tree to qa-up-prev-pip
+  (launch log CELL upgrade-prep line) — no new lesson for lore itself, the
+  registry stays unchanged' --ref QA-LORE-6 --source
+  lore-foreman-2026-11-24-20-42-52
+  → GATE: ALLOW (no-new-lesson) source: lore-foreman-2026-11-24-20-42-52
+  → exit=0
+
+6. BOUNDARIES / RESIDUALS (disclosed, not part of this row)
+----------------------------------
+- ci-pass graded OK this run; the QA-LORE-8 collector-roster defect (ci-act vs
+  ci-pass naming) is a COLLECT-side defect and stays on its own pending row.
+- The collect writes EVIDENCE-DIR residue under .coding-hermes/evidence/
+  (LORE-HYGIENE-20261122, pending) — this run added qa-20261124T210609Z.
+- The index-publication gate stays with RELEASE-LORE-006 (unpublished by
+  design).
+- The direct in-process probe of detect_upgrade_inputs was refused by the
+  unattended-command gate this tick (embedded-curl shape, did NOT run); clause
+  (a) is proven by the battery's own launch/cell behavior instead, which is the
+  stronger end-to-end proof.
+- Cross-project CI filing made by this tick: coding-hermes-tools INT-CI-1-R4
+  (GitHub Actions billing block recurrence, 6 runs never started 11-22..11-23),
+  filed from clean worktree intci-r4-filing, published on tools master 1cb5e7f.
+
+Evidence artifact itself: docs/release-evidence/lore-foreman-2026-11-24-20-42-52.txt
+(ch:trace row=QA-LORE-6)
