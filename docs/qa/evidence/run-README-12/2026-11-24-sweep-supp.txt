@@ -1,0 +1,145 @@
+### show --evidence
+# Runbook: Gateway drain window (`gateway-drain-window`)
+
+- **Status:** proposal
+- **Last validated:** no data (never validated)
+- **Provenance:** Compiled by lore.compiler from the curated class registry (lore.classes) and the fleet's incident history. Operator approval required to publish (propose-not-write).
+- **Signature:** `drain\s+503`
+
+## Checks (in order)
+
+### Check 1 (read-only)
+
+```sh
+logsey query "SELECT message, ts FROM logs WHERE message LIKE '%drain 503%' AND ts >= now() - INTERVAL 30 MINUTE"
+```
+- Healthy: no rows
+- Incident: 503s on in-flight requests while the gateway restarts/reloads
+- Decision: confirm the class signature before touching anything
+- Evidence: incident: PRD §The problem, measured case 1
+
+### Check 2 (read-only)
+
+```sh
+grep -c 'drain 503' <gateway-log-path>
+```
+- Fill-in: `<gateway-log-path>` — the gateway/proxy log file path on the box running the gateway (where the drain-503 lines are written)
+- Healthy: 0
+- Incident: non-zero and rising over the drain window (up to ~30 min)
+- Decision: distinguish a drain window (bounded, expected) from a wedged gateway
+- Evidence: incident: four gateway-restart incidents pre-doctrine
+- Evidence: memory: curated note: drain 503s kill ticks
+rc=0
+### absorb propose-only
+no classifiable evidence blocks in the trail (no blocks found — nothing proposed, nothing written)
+rc=0
+### validate --format md plan
+# gateway-drain-window — plan (nothing executed)
+  check 1: would run: logsey query "SELECT message, ts FROM logs WHERE message LIKE '%drain 503%' AND ts >= now() - INTERVAL 30 MINUTE"
+  check 2: would run: grep -c 'drain 503' <gateway-log-path>
+    fill-in: <gateway-log-path> = the gateway/proxy log file path on the box running the gateway (where the drain-503 lines are written)
+  check 3: would run: curl -s -o /dev/null -w '%{http_code}' <gateway-health-url>
+    fill-in: <gateway-health-url> = the gateway's HTTP health endpoint URL (the one status checks poll)
+  check 4: would run: grep -c 'enabled.*false' <scheduler-fleet-config>
+    fill-in: <scheduler-fleet-config> = the scheduler's fleet configuration file path (the one defining project pins)
+  check 5: would run: curl -s <gateway-metrics-url> | grep -c 'in_flight'
+    fill-in: <gateway-metrics-url> = the gateway's metrics endpoint URL (the source of the in-flight counter)
+  check 6: would run: wc -l <gateway-queue-path>
+    fill-in: <gateway-queue-path> = the gateway's durable queue file path (the state a restart flushes)
+  check 7: would run: logsey query "SELECT message, ts FROM logs WHERE (message LIKE '%SIGKILL%' OR message LIKE '%503%') AND ts >= now() - INTERVAL 60 MINUTE"
+
+rc=0
+### audit json bucket key
+list 14
+gateway-drain-window | bucket= None
+shared-checkout-collision | bucket= None
+secret-env-clobber | bucket= None
+disk-pressure-corruption | bucket= None
+cooldown-pin-drift | bucket= None
+rc=0
+### gate deny unknown class
+GATE: DENY (1 errors)
+error: unknown class 'does-not-exist' — registry is closed; carry the proposed lesson text for operator review instead
+rc=1
+### consult title mode
+runbook: gateway-drain-window (Gateway drain window) status=proposal last_validated=never checks=7
+  last lint-validated 2026-11-24T20:48:36+00:00 on this box (local history, not operator attestation); executed 2/7 checks
+rc=0
+### consult LORE-055 usage error
+error: consult requires a title argument unless --failure is given (usage: lore consult <title> [--detail ...] | consult --failure <text>)
+rc=2
+### README CLI vocabulary lines 455-527
+  start is staggered, not an exclusion lock, against validation.
+- `lore show <class> [--evidence] [--format json|md]` — prints the compiled
+  runbook for one class (human-markdown default); `--evidence` adds the class's
+  provenance line plus its evidence trail. Unknown class exits 2 (the registry
+  is closed).
+- `lore audit [--format table|json|md]` — the PRD US-3 coverage + freshness
+  matrix: per registry class, runbook-compiled, check count, real-command count
+  (vs the honest `no data` sentinel), and freshness. Freshness is honest:
+  `last_validated` is never auto-populated in v0.1 — no code path writes it
+  (a lint run is not operator attestation; operator attestation is planned,
+  not implemented) — so every runbook says `no data` until a human attests.
+  Never a fabricated date. Today's freshness signal is the lint itself:
+  `lore validate --execute` flips a drifted runbook to `stale` and carries
+  the drift reason. The registry has 13 curated classes PLUS the
+  `unclassified` catch-all bucket (14 rows, never 14 classes): the bucket
+  row is marked so scripted consumers can tell them apart — JSON carries
+  `bucket: true` on the unclassified entry only (curated entries have no
+  `bucket` key), and the table/md render it as `[bucket] unclassified` with
+  `yes` in the dedicated bucket column (curated rows show `-`).
+  Incident coverage (LORE-067, LORE-067-R3) is read from the board under the
+  **current working directory** — `.coding-hermes/board/events.jsonl` (plus
+  `tasks.jsonl`) — over a 90-day window. A class seen there gets
+  `incident_seen: true`; a class named by an in-window event but absent from
+  the registry is reported in `summary.uncovered_classes` (a gap you can see
+  before its runbook exists), and `summary.incident_count` carries the number
+  of in-window events. No board → the incident facts degrade to empty with
+  exit 0, and `coverage_note` says the source was unavailable.
+- The `lore absorb --window <dur> [--ns N] [--board B] [--source S]` sweep —
+  parses a prior evidence trail from stdin (or `--trail-file`), classifies each
+  block, groups by class, and prints per-class absorb **proposals** on stdout.
+  Every proposal is a real runbook **update** (LORE-069): it diffs the folded
+  trail (swept blocks, or the lesson parsed with the sweep's tolerance) against
+  the class's existing runbook, so `action` is `"update"` with the
+  trail-derived content named in `added.evidence_trail`, and each folded block
+  carries `outcome: dead-end|observed` (PRD US-2's dead-end marking). A trail
+  that adds nothing is an explicitly empty update. Propose-not-write holds:
+  nothing is ever written; an empty trail is an
+  explicit empty result (exit 0). `--ns`/`--board` are recorded in the proposal
+  provenance (no live lookups — the flags exist for a future integration).
+  `--source` (LORE-020) threads the provenance marker into every per-class
+  proposal payload, same None-rule as the single-proposal path: omitted, the
+  payloads keep their original shape with no `source` key.
+- Absorb trigger design: [docs/ABSORB-TRIGGER.md](docs/ABSORB-TRIGGER.md)
+  (board-event cursor + Auger export adapter; proposal-only, owner-installed).
+- Install guide: [docs/INSTALL.md](docs/INSTALL.md) (dependency vulnerability
+  scanning: "Dependency vulnerability scanning"). Runbook-store design
+  decision: [docs/RUNBOOK-STORE.md](docs/RUNBOOK-STORE.md).
+- Marker grammar: [docs/traceability-doctrine.md](docs/traceability-doctrine.md)
+  (the `ch:trace` fields, witness forms and commit-footer rule).
+
+### Planned / in flight — named, not promised as runnable
+
+- **Runbook store** (central registry + materialized per-repo dirs) — design
+  decided in [RUNBOOK-STORE.md](docs/RUNBOOK-STORE.md), not implemented.
+- The PRD's planned interface is:
+
+```text
+lore match "<symptoms|log line>" [--class ...]
+lore show <class> [--evidence]
+lore absorb --window ... [--ns ...] [--board ...]   # propose updates from an incident trail
+lore audit [--format table|json|md]                 # coverage + freshness matrix
+lore validate [--class ...]                         # run the read-only command lint now
+```
+
+All eight shipped subcommands run today — `lore match`, `lore consult`,
+`lore compile`, `lore validate`, `lore gate`, `lore absorb`, `lore show` and
+`lore audit` (see `lore --help`). Still planned: runbook-store materialization.
+The weekly re-validation lint ships, but its schedule does not — the package
+installs no unit files, so a fresh install runs the lint only when an operator
+invokes it, and the weekly timer is armed per box (see the Status section
+above). See [`docs/PRD.md`](docs/PRD.md) for the full
+product requirements, the design authority this repo is judged against. The
+task list lives on the project board at `.coding-hermes/board/tasks.jsonl`.
+SWEEP-SUPP end=2026-11-24T20:49:56Z

@@ -1,0 +1,238 @@
+SWEEP lore-readme-2026-11-24-20-44-23 start=2026-11-24T20:48:28Z
+c40222d1a0df7206bcd9c169970bd8a912b47ada8b16b48640727c6cb97494bd  /home/kara/get-h3/lore/README.md
+tip: 377baa0d93dfa020cc738ca4cd7527a5d5876bc8
+origin/main: 377baa0d93dfa020cc738ca4cd7527a5d5876bc8
+\n### freshness: version stamps vs README Status claim
+pyproject.toml version: 7:version = "0.3.0"
+lore/__init__.py: """lore: compile the fleet's incident history into living runbooks per failure class."""
+
+__version__ = "0.3.0"
+
+from lore.classes import UNCLASSIFIED_ID, ClassRegistry, FailureClass, get_registry
+
+tags: v0.1.0 v0.2.0 v0.3.0 
+v0.3.0 commit: c769be4265e74a93b4706c6cc7971fe58a3f3dbd
+v0.2.0 commit: 165cc8f6d354d9ed57d58635c1ad482d0e755cf2
+rev-list v0.2.0..HEAD: 90
+rev-list v0.3.0..HEAD: 36
+75ca51a 2026-11-22T23:41:18-05:00 fix: unshadow tracked QA evidence logs from the *.log scratch rule. Addresses QA-LORE-7.
+README claims the Status section: Development version stamp **0.2.0**, released **2026-11-16** as tag **v0.2.0** (commit `165cc8f`) — see the [CHANGELOG 0.2.0 section](CHANGELOG.md#020--2026-11-16) for what shipped. Two tags exist, each with a GitHub Release object: **v0.1.0** (2026-09-24, commit `c655666`) and **v0.2.0** (2026-11-16) — `main` is **7 commits** past v0.2.0 (counted 2026-11-17; run `git rev-list --count v0.2.0..HEAD` for the live figure). Kicked off 2026-09-23. **Nothing is published to PyPI under any name** — install channels are git only (`uv sync`, `uv tool install git+...`); see the `pip install lore` warning above. Split honestly into what runs today and what does not: 
+\n### releases: gh release list
+v0.3.0 — gate-run metrics, scheduled dep-drift report, docs truth	Latest	v0.3.0	2026-11-21T13:25:16Z
+v0.2.0 — absorb trigger, honest check surface, rename-safe upgrade path		v0.2.0	2026-11-16T23:36:14Z
+v0.1.0 — Initial release		v0.1.0	2026-10-03T10:19:04Z
+\n### README claims 'Two tags exist' / 'Three tags'
+(no ThreeTags line)
+8:derived from the version stamp — never invented by hand. Existing tags: `v0.1.0`,
+\n### cmd: lore --help
+usage: lore [-h] {match,consult,compile,validate,gate,absorb,show,audit} ...
+
+Match symptoms and compile runbooks from fleet incident history.
+
+positional arguments:
+  {match,consult,compile,validate,gate,absorb,show,audit}
+    match               classify a symptom text
+    consult             tick-start consult (LORE-007): attach matching runbook
+                        refs to work context; fail-open (no match = exit 0)
+    compile             compile runbook proposal(s) per failure class (stdout
+                        only)
+    validate            read-only command lint (LORE-006). DEFAULT = plan/dry-
+                        run: lists what WOULD run, executes NOTHING; pass
+                        --execute to run the gate-approved read-only commands
+    gate                closure absorb-gate (LORE-008): machine-check a lesson
+                        decision (absorb or no-new-lesson ack); exports
+                        node_exporter metrics; exit 0 = allowed, 1 = denied or
+                        export failed
+    absorb              build the runbook-update PROPOSAL for an absorb
+                        decision (stdout only — propose-not-write, nothing is
+                        written)
+    show                print the compiled runbook for ONE class (LORE-010);
+                        human-markdown default, --format json optional
+    audit               coverage + freshness matrix over every registry class
+                        (LORE-010, PRD US-3); honest 'no data' freshness —
+                        never fabricated dates
+
+options:
+  -h, --help            show this help message and exit
+rc=0
+\n### cmd: match 4 arms
+gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain
+rc=0
+secret-env-clobber	confidence=0.90	evidence: signature:.env clobber; keyword:.env; keyword:clobber
+rc=0
+unclassified	confidence=0.00	evidence: none
+rc=0
+gateway-drain-window	confidence=0.90	evidence: signature:drain 503; keyword:503; keyword:drain; keyword:gateway
+unclassified	confidence=0.00	evidence: none
+near-misses:
+  guard-degradation  score=0.17  (1/6 keywords: gate)
+rc=0
+\n### cmd: compile md + unknown class
+# Runbook: Gateway drain window (`gateway-drain-window`)
+
+- **Status:** proposal
+- **Last validated:** no data (never validated)
+- **Last lint-validated:** last lint-validated 2026-11-24T19:55:29+00:00 on this box (local history, not operator attestation); executed 2/7 checks
+- **Provenance:** Compiled by lore.compiler from the curated class registry (lore.classes) and the fleet's incident history. Operator approval required to publish (propose-not-write).
+- **Signature:** `drain\s+503`
+
+## Checks (in order)
+
+### Check 1 (read-only)
+
+```sh
+logsey query "SELECT message, ts FROM logs WHERE message LIKE '%drain 503%' AND ts >= now() - INTERVAL 30 MINUTE"
+rc=0
+error: unknown class_id 'does-not-exist'; registry is closed. Known: gateway-drain-window, shared-checkout-collision, secret-env-clobber, disk-pressure-corruption, cooldown-pin-drift, key-rotation-expiry, guard-degradation, spawn-hot-loop, ingest-backfill-gap, gateway-guard-violation, docs-count-drift, worktree-reap-data-loss, fast-forward-push-reject, unclassified
+rc=2
+\n### cmd: pytest count claim (README: 586 passed)
+..........                                                               [100%]
+586 passed in 17.96s
+\n### cmd: ruff claim
+All checks passed!
+rc=0
+\n### cmd: consult json + failure fail-open
+{
+  "matched": true,
+  "matched_classes": [
+    "gateway-drain-window"
+  ],
+  "runbook_refs": [
+    {
+      "class_id": "gateway-drain-window",
+      "name": "Gateway drain window",
+      "status": "proposal",
+      "last_validated": null,
+      "check_count": 7
+    }
+  ],
+  "elapsed_ms": 2.875173988286406
+}
+rc=0
+no matching runbook
+rc=0
+\n### cmd: show, audit, validate plan mode
+# Runbook: Gateway drain window (`gateway-drain-window`)
+
+- **Status:** proposal
+- **Last validated:** no data (never validated)
+- **Provenance:** Compiled by lore.compiler from the curated class registry (lore.classes) and the fleet's incident history. Operator approval required to publish (propose-not-write).
+- **Signature:** `drain\s+503`
+
+## Checks (in order)
+rc=0
+class_id                   name                       bucket  compiled  checks  real-cmds  last_validated  status    env_absent  stale_reason
+-------------------------  -------------------------  ------  --------  ------  ---------  --------------  --------  ----------  ------------
+gateway-drain-window       Gateway drain window       -       True      7       7          no data         proposal
+shared-checkout-collision  Shared checkout collision  -       True      3       3          no data         proposal
+secret-env-clobber         Secret / .env clobber      -       True      2       2          no data         proposal
+disk-pressure-corruption   Disk-pressure corruption   -       True      3       3          no data         proposal
+cooldown-pin-drift         Cooldown / pin drift       -       True      3       3          no data         proposal
+key-rotation-expiry        Key rotation / expiry      -       True      2       2          no data         proposal
+guard-degradation          Guard / gate degradation   -       True      2       2          no data         proposal
+spawn-hot-loop             Spawn hot loop             -       True      3       3          no data         proposal
+ingest-backfill-gap        Ingest backfill gap        -       True      2       2          no data         proposal
+gateway-guard-violation    Gateway guard violation    -       True      2       2          no data         proposal
+docs-count-drift           Docs count drift           -       True      2       2          no data         proposal
+worktree-reap-data-loss    Worktree reap data loss    -       True      2       2          no data         proposal
+fast-forward-push-reject   Fast-forward push reject   -       True      2       2          no data         proposal
+[bucket] unclassified      Unclassified               yes     True      0       0          no data         proposal
+
+summary: 14 classes; 1 with zero real commands; last_validated is never auto-populated in v0.1 (operator attestation is planned, not implemented — a lint run is not attestation); today's freshness signal is the lint itself — the stale flag and its drift reason — and the field honestly reports 'no data' until a human attests. Stale comes from the local validate history (not attestation).
+rc=0
+[
+  {
+    "class_id": "gateway-drain-window",
+    "mode": "plan",
+    "note": "plan only \u2014 no command was executed; pass --execute to run the gate-approved read-only commands",
+    "would_run": [
+      {
+        "order": 1,
+        "command": "logsey query \"SELECT message, ts FROM logs WHERE message LIKE '%drain 503%' AND ts >= now() - INTERVAL 30 MINUTE\""
+      },
+      {
+        "order": 2,
+        "command": "grep -c 'drain 503' <gateway-log-path>"
+      },
+      {
+        "order": 3,
+        "command": "curl -s -o /dev/null -w '%{http_code}' <gateway-health-url>"
+      },
+      {
+        "order": 4,
+rc=0
+\n### cmd: gate allow + deny
+GATE: ALLOW (no-new-lesson)
+rc=0
+\n### stranger-TOOLINSTALL fresh env
+Installed 1 package in 1.41s
+ + get-h3-lore==0.3.0 (from git+https://github.com/get-h3/lore@377baa0d93dfa020cc738ca4cd7527a5d5876bc8)
+Installed 1 executable: lore
+warning: `/home/kara/.hermes/stand-in/readme/lore/probe-home-20261124/.local/bin` is not on your PATH. To use installed tools, run `export PATH="/home/kara/.hermes/stand-in/readme/lore/probe-home-20261124/.local/bin:$PATH"` or `uv tool update-shell`.
+key-rotation-expiry	confidence=0.90	evidence: signature:rotation expired; keyword:expired; keyword:rotation
+rc=0
+usage: lore [-h] {match,consult,compile,validate,gate,absorb,show,audit} ...
+lore: error: the following arguments are required: command
+(no --version)
+Nothing to upgrade
+\n### links: readme-link-check
+readme=README.md local_links=12 external_links=1
+line 28 OK      docs/INSTALL.md
+line 138 OK      CONTRIBUTING.md
+line 250 OK      docs/RUNBOOK-STORE.md
+line 383 OK      CHANGELOG.md#020--2026-11-16
+line 497 OK      docs/ABSORB-TRIGGER.md
+line 499 OK      docs/INSTALL.md
+line 501 OK      docs/RUNBOOK-STORE.md
+line 502 OK      docs/traceability-doctrine.md
+line 508 OK      docs/RUNBOOK-STORE.md
+line 525 OK      docs/PRD.md
+line 533 OK      SECURITY.md
+line 538 OK      LICENSE
+line 372 200 https://github.com/get-h3/lore  <- https://github.com/get-h3/lore
+local_missing=0 external_non_200=0
+rc=0
+\n### anchors: check-md-anchors README.md
+anchors_checked=1 broken=0
+rc=0
+\n### structure census
+Traceback (most recent call last):
+  File "/home/kara/.hermes/skills/coding-hermes/coding-hermes-readme/scripts/readme-structure-census.py", line 156, in <module>
+    sys.exit(main(sys.argv))
+             ~~~~^^^^^^^^^^
+  File "/home/kara/.hermes/skills/coding-hermes/coding-hermes-readme/scripts/readme-structure-census.py", line 56, in main
+    with open(path, "rb") as fh:
+         ~~~~^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '--cli-name'
+rc=1
+\n### doc-severity census (re-triage duty)
+DOC-10 P4 complete
+DOC-10-R2 P4 pending
+DOC-11 P4 complete
+DOC-12 P4 complete
+DOC-1 P2 complete
+DOC-2 P2 complete
+DOC-3 P3 complete
+DOC-4 P3 complete
+DOC-5 P4 complete
+DOC-5-R2 P4 complete
+DOC-6 P4 complete
+DOC-7 P4 complete
+DOC-8 P4 complete
+DOC-9 P4 complete
+README-10 P4 complete
+README-11 P5 complete
+README-11-R2 P5 complete
+README-1 P2 complete
+README-2 P5 complete
+README-3 P4 complete
+README-4 P4 complete
+README-5 P4 complete
+README-6 P4 complete
+README-7 P5 complete
+README-7-R2 P5 complete
+README-8 P5 complete
+README-8-R2 P5 complete
+README-9 P5 complete
+README-9-R2 P5 complete
+SWEEP end=2026-11-24T20:48:59Z
