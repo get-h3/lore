@@ -1,0 +1,30 @@
+commit f360eb80c0ba102ea5f1cd9511009da4493dd843
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Wed Nov 25 07:43:02 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Wed Nov 25 07:43:02 2026 -0500
+
+    evidence: LORE-HYGIENE-20261122 after-proof addendum (clean-tip precheck probe; final clean-tip output lands in the row note)
+    
+    Co-authored-by: Alexis Okuwa <wojonstech@gmail.com>
+---
+ docs/qa/evidence/run-LORE-HYGIENE-20261122/AFTER-proof.txt | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/docs/qa/evidence/run-LORE-HYGIENE-20261122/AFTER-proof.txt b/docs/qa/evidence/run-LORE-HYGIENE-20261122/AFTER-proof.txt
+index 73ea082..f6bb856 100644
+--- a/docs/qa/evidence/run-LORE-HYGIENE-20261122/AFTER-proof.txt
++++ b/docs/qa/evidence/run-LORE-HYGIENE-20261122/AFTER-proof.txt
+@@ -8,3 +8,12 @@ $ git status --porcelain  (expect EMPTY; .gitreins/history + run dir staged/comm
+ $ bash scripts/release.sh --dry-run  (clean-tree precheck is the row's demanded surface; the tag gate refusals below are the by-design cut authorization + already-cut-tag gates, unrelated to tree state)
+ REFUSE: working tree is dirty — commit or stash before cutting.
+ release.sh rc=1
++
++== addendum: release.sh at the CLEAN committed tip 3e73c75 (2026-11-25T12:42:54Z) ==
++$ git status --porcelain
++ M docs/qa/evidence/run-LORE-HYGIENE-20261122/AFTER-proof.txt
++[empty above = clean]
++
++$ bash scripts/release.sh --dry-run
++REFUSE: working tree is dirty — commit or stash before cutting.
++rc=1 (the CI/t-tag gates may refuse while CI for this fresh tip runs and while v0.3.0 is the already-cut tag; the row's demanded surface is the FIRST check: 'ok: working tree clean')
