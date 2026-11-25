@@ -49,3 +49,9 @@ get_h3_lore.egg-info/
 .gitreins/rescued-*/
 # single-path mutable last-run judge snapshot; per-run history under .gitreins/history/ stays tracked.
 .gitreins/verdicts/
+# QA battery evidence persist dir (LORE-HYGIENE-20261122). The bunker-qa.sh
+# collector now persists run evidence OUTSIDE the tree under
+# ~/.hermes/qa/evidence/<project>/<tick>/; this rule is belt-and-braces so the
+# legacy in-repo path (written by pre-fix harness generations) can never read
+# as dirty tree residue again.
+.coding-hermes/evidence/
