@@ -1,0 +1,297 @@
+{
+  "task_id": "QA-LORE-7",
+  "task_title": "Stop .gitignore *.log from shadowing tracked docs/qa/evidence log files",
+  "task_criteria": [
+    "Tracked evidence logs under docs/qa/evidence/ are never shadowed by the .gitignore local-scratch *.log rule: a negation pattern re-includes docs/qa/evidence log files so git check-ignore admits none of the 10 tracked .log files, a regression test proves no tracked file is ignored (git check-ignore over git ls-files is empty), and the file count guard plus pytest plus ruff stay green. Failure condition: git check-ignore lists any tracked path, or the new test fails. Proof: test output on the merged tree plus check-ignore run over the full tracked set."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "39b95cd99055a5c3b32537248a092081bc0810c5",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "bb98beeabad9c52f0c6916f5162531ffef4a6570fdfef8cc333a868a62e210c4",
+  "working_tree_dirty_path_count": 20,
+  "items": [
+    {
+      "criterion": "Tracked evidence logs under docs/qa/evidence/ are never shadowed by the .gitignore local-scratch *.log rule: a negation pattern re-includes docs/qa/evidence log files so git check-ignore admits none of the 10 tracked .log files, a regression test proves no tracked file is ignored (git check-ignore over git ls-files is empty), and the file count guard plus pytest plus ruff stay green. Failure condition: git check-ignore lists any tracked path, or the new test fails. Proof: test output on the merged tree plus check-ignore run over the full tracked set.",
+      "status": "PASS",
+      "detail": "Negation present at .gitignore:23 '!docs/qa/evidence/**/*.log' directly after the scratch rule at .gitignore:22 '*.log'. Fresh commands on clean tree 39b95cd: (a) `git ls-files | git check-ignore --stdin` -> exit code 1, empty stdout = zero tracked paths ignored; (b) `git ls-files 'docs/qa/evidence/*.log' | wc -l` = 10 (run14 x4, run9 x6); (c) regression test tests/test_qalore7_gitignore_evidence.py::test_no_tracked_file_is_gitignored PASSED and ::test_qa_evidence_logs_tracked_and_not_ignored PASSED (fresh run, '15 passed'); (d) file count guard tests/test_count_guard.py 13/13 PASSED; (e) exact guard test_command `uv run pytest -x --tb=short -q` -> '586 passed in 7.84s', exit_code 0; (f) `uv run ruff check . --quiet` rc=0 and `uv run ruff format --check .` rc=0."
+    },
+    {
+      "criterion": "The negation is correctly scoped: the local-scratch *.log rule still ignores scratch .log files outside docs/qa/evidence/, so the fix does not globally unignore logs.",
+      "status": "PASS",
+      "detail": "Command `git check-ignore -v scratch_probe_qalore7.log docs/qa/evidence/run9/diag.log docs/qa/evidence/run14/fresh-box-clone.log` (probe file created then removed; tree clean afterwards) returned exactly one line `.gitignore:22:*.log scratch_probe_qalore7.log` with rc=0 \u2014 the scratch rule still fires at repo root while neither evidence log was reported ignored, proving scope, not a blanket unignore.",
+      "derived": true
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nsecrets: gitleaks bound=timeout 600s (0=off)\nscanners: nice=nice -n 10\nsecrets: gitleaks scope=repo-root /home/kara/get-h3/lore\nsecrets: gitleaks parallelism=GOMAXPROCS=4\n12:43AM INF scanned ~5905274 bytes (5.91 MB) in 7.3s\n12:43AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 420 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.14.7\ncollected 586 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  8%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 23%]\ntests/test_count_guard.py .............                                  [ 25%]\ntests/test_dist_name.py ....                                             [ 26%]\ntests/test_evidence.py ......................                            [ 30%]\ntests/test_lore011_drain_acceptance.py .......                           [ 31%]\ntests/test_lore016_qa_audit.py .....................                     [ 35%]\ntests/test_lore017_gateway_guard.py ........                             [ 36%]\ntests/test_lore020_absorb_window.py ...                                  [ 37%]\ntests/test_lore021_naming_docs.py .......                                [ 38%]\ntests/test_lore022_freshness_docs.py .....                               [ 39%]\ntests/test_lore030_ux_guard.py ....                                      [ 39%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 41%]\ntests/test_lore041_collision_canonical.py ...........                    [ 43%]\ntests/test_lore043_short_text_threshold.py ....................          [ 47%]\ntests/test_lore045_validate_history.py ....................              [ 50%]\ntests/test_lore046_match_output.py ...........                           [ 52%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 54%]\n\n\u2026 [720 chars omitted \u2014 9 line(s)] \u2026\ntests/test_lore060_logsey_sql_contract.py ........                       [ 65%]\ntests/test_lore061_env_absent_rendering.py .......                       [ 67%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 67%]\ntests/test_lore064_audit_wiring.py .............................         [ 72%]\ntests/test_lore066_zero_check_skip.py ...                                [ 73%]\ntests/test_lore067_incident_audit.py ..                                  [ 73%]\ntests/test_lore071_trigger.py ......                                     [ 74%]\ntests/test_lore072_bucket_compiled_by_design.py .....                    [ 75%]\ntests/test_near_miss.py ..............                                   [ 77%]\ntests/test_perf2_audit_single_pass.py ........                           [ 79%]\ntests/test_prom_export.py .......                                        [ 80%]\ntests/test_qalore7_gitignore_evidence.py ..                              [ 80%]\ntests/test_readme_links.py .                                             [ 81%]\ntests/test_review001_gate_record.py ........                             [ 82%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 84%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 586 passed in 10.93s =============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            }
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 Tracked evidence logs under docs/qa/evidence/ are never shadowed by the .gitignore local-scratch *.log rule: a negation pattern re-includes docs/qa/evidence log files so git check-ignore admits none of the 10 tracked .log files, a regression test proves no tracked file is ignored (git check-ignore over git ls-files is empty), and the file count guard plus pytest plus ruff stay green. Failure condition: git check-ignore lists any tracked path, or the new test fails. Proof: test output on the merged tree plus check-ignore run over the full tracked set.: Negation present at .gitignore:23 '!docs/qa/evidence/**/*.log' directly after the scratch rule at .gitignore:22 '*.log'. Fresh commands on clean tree 39b95cd: (a) `git ls-files | git check-ignore --stdin` -> exit code 1, empty stdout = zero tracked paths ignored; (b) `git ls-files 'docs/qa/evidence/*.log' | wc -l` = 10 (run14 x4, run9 x6); (c) regression test tests/test_qalore7_gitignore_evidence.py::test_no_tracked_file_is_gitignored PASSED and ::test_qa_evidence_logs_tracked_and_not_ignored PASSED (fresh run, '15 passed'); (d) file count guard tests/test_count_guard.py 13/13 PASSED; (e) exact guard test_command `uv run pytest -x --tb=short -q` -> '586 passed in 7.84s', exit_code 0; (f) `uv run ruff check . --quiet` rc=0 and `uv run ruff format --check .` rc=0.\n  \u2713 The negation is correctly scoped: the local-scratch *.log rule still ignores scratch .log files outside docs/qa/evidence/, so the fix does not globally unignore logs.: Command `git check-ignore -v scratch_probe_qalore7.log docs/qa/evidence/run9/diag.log docs/qa/evidence/run14/fresh-box-clone.log` (probe file created then removed; tree clean afterwards) returned exactly one line `.gitignore:22:*.log scratch_probe_qalore7.log` with rc=0 \u2014 the scratch rule still fires at repo root while neither evidence log was reported ignored, proving scope, not a blanket unignore.\nQA-LORE-7 verified on the clean merged tree: the .gitignore negation re-includes evidence logs, check-ignore over the full tracked set admits nothing (rc=1), exactly 10 tracked evidence .log files exist, the new regression test, file count guard, full 586-test pytest run, and ruff (check + format) are all green, and the scratch *.log rule still functions outside docs/qa/evidence/.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 Tracked evidence logs under docs/qa/evidence/ are never shadowed by the .gitignore local-scratch *.log rule: a negation pattern re-includes docs/qa/evidence log files so git check-ignore admits none of the 10 tracked .log files, a regression test proves no tracked file is ignored (git check-ignore over git ls-files is empty), and the file count guard plus pytest plus ruff stay green. Failure condition: git check-ignore lists any tracked path, or the new test fails. Proof: test output on the merged tree plus check-ignore run over the full tracked set.: Negation present at .gitignore:23 '!docs/qa/evidence/**/*.log' directly after the scratch rule at .gitignore:22 '*.log'. Fresh commands on clean tree 39b95cd: (a) `git ls-files | git check-ignore --stdin` -> exit code 1, empty stdout = zero tracked paths ignored; (b) `git ls-files 'docs/qa/evidence/*.log' | wc -l` = 10 (run14 x4, run9 x6); (c) regression test tests/test_qalore7_gitignore_evidence.py::test_no_tracked_file_is_gitignored PASSED and ::test_qa_evidence_logs_tracked_and_not_ignored PASSED (fresh run, '15 passed'); (d) file count guard tests/test_count_guard.py 13/13 PASSED; (e) exact guard test_command `uv run pytest -x --tb=short -q` -> '586 passed in 7.84s', exit_code 0; (f) `uv run ruff check . --quiet` rc=0 and `uv run ruff format --check .` rc=0.\n  \u2713 The negation is correctly scoped: the local-scratch *.log rule still ignores scratch .log files outside docs/qa/evidence/, so the fix does not globally unignore logs.: Command `git check-ignore -v scratch_probe_qalore7.log docs/qa/evidence/run9/diag.log docs/qa/evidence/run14/fresh-box-clone.log` (probe file created then removed; tree clean afterwards) returned exactly one line `.gitignore:22:*.log scratch_probe_qalore7.log` with rc=0 \u2014 the scratch rule still fires at repo root while neither evidence log was reported ignored, proving scope, not a blanket unignore.\nQA-LORE-7 verified on the clean merged tree: the .gitignore negation re-includes evidence logs, check-ignore over the full tracked set admits nothing (rc=1), exactly 10 tracked evidence .log files exist, the new regression test, file count guard, full 586-test pytest run, and ruff (check + format) are all green, and the scratch *.log rule still functions outside docs/qa/evidence/.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "Tracked evidence logs under docs/qa/evidence/ are never shadowed by the .gitignore local-scratch *.log rule: a negation pattern re-includes docs/qa/evidence log files so git check-ignore admits none of the 10 tracked .log files, a regression test proves no tracked file is ignored (git check-ignore over git ls-files is empty), and the file count guard plus pytest plus ruff stay green. Failure condition: git check-ignore lists any tracked path, or the new test fails. Proof: test output on the merged tree plus check-ignore run over the full tracked set.",
+                "status": "PASS",
+                "detail": "Negation present at .gitignore:23 '!docs/qa/evidence/**/*.log' directly after the scratch rule at .gitignore:22 '*.log'. Fresh commands on clean tree 39b95cd: (a) `git ls-files | git check-ignore --stdin` -> exit code 1, empty stdout = zero tracked paths ignored; (b) `git ls-files 'docs/qa/evidence/*.log' | wc -l` = 10 (run14 x4, run9 x6); (c) regression test tests/test_qalore7_gitignore_evidence.py::test_no_tracked_file_is_gitignored PASSED and ::test_qa_evidence_logs_tracked_and_not_ignored PASSED (fresh run, '15 passed'); (d) file count guard tests/test_count_guard.py 13/13 PASSED; (e) exact guard test_command `uv run pytest -x --tb=short -q` -> '586 passed in 7.84s', exit_code 0; (f) `uv run ruff check . --quiet` rc=0 and `uv run ruff format --check .` rc=0."
+              },
+              {
+                "criterion": "The negation is correctly scoped: the local-scratch *.log rule still ignores scratch .log files outside docs/qa/evidence/, so the fix does not globally unignore logs.",
+                "status": "PASS",
+                "detail": "Command `git check-ignore -v scratch_probe_qalore7.log docs/qa/evidence/run9/diag.log docs/qa/evidence/run14/fresh-box-clone.log` (probe file created then removed; tree clean afterwards) returned exactly one line `.gitignore:22:*.log scratch_probe_qalore7.log` with rc=0 \u2014 the scratch rule still fires at repo root while neither evidence log was reported ignored, proving scope, not a blanket unignore.",
+                "derived": true
+              }
+            ],
+            "summary": "QA-LORE-7 verified on the clean merged tree: the .gitignore negation re-includes evidence logs, check-ignore over the full tracked set admits nothing (rc=1), exactly 10 tracked evidence .log files exist, the new regression test, file count guard, full 586-test pytest run, and ruff (check + format) are all green, and the scratch *.log rule still functions outside docs/qa/evidence/.",
+            "provenance": {
+              "model": "glm-5.3-flash",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            },
+            "context_stats": {
+              "diff_source": "working-tree",
+              "diff_bytes": 0,
+              "prompt_bytes": 6380
+            }
+          }
+        }
+      ],
+      "model": "glm-5.3-flash",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "context_stats": {
+        "diff_source": "working-tree",
+        "diff_bytes": 0,
+        "prompt_bytes": 6380
+      },
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"QA-LORE-7\"}",
+          "exit_code": 0,
+          "output_sha": "dfb2e9ab541c10d4c3de5b3ff82ccd47d7cd18f915cc217194bae4f924fadee5"
+        },
+        {
+          "tool": "run_command",
+          "command": "cat .gitreins/config.yaml 2>/dev/null | head -50",
+          "exit_code": 0,
+          "output_sha": "76098d81def1ca33ef7fdac7e9941b51e737c83ad02cf93250f9c4205f32d282"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \".gitignore\"}",
+          "exit_code": 0,
+          "output_sha": "f221b89e16e7b1fe2011affffbdeaf38d522c359b00f9a84be53171c3d47a1a5"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"path\": \"tests/test_qalore7_gitignore_evidence.py\"}",
+          "exit_code": 0,
+          "output_sha": "bc73dad1c037288f96c4876c7713ac11050c15ecf45eda1041dc53204103c2c3"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git ls-files | git check-ignore --stdin --verbose; echo \"check-ignore rc=$?\"; echo \"---evidence log count---\"; git ls-files 'docs/qa/evidence/*.log' | wc -l; git ls-files 'docs/qa/evidence/*.log'",
+          "exit_code": 0,
+          "output_sha": "4bd7d8acce695fa0b162facb871f8160dadba7be797cd841a4bdf1d7c02556e0"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && touch scratch_probe_qalore7.log && git check-ignore -v scratch_probe_qalore7.log docs/qa/evidence/run9/diag.log docs/qa/evidence/run14/fresh-box-clone.log; echo \"rc=$?\"; rm -f scratch_probe_qalore7.log; git status --porcelain | head -5",
+          "exit_code": 0,
+          "output_sha": "8930afcd1380135c58e1da74bf310b88c5a881443432c6b5af92f8ff9bb770dd"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && uv run pytest -x --tb=short -q 2>&1 | tail -15",
+          "exit_code": 0,
+          "output_sha": "688e894a3df69668767730a2af84052f528160730124c29545544123ee56ae19"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && uv run ruff check . --quiet; echo \"ruff rc=$?\"; uv run ruff format --check . > /dev/null 2>&1; echo \"ruff-format rc=$?\"; echo \"---count guard---\"; ls tests/ | grep -i count; git ls-files tests/test_count_guard.py",
+          "exit_code": 0,
+          "output_sha": "54ffc12a48afc9e47a694fe43ae2ae6e535e017e81ed2d1e68ef7419459cba73"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && uv run pytest tests/test_count_guard.py tests/test_qalore7_gitignore_evidence.py -v --tb=short 2>&1 | tail -22; grep -n \"testpaths\" pyproject.toml",
+          "exit_code": 0,
+          "output_sha": "26d0ccd7bceb28964d09cf2021bd7ea3ae8ccf5069f6aa8ec76677091a6f6759"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: Criterion 1 fully verified with fresh commands on the clean tree at 39b95cd.\\n(1) Negation present: .gitignore:22 '*.log' followed by .gitignore:23 '!docs/qa/evidence/**/*.log' (comment line 22 cites QA-LORE-7).\\n(2) Full tracked set: `git ls-files | git check-ignore --stdin` -> exit_code 1 (none ignored), empty stdout.\\n(3) Exactly 10 tracked evidence logs: `git ls-files 'docs/qa/evidence/*.log' | wc -l` = 10 (run14 x4, run9 x6).\\n(4) Regression test: tests/test_qalore7_gitignore_evidence.py exists; fresh run `uv run pytest tests/test_qalore7_gitignore_evidence.py -v` -> test_no_tracked_file_is_gitignored PASSED, test_qa_evidence_logs_tracked_and_not_ignored PASSED.\\n(5) File count guard: tests/test_count_guard.py 13/13 PASSED (fresh output above).\\n(6) pytest: `uv run pytest -x --tb=short -q` (exact test_command from .gitreins/config.yaml) -> 586 passed in 7.84s, exit_code 0.\\n(7) ruff: `uv run ruff check . --quiet` rc=0; `uv run ruff format --check .` rc=0.\\n(8) Scratch rule still active for non-evidence logs: `git check-ignore -v scratch_probe_qalore7.log` -> matched by .gitignore:22:*.log (probe removed; evidence logs NOT matched).\\n\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "935b9a1f367c0ad49d2b922a70d208d9d09479852a3075afac04243fd19cbc23"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"The negation is correctly scoped: the local-scratch *.log rule still ignores scratch .log files outside docs/qa/evidence/, so the fix does not globally unignore logs.\\n\", \"key\": \"derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "fb612aeb628c78c06042bb190ddd604b7fa5b79040bbacc1b41d5433137ae4c3"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: `git check-ignore -v scratch_probe_qalore7.log docs/qa/evidence/run9/diag.log docs/qa/evidence/run14/fresh-box-clone.log` (probe file created then removed) returned exactly `.gitignore:22:*.log scratch_probe_qalore7.log` \\u2014 the scratch rule still fires at repo root while neither evidence log was reported, proving the negation is scoped to docs/qa/evidence/** and not a blanket unignore.\\n\", \"key\": \"verified_derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "cd51742e4dc2218f019a86ef80ef79381af7ee39b04ab13e855c8febd95d8402"
+        }
+      ]
+    },
+    "fix_verification": {
+      "id": "fix_verification",
+      "passed": true,
+      "any_failed": false,
+      "summary": "fix_verification: 0 finding(s) verified",
+      "steps": [
+        {
+          "id": "fix_verification",
+          "type": "fix_verification",
+          "passed": true,
+          "output": "fix_verification: 0 finding(s) verified",
+          "error": "",
+          "data": {
+            "dispositions": [],
+            "counts": {}
+          }
+        }
+      ]
+    }
+  },
+  "context_stats": {
+    "diff_source": "working-tree",
+    "diff_bytes": 0,
+    "prompt_bytes": 6380
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [
+      {
+        "severity": "low",
+        "file": ".coding-hermes/board/tasks.jsonl",
+        "line": 153,
+        "detection": "row introduces a top-level `evidence` string key that no other row in tasks.jsonl defines or reads; every sibling row references evidence via the `detail.evidence` array or foreman_note prose",
+        "detail": "the updated QA-LORE-7 row ends with a new `\"evidence\":\"docs/qa/evidence/run-QA-LORE-7/README.md\"` key after foreman_note, while all other rows in the file (e.g. INFRA-LORE-045, LORE-072, LORE-20261012) carry evidence only as `detail.evidence:[{run_id,...}]`, so the key is schema drift with no visible consumer",
+        "category": "unknown",
+        "fingerprint": "d94ba09a9396f5521cc4d5201335a6568ecce813f4f218e4967982c3764175fb",
+        "state": "ACTIVE",
+        "echo": "[low][unknown] .coding-hermes/board/tasks.jsonl:153 \u2014 row introduces a top-level `evidence` string key that no other row in tasks.jsonl defines or reads; every sibling row references evidence via the `detail.evidence` array or foreman_note prose\nthe updated QA-LORE-7 row ends with a new `\"evidence\":\"docs/qa/evidence/run-QA-LORE-7/README.md\"` key after foreman_note, while all other rows in the file (e.g. INFRA-LORE-045, LORE-072, LORE-20261012) carry evidence only as `detail.evidence:[{run_id,...}]`, so the key is schema drift with no visible consumer"
+      }
+    ],
+    "summary": "The change is a board-bookkeeping status flip of QA-LORE-7 to complete; the only evidenced defect is convention drift from adding a top-level `evidence` key no other row uses.",
+    "raw_reply": "",
+    "retry": {
+      "count": 1,
+      "raw_reply": "{\"findings\":[{\"severity\":\"low\",\"file\":\".coding-hermes/board/tasks.jsonl\",\"line\":153,\"detection\":\"row introduces a top-level `evidence` string key that no other row in tasks.jsonl defines or reads; every sibling row references evidence via the `detail.evidence` array or foreman_note prose\",\"detail\":\"the updated QA-LORE-7 row ends with a new `\\\"evidence\\\":\\\"docs/qa/evidence/run-QA-LORE-7/README.md\\\"` key after foreman_note, while all other rows in the file (e.g. INFRA-LORE-045, LORE-072, LORE-20261012) carry evidence only as `detail.evidence:[{run_id,...}]`, so the key is schema drift with no visible consumer\"}],\"summary\":\"The change is a board-bookkeeping status flip of QA-LORE-7 to complete; the only evidenced defect is convention drift from adding a top-level `evidence` key no other row uses.\"}"
+    },
+    "review_state": {
+      "emitted": [
+        {
+          "severity": "low",
+          "file": ".coding-hermes/board/tasks.jsonl",
+          "line": 153,
+          "detection": "row introduces a top-level `evidence` string key that no other row in tasks.jsonl defines or reads; every sibling row references evidence via the `detail.evidence` array or foreman_note prose",
+          "detail": "the updated QA-LORE-7 row ends with a new `\"evidence\":\"docs/qa/evidence/run-QA-LORE-7/README.md\"` key after foreman_note, while all other rows in the file (e.g. INFRA-LORE-045, LORE-072, LORE-20261012) carry evidence only as `detail.evidence:[{run_id,...}]`, so the key is schema drift with no visible consumer",
+          "category": "unknown",
+          "fingerprint": "d94ba09a9396f5521cc4d5201335a6568ecce813f4f218e4967982c3764175fb",
+          "state": "ACTIVE",
+          "echo": "[low][unknown] .coding-hermes/board/tasks.jsonl:153 \u2014 row introduces a top-level `evidence` string key that no other row in tasks.jsonl defines or reads; every sibling row references evidence via the `detail.evidence` array or foreman_note prose\nthe updated QA-LORE-7 row ends with a new `\"evidence\":\"docs/qa/evidence/run-QA-LORE-7/README.md\"` key after foreman_note, while all other rows in the file (e.g. INFRA-LORE-045, LORE-072, LORE-20261012) carry evidence only as `detail.evidence:[{run_id,...}]`, so the key is schema drift with no visible consumer"
+        }
+      ],
+      "carried": []
+    }
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 Tracked evidence logs under docs/qa/evidence/ are never shadowed by the .gitignore local-scratch *.log rule: a negation pattern re-includes docs/qa/evidence log files so git check-ignore admits none of the 10 tracked .log files, a regression test proves no tracked file is ignored (git check-ignore over git ls-files is empty), and the file count guard plus pytest plus ruff stay green. Failure condition: git check-ignore lists any tracked path, or the new test fails. Proof: test output on the merged tree plus check-ignore run over the full tracked set.: Negation present at .gitignore:23 '!docs/qa/evidence/**/*.log' directly after the scratch rule at .gitignore:22 '*.log'. Fresh commands on clean tree 39b95cd: (a) `git ls-files | git check-ignore --stdin` -> exit code 1, empty stdout = zero tracked paths ignored; (b) `git ls-files 'docs/qa/evidence/*.log' | wc -l` = 10 (run14 x4, run9 x6); (c) regression test tests/test_qalore7_gitignore_evidence.py::test_no_tracked_file_is_gitignored PASSED and ::test_qa_evidence_logs_tracked_and_not_ignored PASSED (fresh run, '15 passed'); (d) file count guard tests/test_count_guard.py 13/13 PASSED; (e) exact guard test_command `uv run pytest -x --tb=short -q` -> '586 passed in 7.84s', exit_code 0; (f) `uv run ruff check . --quiet` rc=0 and `uv run ruff format --check .` rc=0.\n  \u2713 The negation is correctly scoped: the local-scratch *.log rule still ignores scratch .log files outside docs/qa/evidence/, so the fix does not globally unignore logs.: Command `git check-ignore -v scratch_probe_qalore7.log docs/qa/evidence/run9/diag.log docs/qa/evidence/run14/fresh-box-clone.log` (probe file created then removed; tree clean afterwards) returned exactly one line `.gitignore:22:*.log scratch_probe_qalore7.log` with rc=0 \u2014 the scratch rule still fires at repo root while neither evidence log was reported ignored, proving scope, not a blanket unignore.\nQA-LORE-7 verified on the clean merged tree: the .gitignore negation re-includes evidence logs, check-ignore over the full tracked set admits nothing (rc=1), exactly 10 tracked evidence .log files exist, the new regression test, file count guard, full 586-test pytest run, and ruff (check + format) are all green, and the scratch *.log rule still functions outside docs/qa/evidence/.\n\nStage fix_verification: PASS\n  fix_verification: 0 finding(s) verified\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-25T05:46:32.344895",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-25T05:46:32.364690+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 4696,
+        "truncated": false,
+        "source": "git show 39b95cd99055"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 27335,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "QA-LORE-7"
+  }
+}
