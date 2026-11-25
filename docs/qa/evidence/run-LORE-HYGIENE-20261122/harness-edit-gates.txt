@@ -1,0 +1,62 @@
+=== harness edit gates (LORE-HYGIENE-20261122, 2026-11-25T12:40:08Z) ===
+
+-- bash -n deployed copy:
+SYNTAX_OK
+
+-- NEW suite vs EDITED harness:
+suite: evidence persist (LORE-HYGIENE-20261122) — harness: /home/kara/.hermes/scripts/bunker-qa.sh
+PASS: arm1 project= line wins (got /home/kara/.hermes/qa/evidence/lore-battery-test)
+PASS: arm1 no-identity fallback is basename: repo-arm1 (expect repo-arm1)
+PASS: arm1 BUNKER_QA_PROJECT_IDENTITY segment honored
+PASS: arm2 root override honored
+PASS: arm3 EVIDENCE-DIR outside the repo: /mnt/ssd/tmp/evid-persist-eEkR9t/home-arm3/.hermes/qa/evidence/lore-battery-test/qa-arm3-3994796
+PASS: arm3 durable default root shape exact: /mnt/ssd/tmp/evid-persist-eEkR9t/home-arm3/.hermes/qa/evidence/lore-battery-test/qa-arm3-3994796
+PASS: arm3 repo git status --porcelain CLEAN after persist (the release precheck surface)
+PASS: arm3 legacy in-repo path not created
+PASS: arm3 ledger + manifest + logs persisted at the durable path
+PASS: arm3 manifest digest covers the persisted ledger
+PASS: arm3 manifest schema line present
+PASS: arm4 real persist honors BUNKER_QA_EVIDENCE_PERSIST_ROOT
+PASS: arm5 no-repo persist fails closed with the documented SKIP line
+suite summary: pass=13 fail=0
+green-rc=0
+
+-- RED control: same suite vs PRE-EDIT backup:
+# span for qa_evidence_persist_root NOT FOUND in bunker-qa.sh.bak-LORE-HYGIENE-20261122-20261125T123045Z — suite will go red
+suite: evidence persist (LORE-HYGIENE-20261122) — harness: bunker-qa.sh.bak-LORE-HYGIENE-20261122-20261125T123045Z
+FAIL: required function span(s) missing from harness: qa_evidence_persist_root
+test_bunker_qa_evidence_persist.sh: line 125: qa_evidence_persist_root: command not found
+FAIL: arm1 project= line should win, got: 
+test_bunker_qa_evidence_persist.sh: line 133: qa_evidence_persist_root: command not found
+PASS: arm1 no-identity fallback is basename:  (expect repo-arm1)
+test_bunker_qa_evidence_persist.sh: line 141: qa_evidence_persist_root: command not found
+FAIL: arm1 identity env should set the project segment, got: 
+test_bunker_qa_evidence_persist.sh: line 153: qa_evidence_persist_root: command not found
+FAIL: arm2 root override expected /mnt/ssd/tmp/evid-persist-JXRu8b/custom-evidence-root/..., got: 
+FAIL: arm3 EVIDENCE-DIR INSIDE the repo-under-test: /mnt/ssd/tmp/evid-persist-JXRu8b/repo-arm3/.coding-hermes/evidence/qa-arm3-3995358
+FAIL: arm3 expected /mnt/ssd/tmp/evid-persist-JXRu8b/home-arm3/.hermes/qa/evidence/lore-battery-test/qa-arm3-3995358, got: /mnt/ssd/tmp/evid-persist-JXRu8b/repo-arm3/.coding-hermes/evidence/qa-arm3-3995358
+FAIL: arm3 repo dirty after persist: ?? .coding-hermes/
+FAIL: arm3 legacy in-repo path was created: /mnt/ssd/tmp/evid-persist-JXRu8b/repo-arm3/.coding-hermes/evidence
+PASS: arm3 ledger + manifest + logs persisted at the durable path
+PASS: arm3 manifest digest covers the persisted ledger
+PASS: arm3 manifest schema line present
+FAIL: arm4 expected persist under the override root, got EVIDENCE-DIR=/mnt/ssd/tmp/evid-persist-JXRu8b/repo-arm4/.coding-hermes/evidence/qa-arm4-3995358
+PASS: arm5 no-repo persist fails closed with the documented SKIP line
+suite summary: pass=5 fail=9
+red-rc=1
+
+-- existing suites, fixed vs backup (no-regression parity):
+disk_preflight: fixed[RESULT: 0 passed, 21 failed] bak[RESULT: 0 passed, 21 failed]
+pytest_detect: fixed[RESULT: 5 passed, 22 failed] bak[RESULT: 5 passed, 22 failed]
+stdin_ship: fixed[RESULT: 22 passed, 13 failed] bak[RESULT: 22 passed, 13 failed]
+act_grade: RESULT: 21 passed, 0 failed
+chaos_snapshot_anchor: PASS: executed failing control remains FAIL
+classifier: RESULT: 80 passed, 0 failed
+
+-- shellcheck rule histogram parity:
+IDENTICAL
+
+-- sha256:
+035b26fe3259003d067cf27b8310c54875d44fac93e203d947690b428f0f7115  bunker-qa.sh
+d3a4432d80eac82e1e8a99bf6a64f2b1b8b3301f1f17189143444ab56cc94589  bunker-qa.sh.bak-LORE-HYGIENE-20261122-20261125T123045Z
+6fbe855f21291b0d92dcdbff71c2db7e196f0fcc3de0253d72fd645f78e49d83  test_bunker_qa_evidence_persist.sh

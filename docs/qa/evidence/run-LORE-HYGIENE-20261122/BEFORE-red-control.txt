@@ -1,0 +1,10 @@
+== RED control — BEFORE the fix (2026-11-25T12:24:32Z, HEAD 2d28070d0ea51c89218702f6ed3b78d04d9aab97) ==
+
+$ git status --porcelain
+?? .coding-hermes/evidence/
+?? .gitreins/history/2026-11-25/
+?? docs/qa/evidence/run-LORE-HYGIENE-20261122/
+
+$ bash scripts/release.sh --dry-run
+REFUSE: working tree is dirty — commit or stash before cutting.
+release.sh --dry-run exit code: 1

@@ -1,0 +1,54 @@
+34,35c34,39
+< #                                               to <repo>/.coding-hermes/evidence/
+< #                                               <tick>/ (EVIDENCE-DIR=<abs>), with a
+---
+> #                                               to the DURABLE OUT-OF-TREE root
+> #                                               ~/.hermes/qa/evidence/<project>/
+> #                                               <tick>/ (BUNKER_QA_EVIDENCE_
+> #                                               PERSIST_ROOT overrides; LORE-
+> #                                               HYGIENE-20261122: never inside
+> #                                               the repo-under-test) with a
+285a290,306
+> # LORE-HYGIENE-20261122: the durable OUT-OF-TREE persist root for a battery's
+> # evidence. persist_evidence() used to copy the merged ledger + per-cell logs
+> # into <repo-under-test>/.coding-hermes/evidence/<tick>/ — 100-500K of untracked
+> # residue per battery that tripped every repo's release clean-tree precheck
+> # (lore measured it 3 runs in a row). Evidence is durable here, outside every
+> # checkout. Root override: BUNKER_QA_EVIDENCE_PERSIST_ROOT. Project segment
+> # mirrors write_evidence_manifest's proj resolution: the launch record's
+> # project= line, else BUNKER_QA_PROJECT_IDENTITY, else the repo basename.
+> qa_evidence_persist_root() { # <repo_root> <meta_file> -> stdout: <root>/<project>
+>   local proj
+>   proj=$(sed -n 's/^project=//p' "$2" 2>/dev/null | head -1)
+>   [ -n "$proj" ] || proj="${BUNKER_QA_PROJECT_IDENTITY:-}"
+>   [ -n "$proj" ] || proj=$(basename -- "$1" 2>/dev/null)
+>   [ -n "$proj" ] || proj="unknown-target"
+>   printf '%s/%s\n' "${BUNKER_QA_EVIDENCE_PERSIST_ROOT:-${HOME}/.hermes/qa/evidence}" "$proj"
+> }
+> 
+5483,5485c5504,5508
+<   # QA-CRIER-066-R2: the tick id names the in-repo evidence directory
+<   # (<repo>/.coding-hermes/evidence/<tick>/) so a closeout can cite a committed
+<   # path instead of /tmp. Caller-supplied via BUNKER_QA_TICK; otherwise a UTC
+---
+>   # QA-CRIER-066-R2: the tick id names the evidence directory under the DURABLE
+>   # OUT-OF-TREE persist root (~/.hermes/qa/evidence/<project>/<tick>/;
+>   # LORE-HYGIENE-20261122 replaced the old in-repo path, which left 100-500K of
+>   # untracked residue per battery) so a closeout can cite a stable path beyond
+>   # /tmp. Caller-supplied via BUNKER_QA_TICK; otherwise a UTC
+5780c5803
+<     dest="$root/.coding-hermes/evidence/$tick_id"
+---
+>     dest="$(qa_evidence_persist_root "$root" "$meta")/$tick_id"
+6271c6294
+<     detail="$detail; evidence dir: .coding-hermes/evidence/$tick_id"
+---
+>     detail="$detail; evidence dir: $(qa_evidence_persist_root "$(test_repo)" "$meta")/$tick_id"
+6325,6326c6348,6351
+<   # QA-CRIER-066-R2 (C): copy the merged ledger AND every per-cell log into
+<   # <repo-under-test>/.coding-hermes/evidence/<tick>/. Local file work only —
+---
+>   # QA-CRIER-066-R2 (C): copy the merged ledger AND every per-cell log into the
+>   # DURABLE OUT-OF-TREE root ~/.hermes/qa/evidence/<project>/<tick>/ (LORE-
+>   # HYGIENE-20261122: an in-repo persist dirtied the repo-under-test on every
+>   # run). Local file work only —

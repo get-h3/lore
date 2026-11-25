@@ -1,0 +1,10 @@
+== AFTER proof — post-fix surface (2026-11-25T12:41:59Z, HEAD 035ee31677fc030ffbf759a6896c475d8bb024d0) ==
+
+$ git status --porcelain  (expect EMPTY; .gitreins/history + run dir staged/committed separately)
+?? .gitreins/history/2026-11-25/
+?? docs/qa/evidence/run-LORE-HYGIENE-20261122/
+[end porcelain]
+
+$ bash scripts/release.sh --dry-run  (clean-tree precheck is the row's demanded surface; the tag gate refusals below are the by-design cut authorization + already-cut-tag gates, unrelated to tree state)
+REFUSE: working tree is dirty — commit or stash before cutting.
+release.sh rc=1
