@@ -918,3 +918,7 @@ chaos-shutdown SKIPPED by the live-host safety gate; compose/ui N/A by shape.
 Agent destroyed, list re-check 0 hits. Perf at loadavg 16.4/16 cores: warm
 match 102.3±12.3 ms documented / 98.6±14.0 raw, gate+export 54.7±5.6 ms, cold
 0.05–0.07 s — interpreter floor, no PERF row.
+
+## 2026-11-26 dogfood diagnostics
+
+Tick lore-dogfood-2026-11-26-14-57-21: `compile --format json` returns an array; treating it as an object caused a jq error. `consult` does not accept `--format`. Neither is established as a defect by this run. Fresh-machine battery agent b7ce8053 installed lore successfully; its removal was verified after the destroy command timed out. See 2026-11-26-integration.md for evidence and timing limitations.

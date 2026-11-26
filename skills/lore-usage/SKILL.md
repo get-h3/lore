@@ -408,3 +408,7 @@ Numbers at HEAD 23f800b (loadavg 16.4 / 16 cores): warm match 102.3±12.3 ms
 documented (`uv run`) / 98.6±14.0 raw venv, gate verdict+export 54.7±5.6 ms,
 cold match 0.05–0.07 s; fresh-box battery 24 rows, applicable cells all OK/PASS
 (docker-deploy/chaos-shutdown SKIPPED = live-host safety gate, not product).
+
+## 2026-11-26 observed CLI forms
+
+`lore compile --class gateway-drain-window --format json` returns an array; `lore consult --failure "spawn 503 while restarting"` uses its own human-readable output and does not accept `--format`. Default `lore validate` is plan-only; use `--execute` only after reviewing the checks and environment. See `docs/dogfood/2026-11-26-integration.md` for the bounded run and its installation follow-up.
