@@ -1,0 +1,272 @@
+{
+  "task_id": "LORE-20261013",
+  "task_title": "Document Auger adapter read method",
+  "task_criteria": [
+    "FAILIF: docs/ABSORB-TRIGGER.md does not name AugerDecisionTableAdapter(...).read(). PROOF: grep -n \"AugerDecisionTableAdapter.*read()\" docs/ABSORB-TRIGGER.md"
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "d625a0479d708c83e2b7ad8205ca682746062fe2",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "4265a19f8028272849c91d8ee00c7d04ff8e5af751d27a4a4a4897dcc3621606",
+  "working_tree_dirty_path_count": 3,
+  "items": [
+    {
+      "criterion": "FAILIF: docs/ABSORB-TRIGGER.md does not name AugerDecisionTableAdapter(...).read(). PROOF: grep -n \"AugerDecisionTableAdapter.*read()\" docs/ABSORB-TRIGGER.md",
+      "status": "PASS",
+      "detail": "`grep -n \"AugerDecisionTableAdapter.*read()\" docs/ABSORB-TRIGGER.md` exits 0 with `22:`AugerDecisionTableAdapter(path).read()` reads Auger's deterministic Markdown`. The commit d625a04 replaced the old `AugerDecisionTableAdapter(path)` parses... wording with the method-naming sentence plus the read-only statement. Test suite: `uv run pytest -x --tb=short -q` -> `588 passed in 8.88s`, exit_code 0."
+    },
+    {
+      "criterion": "The documented call shape `AugerDecisionTableAdapter(path).read()` matches the actual implementation signature in lore/trigger.py (constructor takes export path, read() takes no args and returns list[EvidenceBlock]).",
+      "status": "PASS",
+      "detail": "lore/trigger.py:213-220: `class AugerDecisionTableAdapter:` with `def __init__(self, export: str | Path)` and `def read(self) -> list[EvidenceBlock]: return parse_auger_export(self.export.read_text(encoding=\"utf-8\"))`. docs/ABSORB-TRIGGER.md:22 documents exactly `AugerDecisionTableAdapter(path).read()`, so the verbatim-consumer AttributeError from docs/dogfood/2026-11-23-run18-integration.md:135 is resolved. Exercised by tests/test_lore071_trigger.py:107 `blocks = AugerDecisionTableAdapter(export).read()`; suite run above: 588 passed, exit 0.",
+      "derived": true
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nsecrets: gitleaks bound=timeout 600s (0=off)\nscanners: nice=nice -n 10\nsecrets: gitleaks scope=repo-root /home/kara/get-h3/lore\nsecrets: gitleaks parallelism=GOMAXPROCS=4\n7:52AM INF scanned ~5767553 bytes (5.77 MB) in 4.04s\n7:52AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 358 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.14.7\ncollected 588 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  7%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 23%]\ntests/test_count_guard.py .............                                  [ 25%]\ntests/test_dist_name.py ....                                             [ 26%]\ntests/test_evidence.py ......................                            [ 30%]\ntests/test_lore011_drain_acceptance.py .......                           [ 31%]\ntests/test_lore016_qa_audit.py .....................                     [ 35%]\ntests/test_lore017_gateway_guard.py ........                             [ 36%]\ntests/test_lore020_absorb_window.py ...                                  [ 36%]\ntests/test_lore021_naming_docs.py .......                                [ 38%]\ntests/test_lore022_freshness_docs.py .....                               [ 38%]\ntests/test_lore030_ux_guard.py ....                                      [ 39%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 41%]\ntests/test_lore041_collision_canonical.py ...........                    [ 43%]\ntests/test_lore043_short_text_threshold.py ....................          [ 46%]\ntests/test_lore045_validate_history.py ....................              [ 50%]\ntests/test_lore046_match_output.py ...........                           [ 52%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 53%]\n\n\u2026 [800 chars omitted \u2014 10 line(s)] \u2026\ntests/test_lore061_env_absent_rendering.py .......                       [ 66%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 67%]\ntests/test_lore064_audit_wiring.py .............................         [ 72%]\ntests/test_lore066_zero_check_skip.py ...                                [ 73%]\ntests/test_lore067_incident_audit.py ..                                  [ 73%]\ntests/test_lore071_trigger.py ......                                     [ 74%]\ntests/test_lore072_bucket_compiled_by_design.py .....                    [ 75%]\ntests/test_lore_hygiene_evidence_residue.py ..                           [ 75%]\ntests/test_near_miss.py ..............                                   [ 78%]\ntests/test_perf2_audit_single_pass.py ........                           [ 79%]\ntests/test_prom_export.py .......                                        [ 80%]\ntests/test_qalore7_gitignore_evidence.py ..                              [ 80%]\ntests/test_readme_links.py .                                             [ 81%]\ntests/test_review001_gate_record.py ........                             [ 82%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 85%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 588 passed in 9.21s ==============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            }
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 FAILIF: docs/ABSORB-TRIGGER.md does not name AugerDecisionTableAdapter(...).read(). PROOF: grep -n \"AugerDecisionTableAdapter.*read()\" docs/ABSORB-TRIGGER.md: `grep -n \"AugerDecisionTableAdapter.*read()\" docs/ABSORB-TRIGGER.md` exits 0 with `22:`AugerDecisionTableAdapter(path).read()` reads Auger's deterministic Markdown`. The commit d625a04 replaced the old `AugerDecisionTableAdapter(path)` parses... wording with the method-naming sentence plus the read-only statement. Test suite: `uv run pytest -x --tb=short -q` -> `588 passed in 8.88s`, exit_code 0.\n  \u2713 The documented call shape `AugerDecisionTableAdapter(path).read()` matches the actual implementation signature in lore/trigger.py (constructor takes export path, read() takes no args and returns list[EvidenceBlock]).: lore/trigger.py:213-220: `class AugerDecisionTableAdapter:` with `def __init__(self, export: str | Path)` and `def read(self) -> list[EvidenceBlock]: return parse_auger_export(self.export.read_text(encoding=\"utf-8\"))`. docs/ABSORB-TRIGGER.md:22 documents exactly `AugerDecisionTableAdapter(path).read()`, so the verbatim-consumer AttributeError from docs/dogfood/2026-11-23-run18-integration.md:135 is resolved. Exercised by tests/test_lore071_trigger.py:107 `blocks = AugerDecisionTableAdapter(export).read()`; suite run above: 588 passed, exit 0.\ndocs/ABSORB-TRIGGER.md:22 now names `AugerDecisionTableAdapter(path).read()`, matching the real signature at lore/trigger.py:213-220, and the full suite passes (588 passed, exit 0).",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 FAILIF: docs/ABSORB-TRIGGER.md does not name AugerDecisionTableAdapter(...).read(). PROOF: grep -n \"AugerDecisionTableAdapter.*read()\" docs/ABSORB-TRIGGER.md: `grep -n \"AugerDecisionTableAdapter.*read()\" docs/ABSORB-TRIGGER.md` exits 0 with `22:`AugerDecisionTableAdapter(path).read()` reads Auger's deterministic Markdown`. The commit d625a04 replaced the old `AugerDecisionTableAdapter(path)` parses... wording with the method-naming sentence plus the read-only statement. Test suite: `uv run pytest -x --tb=short -q` -> `588 passed in 8.88s`, exit_code 0.\n  \u2713 The documented call shape `AugerDecisionTableAdapter(path).read()` matches the actual implementation signature in lore/trigger.py (constructor takes export path, read() takes no args and returns list[EvidenceBlock]).: lore/trigger.py:213-220: `class AugerDecisionTableAdapter:` with `def __init__(self, export: str | Path)` and `def read(self) -> list[EvidenceBlock]: return parse_auger_export(self.export.read_text(encoding=\"utf-8\"))`. docs/ABSORB-TRIGGER.md:22 documents exactly `AugerDecisionTableAdapter(path).read()`, so the verbatim-consumer AttributeError from docs/dogfood/2026-11-23-run18-integration.md:135 is resolved. Exercised by tests/test_lore071_trigger.py:107 `blocks = AugerDecisionTableAdapter(export).read()`; suite run above: 588 passed, exit 0.\ndocs/ABSORB-TRIGGER.md:22 now names `AugerDecisionTableAdapter(path).read()`, matching the real signature at lore/trigger.py:213-220, and the full suite passes (588 passed, exit 0).",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "FAILIF: docs/ABSORB-TRIGGER.md does not name AugerDecisionTableAdapter(...).read(). PROOF: grep -n \"AugerDecisionTableAdapter.*read()\" docs/ABSORB-TRIGGER.md",
+                "status": "PASS",
+                "detail": "`grep -n \"AugerDecisionTableAdapter.*read()\" docs/ABSORB-TRIGGER.md` exits 0 with `22:`AugerDecisionTableAdapter(path).read()` reads Auger's deterministic Markdown`. The commit d625a04 replaced the old `AugerDecisionTableAdapter(path)` parses... wording with the method-naming sentence plus the read-only statement. Test suite: `uv run pytest -x --tb=short -q` -> `588 passed in 8.88s`, exit_code 0."
+              },
+              {
+                "criterion": "The documented call shape `AugerDecisionTableAdapter(path).read()` matches the actual implementation signature in lore/trigger.py (constructor takes export path, read() takes no args and returns list[EvidenceBlock]).",
+                "status": "PASS",
+                "detail": "lore/trigger.py:213-220: `class AugerDecisionTableAdapter:` with `def __init__(self, export: str | Path)` and `def read(self) -> list[EvidenceBlock]: return parse_auger_export(self.export.read_text(encoding=\"utf-8\"))`. docs/ABSORB-TRIGGER.md:22 documents exactly `AugerDecisionTableAdapter(path).read()`, so the verbatim-consumer AttributeError from docs/dogfood/2026-11-23-run18-integration.md:135 is resolved. Exercised by tests/test_lore071_trigger.py:107 `blocks = AugerDecisionTableAdapter(export).read()`; suite run above: 588 passed, exit 0.",
+                "derived": true
+              }
+            ],
+            "summary": "docs/ABSORB-TRIGGER.md:22 now names `AugerDecisionTableAdapter(path).read()`, matching the real signature at lore/trigger.py:213-220, and the full suite passes (588 passed, exit 0).",
+            "provenance": {
+              "model": "deepseek-flash",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            },
+            "context_stats": {
+              "diff_source": "working-tree",
+              "diff_bytes": 0,
+              "prompt_bytes": 5870
+            }
+          }
+        }
+      ],
+      "model": "deepseek-flash",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "context_stats": {
+        "diff_source": "working-tree",
+        "diff_bytes": 0,
+        "prompt_bytes": 5870
+      },
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"LORE-20261013\"}",
+          "exit_code": 0,
+          "output_sha": "559241c405f4b7a77d907e106f32f514195e65c03f978bc478bb0c5a0ad58518"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git show --stat HEAD && git show HEAD -- docs/ABSORB-TRIGGER.md",
+          "exit_code": 0,
+          "output_sha": "5ca6bbee3f57f653bdfe8e0a1f9592ea482b5b9a12c486bb267cb5415f61d13b"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n \"AugerDecisionTableAdapter.*read()\" docs/ABSORB-TRIGGER.md; echo \"exit=$?\"; sed -n 1,60p docs/ABSORB-TRIGGER.md",
+          "exit_code": 0,
+          "output_sha": "8e85668b31d6ed1eca5e9f581eb227aa9c5bb3bd562824bc45a8aea5fa1f8545"
+        },
+        {
+          "tool": "search_pattern",
+          "command": "search_pattern {\"file_glob\": \"*.py\", \"regex\": \"class AugerDecisionTableAdapter|def read\\\\(\"}",
+          "exit_code": 0,
+          "output_sha": "5511b689e8a927f89870dda8aeb28261943148c9165f3b79dcc61066a15d36ab"
+        },
+        {
+          "tool": "read_file",
+          "command": "read_file {\"limit\": 80, \"offset\": 200, \"path\": \"lore/trigger.py\"}",
+          "exit_code": 0,
+          "output_sha": "2e1cd192e543049e1b90dc0d154ba02fac18b0e9cf476c7d51858fe43ec94fdb"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"ABSORB-TRIGGER\" --include=*.py --include=*.md . | head -20",
+          "exit_code": 0,
+          "output_sha": "b09cae9d937ddda25b5c2fcf150ad96d02b30e4e609fe3671958bcee91844dcb"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && sed -n 1,40p docs/qa/evidence/run18/trigger_consumer.py; echo ---; sed -n 900,925p docs/dogfood/diagnostics.md; echo ---; sed -n 125,145p docs/dogfood/2026-11-23-run18-integration.md",
+          "exit_code": 0,
+          "output_sha": "d1b46cc2b7f193d74b6740c6081b89c9114f38044a3394a92e8ba12ba28cbd44"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"AugerDecisionTableAdapter\" --include=*.py --include=*.md . | grep -v \".gitreins\" | head -30",
+          "exit_code": 0,
+          "output_sha": "666b36a717b69fbe4387654735894f63e61b15e8d1e00e3f447d095846fa53c0"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && sed -n 60,90p CHANGELOG.md; echo ---; sed -n 380,400p skills/lore-usage/SKILL.md; echo ---; sed -n 95,120p tests/test_lore071_trigger.py",
+          "exit_code": 0,
+          "output_sha": "53a4d9eddd79252396dd0e0c1f94480287ac2019c9bd08349d5ec171e9dcce7a"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"ABSORB-TRIGGER\\|docs/\" tests/test_readme_links.py | head -20; echo ---; grep -rn \"test_command\" .gitreins/config.yaml",
+          "exit_code": 0,
+          "output_sha": "62b26af3f83b2239c08d141f3a7e04bf4275ba40e6e9d7e52c6c1b42983f754f"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && uv run pytest -x --tb=short -q 2>&1 | tail -5",
+          "exit_code": 0,
+          "output_sha": "627bf9c6b21527e0e13e6568a0d2e5b5869b9612c2c57db3bdc1784240d578e8"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: grep -n \\\"AugerDecisionTableAdapter.*read()\\\" docs/ABSORB-TRIGGER.md -> \\\"22:`AugerDecisionTableAdapter(path).read()` reads Auger's deterministic Markdown\\\" (exit 0). Matches real API lore/trigger.py:213-220 (class AugerDecisionTableAdapter, def read(self) -> list[EvidenceBlock]). Tests: uv run pytest -x --tb=short -q -> \\\"588 passed in 8.88s\\\", exit 0.\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "82d592005a7cb2eda9a43759fe956868a337b5da50e0ce598f761609c4327582"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"The documented call shape `AugerDecisionTableAdapter(path).read()` matches the actual implementation signature in lore/trigger.py (constructor takes export path, read() takes no args and returns list[EvidenceBlock]).\", \"key\": \"derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "52b58a4251ce966236d0defaf78060c19fa86754092bf6b1d99f5d6e95f5a667"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: lore/trigger.py:213-220 \\u2014 `def __init__(self, export: str | Path)` and `def read(self) -> list[EvidenceBlock]: return parse_auger_export(self.export.read_text(...))`. Doc line docs/ABSORB-TRIGGER.md:22 uses exactly `AugerDecisionTableAdapter(path).read()`, so a verbatim consumer no longer hits AttributeError. Exercised by tests/test_lore071_trigger.py:107 `AugerDecisionTableAdapter(export).read()`; full suite \\\"588 passed in 8.88s\\\" exit 0.\", \"key\": \"verified_derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "3efed07c960a6549c8deb53e5b2e38286bf5222fac932408789c81bc8b46e2f9"
+        }
+      ]
+    },
+    "fix_verification": {
+      "id": "fix_verification",
+      "passed": true,
+      "any_failed": false,
+      "summary": "fix_verification: 0 finding(s) verified",
+      "steps": [
+        {
+          "id": "fix_verification",
+          "type": "fix_verification",
+          "passed": true,
+          "output": "fix_verification: 0 finding(s) verified",
+          "error": "",
+          "data": {
+            "dispositions": [],
+            "counts": {}
+          }
+        }
+      ]
+    }
+  },
+  "context_stats": {
+    "diff_source": "working-tree",
+    "diff_bytes": 0,
+    "prompt_bytes": 5870
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [],
+    "summary": "Documentation-only change that correctly updates the Auger adapter description to the `.read()` API and adds a no-writes clarification; no code, wiring, or test impact.",
+    "review_state": {
+      "emitted": [],
+      "carried": []
+    }
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 FAILIF: docs/ABSORB-TRIGGER.md does not name AugerDecisionTableAdapter(...).read(). PROOF: grep -n \"AugerDecisionTableAdapter.*read()\" docs/ABSORB-TRIGGER.md: `grep -n \"AugerDecisionTableAdapter.*read()\" docs/ABSORB-TRIGGER.md` exits 0 with `22:`AugerDecisionTableAdapter(path).read()` reads Auger's deterministic Markdown`. The commit d625a04 replaced the old `AugerDecisionTableAdapter(path)` parses... wording with the method-naming sentence plus the read-only statement. Test suite: `uv run pytest -x --tb=short -q` -> `588 passed in 8.88s`, exit_code 0.\n  \u2713 The documented call shape `AugerDecisionTableAdapter(path).read()` matches the actual implementation signature in lore/trigger.py (constructor takes export path, read() takes no args and returns list[EvidenceBlock]).: lore/trigger.py:213-220: `class AugerDecisionTableAdapter:` with `def __init__(self, export: str | Path)` and `def read(self) -> list[EvidenceBlock]: return parse_auger_export(self.export.read_text(encoding=\"utf-8\"))`. docs/ABSORB-TRIGGER.md:22 documents exactly `AugerDecisionTableAdapter(path).read()`, so the verbatim-consumer AttributeError from docs/dogfood/2026-11-23-run18-integration.md:135 is resolved. Exercised by tests/test_lore071_trigger.py:107 `blocks = AugerDecisionTableAdapter(export).read()`; suite run above: 588 passed, exit 0.\ndocs/ABSORB-TRIGGER.md:22 now names `AugerDecisionTableAdapter(path).read()`, matching the real signature at lore/trigger.py:213-220, and the full suite passes (588 passed, exit 0).\n\nStage fix_verification: PASS\n  fix_verification: 0 finding(s) verified\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-27T12:53:25.875143",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-27T12:53:25.898471+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 1216,
+        "truncated": false,
+        "source": "git show d625a0479d70"
+      }
+    ],
+    "task_id": "LORE-20261013"
+  }
+}

@@ -1,0 +1,31 @@
+commit d625a0479d708c83e2b7ad8205ca682746062fe2
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Fri Nov 27 07:48:32 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Fri Nov 27 07:48:32 2026 -0500
+
+    docs: document Auger adapter read method
+    
+    Addresses LORE-20261013.
+    
+    Co-authored-by: Alexis Okuwa <wojonstech@gmail.com>
+---
+ docs/ABSORB-TRIGGER.md | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/docs/ABSORB-TRIGGER.md b/docs/ABSORB-TRIGGER.md
+index 09228ef..e14935d 100644
+--- a/docs/ABSORB-TRIGGER.md
++++ b/docs/ABSORB-TRIGGER.md
+@@ -19,8 +19,9 @@ not be placed inside `.coding-hermes/` when installing a service.
+ 
+ ## Auger export
+ 
+-`AugerDecisionTableAdapter(path)` parses Auger's deterministic Markdown
+-`export` output. Decision, assumption, unknown, and break rows become
++`AugerDecisionTableAdapter(path).read()` reads Auger's deterministic Markdown
++`export` output and returns the parsed evidence blocks; it performs no Auger or
++DuckBrain writes. Decision, assumption, unknown, and break rows become
+ `duckbrain-row` evidence. Provenance is explicit, for example:
+ 
+ ```text
