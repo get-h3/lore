@@ -19,8 +19,9 @@ not be placed inside `.coding-hermes/` when installing a service.
 
 ## Auger export
 
-`AugerDecisionTableAdapter(path)` parses Auger's deterministic Markdown
-`export` output. Decision, assumption, unknown, and break rows become
+`AugerDecisionTableAdapter(path).read()` reads Auger's deterministic Markdown
+`export` output and returns the parsed evidence blocks; it performs no Auger or
+DuckBrain writes. Decision, assumption, unknown, and break rows become
 `duckbrain-row` evidence. Provenance is explicit, for example:
 
 ```text
