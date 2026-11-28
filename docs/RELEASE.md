@@ -4,9 +4,10 @@ How to cut a release. **Nobody cuts without a board-authorized RELEASE-cut row.*
 
 ## Tag namespace
 
-Releases are annotated git tags named `vX.Y.Z` (e.g. `v0.2.0`). The tag is always
-derived from the version stamp — never invented by hand. Existing tags: `v0.1.0`,
-`v0.2.0`.
+Releases are annotated git tags named `vX.Y.Z` (e.g. `v0.3.0`). The tag is always
+derived from the version stamp — never invented by hand. Existing tags:
+`v0.1.0` (2026-09-24, commit `c655666`), `v0.2.0` (2026-11-16, commit
+`165cc8f`), and `v0.3.0` (2026-11-21, commit `c769be4`).
 Release artifacts are git tags only. The PyPI distribution name for this project
 is `get-h3-lore`, and PyPI publishing is NOT enabled: releases never go to PyPI.
 The bare name `lore` on PyPI is a foreign, unrelated package (instacart/lore)

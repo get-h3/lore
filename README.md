@@ -378,13 +378,13 @@ until they are.)
 
 ## Status
 
-Development version stamp **0.2.0**, released **2026-11-16** as tag **v0.2.0**
-(commit `165cc8f`) — see the
-[CHANGELOG 0.2.0 section](CHANGELOG.md#020--2026-11-16) for what shipped. Two
-tags exist, each with a GitHub Release object: **v0.1.0** (2026-09-24, commit
-`c655666`) and **v0.2.0** (2026-11-16) — `main` is **7 commits** past v0.2.0
-(counted 2026-11-17; run `git rev-list --count v0.2.0..HEAD` for the live
-figure). Kicked off 2026-09-23. **Nothing is published to PyPI under any name**
+Development version stamp **0.3.0**, released **2026-11-21** as tag **v0.3.0**
+(commit `c769be4`) — see the
+[CHANGELOG 0.3.0 section](CHANGELOG.md#030--2026-11-21) for what shipped.
+Tags with GitHub Release objects: **v0.1.0** (2026-09-24, commit `c655666`),
+**v0.2.0** (2026-11-16, commit `165cc8f`), and **v0.3.0** (2026-11-21,
+commit `c769be4`). Run `git rev-list --count v0.3.0..HEAD` for the current
+checkout's commits since v0.3.0. Kicked off 2026-09-23. **Nothing is published to PyPI under any name**
 — install channels are git only (`uv sync`, `uv tool install git+...`); see the
 `pip install lore` warning above. Split honestly into what runs today and what
 does not:
