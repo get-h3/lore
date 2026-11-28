@@ -1,0 +1,12 @@
+commit 5b0251079203ce89f2184ab3ca658b951eba4712
+Merge: 40f0f79 0430e9a
+Author:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+AuthorDate: Sat Nov 28 05:58:01 2026 -0500
+Commit:     totalwindupflightsystems <totalwindupflightsystems@gmail.com>
+CommitDate: Sat Nov 28 05:58:01 2026 -0500
+
+    Merge remote-tracking branch 'origin/wt/DOC-10-R2-20261128'
+
+ README.md       | 14 +++++++-------
+ docs/RELEASE.md |  7 ++++---
+ 2 files changed, 11 insertions(+), 10 deletions(-)

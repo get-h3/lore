@@ -335,3 +335,4 @@
 {"id": 495, "event_type": "task_created", "event": null, "actor": "foreman", "task_id": "QA-LORE-9", "timestamp": "2026-11-26T18:53:12Z", "tick": null, "ch_trace": null, "detail": "{\"id\":\"QA-LORE-9\",\"status\":\"pending\"}"}
 {"id": 496, "event_type": "task_completed", "event": null, "actor": "foreman", "task_id": "LORE-20261013", "timestamp": "2026-11-27T12:54:14Z", "tick": null, "ch_trace": null, "detail": "{\"status\":\"complete\"}"}
 {"id": 497, "event_type": "task_completed", "event": null, "actor": "foreman", "task_id": "INFRA-LORE-046", "timestamp": "2026-11-27T19:35:52Z", "tick": null, "ch_trace": null, "detail": "{\"status\":\"complete\"}"}
+{"id": 498, "event_type": "task_completed", "event": null, "actor": "foreman", "task_id": "DOC-10-R2", "timestamp": "2026-11-28T11:04:15Z", "tick": null, "ch_trace": null, "detail": "{\"status\":\"complete\"}"}

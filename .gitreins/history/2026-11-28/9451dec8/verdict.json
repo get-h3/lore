@@ -1,0 +1,404 @@
+{
+  "task_id": "DOC-10-R2",
+  "task_title": "Refresh v0.3.0 version claims in README and release docs",
+  "task_criteria": [
+    "PROOF: README Status names version 0.3.0, tags v0.1.0/v0.2.0/v0.3.0, and only uses git rev-list --count v0.3.0..HEAD for the live commit count; docs/RELEASE.md enumerates the same tags; scripts/check-test-count.sh, pytest -x -q, and pyproject version agreement pass. FAILIF: any stale 0.2.0-only tag list, any README Status count based on v0.2.0, missing 0.3.0 in either doc, test/count failure, or version mismatch."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "5b0251079203ce89f2184ab3ca658b951eba4712",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "ada336e45ac821de2f76af564bf3284e478d462c4d2abbb0ccfc46a7d3dd8bd1",
+  "working_tree_dirty_path_count": 10,
+  "items": [
+    {
+      "criterion": "PROOF: README Status names version 0.3.0, tags v0.1.0/v0.2.0/v0.3.0, and only uses git rev-list --count v0.3.0..HEAD for the live commit count; docs/RELEASE.md enumerates the same tags; scripts/check-test-count.sh, pytest -x -q, and pyproject version agreement pass. FAILIF: any stale 0.2.0-only tag list, any README Status count based on v0.2.0, missing 0.3.0 in either doc, test/count failure, or version mismatch.",
+      "status": "PASS",
+      "detail": "README.md:381-387 Status reads \"Development version stamp **0.3.0**, released **2026-11-21** as tag **v0.3.0** (commit `c769be4`)\" and enumerates \"**v0.1.0** (2026-09-24, commit `c655666`), **v0.2.0** (2026-11-16, commit `165cc8f`), and **v0.3.0** (2026-11-21, commit `c769be4`)\"; the only live-count command is README.md:386 `git rev-list --count v0.3.0..HEAD`. docs/RELEASE.md:7-10 enumerates the identical three tags with identical dates/commits. Tag objects verified: `git rev-parse v0.1.0^{commit}`=c655666 (2026-09-24), v0.2.0=165cc8f (2026-11-16), v0.3.0=c769be4 (2026-11-21) \u2014 all match the docs. `sh scripts/check-test-count.sh` exit_code=0, output \"PASS: test-count guard: canonical=588 matches live=588; class-count=13; no stale count literals in living docs\". `uv run pytest -x -q` exit_code=0, output \"588 passed in 11.36s\". Version agreement: pyproject.toml:7 `version = \"0.3.0\"` == lore/__init__.py:3 `__version__ = \"0.3.0\"`. No stale 0.2.0-only tag list remains (grep for \"Two tags exist\"/\"7 commits\"/\"counted 2026-11-17\" in living docs returns nothing)."
+    },
+    {
+      "criterion": "The README Status CHANGELOG anchor link (CHANGELOG.md#030--2026-11-21) resolves to an actual heading in CHANGELOG.md.",
+      "status": "PASS",
+      "detail": "CHANGELOG.md:10 contains the heading `## [0.3.0] \u2014 2026-11-21`, which GitHub slugs to `#030--2026-11-21` \u2014 exactly the anchor used at README.md:383. Regex extraction of all `## [X.Y.Z] \u2014 date` headings confirms 0.3.0 is present alongside 0.2.0/0.1.2/0.1.1/0.1.0.",
+      "derived": true
+    },
+    {
+      "criterion": "The commit SHAs and dates cited for each tag in README.md and docs/RELEASE.md match the actual git tag objects.",
+      "status": "PASS",
+      "detail": "`git rev-parse <tag>^{commit}` + `git log -1 --date=short` gives v0.1.0=c6556662c93b (2026-09-24), v0.2.0=165cc8f6d354 (2026-11-16), v0.3.0=c769be4265e7 (2026-11-21). All three match the SHAs/dates written at README.md:381-386 and docs/RELEASE.md:9-10 \u2014 no fabricated commit references.",
+      "derived": true
+    },
+    {
+      "criterion": "No living doc still asserts the superseded \"Two tags exist\" / \"7 commits past v0.2.0\" / \"counted 2026-11-17\" claims; surviving v0.2.0..HEAD references are confined to allowlisted historical evidence.",
+      "status": "PASS",
+      "detail": "grep for \"Two tags exist|7 commits|counted 2026-11-17\" across README.md docs/*.md CONTRIBUTING.md returned no matches. Repo-wide grep for \"v0.2.0..HEAD\" hits only docs/qa/evidence/run-README-12/README.md:45, docs/qa/evidence/run-README-12/2026-11-24-sweep.txt:19, and docs/qa/evidence/run-DOC-10/README.md:28,41 \u2014 all under docs/qa/evidence/*, which scripts/count_sweep.py:39 lists in ALLOWLISTED_PATTERNS as dated historical evidence. check-test-count.sh exit_code=0 independently confirms no stale literals in living docs.",
+      "derived": true
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nsecrets: gitleaks bound=timeout 600s (0=off)\nscanners: nice=nice -n 10\nsecrets: gitleaks scope=repo-root /home/kara/get-h3/lore\nsecrets: gitleaks parallelism=GOMAXPROCS=4\n6:04AM INF scanned ~5839195 bytes (5.84 MB) in 3.81s\n6:04AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 360 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.14.7\ncollected 588 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  7%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 23%]\ntests/test_count_guard.py .............                                  [ 25%]\ntests/test_dist_name.py ....                                             [ 26%]\ntests/test_evidence.py ......................                            [ 30%]\ntests/test_lore011_drain_acceptance.py .......                           [ 31%]\ntests/test_lore016_qa_audit.py .....................                     [ 35%]\ntests/test_lore017_gateway_guard.py ........                             [ 36%]\ntests/test_lore020_absorb_window.py ...                                  [ 36%]\ntests/test_lore021_naming_docs.py .......                                [ 38%]\ntests/test_lore022_freshness_docs.py .....                               [ 38%]\ntests/test_lore030_ux_guard.py ....                                      [ 39%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 41%]\ntests/test_lore041_collision_canonical.py ...........                    [ 43%]\ntests/test_lore043_short_text_threshold.py ....................          [ 46%]\ntests/test_lore045_validate_history.py ....................              [ 50%]\ntests/test_lore046_match_output.py ...........                           [ 52%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 53%]\n\n\u2026 [800 chars omitted \u2014 10 line(s)] \u2026\ntests/test_lore061_env_absent_rendering.py .......                       [ 66%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 67%]\ntests/test_lore064_audit_wiring.py .............................         [ 72%]\ntests/test_lore066_zero_check_skip.py ...                                [ 73%]\ntests/test_lore067_incident_audit.py ..                                  [ 73%]\ntests/test_lore071_trigger.py ......                                     [ 74%]\ntests/test_lore072_bucket_compiled_by_design.py .....                    [ 75%]\ntests/test_lore_hygiene_evidence_residue.py ..                           [ 75%]\ntests/test_near_miss.py ..............                                   [ 78%]\ntests/test_perf2_audit_single_pass.py ........                           [ 79%]\ntests/test_prom_export.py .......                                        [ 80%]\ntests/test_qalore7_gitignore_evidence.py ..                              [ 80%]\ntests/test_readme_links.py .                                             [ 81%]\ntests/test_review001_gate_record.py ........                             [ 82%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 85%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 588 passed in 10.55s =============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            }
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 PROOF: README Status names version 0.3.0, tags v0.1.0/v0.2.0/v0.3.0, and only uses git rev-list --count v0.3.0..HEAD for the live commit count; docs/RELEASE.md enumerates the same tags; scripts/check-test-count.sh, pytest -x -q, and pyproject version agreement pass. FAILIF: any stale 0.2.0-only tag list, any README Status count based on v0.2.0, missing 0.3.0 in either doc, test/count failure, or version mismatch.: README.md:381-387 Status reads \"Development version stamp **0.3.0**, released **2026-11-21** as tag **v0.3.0** (commit `c769be4`)\" and enumerates \"**v0.1.0** (2026-09-24, commit `c655666`), **v0.2.0** (2026-11-16, commit `165cc8f`), and **v0.3.0** (2026-11-21, commit `c769be4`)\"; the only live-count command is README.md:386 `git rev-list --count v0.3.0..HEAD`. docs/RELEASE.md:7-10 enumerates the identical three tags with identical dates/commits. Tag objects verified: `git rev-parse v0.1.0^{commit}`=c655666 (2026-09-24), v0.2.0=165cc8f (2026-11-16), v0.3.0=c769be4 (2026-11-21) \u2014 all match the docs. `sh scripts/check-test-count.sh` exit_code=0, output \"PASS: test-count guard: canonical=588 matches live=588; class-count=13; no stale count literals in living docs\". `uv run pytest -x -q` exit_code=0, output \"588 passed in 11.36s\". Version agreement: pyproject.toml:7 `version = \"0.3.0\"` == lore/__init__.py:3 `__version__ = \"0.3.0\"`. No stale 0.2.0-only tag list remains (grep for \"Two tags exist\"/\"7 commits\"/\"counted 2026-11-17\" in living docs returns nothing).\n  \u2713 The README Status CHANGELOG anchor link (CHANGELOG.md#030--2026-11-21) resolves to an actual heading in CHANGELOG.md.: CHANGELOG.md:10 contains the heading `## [0.3.0] \u2014 2026-11-21`, which GitHub slugs to `#030--2026-11-21` \u2014 exactly the anchor used at README.md:383. Regex extraction of all `## [X.Y.Z] \u2014 date` headings confirms 0.3.0 is present alongside 0.2.0/0.1.2/0.1.1/0.1.0.\n  \u2713 The commit SHAs and dates cited for each tag in README.md and docs/RELEASE.md match the actual git tag objects.: `git rev-parse <tag>^{commit}` + `git log -1 --date=short` gives v0.1.0=c6556662c93b (2026-09-24), v0.2.0=165cc8f6d354 (2026-11-16), v0.3.0=c769be4265e7 (2026-11-21). All three match the SHAs/dates written at README.md:381-386 and docs/RELEASE.md:9-10 \u2014 no fabricated commit references.\n  \u2713 No living doc still asserts the superseded \"Two tags exist\" / \"7 commits past v0.2.0\" / \"counted 2026-11-17\" claims; surviving v0.2.0..HEAD references are confined to allowlisted historical evidence.: grep for \"Two tags exist|7 commits|counted 2026-11-17\" across README.md docs/*.md CONTRIBUTING.md returned no matches. Repo-wide grep for \"v0.2.0..HEAD\" hits only docs/qa/evidence/run-README-12/README.md:45, docs/qa/evidence/run-README-12/2026-11-24-sweep.txt:19, and docs/qa/evidence/run-DOC-10/README.md:28,41 \u2014 all under docs/qa/evidence/*, which scripts/count_sweep.py:39 lists in ALLOWLISTED_PATTERNS as dated historical evidence. check-test-count.sh exit_code=0 independently confirms no stale literals in living docs.\nREADME Status and docs/RELEASE.md both correctly name v0.3.0 with the full v0.1.0/v0.2.0/v0.3.0 tag list, the live count uses only v0.3.0..HEAD, and the count guard, pytest -x -q (588 passed), and pyproject/__init__ version agreement all pass.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 PROOF: README Status names version 0.3.0, tags v0.1.0/v0.2.0/v0.3.0, and only uses git rev-list --count v0.3.0..HEAD for the live commit count; docs/RELEASE.md enumerates the same tags; scripts/check-test-count.sh, pytest -x -q, and pyproject version agreement pass. FAILIF: any stale 0.2.0-only tag list, any README Status count based on v0.2.0, missing 0.3.0 in either doc, test/count failure, or version mismatch.: README.md:381-387 Status reads \"Development version stamp **0.3.0**, released **2026-11-21** as tag **v0.3.0** (commit `c769be4`)\" and enumerates \"**v0.1.0** (2026-09-24, commit `c655666`), **v0.2.0** (2026-11-16, commit `165cc8f`), and **v0.3.0** (2026-11-21, commit `c769be4`)\"; the only live-count command is README.md:386 `git rev-list --count v0.3.0..HEAD`. docs/RELEASE.md:7-10 enumerates the identical three tags with identical dates/commits. Tag objects verified: `git rev-parse v0.1.0^{commit}`=c655666 (2026-09-24), v0.2.0=165cc8f (2026-11-16), v0.3.0=c769be4 (2026-11-21) \u2014 all match the docs. `sh scripts/check-test-count.sh` exit_code=0, output \"PASS: test-count guard: canonical=588 matches live=588; class-count=13; no stale count literals in living docs\". `uv run pytest -x -q` exit_code=0, output \"588 passed in 11.36s\". Version agreement: pyproject.toml:7 `version = \"0.3.0\"` == lore/__init__.py:3 `__version__ = \"0.3.0\"`. No stale 0.2.0-only tag list remains (grep for \"Two tags exist\"/\"7 commits\"/\"counted 2026-11-17\" in living docs returns nothing).\n  \u2713 The README Status CHANGELOG anchor link (CHANGELOG.md#030--2026-11-21) resolves to an actual heading in CHANGELOG.md.: CHANGELOG.md:10 contains the heading `## [0.3.0] \u2014 2026-11-21`, which GitHub slugs to `#030--2026-11-21` \u2014 exactly the anchor used at README.md:383. Regex extraction of all `## [X.Y.Z] \u2014 date` headings confirms 0.3.0 is present alongside 0.2.0/0.1.2/0.1.1/0.1.0.\n  \u2713 The commit SHAs and dates cited for each tag in README.md and docs/RELEASE.md match the actual git tag objects.: `git rev-parse <tag>^{commit}` + `git log -1 --date=short` gives v0.1.0=c6556662c93b (2026-09-24), v0.2.0=165cc8f6d354 (2026-11-16), v0.3.0=c769be4265e7 (2026-11-21). All three match the SHAs/dates written at README.md:381-386 and docs/RELEASE.md:9-10 \u2014 no fabricated commit references.\n  \u2713 No living doc still asserts the superseded \"Two tags exist\" / \"7 commits past v0.2.0\" / \"counted 2026-11-17\" claims; surviving v0.2.0..HEAD references are confined to allowlisted historical evidence.: grep for \"Two tags exist|7 commits|counted 2026-11-17\" across README.md docs/*.md CONTRIBUTING.md returned no matches. Repo-wide grep for \"v0.2.0..HEAD\" hits only docs/qa/evidence/run-README-12/README.md:45, docs/qa/evidence/run-README-12/2026-11-24-sweep.txt:19, and docs/qa/evidence/run-DOC-10/README.md:28,41 \u2014 all under docs/qa/evidence/*, which scripts/count_sweep.py:39 lists in ALLOWLISTED_PATTERNS as dated historical evidence. check-test-count.sh exit_code=0 independently confirms no stale literals in living docs.\nREADME Status and docs/RELEASE.md both correctly name v0.3.0 with the full v0.1.0/v0.2.0/v0.3.0 tag list, the live count uses only v0.3.0..HEAD, and the count guard, pytest -x -q (588 passed), and pyproject/__init__ version agreement all pass.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "PROOF: README Status names version 0.3.0, tags v0.1.0/v0.2.0/v0.3.0, and only uses git rev-list --count v0.3.0..HEAD for the live commit count; docs/RELEASE.md enumerates the same tags; scripts/check-test-count.sh, pytest -x -q, and pyproject version agreement pass. FAILIF: any stale 0.2.0-only tag list, any README Status count based on v0.2.0, missing 0.3.0 in either doc, test/count failure, or version mismatch.",
+                "status": "PASS",
+                "detail": "README.md:381-387 Status reads \"Development version stamp **0.3.0**, released **2026-11-21** as tag **v0.3.0** (commit `c769be4`)\" and enumerates \"**v0.1.0** (2026-09-24, commit `c655666`), **v0.2.0** (2026-11-16, commit `165cc8f`), and **v0.3.0** (2026-11-21, commit `c769be4`)\"; the only live-count command is README.md:386 `git rev-list --count v0.3.0..HEAD`. docs/RELEASE.md:7-10 enumerates the identical three tags with identical dates/commits. Tag objects verified: `git rev-parse v0.1.0^{commit}`=c655666 (2026-09-24), v0.2.0=165cc8f (2026-11-16), v0.3.0=c769be4 (2026-11-21) \u2014 all match the docs. `sh scripts/check-test-count.sh` exit_code=0, output \"PASS: test-count guard: canonical=588 matches live=588; class-count=13; no stale count literals in living docs\". `uv run pytest -x -q` exit_code=0, output \"588 passed in 11.36s\". Version agreement: pyproject.toml:7 `version = \"0.3.0\"` == lore/__init__.py:3 `__version__ = \"0.3.0\"`. No stale 0.2.0-only tag list remains (grep for \"Two tags exist\"/\"7 commits\"/\"counted 2026-11-17\" in living docs returns nothing)."
+              },
+              {
+                "criterion": "The README Status CHANGELOG anchor link (CHANGELOG.md#030--2026-11-21) resolves to an actual heading in CHANGELOG.md.",
+                "status": "PASS",
+                "detail": "CHANGELOG.md:10 contains the heading `## [0.3.0] \u2014 2026-11-21`, which GitHub slugs to `#030--2026-11-21` \u2014 exactly the anchor used at README.md:383. Regex extraction of all `## [X.Y.Z] \u2014 date` headings confirms 0.3.0 is present alongside 0.2.0/0.1.2/0.1.1/0.1.0.",
+                "derived": true
+              },
+              {
+                "criterion": "The commit SHAs and dates cited for each tag in README.md and docs/RELEASE.md match the actual git tag objects.",
+                "status": "PASS",
+                "detail": "`git rev-parse <tag>^{commit}` + `git log -1 --date=short` gives v0.1.0=c6556662c93b (2026-09-24), v0.2.0=165cc8f6d354 (2026-11-16), v0.3.0=c769be4265e7 (2026-11-21). All three match the SHAs/dates written at README.md:381-386 and docs/RELEASE.md:9-10 \u2014 no fabricated commit references.",
+                "derived": true
+              },
+              {
+                "criterion": "No living doc still asserts the superseded \"Two tags exist\" / \"7 commits past v0.2.0\" / \"counted 2026-11-17\" claims; surviving v0.2.0..HEAD references are confined to allowlisted historical evidence.",
+                "status": "PASS",
+                "detail": "grep for \"Two tags exist|7 commits|counted 2026-11-17\" across README.md docs/*.md CONTRIBUTING.md returned no matches. Repo-wide grep for \"v0.2.0..HEAD\" hits only docs/qa/evidence/run-README-12/README.md:45, docs/qa/evidence/run-README-12/2026-11-24-sweep.txt:19, and docs/qa/evidence/run-DOC-10/README.md:28,41 \u2014 all under docs/qa/evidence/*, which scripts/count_sweep.py:39 lists in ALLOWLISTED_PATTERNS as dated historical evidence. check-test-count.sh exit_code=0 independently confirms no stale literals in living docs.",
+                "derived": true
+              }
+            ],
+            "summary": "README Status and docs/RELEASE.md both correctly name v0.3.0 with the full v0.1.0/v0.2.0/v0.3.0 tag list, the live count uses only v0.3.0..HEAD, and the count guard, pytest -x -q (588 passed), and pyproject/__init__ version agreement all pass.",
+            "provenance": {
+              "model": "deepseek-flash",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            },
+            "context_stats": {
+              "diff_source": "first-parent-merge",
+              "diff_bytes": 2286,
+              "prompt_bytes": 18090
+            }
+          }
+        }
+      ],
+      "model": "deepseek-flash",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "context_stats": {
+        "diff_source": "first-parent-merge",
+        "diff_bytes": 2286,
+        "prompt_bytes": 18090
+      },
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"DOC-10-R2\"}",
+          "exit_code": 0,
+          "output_sha": "4a81eab73c9c9cd7d9d39389803d9812700df017f856494d37212d928261dcfd"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git log --oneline -5 && git tag -l && git status --short | head -20",
+          "exit_code": 0,
+          "output_sha": "dd52d1ddcffe0bca030a60b5c664bb5ee0cd5db29f1fec5f59c368c0d4420404"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && sed -n '370,420p' README.md",
+          "exit_code": 0,
+          "output_sha": "45fa0809d680d865a4f5f4baae45fbd96f7f22a16c5a203cba18af7c476ee673"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && cat scripts/check-test-count.sh; echo \"---PYPROJECT---\"; grep -n 'version' pyproject.toml | head -5; echo \"---INIT---\"; sed -n '1,10p' lore/__init__.py",
+          "exit_code": 0,
+          "output_sha": "762bc6a23487e2e8cecc7b7f4be82ae81e1ca6b31c2b0aa62f1b525bb90ec139"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && sh scripts/check-test-count.sh; echo \"EXIT=$?\"",
+          "exit_code": 0,
+          "output_sha": "6d1aa2a52d3377c1965096e6b3e9417e012af720ef944d6540d0bc609974ec5e"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git rev-parse --short v0.1.0^{commit} v0.2.0^{commit} v0.3.0^{commit}; echo \"---count---\"; git rev-list --count v0.3.0..HEAD; echo \"---v0.2.0 count---\"; git rev-list --count v0.2.0..HEAD",
+          "exit_code": 0,
+          "output_sha": "0ea539416616f0f059003f9188283b8b1b3759afb4ef05e59750150b9d8a7313"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && for t in v0.1.0 v0.2.0 v0.3.0; do echo \"== $t ==\"; git cat-file -t $t; git rev-parse \"$t^{commit}\" 2>&1; git log -1 --format='%h %ad %s' --date=short \"$t^{commit}\" 2>&1; done",
+          "exit_code": 0,
+          "output_sha": "38e7b314eaf790c7a062d228e67cd1b67e7d32d5c38f00bf97a16d1632660e0d"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"0\\.2\\.0\" README.md docs/RELEASE.md | head -40",
+          "exit_code": 0,
+          "output_sha": "f041823dc85d894d2525572b23a9c20d724977595c420313bb595cdd5879d800"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"rev-list --count\" README.md docs/ scripts/ 2>/dev/null | head -20; echo \"=== v0.2.0..HEAD anywhere ===\"; grep -rn \"v0\\.2\\.0\\.\\.HEAD\" . --include=*.md --include=*.sh --include=*.py 2>/dev/null | head",
+          "exit_code": 0,
+          "output_sha": "ebc43518ef01b6732e38094ef76d66093446e93a6700da03f8e5ec2a573456dd"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && uv run pytest -x -q 2>&1 | tail -5; echo \"EXIT=${PIPESTATUS[0]}\"",
+          "exit_code": 2,
+          "output_sha": "323812f585a29bc19169d2990ee7fc8cdc6b5da2da0d85e405218903a6f31cdc"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && uv run pytest -x -q > /tmp/pt.log 2>&1; echo \"EXIT=$?\"; tail -2 /tmp/pt.log",
+          "exit_code": 0,
+          "output_sha": "0447626a7c40a4e44503e02d99a41ac6aab6e174562e3f32d6c43005e6719219"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"0\\.3\\.0\" README.md docs/RELEASE.md | head -20; echo \"=== CHANGELOG 0.3.0 heading ===\"; grep -n \"^## \\[0\\.3\\.0\\]\" CHANGELOG.md",
+          "exit_code": 0,
+          "output_sha": "221c891d663e30c74243238f7bd75b8c7a51a5da4db1eeb140f190a4324fae42"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && sed -n '1,20p' CHANGELOG.md; echo \"=== anchor check ===\"; python3 -c \"\nimport re\nt=open('CHANGELOG.md').read()\nfor m in re.finditer(r'^## \\[([^\\]]+)\\] \u2014 (.+)$', t, re.M):\n    print(repr(m.group(0)))\n\"",
+          "exit_code": 0,
+          "output_sha": "ebe5b19ab1abece5c3e4493ac91b7612b8bf46886ef54dba52c68cfc9d55dc94"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n \"ALLOW\\|allowlist\\|docs/qa/evidence\\|docs/acceptance\" scripts/count_sweep.py | head -20",
+          "exit_code": 0,
+          "output_sha": "3534b1eeda10524a2df2ea9fe3fa53f78bfe773406e14909be8f97c9eb7c1d4e"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && uv run pytest tests/test_readme_links.py tests/test_count_guard.py tests/test_lore022_freshness_docs.py -q 2>&1 | tail -5",
+          "exit_code": 0,
+          "output_sha": "0b3add67a9094bc8f68ba0ef20a0ff2f1a4993c80943586c7a37a1c8cac7be59"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"Two tags exist\\|7 commits\\|counted 2026-11-17\" README.md docs/*.md CONTRIBUTING.md 2>/dev/null | head",
+          "exit_code": 0,
+          "output_sha": "ac4398ad1f7e462fcebbcb8caf9bb5f463a53c9f100b462374eabed95714d6db"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: README.md:381-387 Status names version 0.3.0, released 2026-11-21, tag v0.3.0 (commit c769be4); enumerates v0.1.0 (2026-09-24, c655666), v0.2.0 (2026-11-16, 165cc8f), v0.3.0 (2026-11-21, c769be4); only live-count command is `git rev-list --count v0.3.0..HEAD` (README.md:386). docs/RELEASE.md:7-10 enumerates the same three tags with same dates/commits. Tag commits verified via git: v0.1.0->c655666 (2026-09-24), v0.2.0->165cc8f (2026-11-16), v0.3.0->c769be4 (2026-11-21) \\u2014 all match docs exactly. scripts/check-test-count.sh EXIT=0 \\\"PASS: test-count guard: canonical=588 matches live=588; class-count=13; no stale count literals in living docs\\\". `uv run pytest -x -q` EXIT=0 \\\"588 passed in 11.36s\\\". pyproject.toml:7 version=\\\"0.3.0\\\" == lore/__init__.py:3 __version__=\\\"0.3.0\\\". No stale \\\"Two tags exist\\\"/\\\"7 commits\\\"/\\\"counted 2026-11-17\\\" strings remain in living docs. Remaining v0.2.0..HEAD mentions are only in docs/qa/evidence/* (allowlisted historical evidence per scripts/count_sweep.py:39).\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "34b98b1f3f7c606d7d2487252544af3072831254bb841bb4b7cf6b49bfc47c1f"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"The README Status CHANGELOG anchor link (CHANGELOG.md#030--2026-11-21) resolves to an actual heading in CHANGELOG.md.\", \"key\": \"derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "c801c0cb2f8fd80ade1883098a78b0f65e783ea143280f05154c9086c80c827b"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: CHANGELOG.md:10 has heading `## [0.3.0] \\u2014 2026-11-21`, which GitHub slugs to `#030--2026-11-21` \\u2014 exactly the anchor used at README.md:383. Verified by regex extraction of all `## [X.Y.Z] \\u2014 date` headings; 0.3.0 present.\", \"key\": \"verified_derived_0\"}",
+          "exit_code": 0,
+          "output_sha": "97a10c1d1fd9560de3e875a4f60ee04ec312b2a3cbcb22bd46d0f09d5498a0e7"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"The commit SHAs and dates cited for each tag in README.md and docs/RELEASE.md match the actual git tag objects (git rev-parse <tag>^{commit} + git log -1 --date=short).\", \"key\": \"derived_1\"}",
+          "exit_code": 0,
+          "output_sha": "9af383b0e105eb6cc4932e55d758bb31be8301eb147fd5676237c6b9296322c6"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: `git rev-parse v0.1.0^{commit}` = c6556662c93b..., log date 2026-09-24; v0.2.0 = 165cc8f6d354..., 2026-11-16; v0.3.0 = c769be4265e7..., 2026-11-21. All three match the SHAs/dates written in README.md:381-386 and docs/RELEASE.md:9-10. No fabricated commit references.\", \"key\": \"verified_derived_1\"}",
+          "exit_code": 0,
+          "output_sha": "f6c5ebeca77e15d12d019afb1e69c72260bd13cd2333870a92cf719e4a46d383"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"No living doc (README.md, docs/*.md, CONTRIBUTING.md) still asserts the superseded \\\"Two tags exist\\\" / \\\"7 commits past v0.2.0\\\" / \\\"counted 2026-11-17\\\" claims; the only surviving v0.2.0..HEAD references are in allowlisted historical evidence dirs (docs/qa/evidence/*).\", \"key\": \"derived_2\"}",
+          "exit_code": 0,
+          "output_sha": "5bd59f82e7dc0a01816eb1c041eea762bd63f9ceb99efc5f762388755f97392c"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: grep for \\\"Two tags exist|7 commits|counted 2026-11-17\\\" across README.md docs/*.md CONTRIBUTING.md returned no matches. grep \\\"v0.2.0..HEAD\\\" repo-wide hits only docs/qa/evidence/run-README-12/README.md:45, docs/qa/evidence/run-README-12/2026-11-24-sweep.txt:19, docs/qa/evidence/run-DOC-10/README.md:28,41 \\u2014 all under docs/qa/evidence/*, which scripts/count_sweep.py:39 lists in ALLOWLISTED_PATTERNS as dated historical evidence. check-test-count.sh EXIT=0 confirms the sweep sees no stale literals in living docs.\", \"key\": \"verified_derived_2\"}",
+          "exit_code": 0,
+          "output_sha": "477714385789ddba6d91b4d3e25495bb608e22e4fa782d92ca5fb425881841a1"
+        }
+      ]
+    },
+    "fix_verification": {
+      "id": "fix_verification",
+      "passed": true,
+      "any_failed": false,
+      "summary": "fix_verification: 0 finding(s) verified",
+      "steps": [
+        {
+          "id": "fix_verification",
+          "type": "fix_verification",
+          "passed": true,
+          "output": "fix_verification: 0 finding(s) verified",
+          "error": "",
+          "data": {
+            "dispositions": [],
+            "counts": {}
+          }
+        }
+      ]
+    }
+  },
+  "context_stats": {
+    "diff_source": "first-parent-merge",
+    "diff_bytes": 2286,
+    "prompt_bytes": 18090
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [
+      {
+        "severity": "medium",
+        "file": ".coding-hermes/board/tasks.jsonl",
+        "line": 159,
+        "detection": "row marked status=complete with ci_result=SKIP while peer closed rows in the same file carry ci_result=GREEN",
+        "detail": "DOC-10-R2 is flipped to \"status\":\"complete\" with \"ci_result\":\"SKIP\" and worker_summary admitting \"exact-head CI has not yet produced a run\", whereas the adjacent closed rows LORE-20261013 and INFRA-LORE-046 both record \"ci_result\":\"GREEN\".",
+        "category": "unknown",
+        "fingerprint": "97c4ca3e0550410740329d574dc57177303a99a1b0e27422c933c525d422575e",
+        "state": "ACTIVE",
+        "echo": "[medium][unknown] .coding-hermes/board/tasks.jsonl:159 \u2014 row marked status=complete with ci_result=SKIP while peer closed rows in the same file carry ci_result=GREEN\nDOC-10-R2 is flipped to \"status\":\"complete\" with \"ci_result\":\"SKIP\" and worker_summary admitting \"exact-head CI has not yet produced a run\", whereas the adjacent closed rows LORE-20261013 and INFRA-LORE-046 both record \"ci_result\":\"GREEN\"."
+      },
+      {
+        "severity": "low",
+        "file": ".coding-hermes/board/tasks.jsonl",
+        "line": 159,
+        "detection": "completed_at timestamp precedes the updated_at/evidence timestamp it is supposed to record",
+        "detail": "The row sets \"completed_at\":\"2026-11-28T11:00:00Z\" but \"updated_at\":\"2026-11-28T11:04:15Z\" and the bound evidence entry ts \"2026-11-28T11:04:15Z\", so the close is stamped before the evidence run it cites.",
+        "category": "unknown",
+        "fingerprint": "e767e61aedd3822c2119d120ac20319e34f2d70e6062f73e736c16aa4d33c3a7",
+        "state": "ACTIVE",
+        "echo": "[low][unknown] .coding-hermes/board/tasks.jsonl:159 \u2014 completed_at timestamp precedes the updated_at/evidence timestamp it is supposed to record\nThe row sets \"completed_at\":\"2026-11-28T11:00:00Z\" but \"updated_at\":\"2026-11-28T11:04:15Z\" and the bound evidence entry ts \"2026-11-28T11:04:15Z\", so the close is stamped before the evidence run it cites."
+      }
+    ],
+    "summary": "The board-only change closes DOC-10-R2 consistently with its event row, but records the close as complete with CI explicitly skipped and a completed_at earlier than its own evidence timestamp.",
+    "review_state": {
+      "emitted": [
+        {
+          "severity": "medium",
+          "file": ".coding-hermes/board/tasks.jsonl",
+          "line": 159,
+          "detection": "row marked status=complete with ci_result=SKIP while peer closed rows in the same file carry ci_result=GREEN",
+          "detail": "DOC-10-R2 is flipped to \"status\":\"complete\" with \"ci_result\":\"SKIP\" and worker_summary admitting \"exact-head CI has not yet produced a run\", whereas the adjacent closed rows LORE-20261013 and INFRA-LORE-046 both record \"ci_result\":\"GREEN\".",
+          "category": "unknown",
+          "fingerprint": "97c4ca3e0550410740329d574dc57177303a99a1b0e27422c933c525d422575e",
+          "state": "ACTIVE",
+          "echo": "[medium][unknown] .coding-hermes/board/tasks.jsonl:159 \u2014 row marked status=complete with ci_result=SKIP while peer closed rows in the same file carry ci_result=GREEN\nDOC-10-R2 is flipped to \"status\":\"complete\" with \"ci_result\":\"SKIP\" and worker_summary admitting \"exact-head CI has not yet produced a run\", whereas the adjacent closed rows LORE-20261013 and INFRA-LORE-046 both record \"ci_result\":\"GREEN\"."
+        },
+        {
+          "severity": "low",
+          "file": ".coding-hermes/board/tasks.jsonl",
+          "line": 159,
+          "detection": "completed_at timestamp precedes the updated_at/evidence timestamp it is supposed to record",
+          "detail": "The row sets \"completed_at\":\"2026-11-28T11:00:00Z\" but \"updated_at\":\"2026-11-28T11:04:15Z\" and the bound evidence entry ts \"2026-11-28T11:04:15Z\", so the close is stamped before the evidence run it cites.",
+          "category": "unknown",
+          "fingerprint": "e767e61aedd3822c2119d120ac20319e34f2d70e6062f73e736c16aa4d33c3a7",
+          "state": "ACTIVE",
+          "echo": "[low][unknown] .coding-hermes/board/tasks.jsonl:159 \u2014 completed_at timestamp precedes the updated_at/evidence timestamp it is supposed to record\nThe row sets \"completed_at\":\"2026-11-28T11:00:00Z\" but \"updated_at\":\"2026-11-28T11:04:15Z\" and the bound evidence entry ts \"2026-11-28T11:04:15Z\", so the close is stamped before the evidence run it cites."
+        }
+      ],
+      "carried": []
+    }
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 PROOF: README Status names version 0.3.0, tags v0.1.0/v0.2.0/v0.3.0, and only uses git rev-list --count v0.3.0..HEAD for the live commit count; docs/RELEASE.md enumerates the same tags; scripts/check-test-count.sh, pytest -x -q, and pyproject version agreement pass. FAILIF: any stale 0.2.0-only tag list, any README Status count based on v0.2.0, missing 0.3.0 in either doc, test/count failure, or version mismatch.: README.md:381-387 Status reads \"Development version stamp **0.3.0**, released **2026-11-21** as tag **v0.3.0** (commit `c769be4`)\" and enumerates \"**v0.1.0** (2026-09-24, commit `c655666`), **v0.2.0** (2026-11-16, commit `165cc8f`), and **v0.3.0** (2026-11-21, commit `c769be4`)\"; the only live-count command is README.md:386 `git rev-list --count v0.3.0..HEAD`. docs/RELEASE.md:7-10 enumerates the identical three tags with identical dates/commits. Tag objects verified: `git rev-parse v0.1.0^{commit}`=c655666 (2026-09-24), v0.2.0=165cc8f (2026-11-16), v0.3.0=c769be4 (2026-11-21) \u2014 all match the docs. `sh scripts/check-test-count.sh` exit_code=0, output \"PASS: test-count guard: canonical=588 matches live=588; class-count=13; no stale count literals in living docs\". `uv run pytest -x -q` exit_code=0, output \"588 passed in 11.36s\". Version agreement: pyproject.toml:7 `version = \"0.3.0\"` == lore/__init__.py:3 `__version__ = \"0.3.0\"`. No stale 0.2.0-only tag list remains (grep for \"Two tags exist\"/\"7 commits\"/\"counted 2026-11-17\" in living docs returns nothing).\n  \u2713 The README Status CHANGELOG anchor link (CHANGELOG.md#030--2026-11-21) resolves to an actual heading in CHANGELOG.md.: CHANGELOG.md:10 contains the heading `## [0.3.0] \u2014 2026-11-21`, which GitHub slugs to `#030--2026-11-21` \u2014 exactly the anchor used at README.md:383. Regex extraction of all `## [X.Y.Z] \u2014 date` headings confirms 0.3.0 is present alongside 0.2.0/0.1.2/0.1.1/0.1.0.\n  \u2713 The commit SHAs and dates cited for each tag in README.md and docs/RELEASE.md match the actual git tag objects.: `git rev-parse <tag>^{commit}` + `git log -1 --date=short` gives v0.1.0=c6556662c93b (2026-09-24), v0.2.0=165cc8f6d354 (2026-11-16), v0.3.0=c769be4265e7 (2026-11-21). All three match the SHAs/dates written at README.md:381-386 and docs/RELEASE.md:9-10 \u2014 no fabricated commit references.\n  \u2713 No living doc still asserts the superseded \"Two tags exist\" / \"7 commits past v0.2.0\" / \"counted 2026-11-17\" claims; surviving v0.2.0..HEAD references are confined to allowlisted historical evidence.: grep for \"Two tags exist|7 commits|counted 2026-11-17\" across README.md docs/*.md CONTRIBUTING.md returned no matches. Repo-wide grep for \"v0.2.0..HEAD\" hits only docs/qa/evidence/run-README-12/README.md:45, docs/qa/evidence/run-README-12/2026-11-24-sweep.txt:19, and docs/qa/evidence/run-DOC-10/README.md:28,41 \u2014 all under docs/qa/evidence/*, which scripts/count_sweep.py:39 lists in ALLOWLISTED_PATTERNS as dated historical evidence. check-test-count.sh exit_code=0 independently confirms no stale literals in living docs.\nREADME Status and docs/RELEASE.md both correctly name v0.3.0 with the full v0.1.0/v0.2.0/v0.3.0 tag list, the live count uses only v0.3.0..HEAD, and the count guard, pytest -x -q (588 passed), and pyproject/__init__ version agreement all pass.\n\nStage fix_verification: PASS\n  fix_verification: 0 finding(s) verified\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-28T11:05:57.729869",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-28T11:05:57.818983+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 490,
+        "truncated": false,
+        "source": "git show 5b0251079203"
+      },
+      {
+        "name": "worktree",
+        "label": "Working-tree diff (graded)",
+        "file": "worktree.patch",
+        "bytes": 40892,
+        "truncated": false,
+        "source": "git diff HEAD (working tree)"
+      }
+    ],
+    "task_id": "DOC-10-R2"
+  }
+}

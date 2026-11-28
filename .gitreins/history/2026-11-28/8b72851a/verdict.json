@@ -1,0 +1,351 @@
+{
+  "task_id": "DOC-10-R2",
+  "task_title": "Refresh v0.3.0 version claims in README and release docs",
+  "task_criteria": [
+    "PROOF: README Status names version 0.3.0, tags v0.1.0/v0.2.0/v0.3.0, and only uses git rev-list --count v0.3.0..HEAD for the live commit count; docs/RELEASE.md enumerates the same tags; scripts/check-test-count.sh, pytest -x -q, and pyproject version agreement pass. FAILIF: any stale 0.2.0-only tag list, any README Status count based on v0.2.0, missing 0.3.0 in either doc, test/count failure, or version mismatch."
+  ],
+  "passed": true,
+  "worktree": "/home/kara/get-h3/lore",
+  "branch": "main",
+  "commit": "5b0251079203ce89f2184ab3ca658b951eba4712",
+  "pass_class": "judged",
+  "tier2_skipped": false,
+  "working_tree_content_fingerprint": "9e555d583a6d8b39418f5cff3fa5a5355949641eab0b9e686ae57b7c6848e612",
+  "working_tree_dirty_path_count": 5,
+  "items": [
+    {
+      "criterion": "PROOF: README Status names version 0.3.0, tags v0.1.0/v0.2.0/v0.3.0, and only uses git rev-list --count v0.3.0..HEAD for the live commit count; docs/RELEASE.md enumerates the same tags; scripts/check-test-count.sh, pytest -x -q, and pyproject version agreement pass. FAILIF: any stale 0.2.0-only tag list, any README Status count based on v0.2.0, missing 0.3.0 in either doc, test/count failure, or version mismatch.",
+      "status": "PASS",
+      "detail": "README.md:381-387 Status reads 'Development version stamp **0.3.0**, released **2026-11-21** as tag **v0.3.0** (commit `c769be4`)' and lists 'Tags with GitHub Release objects: **v0.1.0** (2026-09-24, commit `c655666`), **v0.2.0** (2026-11-16, commit `165cc8f`), and **v0.3.0** (2026-11-21, commit `c769be4`)'. The only live-count instruction is README.md:386 'Run `git rev-list --count v0.3.0..HEAD`'; a repo-wide grep for 'rev-list --count' (excluding .venv/.gitreins/history dirs) returns exactly that one line, so no v0.2.0-based count survives. docs/RELEASE.md:7-10 enumerates the same three tags with the same dates/commits ('`v0.1.0` (2026-09-24, commit `c655666`), `v0.2.0` (2026-11-16, commit `165cc8f`), and `v0.3.0` (2026-11-21, commit `c769be4`)'); grep -c '0.3.0' -> docs/RELEASE.md:2, README.md:5. Tag facts verified against git: `git rev-parse --short v0.3.0^{commit}`=c769be4, v0.2.0=165cc8f, v0.1.0=c655666; tag dates 2026-11-21 / 2026-11-16 / 2026-09-24. `sh scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=588 matches live=588; class-count=13; no stale count literals in living docs', exit=0. `uv run pytest -x -q` -> '588 passed in 8.24s'. Version agreement: pyproject.toml:7 version = \"0.3.0\", lore/__init__.py:3 __version__ = \"0.3.0\", uv.lock:232-233 name=\"get-h3-lore\" version=\"0.3.0\", installed metadata check `uv run python -c ...` -> '0.3.0 0.3.0'; tests/test_cli_surface.py:315-345 pins that agreement and passes. No stale 0.2.0-only tag list remains in either doc (grep '0.2.0' in README.md/docs/RELEASE.md returns only the three-tag enumerations). Note: bare `python3 -m pytest -x -q` fails at tests/test_bench.py:34 with ModuleNotFoundError: No module named 'lore' \u2014 an interpreter-environment artifact (lore not installed in that python3), not a repo defect; the project's documented command `uv run pytest -q` (README.md quickstart) passes 588."
+    }
+  ],
+  "merge_recommendation": "no_concerns_found",
+  "stages": {
+    "tier1": {
+      "id": "tier1",
+      "passed": true,
+      "any_failed": false,
+      "summary": "  \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10",
+      "steps": [
+        {
+          "id": "lint",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n",
+          "error": "",
+          "data": {
+            "exit_code": 0
+          }
+        },
+        {
+          "id": "secrets",
+          "type": "script",
+          "passed": true,
+          "output": "secrets: scanners=gitleaks+builtin cross-check\nsecrets: gitleaks bound=timeout 600s (0=off)\nscanners: nice=nice -n 10\nsecrets: gitleaks scope=repo-root /home/kara/get-h3/lore\nsecrets: gitleaks parallelism=GOMAXPROCS=4\n6:01AM INF scanned ~5830264 bytes (5.83 MB) in 5.12s\n6:01AM INF no leaks found\nsecrets: gitleaks: clean\nsecrets: builtin cross-check: Scanned 360 files \u2014 clean (excluded harness state: .gitreins/**)\nsecrets: builtin cross-check status: clean\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "secrets_scanners": [
+              "gitleaks",
+              "builtin"
+            ]
+          }
+        },
+        {
+          "id": "tests",
+          "type": "script",
+          "passed": true,
+          "output": "scanners: nice=nice -n 10\n============================= test session starts ==============================\nplatform linux -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/kara/get-h3/lore\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: platformdirs-4.14.7\ncollected 588 items\n\ntests/test_absorb.py ......................................              [  6%]\ntests/test_absorb_perf.py ..                                             [  6%]\ntests/test_audit_help_docs.py ..                                         [  7%]\ntests/test_bench.py .....                                                [  7%]\ntests/test_classes.py .........                                          [  9%]\ntests/test_classifier.py ............                                    [ 11%]\ntests/test_cli_surface.py ......................                         [ 15%]\ntests/test_compiler.py .............................                     [ 20%]\ntests/test_consult.py ....................                               [ 23%]\ntests/test_count_guard.py .............                                  [ 25%]\ntests/test_dist_name.py ....                                             [ 26%]\ntests/test_evidence.py ......................                            [ 30%]\ntests/test_lore011_drain_acceptance.py .......                           [ 31%]\ntests/test_lore016_qa_audit.py .....................                     [ 35%]\ntests/test_lore017_gateway_guard.py ........                             [ 36%]\ntests/test_lore020_absorb_window.py ...                                  [ 36%]\ntests/test_lore021_naming_docs.py .......                                [ 38%]\ntests/test_lore022_freshness_docs.py .....                               [ 38%]\ntests/test_lore030_ux_guard.py ....                                      [ 39%]\ntests/test_lore034_reap_and_push_classes.py ............                 [ 41%]\ntests/test_lore041_collision_canonical.py ...........                    [ 43%]\ntests/test_lore043_short_text_threshold.py ....................          [ 46%]\ntests/test_lore045_validate_history.py ....................              [ 50%]\ntests/test_lore046_match_output.py ...........                           [ 52%]\ntests/test_lore049_finding_list_guard_failure.py ..........              [ 53%]\n\n\u2026 [800 chars omitted \u2014 10 line(s)] \u2026\ntests/test_lore061_env_absent_rendering.py .......                       [ 66%]\ntests/test_lore063r2_count_sweep_exemption.py .....                      [ 67%]\ntests/test_lore064_audit_wiring.py .............................         [ 72%]\ntests/test_lore066_zero_check_skip.py ...                                [ 73%]\ntests/test_lore067_incident_audit.py ..                                  [ 73%]\ntests/test_lore071_trigger.py ......                                     [ 74%]\ntests/test_lore072_bucket_compiled_by_design.py .....                    [ 75%]\ntests/test_lore_hygiene_evidence_residue.py ..                           [ 75%]\ntests/test_near_miss.py ..............                                   [ 78%]\ntests/test_perf2_audit_single_pass.py ........                           [ 79%]\ntests/test_prom_export.py .......                                        [ 80%]\ntests/test_qalore7_gitignore_evidence.py ..                              [ 80%]\ntests/test_readme_links.py .                                             [ 81%]\ntests/test_review001_gate_record.py ........                             [ 82%]\ntests/test_review002_recall.py ........                                  [ 83%]\ntests/test_review003_env_absent.py .......                               [ 85%]\ntests/test_validate.py ................................................. [ 93%]\n.......................................                                  [100%]\n\n============================= 588 passed in 11.47s =============================\n",
+          "error": "",
+          "data": {
+            "exit_code": 0,
+            "pytest_outcome": {
+              "kind": "passed",
+              "detail": "pytest passed",
+              "first_failing_test": null,
+              "failures": 0,
+              "interrupted": false
+            }
+          }
+        }
+      ],
+      "coverage": "secrets+lint+tests"
+    },
+    "tier2": {
+      "id": "tier2",
+      "passed": true,
+      "any_failed": false,
+      "summary": "COMPLETE\n  \u2713 PROOF: README Status names version 0.3.0, tags v0.1.0/v0.2.0/v0.3.0, and only uses git rev-list --count v0.3.0..HEAD for the live commit count; docs/RELEASE.md enumerates the same tags; scripts/check-test-count.sh, pytest -x -q, and pyproject version agreement pass. FAILIF: any stale 0.2.0-only tag list, any README Status count based on v0.2.0, missing 0.3.0 in either doc, test/count failure, or version mismatch.: README.md:381-387 Status reads 'Development version stamp **0.3.0**, released **2026-11-21** as tag **v0.3.0** (commit `c769be4`)' and lists 'Tags with GitHub Release objects: **v0.1.0** (2026-09-24, commit `c655666`), **v0.2.0** (2026-11-16, commit `165cc8f`), and **v0.3.0** (2026-11-21, commit `c769be4`)'. The only live-count instruction is README.md:386 'Run `git rev-list --count v0.3.0..HEAD`'; a repo-wide grep for 'rev-list --count' (excluding .venv/.gitreins/history dirs) returns exactly that one line, so no v0.2.0-based count survives. docs/RELEASE.md:7-10 enumerates the same three tags with the same dates/commits ('`v0.1.0` (2026-09-24, commit `c655666`), `v0.2.0` (2026-11-16, commit `165cc8f`), and `v0.3.0` (2026-11-21, commit `c769be4`)'); grep -c '0.3.0' -> docs/RELEASE.md:2, README.md:5. Tag facts verified against git: `git rev-parse --short v0.3.0^{commit}`=c769be4, v0.2.0=165cc8f, v0.1.0=c655666; tag dates 2026-11-21 / 2026-11-16 / 2026-09-24. `sh scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=588 matches live=588; class-count=13; no stale count literals in living docs', exit=0. `uv run pytest -x -q` -> '588 passed in 8.24s'. Version agreement: pyproject.toml:7 version = \"0.3.0\", lore/__init__.py:3 __version__ = \"0.3.0\", uv.lock:232-233 name=\"get-h3-lore\" version=\"0.3.0\", installed metadata check `uv run python -c ...` -> '0.3.0 0.3.0'; tests/test_cli_surface.py:315-345 pins that agreement and passes. No stale 0.2.0-only tag list remains in either doc (grep '0.2.0' in README.md/docs/RELEASE.md returns only the three-tag enumerations). Note: bare `python3 -m pytest -x -q` fails at tests/test_bench.py:34 with ModuleNotFoundError: No module named 'lore' \u2014 an interpreter-environment artifact (lore not installed in that python3), not a repo defect; the project's documented command `uv run pytest -q` (README.md quickstart) passes 588.\nREADME Status and docs/RELEASE.md now consistently name v0.3.0 with the full v0.1.0/v0.2.0/v0.3.0 tag list, the only live-count command is `git rev-list --count v0.3.0..HEAD`, and the count guard, `uv run pytest -x -q` (588 passed) and the pyproject/__init__/uv.lock version agreement all pass.",
+      "steps": [
+        {
+          "id": "tier2",
+          "type": "ai_eval",
+          "passed": true,
+          "output": "COMPLETE\n  \u2713 PROOF: README Status names version 0.3.0, tags v0.1.0/v0.2.0/v0.3.0, and only uses git rev-list --count v0.3.0..HEAD for the live commit count; docs/RELEASE.md enumerates the same tags; scripts/check-test-count.sh, pytest -x -q, and pyproject version agreement pass. FAILIF: any stale 0.2.0-only tag list, any README Status count based on v0.2.0, missing 0.3.0 in either doc, test/count failure, or version mismatch.: README.md:381-387 Status reads 'Development version stamp **0.3.0**, released **2026-11-21** as tag **v0.3.0** (commit `c769be4`)' and lists 'Tags with GitHub Release objects: **v0.1.0** (2026-09-24, commit `c655666`), **v0.2.0** (2026-11-16, commit `165cc8f`), and **v0.3.0** (2026-11-21, commit `c769be4`)'. The only live-count instruction is README.md:386 'Run `git rev-list --count v0.3.0..HEAD`'; a repo-wide grep for 'rev-list --count' (excluding .venv/.gitreins/history dirs) returns exactly that one line, so no v0.2.0-based count survives. docs/RELEASE.md:7-10 enumerates the same three tags with the same dates/commits ('`v0.1.0` (2026-09-24, commit `c655666`), `v0.2.0` (2026-11-16, commit `165cc8f`), and `v0.3.0` (2026-11-21, commit `c769be4`)'); grep -c '0.3.0' -> docs/RELEASE.md:2, README.md:5. Tag facts verified against git: `git rev-parse --short v0.3.0^{commit}`=c769be4, v0.2.0=165cc8f, v0.1.0=c655666; tag dates 2026-11-21 / 2026-11-16 / 2026-09-24. `sh scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=588 matches live=588; class-count=13; no stale count literals in living docs', exit=0. `uv run pytest -x -q` -> '588 passed in 8.24s'. Version agreement: pyproject.toml:7 version = \"0.3.0\", lore/__init__.py:3 __version__ = \"0.3.0\", uv.lock:232-233 name=\"get-h3-lore\" version=\"0.3.0\", installed metadata check `uv run python -c ...` -> '0.3.0 0.3.0'; tests/test_cli_surface.py:315-345 pins that agreement and passes. No stale 0.2.0-only tag list remains in either doc (grep '0.2.0' in README.md/docs/RELEASE.md returns only the three-tag enumerations). Note: bare `python3 -m pytest -x -q` fails at tests/test_bench.py:34 with ModuleNotFoundError: No module named 'lore' \u2014 an interpreter-environment artifact (lore not installed in that python3), not a repo defect; the project's documented command `uv run pytest -q` (README.md quickstart) passes 588.\nREADME Status and docs/RELEASE.md now consistently name v0.3.0 with the full v0.1.0/v0.2.0/v0.3.0 tag list, the only live-count command is `git rev-list --count v0.3.0..HEAD`, and the count guard, `uv run pytest -x -q` (588 passed) and the pyproject/__init__/uv.lock version agreement all pass.",
+          "error": "",
+          "data": {
+            "verdict": "COMPLETE",
+            "items": [
+              {
+                "criterion": "PROOF: README Status names version 0.3.0, tags v0.1.0/v0.2.0/v0.3.0, and only uses git rev-list --count v0.3.0..HEAD for the live commit count; docs/RELEASE.md enumerates the same tags; scripts/check-test-count.sh, pytest -x -q, and pyproject version agreement pass. FAILIF: any stale 0.2.0-only tag list, any README Status count based on v0.2.0, missing 0.3.0 in either doc, test/count failure, or version mismatch.",
+                "status": "PASS",
+                "detail": "README.md:381-387 Status reads 'Development version stamp **0.3.0**, released **2026-11-21** as tag **v0.3.0** (commit `c769be4`)' and lists 'Tags with GitHub Release objects: **v0.1.0** (2026-09-24, commit `c655666`), **v0.2.0** (2026-11-16, commit `165cc8f`), and **v0.3.0** (2026-11-21, commit `c769be4`)'. The only live-count instruction is README.md:386 'Run `git rev-list --count v0.3.0..HEAD`'; a repo-wide grep for 'rev-list --count' (excluding .venv/.gitreins/history dirs) returns exactly that one line, so no v0.2.0-based count survives. docs/RELEASE.md:7-10 enumerates the same three tags with the same dates/commits ('`v0.1.0` (2026-09-24, commit `c655666`), `v0.2.0` (2026-11-16, commit `165cc8f`), and `v0.3.0` (2026-11-21, commit `c769be4`)'); grep -c '0.3.0' -> docs/RELEASE.md:2, README.md:5. Tag facts verified against git: `git rev-parse --short v0.3.0^{commit}`=c769be4, v0.2.0=165cc8f, v0.1.0=c655666; tag dates 2026-11-21 / 2026-11-16 / 2026-09-24. `sh scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=588 matches live=588; class-count=13; no stale count literals in living docs', exit=0. `uv run pytest -x -q` -> '588 passed in 8.24s'. Version agreement: pyproject.toml:7 version = \"0.3.0\", lore/__init__.py:3 __version__ = \"0.3.0\", uv.lock:232-233 name=\"get-h3-lore\" version=\"0.3.0\", installed metadata check `uv run python -c ...` -> '0.3.0 0.3.0'; tests/test_cli_surface.py:315-345 pins that agreement and passes. No stale 0.2.0-only tag list remains in either doc (grep '0.2.0' in README.md/docs/RELEASE.md returns only the three-tag enumerations). Note: bare `python3 -m pytest -x -q` fails at tests/test_bench.py:34 with ModuleNotFoundError: No module named 'lore' \u2014 an interpreter-environment artifact (lore not installed in that python3), not a repo defect; the project's documented command `uv run pytest -q` (README.md quickstart) passes 588."
+              }
+            ],
+            "summary": "README Status and docs/RELEASE.md now consistently name v0.3.0 with the full v0.1.0/v0.2.0/v0.3.0 tag list, the only live-count command is `git rev-list --count v0.3.0..HEAD`, and the count guard, `uv run pytest -x -q` (588 passed) and the pyproject/__init__/uv.lock version agreement all pass.",
+            "provenance": {
+              "model": "deepseek-flash",
+              "base_url_source": "GITREINS_LLM_BASE_URL",
+              "api_key_source": "GITREINS_LLM_API_KEY"
+            },
+            "context_stats": {
+              "diff_source": "first-parent-merge",
+              "diff_bytes": 2286,
+              "prompt_bytes": 18090
+            }
+          }
+        }
+      ],
+      "model": "deepseek-flash",
+      "base_url_source": "GITREINS_LLM_BASE_URL",
+      "api_key_source": "GITREINS_LLM_API_KEY",
+      "context_stats": {
+        "diff_source": "first-parent-merge",
+        "diff_bytes": 2286,
+        "prompt_bytes": 18090
+      },
+      "tool_calls": [
+        {
+          "tool": "get_task_item",
+          "command": "get_task_item {\"id\": \"DOC-10-R2\"}",
+          "exit_code": 0,
+          "output_sha": "58363e21c73c5b448c0875c0ae3a306be6e0a9f2421d4f25c13aa2db8160f5ef"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git log --oneline -5 && git status --short | head -20",
+          "exit_code": 0,
+          "output_sha": "d0b3a33eb9cd5a408bd1b6478e416ed11d4e9045607923c9a7ca050932a597b7"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && sed -n '370,420p' README.md",
+          "exit_code": 0,
+          "output_sha": "b25cfc2c4b5a71ff83cbed59c264e9dd0fd3699bb2c42e96e5602ecbffc2c088"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n \"0\\.2\\.0\\|0\\.3\\.0\\|rev-list\" README.md docs/RELEASE.md",
+          "exit_code": 0,
+          "output_sha": "8a890c0394a8d0b5a5e8f0ee515ccc59d80e9d8df2424db5f5d26e2eed9babc3"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && cat scripts/check-test-count.sh; echo \"---\"; grep -n \"version\" pyproject.toml | head -5; echo \"---\"; sed -n '1,10p' lore/__init__.py",
+          "exit_code": 0,
+          "output_sha": "e17511505c9d0ed7b19474ac04420cd20e4292e2e293dea9e3ef2f8d6a4e40ca"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git tag -l && echo \"---\" && git rev-list --count v0.3.0..HEAD && echo \"---\" && git rev-list --count v0.2.0..HEAD",
+          "exit_code": 0,
+          "output_sha": "4f5d2506c20082ea7de726deaff97def5c41d5d807beac49485dcca3d1b4b70d"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && sh scripts/check-test-count.sh; echo \"exit=$?\"",
+          "exit_code": 0,
+          "output_sha": "24aec166e66a120d459294c482c5f43c228765177e6d1a0833b8ba38de8b7974"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n \"0.3.0\\|0.2.0\" CHANGELOG.md | head -20",
+          "exit_code": 0,
+          "output_sha": "a432f9e245f37d1d41a0495a61d8aa3fb22428667ab69e89f74245d5a1051145"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && sed -n '1,70p' CHANGELOG.md",
+          "exit_code": 0,
+          "output_sha": "043f351d8100e11f1ac9c83722b7f6b590e0b926fa98ce9dfd9acb4ccb24d13f"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git show v0.3.0 --stat --oneline | head -5; git rev-parse --short v0.3.0^{commit}; git rev-parse --short v0.2.0^{commit}; git rev-parse --short v0.1.0^{commit}",
+          "exit_code": 0,
+          "output_sha": "94adddd69b9a8878818d2d0679ebf77c9192f3ccadc6ad58dabbe34125d5f3f0"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && git log -1 --format='%ai' v0.3.0; git log -1 --format='%ai' v0.2.0; git log -1 --format='%ai' v0.1.0",
+          "exit_code": 0,
+          "output_sha": "6045ec0317741052fd0ed77a7419f9a631b1f3253e48b3748b7fd4c28151d604"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"0\\.2\\.0\" --include=*.md --include=*.py --include=*.sh --include=*.toml . | grep -v \"\\.gitreins\\|CHANGELOG.md\\|docs/dogfood\\|docs/acceptance\\|docs/qa/evidence\\|\\.coding-hermes\" | head -30",
+          "exit_code": 0,
+          "output_sha": "699cf123e83f8eebd01ce1be5d16768eab52b605169f69ac457dfae9c91771e1"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"rev-list --count\" --include=*.md --include=*.py --include=*.sh . | grep -v \"\\.venv\\|\\.gitreins\\|docs/dogfood\\|docs/acceptance\\|docs/qa/evidence\" | head -20",
+          "exit_code": 0,
+          "output_sha": "faac053d2eba17db46b7499d5c4e89b9669e58c30b437973f1476f0854c00d87"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"0\\.3\\.0\\|0\\.2\\.0\" tests/*.py | head -30",
+          "exit_code": 0,
+          "output_sha": "e4ec419efec9b9ff35bf97f2bbfd7db5bab57d68a0f6418ad642fd89bca2e320"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"Status\\|RELEASE.md\\|__version__\" tests/*.py | head -30",
+          "exit_code": 0,
+          "output_sha": "d40e69ba413a6ba762d367adaa236edb082db3888d7fedb956cc339c502acb69"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && cat tests/test_readme_links.py | head -60; echo \"=== dist_name ===\"; cat tests/test_dist_name.py | head -60",
+          "exit_code": 0,
+          "output_sha": "782cbd0a8f6499ada31869235e006ac4ff4953f694842f121ebfe4376bdae94e"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && sed -n '300,345p' tests/test_cli_surface.py",
+          "exit_code": 0,
+          "output_sha": "35e77cc19ad2fff41c332442f61f81e09d0a885ac376615770ca24c2545d6c72"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && timeout 600 python3 -m pytest -x -q 2>&1 | tail -5; echo \"exit=$?\"",
+          "exit_code": 0,
+          "output_sha": "5798ce516854b9c043fe29dae024c6aee13df517e1fe7b01591bb955b51e23d7"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && sed -n '1,60p' tests/test_bench.py",
+          "exit_code": 0,
+          "output_sha": "ec5b1a95943742a8614bc1e9a0331c432a1f5c7198d5f6354af5221fab429906"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && timeout 600 python3 -m pytest -x -q 2>&1 | head -40",
+          "exit_code": 0,
+          "output_sha": "0647bdee2db7c869f4a1c8942da327da74674caad947634cf0ac7dbe8026a503"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && timeout 900 uv run pytest -x -q 2>&1 | tail -8",
+          "exit_code": 0,
+          "output_sha": "918cad056aab1cba23c45219f268294ef4e1bb9136d92c428b44a13076b1f94b"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n \"0\\.3\\.0\\|0\\.2\\.0\\|version\" uv.lock | head -10; echo \"=== installed ===\"; uv run python -c \"import importlib.metadata, lore; print(lore.__version__, importlib.metadata.version('get-h3-lore'))\"",
+          "exit_code": 0,
+          "output_sha": "aff85da9382a8d6050133f2350941a127c5707859be07208012d15fb346ccaec"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"0\\.2\\.0\" docs/*.md | head -20; echo \"=== INSTALL ===\"; grep -n \"0\\.3\\.0\\|0\\.2\\.0\" docs/INSTALL.md",
+          "exit_code": 1,
+          "output_sha": "53f5ff6aa450d4077a61dfec0f8733998fe04c214e076cb8ca2138087fbb308d"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -n -A3 'name = \"get-h3-lore\"' uv.lock",
+          "exit_code": 0,
+          "output_sha": "f26b48fd1b1313faef23d17af2932a72d4840611b27bdaa3960a8a004a256183"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"0\\.2\\.0\" docs/release-evidence/v0.3.0-notes.md | head; echo \"=== notes head ===\"; sed -n '1,40p' docs/release-evidence/v0.3.0-notes.md",
+          "exit_code": 0,
+          "output_sha": "3d7d65f5b297ac47847c5e0f70c5e470d8f70e984ba78c4e1e89c56d4c055899"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"0\\.2\\.0\" docs/RELEASE.md README.md docs/INSTALL.md docs/RUNBOOK-STORE.md CONTRIBUTING.md 2>/dev/null",
+          "exit_code": 0,
+          "output_sha": "2c3e23f25bf17a81eecce49036b109c2bfe8c5a44abe98862ea7b44774278908"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"v0\\.2\\.0\\|v0\\.3\\.0\" --include=*.md . | grep -v \"\\.venv\\|\\.gitreins\\|CHANGELOG.md\\|docs/dogfood\\|docs/acceptance\\|docs/qa/evidence\\|\\.coding-hermes\" | head -20",
+          "exit_code": 0,
+          "output_sha": "bfc10e864bf3ed23f95aa906a263c1055091e7509762a6adbc5aeef37cf7cfa1"
+        },
+        {
+          "tool": "sandbox_write",
+          "command": "sandbox_write {\"content\": \"PASS: README.md:381-387 Status names 0.3.0/v0.3.0, lists v0.1.0/v0.2.0/v0.3.0, only rev-list ref is `git rev-list --count v0.3.0..HEAD` (README.md:386; grep for \\\"rev-list --count\\\" across repo returns only that line). docs/RELEASE.md:7-10 enumerates v0.1.0/v0.2.0/v0.3.0 with matching dates+commits (git rev-parse: c769be4/165cc8f/c655666; tag dates 2026-11-21/11-16/09-24). scripts/check-test-count.sh -> \\\"PASS: test-count guard: canonical=588 matches live=588; class-count=13; no stale count literals in living docs\\\" exit=0. `uv run pytest -x -q` -> \\\"588 passed in 8.24s\\\". Version agreement: pyproject.toml:7 version=\\\"0.3.0\\\", lore/__init__.py:3 __version__=\\\"0.3.0\\\", uv.lock:232-233 get-h3-lore 0.3.0, installed metadata 0.3.0 (uv run python -c ... -> \\\"0.3.0 0.3.0\\\"). No stale 0.2.0-only tag list remains in README/RELEASE.md. Note: bare `python3 -m pytest -x -q` fails at tests/test_bench.py:34 with ModuleNotFoundError: No module named 'lore' \\u2014 environment artifact (lore not installed in that interpreter); the project's documented command `uv run pytest -q` passes 588.\", \"key\": \"verified_0\"}",
+          "exit_code": 0,
+          "output_sha": "88504750f29be9c4287450ef70a50f91efd30ec7f89a7f4356c1987276270e19"
+        },
+        {
+          "tool": "run_command",
+          "command": "cd /home/kara/get-h3/lore && grep -rn \"0\\.2\\.0\" docs/RELEASE.md; echo \"---\"; grep -c \"0.3.0\" docs/RELEASE.md README.md",
+          "exit_code": 0,
+          "output_sha": "d8ecc4ef6dbd670a12bcd2f351e87bc8c3950b6f31060f3ed6424e3169de9631"
+        }
+      ]
+    },
+    "fix_verification": {
+      "id": "fix_verification",
+      "passed": true,
+      "any_failed": false,
+      "summary": "fix_verification: 0 finding(s) verified",
+      "steps": [
+        {
+          "id": "fix_verification",
+          "type": "fix_verification",
+          "passed": true,
+          "output": "fix_verification: 0 finding(s) verified",
+          "error": "",
+          "data": {
+            "dispositions": [],
+            "counts": {}
+          }
+        }
+      ]
+    }
+  },
+  "context_stats": {
+    "diff_source": "first-parent-merge",
+    "diff_bytes": 2286,
+    "prompt_bytes": 18090
+  },
+  "review": {
+    "reviewer_email": "totalwindupflightsystems@gmail.com",
+    "reviewer_name": "totalwindupflightsystems",
+    "commit_author_email": "totalwindupflightsystems@gmail.com",
+    "commit_author_name": "totalwindupflightsystems",
+    "self_review": true,
+    "findings": [],
+    "summary": "",
+    "error": "no diff to review (clean tree, no commit anchor)",
+    "review_state": {
+      "emitted": [],
+      "carried": []
+    }
+  },
+  "summary": "Stage tier1: PASS\n    \u2713 lint: scanners: nice=nice -n 10\n  \u2713 secrets: secrets: scanners=gitleaks+builtin cross-check\n  \u2713 tests: scanners: nice=nice -n 10\n\nStage tier2: PASS\n  COMPLETE\n  \u2713 PROOF: README Status names version 0.3.0, tags v0.1.0/v0.2.0/v0.3.0, and only uses git rev-list --count v0.3.0..HEAD for the live commit count; docs/RELEASE.md enumerates the same tags; scripts/check-test-count.sh, pytest -x -q, and pyproject version agreement pass. FAILIF: any stale 0.2.0-only tag list, any README Status count based on v0.2.0, missing 0.3.0 in either doc, test/count failure, or version mismatch.: README.md:381-387 Status reads 'Development version stamp **0.3.0**, released **2026-11-21** as tag **v0.3.0** (commit `c769be4`)' and lists 'Tags with GitHub Release objects: **v0.1.0** (2026-09-24, commit `c655666`), **v0.2.0** (2026-11-16, commit `165cc8f`), and **v0.3.0** (2026-11-21, commit `c769be4`)'. The only live-count instruction is README.md:386 'Run `git rev-list --count v0.3.0..HEAD`'; a repo-wide grep for 'rev-list --count' (excluding .venv/.gitreins/history dirs) returns exactly that one line, so no v0.2.0-based count survives. docs/RELEASE.md:7-10 enumerates the same three tags with the same dates/commits ('`v0.1.0` (2026-09-24, commit `c655666`), `v0.2.0` (2026-11-16, commit `165cc8f`), and `v0.3.0` (2026-11-21, commit `c769be4`)'); grep -c '0.3.0' -> docs/RELEASE.md:2, README.md:5. Tag facts verified against git: `git rev-parse --short v0.3.0^{commit}`=c769be4, v0.2.0=165cc8f, v0.1.0=c655666; tag dates 2026-11-21 / 2026-11-16 / 2026-09-24. `sh scripts/check-test-count.sh` -> 'PASS: test-count guard: canonical=588 matches live=588; class-count=13; no stale count literals in living docs', exit=0. `uv run pytest -x -q` -> '588 passed in 8.24s'. Version agreement: pyproject.toml:7 version = \"0.3.0\", lore/__init__.py:3 __version__ = \"0.3.0\", uv.lock:232-233 name=\"get-h3-lore\" version=\"0.3.0\", installed metadata check `uv run python -c ...` -> '0.3.0 0.3.0'; tests/test_cli_surface.py:315-345 pins that agreement and passes. No stale 0.2.0-only tag list remains in either doc (grep '0.2.0' in README.md/docs/RELEASE.md returns only the three-tag enumerations). Note: bare `python3 -m pytest -x -q` fails at tests/test_bench.py:34 with ModuleNotFoundError: No module named 'lore' \u2014 an interpreter-environment artifact (lore not installed in that python3), not a repo defect; the project's documented command `uv run pytest -q` (README.md quickstart) passes 588.\nREADME Status and docs/RELEASE.md now consistently name v0.3.0 with the full v0.1.0/v0.2.0/v0.3.0 tag list, the only live-count command is `git rev-list --count v0.3.0..HEAD`, and the count guard, `uv run pytest -x -q` (588 passed) and the pyproject/__init__/uv.lock version agreement all pass.\n\nStage fix_verification: PASS\n  fix_verification: 0 finding(s) verified\n\nOverall: PASS \u2713",
+  "evaluated_at": "2026-11-28T11:02:05.680505",
+  "supersedes": null,
+  "superseded_by": null,
+  "evidence": {
+    "collected_at": "2026-11-28T11:02:05.729704+00:00",
+    "items": [
+      {
+        "name": "patch",
+        "label": "Landed commit patch",
+        "file": "commit.patch",
+        "bytes": 490,
+        "truncated": false,
+        "source": "git show 5b0251079203"
+      }
+    ],
+    "task_id": "DOC-10-R2"
+  }
+}
